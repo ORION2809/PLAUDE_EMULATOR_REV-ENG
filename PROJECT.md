@@ -53,19 +53,125 @@ that sentence or to prove the pipeline behind it is real.
 Layers 1 and 2 are independent and can be built in parallel. 3 depends on 2. 4 is last
 and cheapest.
 
-## 4. Validation ladder — the README's checkmarks
+## 4. Milestones
+
+Two different things used to share the labels R1–R6, which made "R3" ambiguous
+(file-sync reconstruction, or the real-SDK integration?). They are now separate.
+
+### 4a. Reconstruction milestones — what we have recovered and emulate
+
+A milestone is **FROZEN — AUDITED** only when: the implementation exists, tests
+exist, the tests challenge failure modes, the docs agree with the code, evidence
+supports every claim, unknowns are explicitly preserved, no circular validation
+dominates, `reference/**` is unchanged, and the repo is clean. Otherwise
+**PARTIAL — NOT FROZEN**.
+
+| | Milestone | Status | Evidence |
+|---|---|---|---|
+| R1a | `getState` — opcode 3, 18-byte GetStateRsp | FROZEN — AUDITED | DIRECT |
+| R1b | `getStorage` — opcode 6, u64 free@3/total@11/duration@19; plus `battStatus` opcode 9 | FROZEN — AUDITED | DIRECT layout/names; units UNKNOWN |
+| R1c | `syncTime` — opcode 4, u32le unix + **i8** tzH + **i8** tzM; MTU | FROZEN — AUDITED | DIRECT |
+| R1d | Connection lifecycle, both platforms, handshake boundary guarded | FROZEN — AUDITED | SOURCE-DERIVED |
+| R1e | Advertising: `u4.a(ScanResult)` parse rules and the portVersion declaration | FROZEN — AUDITED | SOURCE-DERIVED; which branch real hardware takes is UNKNOWN |
+| R2a | BLE handshake, **device side, legacy path** — the emulator answers k3/j3 with l3 and w2 with x2, and reaches BOUND | FROZEN — AUDITED | DIRECT; accepting any token is POLICY |
+| R2b | BLE handshake, **client side / portVersion ≥ 20** — marker framing, chunking, secret package, ChaCha envelope | **PARTIAL — NOT FROZEN**, structurally blocked | layouts DIRECT; **credentials are cloud-issued** |
+| R3 | Recording/file sync — syncFile, stopSync, file list, resume, delete | FROZEN — AUDITED | DIRECT after 5 corrections |
+| R4-S1 | Transport seam for real-SDK integration — SDK call chain traced, seam identified at the virtual-controller (netsim) layer, no replaceable GATT abstraction inside the SDK | COMPLETE — SEAM IDENTIFIED, INTEGRATION BLOCKED (pending: template APK build with valid partner token, booted AVD, `bumble[android]` wiring) | SOURCE-DERIVED; ledger §13 |
+| R4-S2 | Android↔netsim↔Bumble transport spike — generic ping/pong app on AVD ↔ Bumble peripheral, both directions evidenced in logs | COMPLETE — VERIFIED (`r4-s2/`, disposable) | logcat + Bumble logs, 2026-09-22 |
+| R4-S3 | Real Plaud Android SDK against the Bumble emulator — scan→connect→MTU 517→discover→subscribe 2BB0→first_handshake, stopping at `bind_token_empty` (no partner token) | COMPLETE — PLAUD SDK REACHED BLE RUNTIME (`r4-s3/`, disposable) | logcat + Bumble ATT logs, 2026-09-22 |
+| R4-S4 | Credential provenance — token chain traced to `local.properties`/Settings override → `initSDK` → gen-key/sn-sign; placeholders only in repo, no test-credential mechanism | COMPLETE — LEGITIMATE CREDENTIAL UNAVAILABLE (`r4-s4/`, read-only) | source trace, 2026-09-22 |
+| R5-S1 | SDK↔peripheral GATT audit — single-peripheral re-run reaches `first_handshake → bind_token_empty` with full 1910/2BB0+CCCD/2BB1/180F discovery in the Android GATT DB and CCCD 0200 on Bumble; no peripheral change | COMPLETE — SDK GATT BOUNDARY MATCHED (`r5-s1/`, disposable) | logcat + Bumble ATT logs, 2026-09-22 |
+| R5-S2 | First-handshake outbound audit — `q.a` guard precedes any k3 build; construction (packHead/255/stage-iff-pv≥3/width-iff-pv≥9/`'0'`-pad/u4.b trim) and write path (1910/2BB1, with-response, waiters {1,2}) re-derived from javap; agrees with R2/R2a | COMPLETE — HANDSHAKE CONSTRUCTION AUDITED (`r5-s2/`, read-only) | local mechanical verifier, 2026-09-22 |
+| R5-S3 | Second-handshake audit — `d0` sole caller is the x2 branch (r3.e gate); `e/i`+`f/j` provenance traced to `t3.a` params (template leaves both `""`); l3 status 0 → `c0()` → m7 syncTime; no contradiction | COMPLETE — J3 STRUCTURE AUDITED (`r5-s3/`, read-only) | local mechanical verifier, 2026-09-22 |
+| R5-S4 | l3/response-transition audit — unguarded status@3/pv@4/tz@6, guard ladder 8–12, end-read LE u24 version, Java defaults; status 0 → `old_protocol_ok` → `c0()` → m7 (9 B, signed tz); no contradiction | COMPLETE — L3 AND POST-HANDSHAKE PATH AUDITED (`r5-s4/`, read-only) | local mechanical verifier, 2026-09-22 |
+| R5-S5 | Modern-handshake audit — set_data_notify → `z.y()` → pv≥20 → `n()`/`a0()` marker pre-handshake → RSA-established J/K/L → shared post-key methods with per-frame ChaCha seal; no contradiction | COMPLETE — MODERN HANDSHAKE AUDITED (`r5-s5/`, read-only) | local mechanical verifier, 2026-09-22 |
+| R5-S6 | Sealed-transport audit — M=1→pre-increment/seq (first sealed seq 2), N=-1→accept-and-set, seq-inside-AEAD proven by stack accounting, queue-add returns, no transport ACK; no contradiction | COMPLETE — MODERN TRANSPORT SEMANTICS AUDITED (`r5-s6/`, read-only) | local mechanical verifier, 2026-09-22 |
+| R5-S7 | First sealed slice — synthetic J/K/L fixture, M/N wired per R5-S6, sealed GetState req seq 2 → rsp seq 3 in-process and over Bumble GATT (replay dropped, AEAD failure leaves N); RFC 8439 vector pins the AEAD wiring | COMPLETE — MODERN SEALED GETSTATE ROUND-TRIP VERIFIED (`r5-s7/`, synthetic test-only, no credentials) | new verifier + 16 tests, 2026-09-23 |
+| R5-S8 | Independent sealed endpoints — M_host/N_host + M_device/N_device (first TX 2 each side); sealed FileList (totals/session/size/scene/attribute) + sealed SyncFile (HEAD + type-2 DATA + TAIL/CRC, payload reassembled) over frozen R3 framing; replay/stale/tamper + Bumble GATT legs | COMPLETE — INDEPENDENT SEALED FILE SYNC VERIFIED (`r5-s8/`, synthetic test-only, no credentials) | new verifier + 18 tests, 2026-09-23 |
+| R5-S9 | Synthetic modern handshake-to-filesync — test-only pv≥20 peripheral (FE10/FE20→FE11→FE12→RSA→J/K/L→sealed); FE20 index-0 clear; sealed GetState/FileList/SyncFile with independent counters; inners byte-identical frozen R3; replay/tamper; all over Bumble GATT | COMPLETE — MODERN SYNTHETIC HANDSHAKE-TO-FILESYNC INTEGRATED (`r5-s9/`, synthetic test-only, no credentials) | new verifier + 7 tests, 2026-09-23 |
+| R5-S10 | FE11/timing audit — marker-only validation, last-chunk gating, newest-match-wins with eviction, FE11-before-final-chunk swallowed, no-dedup retransmit, 1 s/-98 transport + 10 s/30 s global timeouts, FE20 device effect UNKNOWN (G touched only in z.y()); zero emulator changes | COMPLETE — FE11/TIMING MECHANICALLY AUDITED (`r5-s10/`, read-only, javap) | new verifier + 1 test, 2026-09-23 |
+| R5-S11 | Uncertainty isolation — 33-behavior matrix (15/3/4/5/6 across SDK/INTEGRATION/INFERRED/POLICY/UNKNOWN); ModernProfile isolates fe20-clear/fe11-payload/device-TX-start; raw-authoritative trace schema + golden replay + emulator-vs-future comparison kinds; R5-S9 defaults unchanged | COMPLETE — MODERN UNCERTAINTY ISOLATED AND TRACE-READY (`r5-s11/`, synthetic only) | new verifier + 9 tests, 2026-09-23 |
+| R6-S1 | Audio-path archaeology — BLE→file→decrypt→Ogg/Opus→PCM chain traced (o4/v3 passthrough, AudioExporter file path evidenced; g4/h4/k4/l4/m4/n4 + OggOpusParser + header/RSA/ChaCha contracts recovered); `audio.py` implements proven Java-layer contracts only; no decoder executed (no libopus here), no Plaud audio bytes in repo | COMPLETE — AUDIO CONTRACT PARTIALLY RECONSTRUCTED (`r6-s1/`, synthetic fixtures only) | new verifier + 16 tests, 2026-09-23 |
+| R6-S2 | Independent validation — PyAV/libopus fixtures (16 kHz mono/stereo, 32 kbps CBR, sha-pinned, SYNTHETIC); R6 extraction byte-identical to demuxer; extracted packets decode independently (960 samples @48 kHz); full-decode correlation 0.9999; standard Ogg shown structurally distinct from h4 wire framing | COMPLETE — GENERIC OGG/OPUS VERIFIED; PLAUD FORMAT REMAINS UNCONFIRMED (`r6-s2/`) | new verifier + 10 tests, 2026-09-23 |
+| R6-S3 | Authentic-fixture discovery sweep — whole worktree searched (audio globs, large binaries, SDK res/raw, iOS Resources, templates, third-party, git history); candidates classified+hashed (opik e2e media, xiaozhi TTS prompts, riffado sample.mp3, upstream assets all rejected with reasons); SDK ships zero audio resources; no code/tests added per stop rules | COMPLETE — NO AUTHENTIC PLAUD AUDIO FIXTURE FOUND; EXTERNAL EVIDENCE REQUIRED (`r6-s3/`, read-only) | discovery record only, 2026-09-23 |
+| R6-S4 | Ingestion readiness — new-file scan since R6-S3 returns only project outputs; no legitimate external recording available; stop per stop rule (no synthetic fixture, no pipeline change); ingestion path + evidence requirements documented | BLOCKED — AUTHENTIC PLAUD RECORDING NOT AVAILABLE (`r6-s4/`, readiness note only) | readiness record only, 2026-09-23 |
+| R7-S12a | Genuine SDK k3 over android-netsim — `recoveryConnectBleDevice(device, synthetic id)` builds k3 byte-exact vs `build_k3`; emulator accepts it; `bleBind status=0`; empty-id falsifier writes nothing; truncation confirmed | COMPLETE — RUNTIME_PROVEN + EMULATOR_INTEGRATION_PROVEN (`r7/r7-s12-k3-runtime-capture.md`) | 4 runtime runs + 8 tests, 2026-09-23 |
+| R7-S12b | Opcode 8 CommonSettings (q0→r0) discovered at runtime and fully resolved — 21-entry non-ordinal CommonType table, consumer `q.f`; two READs RUNTIME_PROVEN | COMPLETE — OPCODE 8 RECONSTRUCTED + IMPLEMENTED (ledger §5.12) | 19 tests, 2026-09-23 |
+| R7-S12c | Cloud endpoint inventory — 50 endpoints across 5 surfaces, static only, none exercised; cloud≠local-writer distinction fixed | COMPLETE — CLOUD_OBSERVED, ALL EXTERNALLY BLOCKED (`r7/cloud-endpoint-inventory.md`) | inventory, 2026-09-23 |
+| R7-S12d | Corrections — R3 resend is BYTECODE_PROVEN (gap→restart, stopSync only on 5 s timeout); AES-GCM scoped Wi-Fi-only; opcode 138 added to ledger; bleBind facade quirk proven | COMPLETE — LEDGER RECONCILED | ledger §5.8/§5.9/§4.3/§5.13/§14 |
+
+**R2 splits in two, and earlier work had collapsed both halves into one
+"blocked".** `q.b0()` goes straight to first_handshake whenever the *advertised*
+portVersion is below 20, and first_handshake's only precondition is a non-empty
+token string — no key, no signature, no cryptography at all. So the legacy
+handshake is: the host sends a token, and the **device** returns a status.
+
+* Binding a client **we** wrote to **real Plaud hardware** — blocked, structurally.
+  Plaud's cloud issues the RSA key pair (`/sdk/gen-key` returns the *private*
+  key), the SN signature (`/sdk/sn-sign`) and the 32-hex token.
+* Binding **Plaud's real client** to a device **we** wrote — **not blocked.**
+  Accepting the token is the device's decision, and we are the device.
+
+The emulator implements the device side and reaches BOUND. Accepting any token is
+HARNESS POLICY, labelled as such; `accept_any_token=False` drives the refusal
+path. `PlaudPeripheral` still refuses to construct with a portVersion ≥ 20,
+because above that the SDK seals every frame with ChaCha20-Poly1305 and a
+cleartext peripheral would be lying about what it speaks.
+
+Full detail: [`docs/protocol-ledger.md`](docs/protocol-ledger.md).
+What changed in the 2026-09-22 audit and why: [`docs/reconstruction-log.md`](docs/reconstruction-log.md).
+
+### 4b. Validation rungs — what the project claims end to end
 
 Each rung is a test that either passes or fails. Nothing subjective.
 
-- [ ] **R1** Emulator advertises; a Bumble central connects and completes a full session
-- [ ] **R2** Emulator survives the fault-injection suite without corrupting a transfer
-- [ ] **R3** **Real `plaud-sdk-public` connects to the emulator and pulls a recording** ← the money shot
-- [ ] **R4** Synthetic generator's ground truth round-trips through `pyannote.metrics` at DER 0
-- [ ] **R5** Full pipeline hits target cpWER / DER on held-out AMI
-- [ ] **R6** `docker compose up` brings the whole system live in under 60 seconds
-
-R3 needs a real radio at the far end (a $10 USB BLE dongle or the Mac's built-in Bluetooth),
-but **not a Plaud device**. That distinction is the project.
+- [x] **V1** Emulator advertises, is discovered by scan, and completes a full
+  control session following the SDK's connect stage order — first_handshake →
+  handshake_get_ssn → battery → sync_time (where `bleBind` fires) →
+  getState/getStorage/file list → a complete `syncFile`. 301 tests, no radio,
+  no hardware. This is a state-machine rehearsal with Python-written bytes;
+  the real SDK's own k3 was later captured against the emulator over
+  android-netsim (V3-partial, R7-S12).
+- [x] **V2** Emulator survives a fault-injection suite without corrupting a transfer —
+  61-cell matrix over Bumble (`tests/test_v2_fault_matrix.py`, `docs/v2-fault-matrix.md`):
+  drops, duplicates, reorder, truncation, wrong session, TAIL/HEAD faults, disconnect and
+  resume, stopSync mid-transfer, MTU 23–517, CCCD modes, delete during sync, back-to-back
+  syncs, and the R7-S13 sentinel cases; every cell is byte-exact or a detected failure,
+  scored by a bytecode-derived receiver model (`tests/fault_support.py`) that was
+  corrected against the runtime facts. Outcomes: 38 recovered, 6 recovered by app resume,
+  15 detected, 1 corruption-risk (the run-6 device that never abandons its stream),
+  1 documented undetectable (payload bit-flip: no CRC on DATA).
+- [x] **V3** **Real `plaud-sdk-public` connects to the emulator over
+  `android-netsim` and pulls a recording** — ACHIEVED for the transfer path
+  (R7-S13, 2026-09-23/24). The unmodified AAR on an AVD, driven through the
+  public API with a SYNTHETIC id, bound (R7-S12), listed the served file,
+  pulled it through both `syncFile` (raw collector) and `exportAudio(OPUS)`,
+  and delivered bytes hashing identically to the served Ogg/Opus fixture;
+  its gap recovery (stopSync → syncFileStart from cursor) converged
+  byte-exact twice. Doing so falsified the frozen HEAD·DATA·TAIL sequence:
+  the client completes only on an EMPTY_PACKAGE sentinel before the TAIL
+  (emulator corrected). Still NOT done: binding OUR client to real hardware
+  (blocked — token/snSignature/RSA keys are cloud-issued, CRED-1) and anything
+  above portVersion 20. See `r7/r7-s13-recording-pull.md`, ledger §15.
+- [x] **V4** Synthetic generator's ground truth round-trips through `pyannote.metrics` at DER 0 —
+  `tests/test_v4_der_roundtrip.py` (RTTM vs itself and vs an annotation rebuilt from the
+  sample-level activity mask: DER = JER = 0.0 exactly; a shifted copy > 0) and end to end
+  `tests/test_v4_e2e.py` (generator → oracle pipeline on the device Ogg → evals: DER, JER,
+  cpWER, tcpWER all 0.0; perturbations move every metric the right way; a speaker swap
+  leaves cpWER at 0 while literal WER lies — the decision-log rationale, asserted).
+- [ ] **V5** Full pipeline hits target cpWER / DER on held-out AMI — **procedure only.**
+  `evals/` (DER/JER/WER/cpWER/tcpWER + gates), `pipeline/` (interfaces; oracle,
+  perturbed-oracle and a model-free energy-VAD + MFCC clustering diarizer; import-guarded
+  faster-whisper / pyannote.audio / whisperx adapters, untested) and the AMI layout +
+  commands (`docs/pipeline.md` §7, `docs/evals.md`) exist; no AMI audio, no ASR model and
+  no network fetch here, so the number was not produced.
+- [~] **V6** `docker compose up` brings the whole system live in under 60 seconds —
+  **written, rehearsed without Docker.** `docker-compose.yml` + `docker/` (emulator on a
+  Bumble TCP transport with a health port, mock cloud, one-shot generate→oracle→evals job),
+  `scripts/compose-smoke.sh` (times `up -d --wait` against 60 s), and `scripts/local-up.sh`
+  running the same topology on the venv: services live in 0.94 s, job done in 6.6 s
+  (2026-09-24, this Mac). Docker is not installed here, so the compose path itself has not
+  been executed (`docs/compose.md`).
 
 ---
 
@@ -119,14 +225,13 @@ Source: `com/plaud/sdk/proto/w$d.java`
 | UUID | Role |
 |---|---|
 | `00001910-…` | Plaud/Tinno primary service |
-| `00002BB0-…` | characteristic — **presumed Write** (host → device commands) |
-| `00002BB1-…` | characteristic — **presumed Notify** (device → host responses/stream) |
+| `00002BB0-…` | characteristic — **Notify/Indicate** (device → host responses/stream) |
+| `00002BB1-…` | characteristic — **Write** (host → device commands) |
 | `00002902-…` | CCCD (standard) |
 | `0000180F-…` | Battery Service (standard) |
 | `00002A19-…` | Battery Level (standard) |
 
-**Open:** the Write/Notify assignment is inferred from convention, not yet confirmed from
-code. Confirm before building the GATT tree. → see Open Questions Q1.
+Confirmed from decompiled Android `com.plaud.sdk.proto.z`: incoming `onCharacteristicChanged` dispatches on `2BB0`; command writes resolve `2BB1`. Notification versus indication is selected dynamically from discovered properties.
 
 ### 5.5 Framing — PARTIAL
 
@@ -144,7 +249,7 @@ Magic / sync constants:
 Contiguous `0xFE1x`/`0xFE2x` block ⇒ these are channel or frame-type discriminators, not
 opcodes.
 
-`TntBleCommUtils` (JNI, `libtnt_ble_utils.so`) exposes the codec primitives:
+`TntBleCommUtils` (JNI, `libtnt_ble_utils.so`) exposes the codec primitives. ARM64 disassembly confirms CRC-16/CCITT-FALSE (`poly=0x1021`, `init=0xFFFF`, non-reflected, `xorout=0`). `NiceBuildSdk` calls it as `tntGetCrc(bytes, bytes.length, 65535)`; `tntGetFileCrc(path, 65535)` iterates the entire file.
 
 ```
 native int   packInt(int widthBits, byte[] buf, int off, long value)   // 8/16/24/32/64
@@ -154,14 +259,26 @@ native int   tntGetFileCrc(String path, int len)                       // whole-
 ```
 
 A pure-Java helper in the same class serialises little-endian, so **the wire format is
-little-endian** and integrity is **CRC-16, variant unknown**. → Q2.
+little-endian**. The CRC helper's control-frame coverage remains unknown.
 
-### 5.6 Two opcode tables
+### 5.6 Two opcode tables — DIRECTION SETTLED
 
-`w$a` (~80 entries) and `w$c` (~80 entries) — almost certainly **request** and
-**response/notify** opcode spaces. They overlap heavily but not exactly, which is what you
-would expect from req/rsp pairs plus device-initiated events. Values run 1–151 with gaps.
-Duplicate values under different names (`o=13, p=13`) suggest aliases or sub-codes.
+`w$a` and `w$c` each hold ~70 distinct values and overlap heavily, so the overlap
+says nothing about direction. The opcodes **unique** to one table settle it: of the
+13 unique to `w$a`, 11 are claimed by *response* classes; of the 11 unique to `w$c`,
+10 are claimed by *request* classes.
+
+> **`w$c` is the host→device (request) table. `w$a` is the device→host
+> (response/notify) table.** The alphabetical order invites the opposite guess.
+
+The marker constants agree: both host-sent markers (`0xFE10`, `0xFE20`) are
+`w$c`-only, and the device-sent `0xFE11` is `w$a`-only. Asserted mechanically by
+`test_w_c_is_the_request_table_and_w_a_the_response_table`.
+
+Request and response opcodes are **not** always equal. The familiar symmetric pairs
+(3, 4, 6, 9, 22, 26, 28) invite a false rule; counter-examples include request 29
+(`z6` stopSync) → response 30 (`a7`), request 30 (`w6` deleteFile) → response 31
+(`x6`), request 24 (`k2`) → response 33 (`l2`).
 
 ### 5.7 Device capability surface
 
@@ -183,31 +300,42 @@ from the mics — the vibration-conduction sensor, exposed as a first-class tuna
 
 ### 5.8 Two transports
 
-`PlaudBleSDK` + `PlaudWiFiSDK` (which vendors `JXWebSocketServer.h`). BLE is the control
-plane; **bulk recording transfer goes over Wi-Fi via a WebSocket where the phone is the
-server**. The emulator therefore needs both: a BLE peripheral *and* a WebSocket client.
+`PlaudBleSDK` + `PlaudWiFiSDK` (which vendors `JXWebSocketServer.h`).
 
-Audio: `JXOpusDecoder`, `OggUtil`, `Mp3Convert`, `liblame.so` ⇒ device records **Opus in Ogg**,
-converted to MP3 on the phone. This is the origin of the "Opus bytes in a .mp3 file" quirk —
-it is a conversion-path artifact, and our generator must reproduce it.
+**Correction 2026-09-22:** bulk recording transfer is **not** Wi-Fi-only. There is a
+complete BLE transfer path — `syncFile` (opcode 28) → HEAD → protocol-type-2 data
+frames → TAIL (opcode 29) — with its own cursor tracking and loss recovery, and it is
+what `PlaudDeviceAgent.syncFile(sessionId, start, end)` drives. Wi-Fi is an
+*additional*, faster path (`startWifiTransfer` / `exportAudioViaWiFi`), not the only
+one. The emulator implements the BLE path; the Wi-Fi path is not implemented.
+
+Audio: the SDK **enforces** an Opus codec geometry of 16 kHz, 20 ms frames,
+32 kbps CBR, exactly 80 bytes per frame per channel natively in `libjni_ogg`
+(BYTECODE_PROVEN). The container is selected by a **sniff** (512-byte `PLAUD.AI`
+header test, then an `OggS` 4-byte test), either a complete Ogg stream or a bare
+concatenation of fixed-size Opus packets, optionally behind the encryption header.
+**Which of those shapes real firmware actually emits is UNCONFIRMED against a real
+recording** (U20); the codec geometry is proven, the emitted container is not. MP3 conversion happens on the phone via
+`liblame`. Full detail, including the several non-conformant quirks in the SDK's own Ogg
+writer, is in `docs/protocol-ledger.md` §8.
 
 ---
 
 ## 6. OPEN QUESTIONS
 
-| # | Question | How to settle it | Blocks |
-|---|---|---|---|
-| Q1 | Is `2BB0` write and `2BB1` notify, or reversed? | Find the characteristic-property reads in the decompiled `sdk/bluetooth/**`; confirm against the iOS `PlaudBleSDK-Swift.h` | R1 |
-| Q2 | Which CRC-16 variant is `tntGetCrc`? | `libtnt_ble_utils.so` is 6.5 KB arm64 ELF — disassemble it, or brute-force all 24 catalogued CRC-16s against any packet in the template-app logs | R2, R3 |
-| Q3 | What is the RSA pairing handshake? | `SwiftyRSA` usage in the Swift interface + `sdk/bluetooth/**` auth path | R3 |
-| Q4 | Is the payload protobuf? | 240 classes in `com/plaud/sdk/proto/` — check for `dynamicMethod`/`GeneratedMessageLite` signatures; if yes, recover the `.proto` schema from the embedded descriptor strings | R1 |
-| Q5 | Do the `w$a` / `w$c` tables map 1:1 to request/response? | Diff the two value sets; cross-reference against Swift method names | R1 |
+Q1–Q3 and Q5 are **closed**; see `docs/protocol-ledger.md` for the answers and
+`docs/reconstruction-log.md` for how they were settled.
 
-Q4 is the highest-leverage open question. If the payload is protobuf, the schema is
-recoverable in full and the emulator becomes provably correct rather than approximately
-correct.
+| # | Question | Status |
+|---|---|---|
+| Q1 | Fixed runtime properties of `2BB0`/`2BB1` | **Still open.** Roles are DIRECT (`w$d`); the exact discovered property bitmask needs hardware or a trace. Flagged as emulator POLICY. |
+| Q2 | CRC coverage and wire byte order | **Closed.** Little-endian is DIRECT (`TntBleCommUtils.a(long)` is pure Java). The transfer-tail CRC is **never verified anywhere in the SDK**; the only CRC primitive in use is `tntGetFileCrc` (CRC-16/CCITT-FALSE, init 0xFFFF) on the OTA path. |
+| Q3 | Exact RSA payloads and token roles | **Closed structurally.** Layouts are DIRECT. The values are cloud-issued (`/sdk/gen-key`, `/sdk/sn-sign`) and cannot be produced offline. |
+| Q4 | Is the payload protobuf? | **Closed: no.** Every message is a hand-rolled fixed-offset binary layout built through `TntBleCommUtils`. There is no `GeneratedMessageLite`, no `dynamicMethod`, and no descriptor string anywhere in `com/plaud/sdk/proto/**`. |
+| Q5 | Do `w$a`/`w$c` map 1:1 to request/response? | **Closed: no, and the direction is the reverse of the obvious guess.** See §5.6. |
 
----
+The open questions that matter now live in `docs/protocol-ledger.md` §9 as a
+numbered register (U1–U18), each with what would settle it.
 
 ## 7. DECISION LOG
 
@@ -219,44 +347,155 @@ correct.
 | 2026-09-21 | Repo licence: AGPL-3.0 | Keeps the option of deriving from openplaud/riffado open at zero cost |
 | 2026-09-21 | Bumble over bleak/bluez for the emulator | Virtual-link transport ⇒ full BLE tests in CI with no radio |
 | 2026-09-21 | cpWER (meeteval) as the headline ASR metric, not WER | Plain WER lies when speakers are swapped; using cpWER signals domain knowledge |
+| 2026-09-22 | `javap` bytecode is ground truth; jadx is orientation only | jadx silently misrenders overload resolution, signedness and control flow. Ledger §11 lists the specific lies. |
+| 2026-09-22 | `reference/**` is immutable; every derived artifact goes to `build/` | The old `fetch-sdk.sh` wrote a second, unpinned SDK copy into `reference/`. It is now a deprecation shim. |
+| 2026-09-22 | Protocol facts are extracted mechanically into a committed digest, and the tests assert against *that* | Fixture-based tests are circular by construction. Three real bugs shipped green under the old regime. |
+| 2026-09-22 | The emulator declares portVersion 7 and refuses to construct at ≥ 20 | Above 20 the SDK encrypts every frame. A cleartext peripheral claiming a modern portVersion would be lying about what it speaks. |
+| 2026-09-22 | The emulator accepts any handshake token, labelled HARNESS POLICY | On the legacy path the device decides. Being a device to their client is a different problem from being a client to their device, and only the latter needs credentials. |
 
 ---
 
 ## 8. STATUS
 
-**Phase: 1 — protocol reconstruction. Day 1.**
+**Phase 3 — the remaining layers, completed 2026-09-24.** Everything PROJECT.md
+listed as "not started" or partial now exists and is tested: the V2 fault matrix,
+the Wi-Fi bulk-transfer emulator (ledger §7, now implemented: `emulator/plaudsim/wifi*.py`,
+`docs/wifi-transport.md`), Layer 2 (`generator/`, ground truth by construction,
+device-shaped Ogg/Opus, `docs/generator.md`), Layer 3 (`evals/`, `docs/evals.md`),
+the stack under test (`pipeline/`, `docs/pipeline.md`), Layer 4 (`mockcloud/`, a
+FastAPI mock of the partner cloud contract, `docs/mockcloud.md`), cross-layer
+integration tests (`docs/integration.md`) and the compose topology (`docs/compose.md`).
+**V3 was completed** by driving the real AAR to pull a recording (R7-S13,
+`r7/r7-s13-recording-pull.md`), which falsified the frozen HEAD·DATA·TAIL sequence:
+the client completes only on an EMPTY_PACKAGE sentinel before the TAIL (ledger §5.8,
+§15; emulator corrected; U15/U17 updated). Suite: **978 tests, all passing**
+(`PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ --timeout=120`), 33/33
+reference pins, `reference/**` unmodified. Rung status: V1 ✅ V2 ✅ V3 ✅ (transfer
+path) V4 ✅ V5 ◻ (procedure only, no AMI/model here) V6 ◻ (written, rehearsed on the
+venv, Docker absent).
 
-Done:
-- Project scaffolded at `~/Desktop/plaud-harness`
-- SDK fetched and inventoried; source-vs-binary fork resolved (§5.1)
-- jadx toolchain up; AAR fully decompiled (493 classes)
-- GATT profile recovered (§5.4)
-- Opcode tables and framing magics located (§5.5, §5.6)
-- Capability surface extracted from the Swift interface (§5.7)
+**Phase 2 — product reconstruction (R1), completed 2026-09-23.** The BLE layer
+was frozen and the rest of the product was reconstructed from the corpus:
+mobile app, cloud (five surfaces), recording lifecycle, AI pipeline, memory,
+search, subscription, device lifecycle, firmware-as-observable, web app, and
+the fork lineage of every Plaud-org repository. Verdict: **PRODUCT
+RECONSTRUCTION COMPLETE WITH EXTERNAL-EVIDENCE BLOCKERS**. Entry point:
+[`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md);
+claims in [`docs/product-ledger.md`](docs/product-ledger.md); one file per
+layer under [`docs/architecture/`](docs/architecture/); sources in
+[`docs/source-map.md`](docs/source-map.md); machine-readable graph in
+[`docs/evidence-graph.json`](docs/evidence-graph.json) (397 claims, 2 004
+edges, built by `scripts/build_evidence_graph.py` from
+`docs/product-evidence/`). Nothing below this line was re-derived.
 
-Next, in order:
-1. **Q4** — determine whether `com/plaud/sdk/proto/**` is protobuf; if so, recover the schema
-2. **Q1** — confirm characteristic properties
-3. **Q2** — identify the CRC-16 variant
-4. Write `docs/protocol-spec.md` up to a buildable state
-5. Start the Bumble emulator skeleton (R1)
+**Phase 1 — protocol reconstruction. Re-audited from first principles 2026-09-22.**
 
-In parallel, unblocked by all of the above: the synthetic meeting generator (Layer 2).
+The blow-by-blow is in [`docs/reconstruction-log.md`](docs/reconstruction-log.md);
+this is the standing summary.
+
+### Where the evidence lives
+
+* `reference/` — 33 pristine repositories, fetched by `./scripts/fetch-references.sh`,
+  pinned in `docs/reference-pins.txt`, manifest in `docs/SOURCES.md`. **Immutable.**
+  Verified clean at the start and end of the audit.
+* `build/evidence/` — everything derived, rebuilt by `./scripts/build-evidence.sh`,
+  which verifies the AAR's sha256 before it starts. Contains a `javap -p -c` dump
+  of all 674 classes (131 922 lines) alongside the jadx output. **javap is ground
+  truth; jadx is an interpretation and is wrong in documented ways.**
+* `docs/evidence-digest.json` — protocol facts extracted *mechanically* from that
+  bytecode. Committed, pinned to the AAR hash, regenerated and diffed by the tests.
+
+### What the emulator can do
+
+Over a Bumble virtual link, with no radio: advertise with parseable
+manufacturer data → be discovered by scan → connect → MTU → discover → subscribe
+(notify or indicate) → `getState` / `syncTime` / `getStorage` / `battStatus`,
+unsolicited battery pushes, paged file list, `resumeRecord`, `deleteFile`,
+`syncFile` with HEAD/DATA/TAIL, resume-from-offset, injectable DATA gap, and the
+`stopSync` → restart recovery the SDK performs on its own.
+
+**301 tests, all passing**, of which 69 (across 6 files) assert the emulator and
+the reconstruction against bytecode-derived facts rather than against our own
+fixtures. The official SDK's own k3 was additionally captured at runtime and
+matches byte-for-byte (R7-S12).
+
+### What it cannot do, and why
+
+Bind **our own client to real Plaud hardware**: the RSA key pair, the SN
+signature and the handshake token are issued by Plaud's cloud, none can be
+produced offline, and no credentials live in this repository. Above
+`portVersion 20` the SDK seals every frame with ChaCha20-Poly1305 on top of
+that, so `PlaudPeripheral` refuses to construct with such a value rather
+than serve cleartext under a modern banner.
+
+What it **can** do is be a device to their client: on the legacy
+(portVersion < 20) path the handshake carries no cryptography — the host
+sends a token and the device returns a status — so the emulator reaches
+`BOUND` by accepting the token (HARNESS POLICY, labelled as such; the
+refusal path is tested too). That asymmetry is the point: we can be a
+device to their client, not a client to their device.
+
+### Next, in order
+
+1. **V5 for real.** Obtain AMI (CC BY 4.0) under `data/corpora/ami/`, write the
+   NXT→contract converter, install one ASR/diarization system (models are not
+   fetched by the harness), run `python -m pipeline batch` + `python -m evals batch
+   --suite ami-headset`, and calibrate `evals/gates.yaml` (its thresholds are
+   placeholders).
+2. **V6 under Docker.** `scripts/compose-smoke.sh` on a machine with Docker; check
+   wheel availability for the pinned deps on the build platform.
+3. **U18, U15 and U17 need a device**: one scan capture settles the advertising branch;
+   one transfer capture settles the EMPTY_PACKAGE code value (U15) and whether a TAIL follows it (U17).
+4. **Wi-Fi ↔ BLE handoff**: opcode 10 in `profile.py` answers but does not spawn the
+   Wi-Fi device; wiring `OpenWiFi` to `wifi_device.WifiDevice` would let one session
+   cross both transports.
+5. Push the generated recording through the mock cloud's upload→transcribe flow from
+   the compose job (the integration test already proves it in-process).
 
 ## 9. Repo layout
 
 ```
 plaud-harness/
-├── PROJECT.md            ← you are here; update every session
+├── PROJECT.md              ← you are here; update every session
 ├── docs/
-│   └── protocol-spec.md  ← the reconstruction, in our own words
-├── reference/            ← fetched SDK + jadx output (gitignored)
-├── emulator/             ← Layer 1: Bumble BLE peripheral + WS server
-├── generator/            ← Layer 2: synthetic meetings with ground truth
-├── evals/                ← Layer 3: metrics + gates
-├── pipeline/             ← the ASR/diarization/summarization stack under test
+│   ├── protocol-ledger.md  ← THE authoritative protocol record
+│   ├── reconstruction-log.md ← what was learned, and what was wrong
+│   ├── evidence-digest.json  ← protocol facts extracted mechanically from bytecode
+│   ├── protocol-spec.md    ← superseded in part by the ledger
+│   ├── protocol.json       ← machine-readable class census (generated)
+│   ├── fixtures/           ← per-message protocol records with provenance
+│   ├── SOURCES.md          ← reference corpus manifest
+│   └── reference-pins.txt  ← exact commits fetched
+├── reference/              ← IMMUTABLE evidence (gitignored, fetched)
+├── build/evidence/         ← derived: javap, jadx, unpacked AAR (gitignored)
+├── docs/
+│   ├── protocol-ledger.md      ← Phase 1: the BLE/device protocol (frozen)
+│   ├── product-ledger.md       ← Phase 2: the product claim table
+│   ├── architecture/           ← one file per layer (hardware … web)
+│   ├── source-map.md, evidence-graph.json, product-evidence/
+│   └── final-product-reconstruction.md
+├── emulator/plaudsim/
+│   ├── advertising.py      ← scan-record parse rules + builder
+│   ├── handshake.py        ← marker framing, secret package, ChaCha envelope, l3/x2
+│   ├── filesync.py         ← pure codecs for the recording/file-sync family
+│   ├── transfer.py         ← device-side transfer + file-list state
+│   └── profile.py          ← the Bumble GATT peripheral
+├── emulator/plaudsim/wifi.py, wifi_device.py  ← Wi-Fi bulk transfer (PDU codecs + device-side WebSocket client)
+├── emulator/plaudsim/faults.py                ← fault-injecting peripheral for the V2 matrix
+├── emulator/serve.py       ← standalone peripheral on a Bumble TCP transport (compose / local-up)
+├── generator/              ← Layer 2: synthetic meetings, ground truth by construction, device-shaped audio
+├── evals/                  ← Layer 3: DER/JER/WER/cpWER/tcpWER + gates + CLI
+├── pipeline/               ← the ASR/diarization stack under test (oracle, perturbed-oracle, energy-vad-cluster, guarded adapters)
+├── mockcloud/              ← Layer 4: FastAPI mock of the partner cloud contract (identity, binding, upload, transcription jobs)
+├── docker/, docker-compose.yml, scripts/local-up.sh, scripts/compose-smoke.sh  ← V6 topology
+├── requirements/           ← per-track pins + all.txt
 ├── tests/
 ├── scripts/
+│   ├── fetch-references.sh ← clone the corpus into reference/
+│   ├── build-evidence.sh   ← decompile into build/ (verifies the AAR sha256)
+│   ├── extract_evidence_digest.py ← bytecode → docs/evidence-digest.json
+│   ├── build_evidence_graph.py    ← docs/product-evidence/*.json → docs/evidence-graph.json
+│   └── extract_protocol.py ← bytecode → docs/protocol.json (class census)
 └── .github/workflows/
 ```
 
@@ -264,7 +503,24 @@ plaud-harness/
 
 ```bash
 cd ~/Desktop/plaud-harness
-./scripts/fetch-sdk.sh      # re-fetch + re-decompile the SDK (gitignored, ~5 min)
+./scripts/fetch-references.sh    # if reference/ is missing (~2.5 GB shallow)
+./scripts/build-evidence.sh      # rebuild build/evidence/ (~2 min)
+
+python3.11 -m venv .venv
+.venv/bin/pip install -e reference/upstream/bumble
+.venv/bin/pip install -r requirements/all.txt   # all layers: emulator, generator, evals, pipeline, mock cloud
+.venv/bin/python -m pytest tests/ -v
 ```
 
-Then read §6 Open Questions and §8 Status. They are the working set.
+Then read, in this order:
+
+1. [`docs/protocol-ledger.md`](docs/protocol-ledger.md) — what we believe and why
+2. [`docs/reconstruction-log.md`](docs/reconstruction-log.md) — what earlier work got wrong
+3. [`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md) — the whole product above the radio
+4. [`r7/r7-s13-recording-pull.md`](r7/r7-s13-recording-pull.md) — the real SDK pulling a recording, and what it corrected
+5. The layer docs: `docs/v2-fault-matrix.md`, `docs/wifi-transport.md`, `docs/generator.md`, `docs/evals.md`, `docs/pipeline.md`, `docs/mockcloud.md`, `docs/integration.md`, `docs/compose.md`
+6. §8 above — what is next
+
+**Two rules that are not negotiable.** `reference/**` is immutable evidence; every
+derived artifact goes to `build/`. And when jadx and javap disagree, javap wins —
+`docs/protocol-ledger.md` §11 lists the specific places jadx lies.

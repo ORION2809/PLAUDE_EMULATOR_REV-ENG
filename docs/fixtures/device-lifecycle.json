@@ -1,0 +1,62 @@
+{
+  "fixture_name": "post_bind_lifecycle",
+  "scope": "recovered post-bind device lifecycle on both templates, emulator state mapping, and the getChargingState zero-packet finding",
+  "confidence": "CONFIRMED",
+  "hardware_validated": false,
+  "sdk_integration_validated": false,
+  "ios_lifecycle": {
+    "source": "reference/plaud-org/plaud-sdk-public/ios/PlaudTemplateApp/Managers/DeviceManager.swift",
+    "order": [
+      "scanning (.scanning)",
+      "connecting (.connecting)",
+      "GATT connected (bleConnectState case 1; explicitly NOT success)",
+      "handshake stages (ConnectStage: gattConnect..syncTime, RSA per sendRSAPublic/firstHandshake/twoHandshake/handshakeGetSSN)",
+      "bleBind(status == 0) -> .connected (THIS is connection success)",
+      "refreshDeviceInfo() -> getState() + getStorage()",
+      "blePenState(...) populates device; if recording (state == 4099), syncFile(sessionId, 0, 0)",
+      "battery via pushed blePowerChange / bleChargingState callbacks (set up by setBatteryNotify/readBattery connect stages); getChargingState() exists in the public API but the template never calls it; syncTime() is never called by the template (connect-stage internal)"
+    ]
+  },
+  "android_lifecycle": {
+    "source": "reference/plaud-org/plaud-sdk-public/android/app/src/main/java/com/plaud/template/managers/DeviceManager.kt",
+    "order": [
+      "scan -> onDeviceConnected(sn) -> Connected (guarded, idempotent)",
+      "PlaudDeviceAgent.syncTime() (failures only warn)",
+      "getConnectedDeviceVersion()",
+      "refreshDeviceInfo() -> getChargingState() + getStorage()",
+      "refreshRecordState() -> bleRecordStateRefreshed",
+      "checkFirmwareUpdate() (cloud API with sn-sign signature)",
+      "delayed getFileList 3000ms after connect (skipped unless Connected)"
+    ]
+  },
+  "platform_differences": [
+    "syncTime: iOS connect-stage internal (pre-bind) vs Android explicit post-connect call (pre-refresh)",
+    "post-bind refresh: iOS getState+getStorage vs Android getChargingState+getStorage (no getState)",
+    "battery: iOS notification-driven (blePowerChange) vs Android cache poll (getChargingState) fed by the same push path",
+    "recording-drift correction: iOS inline in blePenState (state 4099) vs Android explicit refreshRecordState()",
+    "file list: iOS via SyncManager on demand vs Android auto-refresh 3s after connect"
+  ],
+  "getChargingState_finding": {
+    "verdict": "ZERO BLE packets: not implementable as an exchange",
+    "evidence": [
+      "PlaudDeviceAgent.getChargingState()V bytecode: calls t3.b()Z (cached boolean) and t3.c()I (cached int), then listener.bleChargingState(boolean, int) synchronously",
+      "q.b()Z returns cached field d; q.c()I returns cached field c: pure field getters, no request construction, no z.a send",
+      "battery cache is fed by the device-pushed path: BattStatusRsp (p, opcode 9) is constructed inside the q$f device-event dispatcher (unsolicited notifications), not by any poll request",
+      "iOS template never calls getChargingState(); battery arrives via pushed blePowerChange/bleChargingState"
+    ],
+    "consequence": "R1d implements no charging packet. The emulator state model covers lifecycle only; battery values remain future work pending the push-path trigger mapping."
+  },
+  "emulator_state_model": {
+    "states": ["DISCONNECTED", "GATT_READY", "CONNECTED", "BOUND", "READY"],
+    "transitions_implemented": {
+      "install()": "DISCONNECTED -> GATT_READY (GATT DB published)",
+      "Bumble EVENT_CONNECTION": "-> CONNECTED (mirrors bleConnectState(1) / GATT-connected)",
+      "Bumble EVENT_DISCONNECTION": "-> DISCONNECTED"
+    },
+    "transitions_not_implemented": {
+      "BOUND": "requires handshake success (bleBind status 0); RSA handshake out of scope",
+      "READY": "requires post-bind refresh completion against a bound session; same blocker"
+    },
+    "boundary_assertion": "bare command exchanges (R1a/R1b/R1c frames) must never advance past CONNECTED; tests assert this"
+  }
+}

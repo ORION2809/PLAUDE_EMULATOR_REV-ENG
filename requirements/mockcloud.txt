@@ -1,0 +1,6 @@
+# Layer 4 mock cloud -- no additions to .venv were needed.
+# Runtime: fastapi, uvicorn, pydantic, cryptography (all already installed).
+# Tests:   httpx (ASGITransport), pytest-asyncio, numpy + soundfile (Ogg/Opus fixture).
+# Deliberately NOT used anywhere in mockcloud/: httpx, requests, aiohttp, urllib.request,
+# python-multipart (form bodies are parsed with urllib.parse), PyJWT (HS256 is hand-rolled
+# on hmac/hashlib so the payload encoding matches what the SDK's regex parser expects).

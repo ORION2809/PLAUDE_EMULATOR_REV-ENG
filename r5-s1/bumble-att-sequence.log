@@ -1,0 +1,68 @@
+16:33:38.676 I R4S3: R4S3_PERIPHERAL_READY port_version=7
+16:35:26.769 D bumble.host: ### CONTROLLER -> HOST: HCI_LE_ENHANCED_CONNECTION_COMPLETE_EVENT:
+16:35:26.772 D bumble.host: ### LE CONNECTION: [0x0200] 62:C7:75:38:FA:8B as PERIPHERAL
+16:35:26.773 D bumble.device: *** Connection: [0x0200] 62:C7:75:38:FA:8B PERIPHERAL
+16:35:27.046 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:27.079 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_READ_BY_TYPE_RESPONSE:
+16:35:27.131 D bumble.device: *** Connection Parameters Update: [0x0200] 62:C7:75:38:FA:8B as PERIPHERAL
+16:35:27.145 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_GROUP_TYPE_REQUEST:
+16:35:27.146 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_READ_BY_GROUP_TYPE_RESPONSE:
+16:35:27.226 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_GROUP_TYPE_REQUEST:
+16:35:27.227 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_READ_BY_GROUP_TYPE_RESPONSE:
+16:35:27.556 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_GROUP_TYPE_REQUEST:
+16:35:27.556 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_READ_BY_GROUP_TYPE_RESPONSE:
+16:35:27.667 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_GROUP_TYPE_REQUEST:
+16:35:27.668 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_ERROR_RESPONSE:
+  attribute_handle_in_error: 0x0018
+16:35:27.813 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:27.816 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_ERROR_RESPONSE:
+  attribute_handle_in_error: 0x0001
+16:35:27.982 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:27.994 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_READ_BY_TYPE_RESPONSE:
+16:35:28.254 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:28.255 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_ERROR_RESPONSE:
+  attribute_handle_in_error: 0x0005
+16:35:28.382 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:28.383 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_ERROR_RESPONSE:
+  attribute_handle_in_error: 0x0006
+16:35:28.636 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:28.637 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_READ_BY_TYPE_RESPONSE:
+16:35:29.579 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:29.580 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_ERROR_RESPONSE:
+  attribute_handle_in_error: 0x000D
+16:35:30.367 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_FIND_INFORMATION_REQUEST:
+16:35:30.368 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_FIND_INFORMATION_RESPONSE:
+16:35:31.330 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:31.332 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_ERROR_RESPONSE:
+  attribute_handle_in_error: 0x000E
+16:35:31.512 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:31.514 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_READ_BY_TYPE_RESPONSE:
+16:35:31.572 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:31.572 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_READ_BY_TYPE_RESPONSE:
+16:35:31.794 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:31.795 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_ERROR_RESPONSE:
+  attribute_handle_in_error: 0x0013
+16:35:31.926 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_FIND_INFORMATION_REQUEST:
+16:35:31.926 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_FIND_INFORMATION_RESPONSE:
+16:35:32.176 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:32.178 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_ERROR_RESPONSE:
+  attribute_handle_in_error: 0x0014
+16:35:32.287 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:32.287 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_READ_BY_TYPE_RESPONSE:
+16:35:32.362 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_READ_BY_TYPE_REQUEST:
+16:35:32.362 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_ERROR_RESPONSE:
+  attribute_handle_in_error: 0x0016
+16:35:32.426 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_FIND_INFORMATION_REQUEST:
+16:35:32.426 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_FIND_INFORMATION_RESPONSE:
+16:35:32.891 D bumble.device: *** Connection Parameters Update: [0x0200] 62:C7:75:38:FA:8B as PERIPHERAL
+16:35:32.892 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_EXCHANGE_MTU_REQUEST:
+16:35:32.892 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_EXCHANGE_MTU_RESPONSE:
+16:35:32.892 D bumble.device: *** Connection ATT MTU Update: [0x0200] 62:C7:75:38:FA:8B as PERIPHERAL, 517
+16:35:33.482 D bumble.gatt_server: GATT Request to server: [0x0200] ATT_WRITE_REQUEST:
+  attribute_handle: 0x0011
+  attribute_value:  0200
+16:35:33.484 D bumble.gatt_server: Subscription update for connection=[0x0200], handle=0x0010: 0200
+16:35:33.484 D bumble.gatt_server: CCCDs: {16: b'\x02\x00'}
+16:35:33.484 D bumble.gatt_server: GATT Response from server: [0x0200] ATT_WRITE_RESPONSE
+16:35:35.483 D bumble.host: ### CONTROLLER -> HOST: HCI_DISCONNECTION_COMPLETE_EVENT:
+16:35:35.484 D bumble.host: ### DISCONNECTION: Connection(transport=1, peer_address=62:C7:75:38:FA:8B), reason=19

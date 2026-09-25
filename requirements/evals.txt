@@ -1,0 +1,10 @@
+# Layer 3 (evals) dependencies — pinned to the versions present in .venv on
+# 2026-09-23.  Nothing was added to .venv for this track; this file records
+# what the track imports so CI (.github/workflows/evals.yml) can install it.
+pyannote.metrics==4.1
+pyannote.core==6.0.1
+jiwer==4.0.0
+meeteval==0.4.3
+numpy==2.4.6
+PyYAML==6.0.3
+pytest

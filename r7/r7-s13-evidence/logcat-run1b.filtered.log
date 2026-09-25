@@ -1,0 +1,192 @@
+09-23 19:18:08.759  5015  5015 I PULLCAP : PULLCAP_START id="SYNTH-HIST-0001" mode=both
+09-23 19:18:09.055  5015  5015 I PlaudSdk_SourceFile: Logger initialized. File logging is active.
+09-23 19:18:09.061  5015  5015 D PlaudSdk_SourceFile: Initializing manager with base URL: https://api.plaud.ai
+09-23 19:18:09.062  5015  5015 D PlaudSdk_SourceFile: Creating Retrofit service with base URL: https://api.plaud.ai
+09-23 19:18:09.144  5015  5015 D PlaudSdk_SourceFile: Set logging level using OkHttp 4.x 'level' property.
+09-23 19:18:09.190  5015  5015 D PlaudSdk_SourceFile: Partner API: 已清除旧的缓存数据
+09-23 19:18:09.191  5015  5015 D PlaudSdk_SourceFile: Creating Partner API service with base URL: https://platform-jp.plaud.ai
+09-23 19:18:09.194  5015  5015 D PlaudSdk_SourceFile: Partner API: User Access Token set (length: 136)
+09-23 19:18:09.195  5015  5015 I PlaudSdk_SourceFile: Partner API Token set successfully
+09-23 19:18:09.200  5015  5015 I PlaudSdk_SourceFile: Partner API: Token 可用，正在获取 RSA 密钥对...
+09-23 19:18:09.230  5015  5043 D PlaudSdk_SourceFile: Partner API: 正在获取 RSA 密钥对...
+09-23 19:18:09.233  5015  5043 D PlaudSdk_SourceFile: Partner API: Generating RSA key pair...
+09-23 19:18:09.257  5015  5015 I PenBleSDK-BleAgentImpl: --- create ---
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: PartnerRetrofitClient
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ╔══════════════════════════════════════════════════════════════
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ║ 🚀 REQUEST
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ╠══════════════════════════════════════════════════════════════
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ║ Method: POST
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ║ URL: https://platform-jp.plaud.ai/developer/api/open/partner/sdk/gen-key
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ╠──────────────────────────────────────────────────────────────
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ║ Headers:
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ║   Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR..._SIGNATURE
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ╠──────────────────────────────────────────────────────────────
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ║ Request Body:
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ║   (empty)
+09-23 19:18:09.289  5015  5045 I PlaudSdk_SourceFile: ╚══════════════════════════════════════════════════════════════
+09-23 19:18:09.369  5015  5015 I PlaudSdk_SourceFile: SDK initialized successfully
+09-23 19:18:09.382  5015  5043 E PlaudSdk_SourceFile: AppKey or AppSecret is null or empty.
+09-23 19:18:09.425  5015  5015 I PULLCAP : PULLCAP_SCAN_STARTED
+09-23 19:18:09.837  5015  5061 I PULLCAP : PULLCAP_SCAN sn=8810000001
+09-23 19:18:09.837  5015  5061 I PenBleSDK-BluetoothLeOperation: stopScanBLE
+09-23 19:18:09.911  5015  5061 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-23 19:18:09.921  5015  5064 I PULLCAP : PULLCAP_STAGE stage="start" detail="sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E"
+09-23 19:18:09.926  5015  5063 I PenBleSDK-BleAgentImpl: start validCustomer
+09-23 19:18:09.926  5015  5063 I PenBleSDK-BleAgentImpl: validCustomer result: Pass
+09-23 19:18:09.938  5015  5063 I PenBleSDK-BleAgentImpl: bleOperation.connection:F0:1A:2B:3C:4D:5E
+09-23 19:18:09.941  5015  5063 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=gatt_connect
+09-23 19:18:09.947  5015  5066 I PULLCAP : PULLCAP_STAGE stage="gatt_connect" detail="null"
+09-23 19:18:09.947  5015  5063 I PenBleSDK-BluetoothLeOperation: start connect conBtDevice name:null mac:F0:1A:2B:3C:4D:5E
+09-23 19:18:09.978  5015  5063 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTING
+09-23 19:18:09.979  5015  5015 I PenBleSDK-TntAgent: btStatusChange:sn:[5c4317a7], CONNECTING
+09-23 19:18:09.979  5015  5015 I PenBleSDK-TntAgent: cur sn:sn:[5c4317a7]
+09-23 19:18:10.874  5015  5031 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: CONNECTED isConnectFailUseDisConnect:false
+09-23 19:18:10.891  5015  5031 I PenBleSDK-BluetoothLeOperation: start requestMtu 255 true
+09-23 19:18:11.225  5015  5031 I PenBleSDK-BluetoothLeOperation: onMtuChanged: 517 status: 0 isSetDefMtu: false
+09-23 19:18:11.226  5015  5031 I PenBleSDK-BluetoothLeOperation: discoverServices
+09-23 19:18:11.227  5015  5031 I PenBleSDK-BluetoothLeOperation: start discoverServices
+09-23 19:18:11.235  5015  5031 I PenBleSDK-BluetoothLeOperation: onServicesDiscovered status: 0
+09-23 19:18:11.235  5015  5031 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTED
+09-23 19:18:11.266  5015  5031 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_notify
+09-23 19:18:11.268  5015  5031 I PenBleSDK-BleAgentImpl: New Battery Service
+09-23 19:18:11.269  5015  5090 I PULLCAP : PULLCAP_STAGE stage="set_notify" detail="null"
+09-23 19:18:11.278  5015  5031 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_data_notify detail=new_battery_service_port_7
+09-23 19:18:11.308  5015  5092 I PULLCAP : PULLCAP_STAGE stage="set_data_notify" detail="new_battery_service_port_7"
+09-23 19:18:11.332  5015  5073 I PenBleSDK-BluetoothLeOperation: -checkRequest-null-getRequestType-DescriptorWrite
+09-23 19:18:11.353  5015  5031 I PenBleSDK-BluetoothLeOperation: -callBackRequest:null status:0
+09-23 19:18:11.354  5015  5031 E BluetoothLeOperation: -callBackRequest:null status:0
+09-23 19:18:11.377  5015  5031 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake
+09-23 19:18:11.379  5015  5031 I PenBleSDK-BleAgentImpl: handshake start
+09-23 19:18:11.381  5015  5093 I PULLCAP : PULLCAP_STAGE stage="first_handshake" detail="null"
+09-23 19:18:11.399  5015  5073 I PenBleSDK-BluetoothLeOperation: 01010002000053594E54484849535430303031303030-checkRequest-[1, 2]-getRequestType-CharacteristicWrite
+09-23 19:18:11.426  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 1 01010000070005000100000056010000
+09-23 19:18:11.426  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:1
+09-23 19:18:11.426  5015  5031 I PenBleSDK-BluetoothLeOperation: onCallback: 1
+09-23 19:18:11.434  5015  5094 I PenBleSDK-BleAgentImpl: handshake data type1
+09-23 19:18:11.442  5015  5094 I PenBleSDK-BleAgentImpl: old HandShakeRsp: l3{status=0, portVersion=7, timezone=5, timezoneMin=0, audioChannel=1, supportWifi=false, noNsAgc=false, isOggAudio=false, versionType=V, version=1}
+09-23 19:18:11.446  5015  5094 I PenBleSDK-BleAgentImpl: audioChannel:1
+09-23 19:18:11.447  5015  5094 I PenBleSDK-BleAgentImpl: supportWifi:false
+09-23 19:18:11.447  5015  5094 I PenBleSDK-BleAgentImpl: noNsAgc:false
+09-23 19:18:11.447  5015  5094 I PenBleSDK-BleAgentImpl: isOggAudio:false
+09-23 19:18:11.447  5015  5094 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake detail=old_protocol_ok
+09-23 19:18:11.447  5015  5094 I PenBleSDK-BleAgentImpl: syncTimeCount:0
+09-23 19:18:11.449  5015  5094 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=sync_time detail=attempt_0
+09-23 19:18:11.449  5015  5094 E PenBleSDK-err: stamp:1790171291
+09-23 19:18:11.449  5015  5094 E PenBleSDK-err: timeZone:5, min:30
+09-23 19:18:11.450  5015  5094 I PenBleSDK-BleAgentImpl: getBatLevelCount:0
+09-23 19:18:11.454  5015  5031 I PenBleSDK-BluetoothLeOperation: 01010002000053594E54484849535430303031303030-callBackRequest:[1, 2] status:0
+09-23 19:18:11.454  5015  5031 E BluetoothLeOperation: 01010002000053594E54484849535430303031303030-callBackRequest:[1, 2] status:0
+09-23 19:18:11.455  5015  5031 I PenBleSDK-BleAgentImpl: handshake sendSuccess errorCode:0
+09-23 19:18:11.456  5015  5096 I PULLCAP : PULLCAP_STAGE stage="sync_time" detail="attempt_0"
+09-23 19:18:11.457  5015  5095 I PULLCAP : PULLCAP_STAGE stage="first_handshake" detail="old_protocol_ok"
+09-23 19:18:11.465  5015  5073 I PenBleSDK-BluetoothLeOperation: 0104009BD8B36A051E-checkRequest-[4]-getRequestType-CharacteristicWrite
+09-23 19:18:11.530  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 4 01040000F153650000
+09-23 19:18:11.530  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:4
+09-23 19:18:11.530  5015  5031 I PenBleSDK-BluetoothLeOperation: onCallback: 4
+09-23 19:18:11.532  5015  5097 I PenBleSDK-BleAgentImpl: not Statistics data
+09-23 19:18:11.550  5015  5015 I PenBleSDK-TntAgent: btStatusChange:sn:[5c4317a7], CONNECTED
+09-23 19:18:11.557  5015  5015 I PenBleSDK-TntAgent: cur sn:sn:[5c4317a7]
+09-23 19:18:11.562  5015  5098 I PULLCAP : PULLCAP_CONNECT_STATE state=1 t=1790171291562
+09-23 19:18:11.563  5015  5098 I PULLCAP : PULLCAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+09-23 19:18:11.563  5015  5098 I PULLCAP : PULLCAP_GETFILELIST t=1790171291563
+09-23 19:18:11.567  5015  5031 I PenBleSDK-BluetoothLeOperation: 0104009BD8B36A051E-callBackRequest:[4] status:0
+09-23 19:18:11.568  5015  5031 E BluetoothLeOperation: 0104009BD8B36A051E-callBackRequest:[4] status:0
+09-23 19:18:11.593  5015  5073 I PenBleSDK-BluetoothLeOperation: 010900-checkRequest-[9]-getRequestType-CharacteristicWrite
+09-23 19:18:11.633  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 9 0109000057
+09-23 19:18:11.633  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:9
+09-23 19:18:11.633  5015  5031 I PenBleSDK-BluetoothLeOperation: onCallback: 9
+09-23 19:18:11.659  5015  5031 I PenBleSDK-BluetoothLeOperation: 010900-callBackRequest:[9] status:0
+09-23 19:18:11.659  5015  5031 E BluetoothLeOperation: 010900-callBackRequest:[9] status:0
+09-23 19:18:11.660  5015  5073 I PenBleSDK-BluetoothLeOperation: 010300-checkRequest-[3]-getRequestType-CharacteristicWrite
+09-23 19:18:11.693  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 3 010300011000000101000400F15365000000
+09-23 19:18:11.693  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:3
+09-23 19:18:11.693  5015  5031 I PenBleSDK-BluetoothLeOperation: onCallback: 3
+09-23 19:18:11.694  5015  5100 E PenBleSDK-zdk: get secnes-010300011000000101000400F15365000000
+09-23 19:18:11.694  5015  5100 E PenBleSDK-zdk: get secnes-----------
+09-23 19:18:11.694  5015  5100 I PenBleSDK-BleAgentImpl: getState after bind
+09-23 19:18:11.729  5015  5031 I PenBleSDK-BluetoothLeOperation: 010300-callBackRequest:[3] status:0
+09-23 19:18:11.730  5015  5031 E BluetoothLeOperation: 010300-callBackRequest:[3] status:0
+09-23 19:18:11.757  5015  5073 I PenBleSDK-BluetoothLeOperation: 010800010F00-checkRequest-[8, 1015]-getRequestType-CharacteristicWrite
+09-23 19:18:11.795  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 8 0108000F0001000000
+09-23 19:18:11.795  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:8
+09-23 19:18:11.832  5015  5031 I PenBleSDK-BluetoothLeOperation: 010800010F00-callBackRequest:[8, 1015] status:0
+09-23 19:18:11.832  5015  5031 E BluetoothLeOperation: 010800010F00-callBackRequest:[8, 1015] status:0
+09-23 19:18:11.856  5015  5073 I PenBleSDK-BluetoothLeOperation: 010800011100-checkRequest-[8, 1017]-getRequestType-CharacteristicWrite
+09-23 19:18:11.891  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 8 010800110001000000
+09-23 19:18:11.892  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:8
+09-23 19:18:11.906  5015  5031 I PenBleSDK-BluetoothLeOperation: 010800011100-callBackRequest:[8, 1017] status:0
+09-23 19:18:11.906  5015  5031 E BluetoothLeOperation: 010800011100-callBackRequest:[8, 1017] status:0
+09-23 19:18:11.922  5015  5073 I PenBleSDK-BluetoothLeOperation: 011A009BD8B36A0000000000-checkRequest-[26]-getRequestType-CharacteristicWrite
+09-23 19:18:11.949  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 26 011A009BD8B36A0100000000F15365072C00000201
+09-23 19:18:11.949  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:26
+09-23 19:18:11.949  5015  5031 I PenBleSDK-BluetoothLeOperation: onCallback: 26
+09-23 19:18:11.949  5015  5031 I PenBleSDK-BluetoothLeOperation: removeResponseBean:[26]
+09-23 19:18:11.950  5015  5031 I PULLCAP : PULLCAP_FILELIST n=1 t=1790171291950
+09-23 19:18:11.950  5015  5031 I PULLCAP : PULLCAP_FILE getAttribute=1 getFileSize=11271 getScene=2 getSessionId=1700000000 getStability=0 isMusic=false
+09-23 19:18:11.951  5015  5031 I PULLCAP : PULLCAP_SYNCFILE sessionId=1700000000 start=0 end=0 t=1790171291951
+09-23 19:18:11.970  5015  5031 I PenBleSDK-BluetoothLeOperation: 011A009BD8B36A0000000000-callBackRequest:[26] status:0
+09-23 19:18:11.970  5015  5031 E BluetoothLeOperation: 011A009BD8B36A0000000000-callBackRequest:[26] status:0
+09-23 19:18:11.991  5015  5073 I PenBleSDK-BluetoothLeOperation: 011C0000F153650000000000000000-checkRequest-[28, 29]-getRequestType-CharacteristicWrite
+09-23 19:18:12.006  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 28 011C0000F1536500
+09-23 19:18:12.006  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:28
+09-23 19:18:12.007  5015  5031 I PenBleSDK-BluetoothLeOperation: onCallback: 28
+09-23 19:18:12.007  5015  5031 I PULLCAP : PULLCAP_HEAD sessionId=1700000000 status=0 t=1790171292007
+09-23 19:18:12.026  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=0 len=32 n=1 t=1790171292026
+09-23 19:18:12.047  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=32 len=32 n=2 t=1790171292047
+09-23 19:18:12.074  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=64 len=32 n=3 t=1790171292074
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: PartnerRetrofitClient
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ╔══════════════════════════════════════════════════════════════
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║ 📥 RESPONSE (2807ms)
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ╠══════════════════════════════════════════════════════════════
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║ Status: 401 
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║ URL: https://platform-jp.plaud.ai/developer/api/open/partner/sdk/gen-key
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ╠──────────────────────────────────────────────────────────────
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║ Response Headers:
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   date: Wed, 23 Sep 2026 13:48:11 GMT
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   content-type: application/json
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   server-timing: cfCacheStatus;desc="DYNAMIC"
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   server-timing: cfEdge;dur=805,cfOrigin;dur=10
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   x-request-id: 3d48eb1ec4ee5e6faf74f3c676efcd9b
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   vary: Accept-Encoding
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   cf-cache-status: DYNAMIC
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   server: cloudflare
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   cf-ray: a3fa016858a6446e-BOM
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ╠──────────────────────────────────────────────────────────────
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║ Response Body:
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   {
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║     "detail": "ACCESS_TOKEN_INVALID"
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ║   }
+09-23 19:18:12.094  5015  5045 I PlaudSdk_SourceFile: ╚══════════════════════════════════════════════════════════════
+09-23 19:18:12.100  5015  5043 E PlaudSdk_SourceFile: Partner API: Authentication failed for gen-key (401)
+09-23 19:18:12.101  5015  5043 E PlaudSdk_SourceFile: Partner API: ✗ 获取 RSA 密钥对失败
+09-23 19:18:12.551  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=1568 len=32 n=50 t=1790171292551
+09-23 19:18:13.068  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=3168 len=32 n=100 t=1790171293068
+09-23 19:18:13.585  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=4768 len=32 n=150 t=1790171293584
+09-23 19:18:14.102  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=6368 len=32 n=200 t=1790171294102
+09-23 19:18:14.631  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=7968 len=32 n=250 t=1790171294631
+09-23 19:18:15.168  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=9568 len=32 n=300 t=1790171295168
+09-23 19:18:15.817  5015  5031 I PULLCAP : PULLCAP_DATA sessionId=1700000000 offset=11168 len=32 n=350 t=1790171295817
+09-23 19:18:15.872  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 29 011D0000F15365EFBE
+09-23 19:18:15.872  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:29
+09-23 19:18:15.873  5015  5031 I PenBleSDK-BluetoothLeOperation: onCallback: 29
+09-23 19:18:15.879  5015  5105 I PULLCAP : PULLCAP_TAIL sessionId=1700000000 status=48879 t=1790171295879
+09-23 19:18:18.901  5015  5015 I PULLCAP : PULLCAP_RAW_DONE sessionId=1700000000 len=11271 frames=353 contiguous=true gaps=0 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d trigger="TAIL+3s(no bleDataComplete)" path=/data/user/0/com.plaud.template/files/pullcap-raw-1700000000.bin
+09-23 19:18:18.902  5015  5015 I PULLCAP : PULLCAP_EXPORT sessionId=1700000000 format=OPUS channels=1 t=1790171298902
+09-23 19:18:18.923  5015  5015 I PlaudSdk_SourceFile: exportAudio: 开始下载文件 sessionId=1700000000
+09-23 19:18:18.923  5015  5015 I PULLCAP : PULLCAP_EXPORT_STAGE stage=DOWNLOADING t=1790171298923
+09-23 19:18:18.924  5015  5015 I PULLCAP : PULLCAP_EXPORT_PROGRESS p=0 msg="downloading via BLE" t=1790171298924
+09-23 19:18:18.955  5015  5073 I PenBleSDK-BluetoothLeOperation: 011C0000F153650000000000000000-callBackRequest:[28, 29] status:-98
+09-23 19:18:18.956  5015  5073 E BluetoothLeOperation: 011C0000F153650000000000000000-callBackRequest:[28, 29] status:-98
+09-23 19:18:18.956  5015  5073 I PenBleSDK-BluetoothLeOperation: sendFailCount:1
+09-23 19:18:18.956  5015  5073 I PenBleSDK-BleAgentImpl: onCallback errorCode:-98
+09-23 19:18:18.987  5015  5073 I PenBleSDK-BluetoothLeOperation: 011C0000F153650000000000000000-checkRequest-[28, 29]-getRequestType-CharacteristicWrite
+09-23 19:18:19.023  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 28 011C0000F1536500
+09-23 19:18:19.023  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:28
+09-23 19:18:19.023  5015  5031 I PenBleSDK-BluetoothLeOperation: onCallback: 28
+09-23 19:18:19.931  5015  5031 I PULLCAP : PULLCAP_EXPORT_PROGRESS p=25 msg="downloading via BLE 25%" t=1790171299931
+09-23 19:18:20.829  5015  5031 I PULLCAP : PULLCAP_EXPORT_PROGRESS p=50 msg="downloading via BLE 50%" t=1790171300829
+09-23 19:18:21.706  5015  5031 I PULLCAP : PULLCAP_EXPORT_PROGRESS p=75 msg="downloading via BLE 75%" t=1790171301706
+09-23 19:18:22.561  5015  5031 I PULLCAP : PULLCAP_EXPORT_PROGRESS p=99 msg="downloading via BLE 99%" t=1790171302561
+09-23 19:18:22.610  5015  5031 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 29 011D0000F15365EFBE
+09-23 19:18:22.610  5015  5031 I PenBleSDK-BluetoothLeOperation: cmd type:29
+09-23 19:18:22.610  5015  5031 I PenBleSDK-BluetoothLeOperation: onCallback: 29

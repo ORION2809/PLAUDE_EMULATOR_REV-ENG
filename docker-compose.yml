@@ -1,0 +1,111 @@
+# plaud-harness -- V6: `docker compose up -d --wait` brings the whole system live.
+#
+#   emulator   emulator/serve.py    PlaudPeripheral (portVersion 7) on a Bumble virtual link; a second
+#                                   virtual controller is exposed as an HCI TCP server on :9000 so any
+#                                   Bumble central attaches without a radio; JSON health line on :9001
+#   mockcloud  python -m mockcloud  local mock of the Plaud partner cloud contract on :8787
+#   job        docker/job.sh        one-shot system check (profile "check"): probes both services,
+#                                   attaches a central and sees the advertisement, generates a small
+#                                   synthetic set, runs the oracle pipeline, scores it against the
+#                                   `oracle` gate suite; non-zero exit on any failure
+#
+#   docker compose up -d --wait                       # the system (emulator + mockcloud), healthy
+#   docker compose run --rm job                       # the end-to-end check (exit code = verdict)
+#   docker compose --profile check up --abort-on-container-exit --exit-code-from job   # same, attached
+#   ./scripts/compose-smoke.sh                        # times the bring-up against the 60 s target
+#
+# HARNESS_POLICY (see docs/compose.md): everything is built locally from python:3.11-slim; the
+# network is a private bridge marked internal (no route out, nothing published -- use
+# docker/compose.host-ports.yml to publish on 127.0.0.1); build/ artefacts live in the named
+# volume harness-build; the job is behind a profile so `up --wait` is well defined on every
+# compose version (a one-shot service that exits 0 is treated inconsistently by --wait);
+# no secrets, no env files, no external network, no image pulls beyond the base image.
+
+name: plaud-harness
+
+services:
+  emulator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.emulator
+    image: plaud-harness/emulator:local
+    environment:
+      PLAUD_HCI_TRANSPORT: tcp-server:0.0.0.0:9000
+      PLAUD_HCI_MODE: bridge
+      PLAUD_HEALTH_HOST: 0.0.0.0
+      PLAUD_HEALTH_PORT: "9001"
+      PLAUD_BUMBLE_LOG: WARNING
+      # PLAUD_MEETING_DIR: /app/build/compose/job/meetings/synth-smoke-s0001   # serve a generated meeting
+    expose:
+      - "9000"
+      - "9001"
+    volumes:
+      - harness-build:/app/build
+    networks: [harness]
+    healthcheck:
+      # emulator/serve.py answers one JSON line per connection on the health port; ready must be true.
+      test: ["CMD", "python", "-c", "import json, socket; s = socket.create_connection(('127.0.0.1', 9001), timeout=2); line = s.makefile('rb').readline(); s.close(); assert json.loads(line)['ready'] is True"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+    stop_grace_period: 5s
+    restart: unless-stopped
+
+  mockcloud:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mockcloud
+    image: plaud-harness/mockcloud:local
+    command: ["python", "-m", "mockcloud", "--host", "0.0.0.0", "--port", "8787", "--local-file-root", "/app/build"]
+    expose:
+      - "8787"
+    volumes:
+      - harness-build:/app/build
+    networks: [harness]
+    healthcheck:
+      # mockcloud/routers/mock.py: GET /_mock/health -> 200 {"mock": true, ...}
+      test: ["CMD", "python", "-c", "import json, urllib.request; r = urllib.request.urlopen('http://127.0.0.1:8787/_mock/health', timeout=2); assert r.status == 200 and json.loads(r.read())['mock'] is True"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+    stop_grace_period: 5s
+    restart: unless-stopped
+
+  job:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.job
+    image: plaud-harness/job:local
+    profiles: [check]
+    command: ["bash", "/app/docker/job.sh"]
+    environment:
+      MOCKCLOUD_URL: http://mockcloud:8787
+      EMULATOR_HEALTH: emulator:9001
+      EMULATOR_HCI: tcp-client:emulator:9000
+      JOB_OUT: /app/build/compose/job
+      JOB_MEETINGS: "2"
+      JOB_SCENARIO: smoke
+      JOB_SEED: "1"
+      JOB_SUITE: oracle
+      PROBE_TIMEOUT: "30"
+    depends_on:
+      emulator:
+        condition: service_healthy
+      mockcloud:
+        condition: service_healthy
+    volumes:
+      - harness-build:/app/build
+    networks: [harness]
+    restart: "no"
+
+volumes:
+  harness-build:
+    name: plaud-harness-build
+
+networks:
+  harness:
+    name: plaud-harness
+    driver: bridge
+    internal: true

@@ -1,0 +1,109 @@
+09-23 16:55:18.608  5838  5838 I K3CAP   : K3CAP_START id="SYNTH-HIST-0001" targetSn=<first>
+09-23 16:55:18.817  5838  5838 I PenBleSDK-BleAgentImpl: --- create ---
+09-23 16:55:18.903  5838  5838 I K3CAP   : K3CAP_SCAN_STARTED
+09-23 16:55:19.688  5838  5880 I K3CAP   : K3CAP_SCAN n=1 sns=[8810000001]
+09-23 16:55:19.688  5838  5880 I PenBleSDK-BluetoothLeOperation: stopScanBLE
+09-23 16:55:19.716  5838  5880 I K3CAP   : K3CAP_RECOVERY calling recoveryConnectBleDevice sn=8810000001 id="SYNTH-HIST-0001"
+09-23 16:55:19.716  5838  5880 W PlaudDeviceAgent: recoveryConnect WARNING: token 长度=13，预期 32 hex（底层会补零/截断）
+09-23 16:55:19.719  5838  5880 I PlaudDeviceAgent: recoveryConnect start sn=8810000001 protVersion=7 historicalUserId=SYNTH-HIST-0001 handshakeToken=SYNTHHIST0001 isForceClear=true (PRE_HANDSHAKE_AND_CLEAR/0xFE20)
+09-23 16:55:19.724  5838  5880 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-23 16:55:19.730  5838  5882 I PenBleSDK-BleAgentImpl: start validCustomer
+09-23 16:55:19.731  5838  5882 I PenBleSDK-BleAgentImpl: validCustomer result: Pass
+09-23 16:55:19.731  5838  5882 I PenBleSDK-BleAgentImpl: bleOperation.connection:F0:1A:2B:3C:4D:5E
+09-23 16:55:19.731  5838  5882 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=gatt_connect
+09-23 16:55:19.734  5838  5882 I PenBleSDK-BluetoothLeOperation: start connect conBtDevice name:null mac:F0:1A:2B:3C:4D:5E
+09-23 16:55:19.757  5838  5881 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-23 16:55:19.757  5838  5881 I K3CAP   : K3CAP_STAGE sn="8810000001" stage="start" detail="sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E"
+09-23 16:55:19.760  5838  5883 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=gatt_connect
+09-23 16:55:19.760  5838  5883 I K3CAP   : K3CAP_STAGE sn="8810000001" stage="gatt_connect" detail="null"
+09-23 16:55:19.763  5838  5882 D BluetoothGatt: connect() - device: XX:XX:XX:XX:4D:5E, auto: false
+09-23 16:55:19.763  5838  5882 D BluetoothGatt: registerApp()
+09-23 16:55:19.773  5838  5882 D BluetoothGatt: registerApp() - UUID=d44dfbc1-4d8a-4d20-8e38-e2d849f88280
+09-23 16:55:19.777  5838  5882 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTING
+09-23 16:55:19.777  5838  5852 D BluetoothGatt: onClientRegistered() - status=0 clientIf=7
+09-23 16:55:19.779  5838  5838 I PenBleSDK-TntAgent: btStatusChange:sn:[5c4317a7], CONNECTING
+09-23 16:55:19.781  5838  5838 I PenBleSDK-TntAgent: cur sn:sn:[5c4317a7]
+09-23 16:55:20.577   884  1066 D BluetoothGattServer: onServerConnectionState() - status=0 serverIf=6 device=F0:1A:2B:3C:4D:5E
+09-23 16:55:20.616  5838  5852 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=7 device=F0:1A:2B:3C:4D:5E
+09-23 16:55:20.616  5838  5852 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: CONNECTED isConnectFailUseDisConnect:false
+09-23 16:55:20.621  5838  5852 D BluetoothGatt: configureMTU() - device: XX:XX:XX:XX:4D:5E mtu: 255
+09-23 16:55:20.621   884  1066 D BluetoothGattServer: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=6 latency=0 timeout=500 status=0
+09-23 16:55:20.628  5838  5852 I PenBleSDK-BluetoothLeOperation: start requestMtu 255 true
+09-23 16:55:20.629  5838  5852 D BluetoothGatt: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=6 latency=0 timeout=500 status=0
+09-23 16:55:20.971   884  1066 D BluetoothGattServer: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=40 latency=0 timeout=500 status=0
+09-23 16:55:20.972  5838  5871 D BluetoothGatt: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=40 latency=0 timeout=500 status=0
+09-23 16:55:20.977  5838  5871 D BluetoothGatt: onConfigureMTU() - Device=F0:1A:2B:3C:4D:5E mtu=517 status=0
+09-23 16:55:20.977  5838  5871 I PenBleSDK-BluetoothLeOperation: onMtuChanged: 517 status: 0 isSetDefMtu: false
+09-23 16:55:20.978  5838  5871 I PenBleSDK-BluetoothLeOperation: discoverServices
+09-23 16:55:20.978  5838  5871 I PenBleSDK-BluetoothLeOperation: start discoverServices
+09-23 16:55:20.978  5838  5871 D BluetoothGatt: discoverServices() - device: XX:XX:XX:XX:4D:5E
+09-23 16:55:20.982  5838  5871 D BluetoothGatt: onSearchComplete() = Device=F0:1A:2B:3C:4D:5E Status=0
+09-23 16:55:20.982  5838  5871 I PenBleSDK-BluetoothLeOperation: onServicesDiscovered status: 0
+09-23 16:55:20.982  5838  5871 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTED
+09-23 16:55:20.982  5838  5871 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_notify
+09-23 16:55:20.983  5838  5871 I PenBleSDK-BleAgentImpl: New Battery Service
+09-23 16:55:20.983  5838  5896 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=set_notify
+09-23 16:55:20.983  5838  5871 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_data_notify detail=new_battery_service_port_7
+09-23 16:55:20.983  5838  5896 I K3CAP   : K3CAP_STAGE sn="8810000001" stage="set_notify" detail="null"
+09-23 16:55:20.984  5838  5871 D BluetoothGatt: setCharacteristicNotification() - uuid: 00002bb0-0000-1000-8000-00805f9b34fb enable: true
+09-23 16:55:20.985  5838  5897 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=set_data_notify detail=new_battery_service_port_7
+09-23 16:55:20.985  5838  5897 I K3CAP   : K3CAP_STAGE sn="8810000001" stage="set_data_notify" detail="new_battery_service_port_7"
+09-23 16:55:21.006  5838  5890 I PenBleSDK-BluetoothLeOperation: -checkRequest-null-getRequestType-DescriptorWrite
+09-23 16:55:21.048  5838  5871 I PenBleSDK-BluetoothLeOperation: -callBackRequest:null status:0
+09-23 16:55:21.049  5838  5871 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake
+09-23 16:55:21.050  5838  5871 I PenBleSDK-BleAgentImpl: handshake start
+09-23 16:55:21.050  5838  5898 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=first_handshake
+09-23 16:55:21.050  5838  5898 I K3CAP   : K3CAP_STAGE sn="8810000001" stage="first_handshake" detail="null"
+09-23 16:55:21.080  5838  5890 I PenBleSDK-BluetoothLeOperation: 01010002000053594E54484849535430303031303030-checkRequest-[1, 2]-getRequestType-CharacteristicWrite
+09-23 16:55:21.096  5838  5871 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 1 01010000070005000100000056010000
+09-23 16:55:21.096  5838  5871 I PenBleSDK-BluetoothLeOperation: cmd type:1
+09-23 16:55:21.096  5838  5871 I PenBleSDK-BluetoothLeOperation: onCallback: 1
+09-23 16:55:21.097  5838  5899 I PenBleSDK-BleAgentImpl: handshake data type1
+09-23 16:55:21.098  5838  5899 I PenBleSDK-BleAgentImpl: old HandShakeRsp: l3{status=0, portVersion=7, timezone=5, timezoneMin=0, audioChannel=1, supportWifi=false, noNsAgc=false, isOggAudio=false, versionType=V, version=1}
+09-23 16:55:21.098  5838  5899 I PenBleSDK-BleAgentImpl: audioChannel:1
+09-23 16:55:21.098  5838  5899 I PenBleSDK-BleAgentImpl: supportWifi:false
+09-23 16:55:21.098  5838  5899 I PenBleSDK-BleAgentImpl: noNsAgc:false
+09-23 16:55:21.098  5838  5899 I PenBleSDK-BleAgentImpl: isOggAudio:false
+09-23 16:55:21.098  5838  5899 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake detail=old_protocol_ok
+09-23 16:55:21.099  5838  5899 I PenBleSDK-BleAgentImpl: syncTimeCount:0
+09-23 16:55:21.099  5838  5899 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=sync_time detail=attempt_0
+09-23 16:55:21.101  5838  5899 E PenBleSDK-err: stamp:1790162721
+09-23 16:55:21.104  5838  5899 E PenBleSDK-err: timeZone:5, min:30
+09-23 16:55:21.105  5838  5899 I PenBleSDK-BleAgentImpl: getBatLevelCount:0
+09-23 16:55:21.107  5838  5900 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=first_handshake detail=old_protocol_ok
+09-23 16:55:21.107  5838  5900 I K3CAP   : K3CAP_STAGE sn="8810000001" stage="first_handshake" detail="old_protocol_ok"
+09-23 16:55:21.108  5838  5901 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=sync_time detail=attempt_0
+09-23 16:55:21.108  5838  5901 I K3CAP   : K3CAP_STAGE sn="8810000001" stage="sync_time" detail="attempt_0"
+09-23 16:55:21.109  5838  5871 I PenBleSDK-BluetoothLeOperation: 01010002000053594E54484849535430303031303030-callBackRequest:[1, 2] status:0
+09-23 16:55:21.109  5838  5871 I PenBleSDK-BleAgentImpl: handshake sendSuccess errorCode:0
+09-23 16:55:21.113  5838  5890 I PenBleSDK-BluetoothLeOperation: 01040021B7B36A051E-checkRequest-[4]-getRequestType-CharacteristicWrite
+09-23 16:55:21.215  5838  5871 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 4 01040000F153650000
+09-23 16:55:21.215  5838  5871 I PenBleSDK-BluetoothLeOperation: cmd type:4
+09-23 16:55:21.215  5838  5871 I PenBleSDK-BluetoothLeOperation: onCallback: 4
+09-23 16:55:21.220  5838  5838 I PenBleSDK-TntAgent: btStatusChange:sn:[5c4317a7], CONNECTED
+09-23 16:55:21.220  5838  5838 I PenBleSDK-TntAgent: cur sn:sn:[5c4317a7]
+09-23 16:55:21.222  5838  5902 I PenBleSDK-BleAgentImpl: not Statistics data
+09-23 16:55:21.226  5838  5903 I K3CAP   : K3CAP_CONNECT_STATE state=1
+09-23 16:55:21.227  5838  5903 I K3CAP   : K3CAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+09-23 16:55:21.230  5838  5871 I PenBleSDK-BluetoothLeOperation: 01040021B7B36A051E-callBackRequest:[4] status:0
+09-23 16:55:21.239  5838  5890 I PenBleSDK-BluetoothLeOperation: 010900-checkRequest-[9]-getRequestType-CharacteristicWrite
+09-23 16:55:21.267  5838  5871 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 9 0109000057
+09-23 16:55:21.267  5838  5871 I PenBleSDK-BluetoothLeOperation: cmd type:9
+09-23 16:55:21.267  5838  5871 I PenBleSDK-BluetoothLeOperation: onCallback: 9
+09-23 16:55:21.288  5838  5871 I PenBleSDK-BluetoothLeOperation: 010900-callBackRequest:[9] status:0
+09-23 16:55:21.318  5838  5890 I PenBleSDK-BluetoothLeOperation: 010300-checkRequest-[3]-getRequestType-CharacteristicWrite
+09-23 16:55:21.332  5838  5871 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 3 010300011000000101000478563412000000
+09-23 16:55:21.332  5838  5871 I PenBleSDK-BluetoothLeOperation: cmd type:3
+09-23 16:55:21.332  5838  5871 I PenBleSDK-BluetoothLeOperation: onCallback: 3
+09-23 16:55:21.334  5838  5905 E PenBleSDK-zdk: get secnes-010300011000000101000478563412000000
+09-23 16:55:21.334  5838  5905 E PenBleSDK-zdk: get secnes-----------
+09-23 16:55:21.334  5838  5905 I PenBleSDK-BleAgentImpl: getState after bind
+09-23 16:55:21.342  5838  5871 I PenBleSDK-BluetoothLeOperation: 010300-callBackRequest:[3] status:0
+09-23 16:55:21.353  5838  5890 I PenBleSDK-BluetoothLeOperation: 010800010F00-checkRequest-[8, 1015]-getRequestType-CharacteristicWrite
+09-23 16:55:21.366  5838  5871 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 8 0108000F0001000000
+09-23 16:55:21.366  5838  5871 I PenBleSDK-BluetoothLeOperation: cmd type:8
+09-23 16:55:21.385  5838  5871 I PenBleSDK-BluetoothLeOperation: 010800010F00-callBackRequest:[8, 1015] status:0
+09-23 16:55:21.416  5838  5890 I PenBleSDK-BluetoothLeOperation: 010800011100-checkRequest-[8, 1017]-getRequestType-CharacteristicWrite
+09-23 16:55:21.427  5838  5871 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 8 010800110001000000
+09-23 16:55:21.427  5838  5871 I PenBleSDK-BluetoothLeOperation: cmd type:8
+09-23 16:55:21.438  5838  5871 I PenBleSDK-BluetoothLeOperation: 010800011100-callBackRequest:[8, 1017] status:0

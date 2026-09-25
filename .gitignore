@@ -1,20 +1,41 @@
-reference/sdk/
-reference/jadx-out/
-reference/aar/
-reference/tools/
-_quarantine/
-__pycache__/
-*.pyc
-.venv/
-venv/
-out/
+# reference/** is immutable evidence: fetched by scripts/fetch-references.sh,
+# never edited, never committed. Nothing may write into it.
+reference/
+
+# Derived analysis artifacts. Everything the audit produces lands here.
+# Rebuild with ./scripts/build-evidence.sh (verifies the AAR's sha256 first).
 build/
-dist/
-data/generated/
+
+# Corpora and generated media
 data/corpora/
+data/samples/
+data/generated/
 *.wav
 *.ogg
 *.opus
 *.mp3
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Build/output
+out/
+dist/
+
 .DS_Store
 .env
+
+# R7 runtime experiment: Android build inputs/outputs. The Plaud SDK .aar is
+# PROPRIETARY (PROJECT.md §2) and must never be committed — it is copied from
+# reference/ at build time. Gradle caches, the built APK, and the machine-local
+# local.properties (holds a synthetic token + an absolute sdk.dir) stay local.
+*.aar
+*.apk
+.gradle/
+r7/android-app/local.properties
+r7/k3-capture.json
+**/local.properties

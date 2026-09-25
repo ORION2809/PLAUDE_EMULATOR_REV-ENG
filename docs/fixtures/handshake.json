@@ -1,0 +1,222 @@
+{
+  "fixture_name": "ble_handshake_reconstruction",
+  "scope": "evidence-backed BLE handshake reconstruction (R2). Packet/state machinery is source-backed; cryptographic inputs are account-issued and absent here, so no bind is (or can be) produced. Outcome B: machinery without authentication semantics.",
+  "confidence_structure": "CONFIRMED",
+  "confidence_crypto_inputs": "unavailable (account-issued; see crypto_boundary)",
+  "hardware_validated": false,
+  "sdk_integration_validated": false,
+  "sequence": [
+    {
+      "stage": "preHandshake",
+      "driver": "q.n(): logs 'RSA-\u5f00\u59cb\u7b2c\u4e00\u6b21\u63e1\u624b', stage tag 'pre_handshake'",
+      "request_class": "com.plaud.sdk.proto.v4",
+      "request_ctor": "(chunk_index: int, chunk_count: int, chunk: bytes, force_clear: bool)",
+      "protocol_type": 1,
+      "marker": "0xFE10 normal, 0xFE20 force-clear (v4.getBleRequestType returns 0xFE20 iff flag d else 0xFE10; bytecode-verified)",
+      "frame": "[01][marker u16le][count u8][index u8][chunk \u2264100B]",
+      "frame_evidence": "v4.enPkg bytecode: merge[a(marker)->2B-LE, c(count)->1B, c(index)->1B, chunk]; ALLOC widths verified in TntBleCommUtils bodies (a(I)=2B, c(I)=1B). Corrects the earlier u24-count assumption.",
+      "payload": "Base64-decoded SN signature (z-store 'snSignature', missing aborts 'sn_signature_empty'), chunked (len+99)//100, 100 B slices via Arrays.copyOfRange",
+      "payload_provenance": "SN signature is server-issued (partner sn-sign endpoint); device SN comes from physical scan. NEITHER exists here: emulator can frame synthetic bytes only.",
+      "response": "marker 0xFE11 (proceed to sendRSAPublic) or 0xFE12 (encrypted secret package)",
+      "ble": "2BB1 write; response on 2BB0 via the same z.a/z$c path as control frames"
+    },
+    {
+      "stage": "secret_package",
+      "marker": "0xFE12",
+      "reassembly": "0xFE12 chunks collected in z.G list and concatenated (onCharacteristicChanged ~387-444)",
+      "decrypt": "q5.a(userRSAPrivateKey_PEM, reassembled); null aborts; length < 56 aborts 'RSA decrypt result too short, abort handshake'",
+      "split": "J=[0:32] ChaCha20 key, K=[32:44] 12B nonce, L=[44:56] 12B associated data (copyOfRange bounds from raw bytecode: 32, 32/44, 44/56)",
+      "self_check": "q5.b(J,K,L,dec[56:]) must UTF-8 decode to 'PLAUD.AI', else 'ChaCha20 decrypt result invalid, skip'",
+      "dispatch": "z.e(65042) marker lookup -> registered s$b callback",
+      "key_provenance": "userRSAPrivateKey PEM from the z-store, originating in the server gen-key response; userRSAPublicKey (same origin) is what w4 uploads. Phone generates nothing (no KeyPairGenerator in the AAR)."
+    },
+    {
+      "stage": "sendRSAPublic",
+      "driver": "q.a0(): stage tag 'send_rsa_public'; aborts 'user_rsa_public_key_empty' when unset",
+      "request_class": "com.plaud.sdk.proto.w4",
+      "request_ctor": "(chunk_index, chunk_count, chunk)",
+      "frame": "[01][0xFE12 u16le][count u8][index u8][chunk \u2264100B] (w4.getBleRequestType()=65042, same enPkg shape as v4)",
+      "payload": "UTF-8 bytes of userRSAPublicKey, chunked (len+99)//100",
+      "response": "per-chunk callbacks; completion advances to firstHandshake"
+    },
+    {
+      "stage": "firstHandshake",
+      "driver": "q.a(): logs 'handshake start', registers opcodes {1, 2} ('HandShakeReq:one--sendFail' on send failure)",
+      "request_class": "com.plaud.sdk.proto.k3",
+      "request_ctor": "(int, int, token: String, port_version: int); j3 extends k3 with user strings e/f",
+      "protocol_type": 1,
+      "opcode": 1,
+      "token_provenance": "q.g String, account-issued device token (server-side; 'deviceToken'/'serToken' family). UNAVAILABLE here.",
+      "port_version": "BleDevice.getPortVersion() (device-advertised/cached)",
+      "token_padding": "16 vs 32 bytes by port version (jadx-era extraction; port<3 comparison verified in k3.enPkg but byte-exact cutover unreverified: STRONGLY INFERRED)",
+      "k3_layout_status": "NOT byte-exact: obfuscated shuffle body not fully decoded, and no legitimate token exists to test against. k3/j3 request building is NOT implemented.",
+      "response_dispatch": "q.a([B): reads type word, logs 'handshake data type'; type==1 -> 'old HandShakeRsp' (new l3); type==2 -> 'handshake_get_ssn' (new x2, log 'getSsnRsp ssn:', store via q.b, then q.d0()); else 'HandShakeReq:fail-callbackType:' + 'callback_type_error_'",
+      "note": "Dispatch is on the response TYPE word, not bare opcode: l3(1)/x2(2) duality resolved by outstanding-request context."
+    },
+    {
+      "stage": "twoHandshake",
+      "driver": "q.d0(): builds j3 (k3 base + user field)",
+      "request_opcode": 1,
+      "response": "l3; status==0 records capabilities (portVersion, timezone, wifi/audio flags) and advances toward syncTime",
+      "j3_extension_status": "k3-base + user strings with u8 length prefixes (c(I) widths verified); exact 8-byte-field semantics partially recovered: HYPOTHESIS, not implemented"
+    },
+    {
+      "stage": "handshakeGetSSN",
+      "implementation": "no separate request: the SSN arrives as the type-2 response to firstHandshake; q.a parses x2, stores ssn, calls q.d0()",
+      "x2_layout": "GetSsnRsp{ssn, versionName}: ASCII from offset 3 to first NUL (28-zero default when absent; constant length verified from the class constant pool), versionName = trailing bytes",
+      "ssn_provenance": "device-issued per handshake; unavailable without hardware"
+    },
+    {
+      "stage": "bind_completion",
+      "event": "listener.bleBind(sn: String, status: Int, protVersion: Int, timezone: Int); only status==0 accepted (both templates)",
+      "internal_trigger": "not located in the AAR (bridged to the app layer); bound to the l3.status==0 completion path by lifecycle evidence",
+      "emulator_status": "UNREACHABLE by design. No bypass exists; tests assert bare exchanges never enter BOUND."
+    }
+  ],
+  "responses": {
+    "l3_opcode_1": {
+      "layout": "u8 status@3, u16 portVersion@4, u8 timezone@6, u8 timezoneMin@7, u8 audioChannel@8, bool supportWifi@9, bool noNsAgc@10, bool isOggAudio@11, char versionType@(len-4), u24BE version@last-3",
+      "name_mapping": "toString literal order: status<-b, portVersion<-c, timezone<-d, timezoneMin<-e, audioChannel<-f, supportWifi<-g, noNsAgc<-h, isOggAudio<-i, versionType<-j, version<-k; first toString getfield targets a superclass/scratch slot, remaining ten map in order",
+      "minimum": "progressive (audit 2026-09-22, raw guard bytes): b/c/d unguarded (parser needs len>=7); e needs 8, f 9, g 10, h 11, i 12; j/k tail whenever len>=12 (reaching tail code requires passing the len<12 guard). min_length 8 = first guarded field."
+    },
+    "x2_opcode_2": {
+      "layout": "GetSsnRsp{ssn, versionName} as above",
+      "minimum": "3 bytes"
+    }
+  },
+  "crypto_boundary": {
+    "rsa_keygen": "server-side: POST /developer/api/open/partner/sdk/gen-key -> {private_key, public_key}. No KeyPairGenerator anywhere in the 674-class AAR: the phone CANNOT mint keys.",
+    "phone_holds": "user RSA private key PEM (q5 parses PKCS8) to RSA-decrypt the 0xFE12 secret; uploads user public key via w4",
+    "device_holds": "its own key material (opaque to us); encrypts the ChaCha session package with the user public key",
+    "sn_signature": "server-side: POST .../sn-sign {sn} -> {signature}; phone Base64-decodes into v4 chunks. SN itself comes from physical scan.",
+    "session_crypto": "ChaCha20-Poly1305 (q5, Conscrypt fallback) under per-handshake J/K/L; AES/GCM also present in q5 (unused by this path per evidence)",
+    "post_bind_envelope": "once J/K/L are set, z$c ChaCha-decrypts EVERY 2BB0 notification (q5.b(J,K,L,value); invalid -> 'ChaCha20 decrypt result invalid, skip'). R1a-R1c therefore reconstruct the INNER PLAINTEXT layer (what parsers consume post-decrypt); our emulator speaks that layer, not the wire ciphertext. No app-layer control-frame reassembly exists.",
+    "deterministic_in_emulator": "framing arithmetic, marker dispatch, parser offsets, guard thresholds, state order. Everything else (keys, signature, SN, token, session params, ciphertext) requires account credentials and/or hardware.",
+    "fabrication_line": "no credentials, signatures, tokens, or ciphertexts are synthesized anywhere in emulator/ or tests; R2 vectors are framing/parser structure with synthetic payload bytes, never presented as authentic material",
+    "claim_grades": {
+      "A_directly_observed": [
+        "partner endpoint paths + GenKey/SnSign model fields",
+        "RSA/ECB/PKCS1Padding + PKCS8 PEM parsing in q5",
+        "no KeyPairGenerator in 674 classes",
+        "J/K/L split bounds (raw copyOfRange args 0/32/44/56) + min-56 + PLAUD.AI self-check in z$c",
+        "MTU-255 request on connect + single-getValue consumption, no accumulation buffers",
+        "z7 has no static constructor call-site (full-AAR scan)"
+      ],
+      "B_source_derived_incomplete": [
+        "ChaCha session use for post-bind traffic (path exists when J/K/L set; pre-key frames take other branches)",
+        "phone holds user private key (PEM parsed from z-store string; store-write path not fully traced)",
+        "token = q.g deviceToken family (issuance call unmapped)",
+        "snSignature via sn-sign (models seen; template call noted, not bytecode-traced)"
+      ],
+      "C_inferred": [
+        "Conscrypt fallback behavior",
+        "AES/GCM non-use on this path",
+        "z7 dead/legacy (vs reflective construction)",
+        "SHA256withRSA role (present, call-site unmapped)"
+      ],
+      "D_unknown": [
+        "RSA key size",
+        "SN format",
+        "token format/expiry",
+        "device clock/stamp semantics",
+        "device MTU acceptance",
+        "device-side keys"
+      ]
+    }
+  },
+  "k3_j3_evidence_table": {
+    "status": "BYTE-EXACT structure (closure 2026-09-22, supersedes the earlier NOT-byte-exact finding in this file): k3.enPkg verified instruction-by-instruction against ledger \u00a75.5 and covered mechanically by evidence-digest k3.enpkg_structure (packHead, 255 buffer, compared {3,9}, literals {16,32,48}, isEmpty/append/substring); tests/test_evidence_conformance.py::test_k3_request_structure_matches_sdk_bytecode pins the emulator to those numbers. What cannot be produced is a VALID TOKEN (account-issued credential), not the layout.",
+    "k3_fields": [
+      {
+        "field": "a",
+        "java_type": "int",
+        "role": "agent value (z.h(), stubbed return 0 in this build)",
+        "serialization": "u8 pack at [4], unconditional",
+        "confidence": "DIRECT (pack call + z.h body); value always 0 here",
+        "unresolved": "none on layout; value is a stub"
+      },
+      {
+        "field": "b",
+        "java_type": "int",
+        "role": "stage (0 = k3 first handshake, 1 = j3 second)",
+        "serialization": "u8 pack at [5], emitted ONLY when d>=3 (branch verified with targets)",
+        "confidence": "DIRECT (pack call + d<3 skip branch); semantics from driver call sites (q.a passes 0-path, q.d0 passes j3)",
+        "unresolved": "none on layout"
+      },
+      {
+        "field": "c",
+        "java_type": "String",
+        "role": "account device token (q.g; template-side: 32-hex derived from JWT)",
+        "serialization": "ASCII bytes; right-padded with '0' (0x30) to 32 when d>=9 else 16; longer tokens truncated via substring",
+        "confidence": "DIRECT (pad loop + widths + comparisons verified with branch targets)",
+        "unresolved": "none on layout; VALUE is an account credential"
+      },
+      {
+        "field": "d",
+        "java_type": "int",
+        "role": "port version (4th ctor arg; layout selector, never emitted)",
+        "serialization": "compared only (<3 gates stage byte, <9 selects width 32 else 16)",
+        "confidence": "DIRECT (branch targets verified)",
+        "unresolved": "none"
+      }
+    ],
+    "k3_ctor": "(agentOrZero, stageOrZero, token: String, portVersion) from q.a/q.d0 drivers; first arg observed 0",
+    "k3_header": "type 1, opcode 1 via packHead (CONFIRMED); body [3]=0x02 constant, [4]=agent (z.h()=0 stub), [5]=stage iff d>=3, [6..]=token padded; all verified with branch targets",
+    "j3_fields": [
+      {
+        "field": "e",
+        "java_type": "String",
+        "role": "devToken (8-byte zero-padded/truncated field)",
+        "serialization": "8 raw bytes appended after the token field",
+        "confidence": "DIRECT (ledger \u00a75.5; test vectors round-trip)",
+        "unresolved": "none on layout"
+      },
+      {
+        "field": "f",
+        "java_type": "String",
+        "role": "userName with u8 length prefix",
+        "serialization": "u8 len + bytes (util.c(I) widths verified)",
+        "confidence": "DIRECT",
+        "unresolved": "none on layout"
+      }
+    ],
+    "j3_8byte_field": "RESOLVED as the devToken field: 8 raw bytes (zero-padded/truncated), NOT length-prefixed; only the userName carries a u8 length. Earlier confusion withdrawn.",
+    "endian": "little-endian throughout (TntBleCommUtils convention; CONFIRMED)",
+    "length_prefix": "u8 (util.c(I) single byte; CONFIRMED from j3.enPkg; corrects earlier u24 claim)",
+    "digest_coverage": "evidence-digest k3.enpkg_structure records calls_packHead, scratch_buffers=[255], compared_constants {3,9,...}, int_literals including {16,32,48}, string_ops [isEmpty,append,substring]; tests/test_evidence_conformance.py::test_k3_request_structure_matches_sdk_bytecode pins the emulator to those numbers. Polarity (32 iff pv>=9; stage iff pv>=3) verified by hand from branch targets + triangulated with the template-side 32-hex token."
+  },
+  "test_vectors": {
+    "provenance": "independent literal vectors; tests/test_r2_handshake.py loads this file and asserts identical parse results (handshake constants must not come solely from plaudsim.handshake). v4 sample corrected 2026-09-22: 4-byte marker header, NO protocol-type prefix (was 0110fe...).",
+    "markers": {
+      "0xFE10": 65040,
+      "0xFE11": 65041,
+      "0xFE12": 65042,
+      "0xFE20": 65056
+    },
+    "v4_sample_hex": "10fe010000010203040506070809",
+    "v4_sample_fields": {
+      "marker": 65040,
+      "count": 1,
+      "index": 0,
+      "chunk_len": 10
+    },
+    "l3_sample_hex": "01010000090008000201000141001234",
+    "l3_sample_fields": {
+      "status": 0,
+      "port_version": 9,
+      "timezone": 8,
+      "timezone_min": 0,
+      "audio_channel": 2,
+      "support_wifi": true,
+      "no_ns_agc": false,
+      "is_ogg_audio": true,
+      "version_type": "A",
+      "version": 4660
+    },
+    "x2_sample_hex": "010200313233343536373839303132333435360076312e30",
+    "x2_sample_fields": {
+      "ssn": "1234567890123456",
+      "version_name": "v1.0"
+    }
+  }
+}

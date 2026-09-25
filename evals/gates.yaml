@@ -1,0 +1,55 @@
+# CI gate suites for the evaluation harness (Layer 3).
+#
+# Every threshold in this file is HARNESS_POLICY: a number the harness chooses
+# so that CI has something to fail on.  None is derived from device, SDK or
+# cloud evidence, and none is a calibrated claim about any pipeline's quality.
+# Metric names are the dotted paths of evals.metrics.MeetingReport.flat().
+#
+# Semantics (evals/gates.py): a check passes when the metric satisfies every
+# bound it declares (max / min / eq with optional tol).  A missing or None
+# metric FAILS its check (fail closed).
+
+schema: plaud-harness/gates/1
+
+suites:
+
+  oracle:
+    description: >
+      A hypothesis that is the reference itself (or a lossless round-trip of
+      it) must score perfectly on every metric.  This is the V4 rung of
+      PROJECT.md 4b: ground truth round-trips through pyannote.metrics at DER 0.
+    gates:
+      - {metric: der.der,                eq: 0.0, tol: 1.0e-9}
+      - {metric: jer.jer,                eq: 0.0, tol: 1.0e-9}
+      - {metric: cpwer.error_rate,       eq: 0.0}
+      - {metric: tcpwer.error_rate,      eq: 0.0}
+      - {metric: wer_concat.wer,         eq: 0.0}
+      - {metric: speaker_count.abs_error, eq: 0}
+
+  synthetic-clean:
+    description: >
+      Layer 2 synthetic meetings with no noise or reverberation.  Thresholds
+      are placeholders until a pipeline exists to calibrate them.
+    gates:
+      - {metric: der.der,                 max: 0.05}
+      - {metric: cpwer.error_rate,        max: 0.10}
+      - {metric: jer.jer,                 max: 0.10}
+      - {metric: speaker_count.abs_error, max: 0}
+
+  synthetic-noisy:
+    description: >
+      Layer 2 synthetic meetings with pyroomacoustics reverberation and
+      additive noise.  Placeholder thresholds.
+    gates:
+      - {metric: der.der,                 max: 0.15}
+      - {metric: cpwer.error_rate,        max: 0.25}
+      - {metric: speaker_count.abs_error, max: 1}
+
+  ami-headset:
+    description: >
+      V5 target on held-out AMI (headset mix).  UNCALIBRATED placeholder: no
+      AMI data is present in this checkout (docs/evals.md, "What is not
+      done"), so these numbers have never been exercised.
+    gates:
+      - {metric: der.der,          max: 0.20}
+      - {metric: cpwer.error_rate, max: 0.30}

@@ -1,0 +1,155 @@
+{
+ "fixture_name": "post_connect_sync_time",
+ "semantic_command": "syncTime",
+ "scope": "connection-time clock sync: last iOS ConnectStage (syncTime) and Android post-connect/pre-refresh call PlaudDeviceAgent.syncTime(). Frame needs no auth bytes; lifecycle position differs by platform (documented, not emulated).",
+ "confidence": "CONFIRMED",
+ "hardware_validated": false,
+ "sdk_integration_validated": false,
+ "caller": {
+  "source": "sdk/PlaudDeviceAgent.class: syncTime()V -> t3.m(c$b, c$c); syncTime$1.onCallback(n7) -> listener.bleTimeSync(n7.c(), n7.b())",
+  "ios_template": "ConnectStage ends in syncTime; DeviceManagerync path consumes bleTimeSync",
+  "android_template": "reference/plaud-org/plaud-sdk-public/android/app/src/main/java/com/plaud/template/managers/DeviceManager.kt: syncTime() after connect, before refreshDeviceInfo(); bleTimeSync(timezone, stamp) only logs",
+  "routing": "q.m registers opcode [4], constructs new m7().enPkg(), sends via z.a (same 2BB1 send path as getState/getStorage)",
+  "note": "m7() no-arg constructor bakes in wall-clock unix seconds and default-timezone hours/minutes at call time; the emulator substitutes fixed values."
+ },
+ "request": {
+  "class": "com.plaud.sdk.proto.m7",
+  "agent_method": "PlaudDeviceAgent.syncTime() -> t3.m -> q.m",
+  "opcode": 4,
+  "protocol_type": 1,
+  "serialized_layout": "[u8 0x01][u16le opcode=0x0004][u32le unix_seconds][i8 tz_hours][i8 tz_minutes]",
+  "example_bytes": [
+   1,
+   4,
+   0,
+   0,
+   241,
+   83,
+   101,
+   0,
+   0
+  ],
+  "payload": "unix_seconds = u32le (System.currentTimeMillis()/1000, truncated to 32 bits, so it wraps in 2038). tz_hours/tz_minutes are SIGNED int8: m7.a(TimeZone,long) computes offset = getOffset(millis)/60000 then (offset/60, offset%60) with Java integer division, which truncates toward zero and keeps the dividend's sign -- UTC-03:30 sends (-3, -30) = 0xFD 0xE2, not (3, 30) or (-4, 30). Real values are runtime-dependent; the emulator uses fixed stamp=1700000000, UTC 0/0.",
+  "ble_write": {
+   "service": "00001910-0000-1000-8000-00805f9b34fb",
+   "characteristic": "00002BB1-0000-1000-8000-00805f9b34fb",
+   "operation": "BluetoothGatt.writeCharacteristic",
+   "write_without_response": "UNKNOWN"
+  },
+  "evidence": [
+   "m7.getBleProtocolType() returns 1, getBleRequestType() returns 4 (classes.jar bytecode)",
+   "m7.enPkg merges packHead + util.a(long)->4B-LE + util.c(int)->1B + util.c(int)->1B; ALLOC widths verified in TntBleCommUtils bodies (a(J)=4B LE explicit shifts, c(I)=1B)",
+   "m7() bakes currentTimeMillis/1000 into field a and default-timezone offset (getOffset/60000 -> hours/minutes via m7$a) into fields b/c",
+   "earlier u24-tz assumption corrected: tz fields are single bytes, total request is 9 bytes, not 13",
+   "q.m registers opcode array [4] and constructs new m7()",
+   "same z.a send entry as q.f/q.F, i.e. the same 2BB1 host-to-device path",
+   "AUDIT 2026-09-22: tz fields are SIGNED int8, not u8 -- the bytecode uses idiv/irem on a signed int (m7.a, javap com/plaud/sdk/proto/m7.txt)."
+  ]
+ },
+ "response": {
+  "class": "com.plaud.sdk.proto.n7",
+  "real_name": "TimeSyncRsp",
+  "opcode": 4,
+  "protocol_type": 1,
+  "received_on": {
+   "service": "00001910-0000-1000-8000-00805f9b34fb",
+   "characteristic": "00002BB0-0000-1000-8000-00805f9b34fb"
+  },
+  "parser": "n7(byte[]); consumer syncTime$1.onCallback(n7) forwards n7.c(), n7.b() to listener.bleTimeSync(timezone, stamp)",
+  "serialized_layout": [
+   {
+    "offset": 0,
+    "size": 1,
+    "field": "protocol_type",
+    "type": "u8",
+    "value": 1
+   },
+   {
+    "offset": 1,
+    "size": 2,
+    "field": "opcode",
+    "type": "u16le",
+    "value": 4
+   },
+   {
+    "offset": 3,
+    "size": 4,
+    "field": "stamp",
+    "type": "u32le",
+    "value": "UNKNOWN"
+   },
+   {
+    "offset": 7,
+    "size": 1,
+    "field": "timezone",
+    "type": "i8",
+    "value": "UNKNOWN",
+    "note": "SIGNED int8. n7.<init> reads it as `(byte)(a(bArr,7) & 255)` -- the `i2b` in the bytecode is what makes it signed. Named `timezone` by the n7.toString literal \"TimeSyncRsp{stamp=%d, timezone=%d, hasStatistics=%s}\", and the consumer confirms it: syncTime$1.onCallback forwards n7.c() as the FIRST argument of PlaudDeviceAgentListener.bleTimeSync(timezone, stamp). CORRECTION 2026-09-22: previously recorded as an unnamed field `raw7`."
+   },
+   {
+    "offset": 8,
+    "size": 1,
+    "field": "has_statistics",
+    "type": "bool_u8",
+    "value": "UNKNOWN",
+    "optional": true,
+    "note": "Guarded by len >= 9. SIDE EFFECT: when set, the SDK immediately starts a statistics sync on its own, without the application asking -- a device that sets this byte pulls the host into a second transaction right after time sync."
+   }
+  ],
+  "example_bytes": null,
+  "emulator_deterministic": {
+   "provenance": "emulator-controlled values for the R1c virtual-link test (tests/test_r1c_sync_time.py). Structure is SDK-derived (m7/n7 parser offsets); values are NOT hardware-observed. Response stamp is FIXED, not claimed to echo the request (device stamp semantics UNKNOWN; both templates only log it). Under the fixed UTC-zero values the request and response coincide byte-wise; role separation comes from characteristic direction and packet-log order, asserted by the test.",
+   "stamp": {
+    "value": 1700000000,
+    "hex_note": "0x6553F100, fixed wall-clock stand-in"
+   },
+   "tz_hours": {
+    "value": 0
+   },
+   "tz_mins": {
+    "value": 0
+   },
+   "has_statistics": {
+    "value": false
+   },
+   "example_bytes": [
+    1,
+    4,
+    0,
+    0,
+    241,
+    83,
+    101,
+    0,
+    0
+   ],
+   "example_hex": "01040000f153650000",
+   "timezone": {
+    "value": 0,
+    "note": "renamed from raw7 by the 2026-09-22 audit; same offset, same value"
+   }
+  },
+  "minimum_structural_length": 8,
+  "minimum_structural_length_meaning": "Unconditional parser prefix: 3-byte header + u32 stamp + u8 raw7. has_statistics@8 needs length >= 9.",
+  "opcode_aliasing": "z7 (WifiCloseRsp, family m) shares a()==4 but has no constructor call-site anywhere in the shipped AAR and is built in w7 (Wi-Fi agent path), not the BLE path. The live BLE opcode-4 response to q.m is n7, constructed in q.X from the notification bytes. No runtime disambiguation beyond the outstanding-request callback is required.",
+  "n7_evidence": "CONFIRMED SDK-derived, 2026-09-21, from plaud-sdk.aar classes.jar bytecode (parsed with jawa, no decompiler): n7<init> executes b=u32@3, c=u8@7 unconditionally and d=(u8@8)==1 when length>=9. n7.toString gives real name TimeSyncRsp and maps stamp<-b, hasStatistics<-d. Consumer syncTime$1.onCallback(n7) calls bleTimeSync(n7.c(), n7.b()); getters unshuffled (b->b, c->c, d->d). q.X logs 'start sync Statistics data' vs 'not Statistics data' on the flag.",
+  "success_condition": "n7 constructor succeeds and opcode equals 4",
+  "evidence": [
+   "q.m callback chain constructs new n7(bytes) for opcode 4 and forwards to the registered c$c",
+   "n7 parses offsets 3 (u32), 7 (u8), and 8 (bool, len>=9)",
+   "syncTime$1.onCallback(n7) forwards to listener.bleTimeSync(timezone, stamp)",
+   "Android bleTimeSync only logs; iOS consumes it in the connect-stage path"
+  ],
+  "audit_2026_09_22": [
+   "Field at offset 7 renamed raw7 -> timezone (real name from the n7.toString literal and from the bleTimeSync consumer argument order). Both timezone fields in the REQUEST are signed int8."
+  ]
+ },
+ "consumer": {
+  "android_source": "reference/plaud-org/plaud-sdk-public/android/app/src/main/java/com/plaud/template/managers/DeviceManager.kt: bleTimeSync(timezone, stamp) logs only",
+  "ios_source": "reference/plaud-org/plaud-sdk-public/ios/PlaudTemplateApp/Managers/DeviceManager.swift: bleTimeSync consumed in connect-stage path",
+  "uses": [
+   "clock sync acknowledgement",
+   "statistics-sync trigger when hasStatistics is set (q.X log strings)"
+  ]
+ }
+}

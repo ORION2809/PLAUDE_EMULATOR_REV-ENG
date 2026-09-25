@@ -1,0 +1,9 @@
+[32m19:40:25.611 I R7S13: [0mPULLCAP_PERIPHERAL_READY pv=7 file=/Users/mivi/Desktop/plaud-harness/tests/fixtures/r6s2_16k_mono.ogg len=11271 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d session=1700000000 drop=3200 payload=None
+[32m19:40:38.275 I R7S13: [0mPULLCAP_FILE_LIST_REQ
+[32m19:40:38.365 I R7S13: [0mPULLCAP_SYNC_START session=1700000000 start=0 end=0 (n=1)
+[32m19:40:38.366 I R7S13: [0mPULLCAP_SERVE frames=355 data=353 dropped_offsets=[3200] payload=32
+[32m19:40:40.269 I R7S13: [0mPULLCAP_STOP_SYNC n=1
+[32m19:40:40.270 I R7S13: [0mPULLCAP_STREAM_ABORTED after 103/355 frames
+[32m19:40:40.305 I R7S13: [0mPULLCAP_SYNC_START session=1700000000 start=3200 end=0 (n=2)
+[32m19:40:40.306 I R7S13: [0mPULLCAP_SERVE frames=256 data=254 dropped_offsets=[] payload=32
+[32m19:40:44.389 I R7S13: [0mPULLCAP_STOP_SYNC n=2

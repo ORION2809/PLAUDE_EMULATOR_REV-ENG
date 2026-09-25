@@ -1,0 +1,75 @@
+##### run11-shipped-default-export (mode=export env: EMPTY_CODE= POS= DROP= TAIL=) #####
+PULLCAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+PULLCAP_FILE getAttribute=1 getFileSize=11271 getScene=2 getSessionId=1700000000 getStability=0 isMusic=false
+PULLCAP_EXPORT sessionId=1700000000 format=OPUS channels=1 t=1790228686282
+PULLCAP_EXPORT_STAGE stage=DOWNLOADING t=1790228686296
+PULLCAP_EXPORT_STAGE stage=TRANSCODING t=1790228691441
+PULLCAP_EXPORT_DONE path=/data/user/0/com.plaud.template/files/pullcap-export/1700000000.opus len=11271 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d t=1790228691456
+--- sdk ---
+09-24 11:14:45.462 12246 12260 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: CONNECTED isConnectFailUseDisConnect:false
+09-24 11:14:45.977 12246 12260 I PenBleSDK-BleAgentImpl: handshake sendSuccess errorCode:0
+09-24 11:14:46.296 12246 12260 I PlaudSdk_SourceFile: exportAudio: 开始下载文件 sessionId=1700000000
+09-24 11:14:46.343 12246 12260 I PenBleSDK-BluetoothLeOperation: 011C0000F153650000000000000000-callBackRequest:[28, 29] status:0
+09-24 11:14:46.343 12246 12260 E BluetoothLeOperation: 011C0000F153650000000000000000-callBackRequest:[28, 29] status:0
+09-24 11:14:46.343 12246 12260 I PenBleSDK-BleAgentImpl: onCallback errorCode:0
+09-24 11:14:51.437 12246 12260 W PenBleSDK-BleAgentImpl: EMPTY_PACKAGE,code: 0
+09-24 11:14:51.441 12246 12260 I PlaudSdk_SourceFile: exportAudio: 下载完成，文件大小: 11271
+--- peripheral ---
+PULLCAP_SYNC_START session=1700000000 start=0 end=0 (n=1)
+PULLCAP_SERVE frames=356 data=354 dropped_offsets=[] payload=32
+-rw------- 1 u0_a193 u0_a193 11271 2026-09-24 11:14 1700000000.opus
+--- sdk cache after run ---
+./files/pullcap-export/1700000000.opus
+##### run12-shipped-default-raw (mode=raw env: EMPTY_CODE= POS= DROP= TAIL=) #####
+PULLCAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+PULLCAP_FILE getAttribute=1 getFileSize=11271 getScene=2 getSessionId=1700000000 getStability=0 isMusic=false
+PULLCAP_SYNCFILE sessionId=1700000000 start=0 end=0 t=1790228762341
+PULLCAP_HEAD sessionId=1700000000 status=0 t=1790228762367
+PULLCAP_DATA_COMPLETE frames=353 t=1790228767547 firstDataAt=1790228762383
+PULLCAP_RAW_DONE sessionId=1700000000 len=11271 frames=353 contiguous=true gaps=0 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d trigger="bleDataComplete" path=/data/user/0/com.plaud.template/files/pullcap-raw-1700000000.bin
+PULLCAP_STOPSYNC_CALL t=1790228767555
+PULLCAP_TAIL sessionId=1700000000 status=48879 t=1790228767566
+PULLCAP_SYNC_STOP t=1790228767577
+--- sdk ---
+09-24 11:16:01.415 12422 12437 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: CONNECTED isConnectFailUseDisConnect:false
+09-24 11:16:02.090 12422 12437 I PenBleSDK-BleAgentImpl: handshake sendSuccess errorCode:0
+09-24 11:16:02.367 12422 12437 I PenBleSDK-BluetoothLeOperation: 011C0000F153650000000000000000-callBackRequest:[28, 29] status:0
+09-24 11:16:02.367 12422 12437 E BluetoothLeOperation: 011C0000F153650000000000000000-callBackRequest:[28, 29] status:0
+09-24 11:16:02.367 12422 12437 I PenBleSDK-BleAgentImpl: onCallback errorCode:0
+09-24 11:16:07.547 12422 12437 W PenBleSDK-BleAgentImpl: EMPTY_PACKAGE,code: 0
+--- peripheral ---
+PULLCAP_SYNC_START session=1700000000 start=0 end=0 (n=1)
+PULLCAP_SERVE frames=356 data=354 dropped_offsets=[] payload=32
+PULLCAP_STOP_SYNC n=1
+--- sdk cache after run ---
+./files/pullcap-raw-1700000000.bin
+##### run13-shipped-default-gap-export (mode=export env: EMPTY_CODE= POS= DROP=3200 TAIL=) #####
+PULLCAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+PULLCAP_FILE getAttribute=1 getFileSize=11271 getScene=2 getSessionId=1700000000 getStability=0 isMusic=false
+PULLCAP_EXPORT sessionId=1700000000 format=OPUS channels=1 t=1790228835134
+PULLCAP_EXPORT_STAGE stage=DOWNLOADING t=1790228835156
+PULLCAP_EXPORT_STAGE stage=TRANSCODING t=1790228840443
+PULLCAP_EXPORT_DONE path=/data/user/0/com.plaud.template/files/pullcap-export/1700000000.opus len=11271 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d t=1790228840460
+--- sdk ---
+09-24 11:17:14.242 12574 12588 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: CONNECTED isConnectFailUseDisConnect:false
+09-24 11:17:14.776 12574 12588 I PenBleSDK-BleAgentImpl: handshake sendSuccess errorCode:0
+09-24 11:17:15.156 12574 12588 I PlaudSdk_SourceFile: exportAudio: 开始下载文件 sessionId=1700000000
+09-24 11:17:15.206 12574 12588 I PenBleSDK-BluetoothLeOperation: 011C0000F153650000000000000000-callBackRequest:[28, 29] status:0
+09-24 11:17:15.206 12574 12588 E BluetoothLeOperation: 011C0000F153650000000000000000-callBackRequest:[28, 29] status:0
+09-24 11:17:15.207 12574 12588 I PenBleSDK-BleAgentImpl: onCallback errorCode:0
+09-24 11:17:16.737 12574 12588 W PenBleSDK-BleAgentImpl: start resend syncFileStart(sessionId:1700000000,lastPosition:3200)
+09-24 11:17:16.802 12574 12588 I PenBleSDK-BluetoothLeOperation: 011C0000F15365800C000000000000-callBackRequest:[28, 29] status:0
+09-24 11:17:16.802 12574 12588 E BluetoothLeOperation: 011C0000F15365800C000000000000-callBackRequest:[28, 29] status:0
+09-24 11:17:16.802 12574 12588 I PenBleSDK-BleAgentImpl: onCallback errorCode:0
+09-24 11:17:20.438 12574 12588 W PenBleSDK-BleAgentImpl: EMPTY_PACKAGE,code: 0
+09-24 11:17:20.443 12574 12588 I PlaudSdk_SourceFile: exportAudio: 下载完成，文件大小: 11271
+--- peripheral ---
+PULLCAP_SYNC_START session=1700000000 start=0 end=0 (n=1)
+PULLCAP_SERVE frames=355 data=353 dropped_offsets=[3200] payload=32
+PULLCAP_STOP_SYNC n=1
+PULLCAP_SYNC_START session=1700000000 start=3200 end=0 (n=2)
+PULLCAP_SERVE frames=256 data=254 dropped_offsets=[] payload=32
+-rw------- 1 u0_a193 u0_a193 11271 2026-09-24 11:17 1700000000.opus
+--- sdk cache after run ---
+./files/pullcap-export/1700000000.opus
+##### ALL RUNS DONE #####

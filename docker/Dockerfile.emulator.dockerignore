@@ -1,0 +1,39 @@
+# Per-Dockerfile ignore file (BuildKit reads <Dockerfile>.dockerignore next to the Dockerfile).
+# The three copies (emulator / mockcloud / job) must stay identical; tests/test_compose_topology.py checks.
+# Keep the context small: the repo carries a 495 MB venv, 2.5 GB of reference trees and the Android rig.
+.git
+.github
+.venv
+venv
+.pytest_cache
+__pycache__
+**/__pycache__
+**/*.pyc
+build
+data
+out
+dist
+dump.md
+r4-*
+r5-*
+r6-*
+r7
+*.aar
+*.apk
+*.wav
+*.mp3
+# reference/** is immutable evidence; only bumble is needed at runtime.
+reference/*
+!reference/upstream
+reference/upstream/*
+!reference/upstream/bumble
+reference/upstream/bumble/.git
+reference/upstream/bumble/web
+reference/upstream/bumble/docs
+reference/upstream/bumble/rust
+reference/upstream/bumble/tests
+# fixtures: only the two Ogg files + manifest under tests/fixtures are copied (Dockerfiles COPY that path);
+# the rest of tests/ is not needed in the images.
+tests/*
+!tests/fixtures
+docs

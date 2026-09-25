@@ -1,0 +1,11 @@
+# Track V2 (fault-injection matrix): no packages were added to .venv.
+# Everything runs on what the venv already had: bumble (editable from
+# reference/upstream/bumble), pytest, pytest-asyncio, pytest-timeout.
+#
+# Files of the track (see docs/v2-fault-matrix.md):
+#   emulator/plaudsim/faults.py       FaultInjector + FaultyPeripheral
+#   tests/fault_support.py            bytecode-derived SDK receiver model + Bumble driver
+#   tests/test_v2_receiver_model.py   pure model tests (q$a rules R1-R13)
+#   tests/test_v2_fault_matrix.py     the GATT-level matrix -> build/v2-fault-matrix.json
+# Completion semantics follow R7-S13 (r7/r7-s13-recording-pull.md): a transfer
+# completes on the EMPTY_PACKAGE sentinel before the TAIL, never on the TAIL.

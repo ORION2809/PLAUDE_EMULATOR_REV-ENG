@@ -1,0 +1,55 @@
+# Layer 3 evaluation harness: unit tests + oracle self-check.
+#
+# This workflow has NOT been executed from this checkout (no CI runner here);
+# docs/evals.md says so.  It deliberately does not fetch Bumble or the SDK:
+# the evals tests are pure Python over the three metric libraries and never
+# touch reference/** or build/**.
+name: evals
+
+on:
+  push:
+    paths:
+      - "evals/**"
+      - "tests/test_evals_*.py"
+      - "requirements/evals.txt"
+      - ".github/workflows/evals.yml"
+  pull_request:
+    paths:
+      - "evals/**"
+      - "tests/test_evals_*.py"
+      - "requirements/evals.txt"
+      - ".github/workflows/evals.yml"
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/evals.txt
+
+      # tests/conftest.py disables bytecode writing; the env var covers the
+      # selfcheck step too so nothing is ever written under reference/**.
+      - name: Evals tests
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m pytest tests/test_evals_io.py tests/test_evals_metrics.py tests/test_evals_gates.py tests/test_evals_cli.py -q -p no:cacheprovider
+
+      # A hand-built meeting scored against itself must pass the 'oracle'
+      # suite: DER 0, JER 0, cpWER 0, tcpWER 0.  Exit code 1 fails the job.
+      - name: Oracle self-check
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m evals selfcheck --report out/selfcheck.json
+
+      - name: Gate suites are well-formed
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m evals suites

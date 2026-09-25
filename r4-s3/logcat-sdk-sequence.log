@@ -1,0 +1,74 @@
+09-22 16:12:46.194 10242 10314 W DeviceManager: connect: RSA key pair not ready within 10s, handshake may fail
+09-22 16:12:46.214 10242 10314 W PlaudSdk_SourceFile: connect: RSA key pair not ready within 10s, handshake may fail
+09-22 16:12:46.216 10242 10314 D PlaudSdk_SourceFile: Partner API: 正在签名设备 SN: 8810000001 (type: notepro)
+09-22 16:12:46.225 10242 10314 E PlaudSdk_SourceFile: Partner API: Cannot sign device SN - user access token not set
+09-22 16:12:46.230 10242 10314 E PlaudSdk_SourceFile: Partner API: ✗ 设备 SN 签名失败
+09-22 16:12:46.230 10242 10314 W DeviceManager: signAndStoreDeviceSn failed (sn=8810000001)
+09-22 16:12:46.233 10242 10314 W PlaudSdk_SourceFile: signAndStoreDeviceSn failed (sn=8810000001)
+09-22 16:12:46.234 10242 10314 I DeviceManager: connectBleDevice: sn=8810000001, signSuccess=false
+09-22 16:12:46.237 10242 10314 I PlaudSdk_SourceFile: connectBleDevice: sn=8810000001, signSuccess=false
+09-22 16:12:46.252 10242 10314 W PlaudSdk_SourceFile: resolveHandshakeToken: no token available
+09-22 16:12:46.261 10242 10314 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-22 16:12:46.269 10242 10423 I PenBleSDK-BleAgentImpl: start validCustomer
+09-22 16:12:46.269 10242 10423 I PenBleSDK-BleAgentImpl: validCustomer result: Pass
+09-22 16:12:46.269 10242 10423 I PenBleSDK-BleAgentImpl: bleOperation.connection:F0:1A:2B:3C:4D:5E
+09-22 16:12:46.269 10242 10423 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=gatt_connect
+09-22 16:12:46.276 10242 10423 I PenBleSDK-BluetoothLeOperation: start connect conBtDevice name:null mac:F0:1A:2B:3C:4D:5E
+09-22 16:12:46.303 10242 10423 D BluetoothGatt: connect() - device: XX:XX:XX:XX:4D:5E, auto: false
+09-22 16:12:46.328 10242 10423 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTING
+09-22 16:12:46.445 10242 10426 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=gatt_connect
+09-22 16:12:46.445 10242 10426 I DeviceManager: bleConnectStage sn=8810000001 stage=gatt_connect detail=-
+09-22 16:12:46.449 10242 10425 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-22 16:12:46.450 10242 10425 I DeviceManager: bleConnectStage sn=8810000001 stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-22 16:12:46.452 10242 10426 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=gatt_connect detail=-
+09-22 16:12:46.454 10242 10425 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-22 16:12:46.643 10242 10242 I PenBleSDK-TntAgent: btStatusChange:sn:[5c4317a7], CONNECTING
+09-22 16:12:46.656 10242 10242 I PenBleSDK-TntAgent: cur sn:sn:[5c4317a7]
+09-22 16:12:47.090 10242 10257 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: CONNECTED isConnectFailUseDisConnect:false
+09-22 16:12:47.213 10242 10257 D BluetoothGatt: configureMTU() - device: XX:XX:XX:XX:4D:5E mtu: 255
+09-22 16:12:47.373 10242 10257 I PenBleSDK-BluetoothLeOperation: start requestMtu 255 true
+09-22 16:12:47.375 10242 10257 D BluetoothGatt: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=6 latency=0 timeout=500 status=0
+09-22 16:12:49.452 10242 10257 D BluetoothGatt: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=40 latency=0 timeout=500 status=0
+09-22 16:12:49.529 10242 10257 D BluetoothGatt: onConfigureMTU() - Device=F0:1A:2B:3C:4D:5E mtu=517 status=0
+09-22 16:12:49.530 10242 10257 I PenBleSDK-BluetoothLeOperation: onMtuChanged: 517 status: 0 isSetDefMtu: false
+09-22 16:12:49.542 10242 10257 I PenBleSDK-BluetoothLeOperation: discoverServices
+09-22 16:12:49.542 10242 10257 I PenBleSDK-BluetoothLeOperation: start discoverServices
+09-22 16:12:49.542 10242 10257 D BluetoothGatt: discoverServices() - device: XX:XX:XX:XX:4D:5E
+09-22 16:12:49.617 10242 10257 D BluetoothGatt: onSearchComplete() = Device=F0:1A:2B:3C:4D:5E Status=0
+09-22 16:12:49.618 10242 10257 I PenBleSDK-BluetoothLeOperation: onServicesDiscovered status: 0
+09-22 16:12:49.618 10242 10257 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTED
+09-22 16:12:49.620 10242 10257 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_notify
+09-22 16:12:49.620 10242 10257 I PenBleSDK-BleAgentImpl: New Battery Service
+09-22 16:12:49.632 10242 10257 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_data_notify detail=new_battery_service_port_7
+09-22 16:12:49.634 10242 10257 D BluetoothGatt: setCharacteristicNotification() - uuid: 00002bb0-0000-1000-8000-00805f9b34fb enable: true
+09-22 16:12:49.646 10242 10430 I PenBleSDK-BluetoothLeOperation: -checkRequest-null-getRequestType-DescriptorWrite
+09-22 16:12:49.710 10242 10257 I PenBleSDK-BluetoothLeOperation: -callBackRequest:null status:0
+09-22 16:12:49.717 10242 10257 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake
+09-22 16:12:49.718 10242 10257 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake detail=bind_token_empty
+09-22 16:12:49.722 10242 10257 W PenBleSDK-BleAgentImpl: bleConnectFail-UUID_IS_EMPTY{errCode=-3, errMsg='UUID为空'}
+09-22 16:12:49.725 10242 10257 I PenBleSDK-BluetoothLeOperation: start disconnect
+09-22 16:12:49.725 10242 10257 I PenBleSDK-BluetoothLeOperation: start disconnect ==>bleConnectFail
+09-22 16:12:49.773 10242 10257 I PenBleSDK-BleAgentImpl: handshake fail UUID_IS_EMPTY
+09-22 16:12:49.794 10242 10257 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: DISCONNECTED isConnectFailUseDisConnect:true
+09-22 16:12:49.797 10242 10257 I PenBleSDK-BluetoothLeOperation: start disconnect
+09-22 16:12:49.797 10242 10257 I PenBleSDK-BluetoothLeOperation: start disconnect ==>reset
+09-22 16:12:49.922 10242 10441 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=set_notify
+09-22 16:12:49.968 10242 10441 I DeviceManager: bleConnectStage sn=8810000001 stage=set_notify detail=-
+09-22 16:12:49.969 10242 10242 I PenBleSDK-TntAgent: bleConnectFail:sn:[5c4317a7]
+09-22 16:12:49.969 10242 10242 I PenBleSDK-BleAgentImpl: --- create ---
+09-22 16:12:49.976 10242 10442 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=set_data_notify detail=new_battery_service_port_7
+09-22 16:12:49.977 10242 10444 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=first_handshake detail=bind_token_empty
+09-22 16:12:49.977 10242 10444 I DeviceManager: bleConnectStage sn=8810000001 stage=first_handshake detail=bind_token_empty
+09-22 16:12:49.986 10242 10442 I DeviceManager: bleConnectStage sn=8810000001 stage=set_data_notify detail=new_battery_service_port_7
+09-22 16:12:49.987 10242 10443 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=first_handshake
+09-22 16:12:49.990 10242 10443 I DeviceManager: bleConnectStage sn=8810000001 stage=first_handshake detail=-
+09-22 16:12:49.997 10242 10445 W PlaudDeviceAgent: bleConnectFail sn=8810000001 reason=UUID_IS_EMPTY
+09-22 16:12:49.997 10242 10445 I DeviceManager: bleConnectState: 2
+09-22 16:12:50.033 10242 10444 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=first_handshake detail=bind_token_empty
+09-22 16:12:50.044 10242 10442 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=set_data_notify detail=new_battery_service_port_7
+09-22 16:12:50.044 10242 10443 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=first_handshake detail=-
+09-22 16:12:50.046 10242 10445 I PlaudSdk_SourceFile: bleConnectState: 2
+09-22 16:12:50.048 10242 10441 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=set_notify detail=-
+09-22 16:12:50.585 10242 10242 W DeviceManager: handshake rejected (auto=false)
+09-22 16:12:50.605 10242 10242 W PlaudSdk_SourceFile: handshake rejected (auto=false)
+09-22 16:14:53.627 10242 10256 W .plaud.template: JNI critical lock held for 25.648ms on Thread[14,tid=10256,Runnable,Thread*=0xb4000079e43431b0,peer=0x135402d0,"binder:10242_1"]

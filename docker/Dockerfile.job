@@ -1,0 +1,65 @@
+# plaud-harness job: docker/job.sh -- probes both services, attaches a central to the emulator,
+# generates a small synthetic set, runs the oracle pipeline and scores it with the evals gates.
+# Exits non-zero on any failure (gate failure included); docker compose reports the code.
+#
+# Base: python:3.11-slim (the venv here is CPython 3.11.16). Build context is the repo root
+# (docker-compose.yml: context ".", dockerfile docker/Dockerfile.<svc>); the matching
+# Dockerfile.<svc>.dockerignore next to this file keeps .venv/, build/, data/, the
+# Android rig and every reference/ tree except reference/upstream/bumble out of the context.
+#
+# Bumble (HARNESS_POLICY, documented in docs/compose.md): the harness installs it editable
+# from the immutable reference tree, so the image does the same from the build-context copy
+# of reference/upstream/bumble at the commit pinned in docs/reference-pins.txt. That copy
+# carries no .git (setuptools_scm would need one, plus git in the image), so the version
+# string the venv reports is passed to setuptools_scm explicitly. Alternative kept in a
+# comment below: clone the pin at build time (needs git and network during the build only).
+FROM python:3.11-slim
+
+ARG BUMBLE_PIN=d371a27ebd8ab87b871a542df8442718b7882fdb
+ARG BUMBLE_VERSION=0.1.dev1+gd371a27eb
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app:/app/emulator
+
+WORKDIR /app
+
+# Dependencies first so source edits do not invalidate the pip layer. The three
+# service Dockerfiles share this prologue verbatim, so BuildKit reuses these layers.
+COPY reference/upstream/bumble /app/reference/upstream/bumble
+COPY requirements /app/requirements
+RUN SETUPTOOLS_SCM_PRETEND_VERSION_FOR_BUMBLE=${BUMBLE_VERSION} \
+    SETUPTOOLS_SCM_PRETEND_VERSION=${BUMBLE_VERSION} \
+    pip install -e /app/reference/upstream/bumble \
+ && pip install -r /app/requirements/all.txt
+# Alternative to the COPY above (network + git at build time):
+#   RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/* \
+#    && git clone https://github.com/google/bumble.git /app/reference/upstream/bumble \
+#    && git -C /app/reference/upstream/bumble checkout ${BUMBLE_PIN}
+
+# Harness packages (all layers, identical in every image so the layers are shared).
+COPY emulator /app/emulator
+COPY mockcloud /app/mockcloud
+COPY generator /app/generator
+COPY pipeline /app/pipeline
+COPY evals /app/evals
+COPY tests/fixtures /app/tests/fixtures
+COPY docker/probe.py docker/job.sh /app/docker/
+
+# build/ is a named volume in docker-compose.yml (job output, mock persistence, meetings the
+# emulator may serve); create the mount point so it exists even without the volume.
+RUN mkdir -p /app/build
+VOLUME ["/app/build"]
+
+
+ENV MOCKCLOUD_URL=http://mockcloud:8787 \
+    EMULATOR_HEALTH=emulator:9001 \
+    EMULATOR_HCI=tcp-client:emulator:9000 \
+    JOB_OUT=/app/build/compose/job \
+    JOB_MEETINGS=2 \
+    JOB_SCENARIO=smoke \
+    JOB_SEED=1 \
+    JOB_SUITE=oracle
+
+CMD ["bash", "/app/docker/job.sh"]

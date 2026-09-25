@@ -1,0 +1,123 @@
+{
+ "stats": {
+  "file": "/Users/mivi/Desktop/plaud-harness/tests/fixtures/r6s2_16k_mono.ogg",
+  "file_len": 11271,
+  "file_sha256": "0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d",
+  "session_id": 1700000000,
+  "drop_offset": 3200,
+  "tail_crc": 48879,
+  "sync_starts": [
+   {
+    "t": 1790172638.365252,
+    "session_id": 1700000000,
+    "start": 0,
+    "end": 0
+   },
+   {
+    "t": 1790172640.305256,
+    "session_id": 1700000000,
+    "start": 3200,
+    "end": 0
+   }
+  ],
+  "stop_syncs": 2,
+  "data_frames_emitted": 607,
+  "empty_package": {
+   "code": 0,
+   "pos": "before_tail",
+   "hex": "0200f15365ffffffff0000"
+  },
+  "drop_applied_on_sync_start_n": 1,
+  "streams_aborted": 1,
+  "streams_completed": 1
+ },
+ "writes": [
+  {
+   "t": 1790172637.718125,
+   "char": "2BB1",
+   "len": 22,
+   "hex": "01010002000053594e54484849535430303031303030",
+   "opcode": 1
+  },
+  {
+   "t": 1790172637.833534,
+   "char": "2BB1",
+   "len": 9,
+   "hex": "010400deddb36a051e",
+   "opcode": 4
+  },
+  {
+   "t": 1790172637.9702668,
+   "char": "2BB1",
+   "len": 3,
+   "hex": "010900",
+   "opcode": 9
+  },
+  {
+   "t": 1790172638.03422,
+   "char": "2BB1",
+   "len": 3,
+   "hex": "010300",
+   "opcode": 3
+  },
+  {
+   "t": 1790172638.110372,
+   "char": "2BB1",
+   "len": 6,
+   "hex": "010800010f00",
+   "opcode": 8
+  },
+  {
+   "t": 1790172638.18467,
+   "char": "2BB1",
+   "len": 6,
+   "hex": "010800011100",
+   "opcode": 8
+  },
+  {
+   "t": 1790172638.2751539,
+   "char": "2BB1",
+   "len": 12,
+   "hex": "011a00deddb36a0000000000",
+   "opcode": 26
+  },
+  {
+   "t": 1790172638.365252,
+   "char": "2BB1",
+   "len": 15,
+   "hex": "011c0000f153650000000000000000",
+   "opcode": 28,
+   "sync_start": {
+    "session_id": 1700000000,
+    "start": 0,
+    "end": 0
+   }
+  },
+  {
+   "t": 1790172640.2693388,
+   "char": "2BB1",
+   "len": 3,
+   "hex": "011d00",
+   "opcode": 29
+  },
+  {
+   "t": 1790172640.305256,
+   "char": "2BB1",
+   "len": 15,
+   "hex": "011c0000f15365800c000000000000",
+   "opcode": 28,
+   "sync_start": {
+    "session_id": 1700000000,
+    "start": 3200,
+    "end": 0
+   }
+  },
+  {
+   "t": 1790172644.389643,
+   "char": "2BB1",
+   "len": 3,
+   "hex": "011d00",
+   "opcode": 29
+  }
+ ]
+}

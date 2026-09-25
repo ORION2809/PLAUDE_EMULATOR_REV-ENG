@@ -1,0 +1,129 @@
+{
+  "fixture_name": "recording_file_sync_forensics",
+  "scope": "R3 forensic reconstruction + adversarial clarification (NO emulator implementation): syncFile operation, file-list exchange, file metadata, transfer framing, audio decode chain. Layouts bytecode-derived; confidence per field. Audit corrections applied: b5 is resume-record (not file-list); file-list request is p2; t6 CRC forwarded-unverified.",
+  "confidence_overall": "layouts CONFIRMED from bytecode; transfer-loop dynamics STRONGLY INFERRED; data-header semantics HYPOTHESIS (explicit puzzles); no hardware validation",
+  "hardware_validated": false,
+  "sdk_integration_validated": false,
+  "syncFile_operation": {
+    "verdict": "HIGHER-LEVEL facade operation, not a single packet",
+    "chain": "PlaudDeviceAgent.syncFile(sessionId,start,end) -> t7.d() task (v3) + u3$f/u3$d receiver wiring + q.a(JJJZ...) transfer start",
+    "callers_OBSERVED": ["iOS bleRecordStart(sessionId,start,...) -> syncFile(sessionId, start, end=0)", "iOS blePenState recording branch -> syncFile(sessionId, 0, 0)", "q$a loss path re-invokes syncFileStart(sessionId, lastPosition) (resend)"],
+    "guards": ["voiceDataCreator null -> 'syncFileStart ignored'", "bleOperation null -> 'syncFileStart aborted: bleOperation is null (device disconnected)'"],
+    "evidence": "sdk/PlaudDeviceAgent.syncFile(JJJ)V + q.a(JJJZ...) bytecode"
+  },
+  "transfer_start_y6": {
+    "request_class": "com.plaud.sdk.proto.y6",
+    "ctor": "(sessionId: long, start: long, end: long); fields a,b,c positional (SOURCE-DERIVED alignment with syncFile args; field names obfuscated)",
+    "protocol_type": 1,
+    "opcode": 28,
+    "layout": "[01][1C 00][u32le sessionId][u32le start][u32le end] (15 bytes)",
+    "layout_evidence": "y6.enPkg bytecode: merge[packHead, a(J)->4B-LE x3]; longs truncated to u32 on the wire",
+    "start_meaning": "SOURCE-DERIVED byte offset: resend path restarts at lastPosition; g4 assembles at absolute offsets; bleRecordStart passes its start through. Unit beyond bytes: UNKNOWN.",
+    "end_meaning": "OBSERVED literal 0 in both iOS call sites; INFERRED open-ended/to-end sentinel; exact semantics UNKNOWN",
+    "listens": "opcodes {28, 29} single registration (raw int-array bytes in q.a driver)",
+    "example_bytes": [1, 28, 0, 120, 86, 52, 18, 0, 0, 0, 0, 0, 0, 0, 0],
+    "example_hex": "011c00785634120000000000000000",
+    "example_note": "synthetic: sessionId=0x12345678, start=0, end=0 (mirrors the iOS recording-sync call)"
+  },
+  "transfer_head_s6": {
+    "response_class": "com.plaud.sdk.proto.s6",
+    "real_name": "SyncFileHeadRsp{sessionId, status}",
+    "opcode": 28,
+    "alias": "none (sole a()==28 class, full-AAR scan)",
+    "layout": "[01][1C 00][u32le sessionId@3][u8 status@7] (8 bytes)",
+    "layout_evidence": "s6<init> bytecode: d(bArr,3)->u32, a(bArr,7)->u8; no length guards",
+    "continuation": "status<=0 continues the session (restarts next chunk request); nonzero routes to finish path (q$a branches; exact status codebook UNKNOWN)"
+  },
+  "transfer_tail_t6": {
+    "response_class": "com.plaud.sdk.proto.t6",
+    "real_name": "SyncFileTailRsp{sessionId, crc}",
+    "opcode": 29,
+    "alias": "none (sole a()==29 class, full-AAR scan)",
+    "layout": "[01][1D 00][u32le sessionId@3][u16le @7] (9 bytes)",
+    "layout_evidence": "t6<init> bytecode: d(bArr,3)->u32, b(bArr,7)->u16; no length guards",
+    "crc_status": "UNVERIFIED (downgraded by audit): the u16 is NAMED crc (toString) and FORWARDED as bleSyncFileTail(sessionId, crc) via process_item_data(t6), but NO calculate-and-compare exists in the supplied sources. tntGetFileCrc is evidenced only on firmware paths (p4/SimpleFirmwareTransfer); tntGetCrc only in sendHttpTokenToDevice (Wi-Fi token). Do not call this a validated CRC."
+  },
+  "transfer_data_frames": {
+    "families": "TWO frame families evidenced; relationship UNKNOWN",
+    "family_qa": {
+      "handler": "q$a.a([B): the s$b registered by the transfer session for opcodes {28, 29}",
+      "type_gate": "byte[0] in {1, 2} (short-circuit remnant in bytecode)",
+      "layout": "[type u8][session u32le@1][offset u32le@5][code u8@9][payload@10..]",
+      "layout_evidence": "session-gate (match or '---sessionId miss match---' return), offset read, 0xFFFFFFFF EMPTY_PACKAGE sentinel ('EMPTY_PACKAGE,code:'), cursor-advance copy, received-count accumulation, loss detection ('---isPacketLossStopSync---', 'start resend syncFileStart(sessionId:,lastPosition:)', 'fileSyncLossPkgStop'), u3$b progress callbacks, word==28 branch (new s6, '---SyncFileHeadRsp---', status-gated continuation), word==29 branch (new t6, '---SyncFileTailRsp---', finish events)",
+      "status": "SELF-CONSISTENT and complete: the primary transfer-data path"
+    },
+    "family_qav3": {
+      "handler": "q.a(v3,[B): requires byte[0]==4; offset=u32le@1; cap=u8@1; payload=raw[2:2+min(cap,len-2)] -> z3.receiveVoiceData(payload, offset)",
+      "puzzle": "UNSOLVED: cap shares byte offset 1 with the offset's low byte (both reads verified at raw-byte level: iload_2=local 2 in both positions). Mechanics exact, semantics HYPOTHESIS. Candidate readings all fail for general offsets; possibly a second transport (Wi-Fi?) or a stripped-header variant. Left UNKNOWN per instruction.",
+      "related_callers": "g4/h4/k4/l4/o4 ([BJ receivers), r4.a([SJ), q$a.a([B) all feed z3.receiveVoiceData; exact family assignment per assembler variant UNKNOWN"
+    },
+    "assembler_g4": {
+      "role": "per-session file assembly (ByteBuffer h, offsets, counters, z3/u3 callbacks)",
+      "observed": ["ByteBuffer accumulation with growth", "absolute-offset assembly ('start:', 'lastDataStart:', 'dataLossLen' accounting)", "flush()/finish(int)/hasCompleteTail()", "'ogg2opus' conversion tag", "first chunk logs 'receive dataLen:, start:, lastDataStart:'"],
+      "not_implemented": "transfer-engine behavior: documented only, no emulator code"
+    },
+    "acks_retries": "no ACK/NAK/retry/error frames found on this path (absence noted, not assumed absent); loss is handled by resend-from-lastPosition restarts, not per-packet ACKs (OBSERVED log strings)",
+    "encryption": "post-handshake 2BB0 frames pass the ChaCha decrypt (J/K/L set) before dispatch: data frames are ciphertext on the wire (same branch as control frames)"
+  },
+  "file_list_p2_corrected": {
+    "correction_note": "AUDIT CORRECTION: the file-list request is p2 (opcode 26), NOT b5. b5 (opcode 22) is the resume-record request (facade resumeRecord(sid, scene=0) call-site literals). An earlier revision misattributed b5; fixed here.",
+    "request_class": "com.plaud.sdk.proto.p2",
+    "ctor": "(sessionId: long, page: long, flag: boolean); fields a(J), b(J), c(Z)",
+    "chain": "facade getFileList(J) -> t3.d -> q.d -> q.a(J, index=0, cbs): pagination entry with index 0",
+    "protocol_type": 1,
+    "opcode": 26,
+    "layout": "[01][1A 00][u32le sessionId][u32le page][u8 flag] (12 bytes)",
+    "layout_evidence": "p2.enPkg bytecode: merge[packHead, a(J)->4B, a(J)->4B, c(Z->I)->1B]",
+    "second_u32": "UNKNOWN: reads s5.e (int field); candidate pagination index (INFERRED, unmapped writer)",
+    "flag": "UNKNOWN boolean (facade passes through; unmapped)",
+    "listens": "opcode {26} single registration (raw int-array bytes in q.a driver)",
+    "callers": ["iOS SyncManager.getFileList(startSessionId: 0)", "Android delayed getFileList 3s after connect"],
+    "example_bytes": [1, 26, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "example_hex": "011a00000000000000000000",
+    "example_note": "synthetic: sessionId=0 (list-all), page=0, flag=0"
+  },
+  "file_list_response_q2": {
+    "response_class": "com.plaud.sdk.proto.q2",
+    "real_name": "GetRecSessionsRsp{totals, fileListSize}",
+    "opcode_note": "q2 carries NO a() opcode: parsed by the s5 session-gated accumulator (q.a(s5,c$c,[B) lambda) across MULTIPLE opcode-26 notifications, not by single-frame opcode dispatch",
+    "header": "totals = u16le@7 (b(bArr,7)); entries ArrayList sized to totals",
+    "entry_stride": 10,
+    "entry_layout": "[u32le sessionId][u32le fileSize][u8 attribute][u8 scene] (offsets relative to entry start)",
+    "entry_evidence": "q2.a([B,I) bytecode: (len-off)/10 entries; u32,u32 via d(); u8,u8 via a(); new BleFile(J,J,I,I) appended; stride-10 loop bound verified",
+    "blefile_mapping": "BleFile(sessionId=a:J, fileSize=b:J, attribute=c:I, scene=d:I); getters getSessionId/getFileSize/getAttribute/getScene; isMusic(); Opus/Ogg offset+duration calculators",
+    "blefile_entity": "NO filename, NO timestamp, NO duration, NO format fields in the entity: only sessionId/fileSize/attribute/scene",
+    "completion": "list.size() vs totals comparison in the parse loop (tableswitch region partially mapped; exact terminal frame unmapped: UNKNOWN whether a terminal frame exists)",
+    "multi_frame": "CONFIRMED: s5 holder (fresh s5.c() per q.a(J,Z) call = reset on new request) accumulates one q2 across notifications, session-match gated; entries appended per frame via q2.a(bytes, offset)",
+    "continuation": "whether frames arrive in order is NOT sequence-encoded in frames (no sequence field found): ordering UNKNOWN; missing-frame detection UNKNOWN beyond size-vs-totals mismatch at completion",
+    "consumer": "facade process_item_data(q2) -> q2.b() List -> NiceBuildSdk.cacheFileS... -> listener.bleFileList(List)"
+  },
+  "opcode_22_dispatch": {
+    "request_b5": "resumeRecord(sid, scene=0) call-site literals -> t3.a(J,I) -> q.a(J,I) -> b5(sessionId, scene): [01][16 00][u32 session][u8 scene] (8 B); q.l also builds b5 via q.a(J,I) (purpose unmapped: UNKNOWN)",
+    "response_c5": "RecordResumeRsp{sessionId,start,status,scene,startTime}: sessionId u32@3, start u32@7, status u8@11, scene u8@12, startTime u32@13 (17 B; init guards/reads spot-verified)",
+    "response_b8": "WifiOTAPackageRsp (family m): Wi-Fi/OTA domain, cross-domain coincidence, never on the BLE transfer path",
+    "discriminator": "MECHANISM, not opcode: file-list/resume share NOTHING at dispatch — resume responses route via the q.E(c$c,[B) lambda bound by the q.a(J,I) registration (news c5), while file-list responses route via the q.a(s5,c$c,[B) lambda bound by the q.a(J,Z) registration (accumulates q2). The z dispatcher matches opcode {22} to outstanding registrations; each registration owns its parser. b8 is constructed only in w7 (Wi-Fi agent), unreachable from BLE registrations.",
+    "verification": "bootstrap method_attr 51/52 -> q.I/q.E impls (resume); facade resumeRecord literals; q2/s5 path for file-list (separate registration). Opcode alone is AMBIGUOUS across domains; within BLE, registration context disambiguates."
+  },
+  "audio_decode_chain": {
+    "assembler": "g4/k4-family ByteBuffer ('ogg2opus' tag); h4/k4/l4/o4 are parallel assembler variants (exact per-variant assignment UNKNOWN)",
+    "container": "OggUtils.init(path,?,?,?) + putPkg(bytes,?) streaming assembly (native-backed; exact int args unmapped); callers k4.a and AudioExporter",
+    "codec": "OpusUtils native Opus: createDecoder(II)->handle, decode(handle, opusBytes, pcmShort[])->int; MS variants; encoder side present but unused on this path",
+    "order": "BLE bytes -> Ogg pages -> Opus packets -> PCM shorts (call-chain order OBSERVED; exact handoff call-sites partially mapped)",
+    "boundaries": {
+      "A_ATT_notifications": "one getValue() byte[] per onCharacteristicChanged, each ≤ MTU-3 payload (OBSERVED dispatch mechanics)",
+      "B_application_DATA_frames": "one logical frame per notification in the q$a path (cursor walk starts at 0 each call; concatenation across frames NOT evidenced: UNKNOWN whether a notification can hold multiple app frames)",
+      "C_g4_assembly": "absolute-offset ByteBuffer appends; file completes at TAIL/finish (OBSERVED fields/logs)",
+      "D_ogg_pages": "internal to OggUtils native putPkg (UNKNOWN mapping to B/C)",
+      "E_opus_packets": "internal to OpusUtils.decode (UNKNOWN mapping to D)",
+      "equality_claims": "NONE: no two boundaries proven identical"
+    },
+    "crc_validation": "UNKNOWN site (see transfer_tail_t6 downgrade)"
+  },
+  "transport_boundary": {
+    "control_frames": "single ATT payloads (R1c finding stands)",
+    "transfer_control": "HEAD/TAIL single payloads (8/9 B)",
+    "file_data": "application-segmented stream of per-session notifications reassembled by g4 ByteBuffer with offset tracking; per-frame size bounded by negotiated ATT MTU (SDK asks 255)",
+    "acks_retries": "no ACK/NAK/retry/error frames found (absence noted, not assumed absent); loss handled by session resend-from-lastPosition",
+    "resumption": "SOURCE-DERIVED capability: syncFile(start,end) range args + startFileSyncFromOffset/syncHistoricalData template flows + q$a resend-at-lastPosition; exact resume handshake unmapped"
+  }
+}

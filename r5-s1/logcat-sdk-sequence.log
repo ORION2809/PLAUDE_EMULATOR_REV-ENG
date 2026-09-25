@@ -1,0 +1,174 @@
+09-22 16:35:22.849 12048 12115 W DeviceManager: connect: RSA key pair not ready within 10s, handshake may fail
+09-22 16:35:23.176 12048 12115 W PlaudSdk_SourceFile: connect: RSA key pair not ready within 10s, handshake may fail
+09-22 16:35:23.188 12048 12115 D PlaudSdk_SourceFile: Partner API: 正在签名设备 SN: 8810000001 (type: notepro)
+09-22 16:35:23.193 12048 12115 E PlaudSdk_SourceFile: Partner API: Cannot sign device SN - user access token not set
+09-22 16:35:23.195 12048 12115 E PlaudSdk_SourceFile: Partner API: ✗ 设备 SN 签名失败
+09-22 16:35:23.195 12048 12115 W DeviceManager: signAndStoreDeviceSn failed (sn=8810000001)
+09-22 16:35:23.274 12048 12115 W PlaudSdk_SourceFile: signAndStoreDeviceSn failed (sn=8810000001)
+09-22 16:35:23.275 12048 12115 I DeviceManager: connectBleDevice: sn=8810000001, signSuccess=false
+09-22 16:35:23.294 12048 12115 I PlaudSdk_SourceFile: connectBleDevice: sn=8810000001, signSuccess=false
+09-22 16:35:23.329 12048 12115 W PlaudSdk_SourceFile: resolveHandshakeToken: no token available
+09-22 16:35:23.349 12048 12115 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-22 16:35:23.357 12048 12198 I PenBleSDK-BleAgentImpl: start validCustomer
+09-22 16:35:23.358 12048 12198 I PenBleSDK-BleAgentImpl: validCustomer result: Pass
+09-22 16:35:23.358 12048 12198 I PenBleSDK-BleAgentImpl: bleOperation.connection:F0:1A:2B:3C:4D:5E
+09-22 16:35:23.359 12048 12198 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=gatt_connect
+09-22 16:35:23.367 12048 12198 I PenBleSDK-BluetoothLeOperation: start connect conBtDevice name:null mac:F0:1A:2B:3C:4D:5E
+09-22 16:35:23.708 12048 12198 D BluetoothGatt: connect() - device: XX:XX:XX:XX:4D:5E, auto: false
+09-22 16:35:23.708 12048 12198 D BluetoothGatt: registerApp()
+09-22 16:35:23.715 12048 12198 D BluetoothGatt: registerApp() - UUID=534ee6c1-cd06-4d5d-ad90-d2ef0a24521b
+09-22 16:35:23.968  1105  1119 D BtGatt.GattService: registerClient() - UUID=534ee6c1-cd06-4d5d-ad90-d2ef0a24521b
+09-22 16:35:24.081  1105  1335 D BtGatt.GattService: onClientRegistered() - UUID=534ee6c1-cd06-4d5d-ad90-d2ef0a24521b, clientIf=8
+09-22 16:35:24.143 12048 12063 D BluetoothGatt: onClientRegistered() - status=0 clientIf=8
+09-22 16:35:24.493 12048 12198 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTING
+09-22 16:35:24.873  1105  1119 D BtGatt.GattService: clientConnect() - address=F0:1A:2B:3C:4D:5E, addressType=0, isDirect=true, opportunistic=false, phy=1
+09-22 16:35:24.937  1105  1119 D BtGatt.GattService: Gatt Logging: metric_id=5, app_uid=10193
+09-22 16:35:24.938  1105  1119 D BtGatt.GattService: Gatt Logging: metric_id=5, session_index=8, connection state=1, connection status=-1
+09-22 16:35:25.062  1105  1308 I bt_stack: [INFO:gatt_attr.cc(950)] gatt_sr_init_cl_status: bda=xx:xx:xx:xx:4d:5e, cl_supp_feat=0000, aware=1
+09-22 16:35:25.064 12048 12201 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-22 16:35:25.205 12048 12201 I DeviceManager: bleConnectStage sn=8810000001 stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-22 16:35:25.265 12048 12201 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-22 16:35:25.624 12048 12048 I PenBleSDK-TntAgent: btStatusChange:sn:[5c4317a7], CONNECTING
+09-22 16:35:25.647 12048 12202 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=gatt_connect
+09-22 16:35:25.648 12048 12202 I DeviceManager: bleConnectStage sn=8810000001 stage=gatt_connect detail=-
+09-22 16:35:25.658 12048 12202 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=gatt_connect detail=-
+09-22 16:35:25.682 12048 12048 I PenBleSDK-TntAgent: cur sn:sn:[5c4317a7]
+09-22 16:35:26.513  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:1304 bta_gattc_conn_cback: Connected client_if:3 addr:xx:xx:xx:xx:4d:5e, transport:BT_TRANSPORT_LE reason:GATT_CONN_OK
+09-22 16:35:26.514  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:1304 bta_gattc_conn_cback: Connected client_if:4 addr:xx:xx:xx:xx:4d:5e, transport:BT_TRANSPORT_LE reason:GATT_CONN_OK
+09-22 16:35:26.514  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:1304 bta_gattc_conn_cback: Connected client_if:5 addr:xx:xx:xx:xx:4d:5e, transport:BT_TRANSPORT_LE reason:GATT_CONN_OK
+09-22 16:35:26.514  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:1304 bta_gattc_conn_cback: Connected client_if:7 addr:xx:xx:xx:xx:4d:5e, transport:BT_TRANSPORT_LE reason:GATT_CONN_OK
+09-22 16:35:26.514  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:1304 bta_gattc_conn_cback: Connected client_if:8 addr:xx:xx:xx:xx:4d:5e, transport:BT_TRANSPORT_LE reason:GATT_CONN_OK
+09-22 16:35:26.514  1105  1308 I bt_stack: [INFO:l2c_api.cc(1607)] L2CA_MarkLeLinkAsActivesetting link to f0:1a:2b:3c:4d:5e as active
+09-22 16:35:26.540  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:549 bta_gattc_conn: Connected to xx:xx:xx:xx:4d:5e, robust caching support is 2
+09-22 16:35:26.541  1105  1308 I bt_stack: [INFO:bta_gattc_act.cc(849)] bta_gattc_start_discover: pending service discovery, read db hash first
+09-22 16:35:26.550  1105  1335 D BtGatt.GattService: onClientConnected() connId=6, address=F0:1A:2B:3C:4D:5E, connected=true
+09-22 16:35:26.678  1105  1308 E bt_stack: [ERROR:bta_gattc_db_storage.cc(89)] bta_gattc_load_db: can't open GATT cache file /data/misc/bluetooth/gatt_hash_E171601082F951F664BD4BC0F7BC753C for reading, error: No such file or directory
+09-22 16:35:26.682  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=1, s_handle=0x0001, e_handle=0xffff
+09-22 16:35:26.684  1105  1335 D BtGatt.GattService: onClientConnected() uid_not_found=android.uid.bluetooth:1002
+09-22 16:35:26.684  1105  1335 D BluetoothGattServer: onServerConnectionState() - status=0 serverIf=6 device=F0:1A:2B:3C:4D:5E
+09-22 16:35:26.710  1105  1335 D BtGatt.GattService: Gatt Logging: metric_id=5, app_uid=-1
+09-22 16:35:26.715  1105  1335 D BtGatt.GattService: Gatt Logging: metric_id=5, session_index=6, connection state=2, connection status=-1
+09-22 16:35:27.230  1105  1335 D BtGatt.GattService: onConnected() - clientIf=8, connId=8, address=F0:1A:2B:3C:4D:5E
+09-22 16:35:27.230  1105  1335 D BtGatt.GattService: onConnected() - adding permit for address=F0:1A:2B:3C:4D:5E
+09-22 16:35:27.230  1105  1335 D BtGatt.GattService: Gatt Logging: metric_id=5, session_index=8, connection state=2, connection status=0
+09-22 16:35:27.231  1105  1335 D BtGatt.GattService: onServerConnUpdate() - connId=6, status=0
+09-22 16:35:27.231  1105  1335 D BluetoothGattServer: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=6 latency=0 timeout=500 status=0
+09-22 16:35:27.231  1105  1335 D BtGatt.GattService: onClientConnUpdate() - connId=7, status=0
+09-22 16:35:27.232  1105  1335 D BtGatt.GattService: onClientConnUpdate() - connId=8, status=0
+09-22 16:35:27.270 12048 12062 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=8 device=F0:1A:2B:3C:4D:5E
+09-22 16:35:27.306  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=3, s_handle=0x0001, e_handle=0x0005
+09-22 16:35:27.458 12048 12062 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: CONNECTED isConnectFailUseDisConnect:false
+09-22 16:35:27.478  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=4, s_handle=0x0001, e_handle=0x0005
+09-22 16:35:27.766 12048 12062 D BluetoothGatt: configureMTU() - device: XX:XX:XX:XX:4D:5E mtu: 255
+09-22 16:35:27.895  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=3, s_handle=0x0006, e_handle=0x000d
+09-22 16:35:28.033  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=4, s_handle=0x0006, e_handle=0x000d
+09-22 16:35:28.038  1105  3522 D BtGatt.GattService: configureMTU() - address=F0:1A:2B:3C:4D:5E mtu=255
+09-22 16:35:28.138 12048 12062 I PenBleSDK-BluetoothLeOperation: start requestMtu 255 true
+09-22 16:35:28.362 12048 12062 D BluetoothGatt: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=6 latency=0 timeout=500 status=0
+09-22 16:35:29.368  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=5, s_handle=0x0009, e_handle=0x0009
+09-22 16:35:30.733  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=3, s_handle=0x000e, e_handle=0x0013
+09-22 16:35:30.948  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=4, s_handle=0x000e, e_handle=0x0013
+09-22 16:35:31.452  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=5, s_handle=0x0011, e_handle=0x0011
+09-22 16:35:31.723  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=3, s_handle=0x0014, e_handle=0x0017
+09-22 16:35:31.778  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=4, s_handle=0x0014, e_handle=0x0017
+09-22 16:35:31.972  1105  1308 I bt_stack: [INFO:gatt_api.cc(913)] GATTC_Discover conn_id=0x0008, disc_type=5, s_handle=0x0017, e_handle=0x0017
+09-22 16:35:32.047  1105  1308 I bt_stack: [INFO:bta_gattc_cache.cc(286)] bta_gattc_explore_srvc_finished: service discovery finished
+09-22 16:35:32.072  1105  1308 I bluetooth: packages/modules/Bluetooth/system/stack/gatt/gatt_api.cc:728 GATTC_ConfigureMTU: Configuring ATT mtu size conn_id:8 mtu:517 user mtu 255
+09-22 16:35:32.574  1105  1335 D BtGatt.GattService: onServerConnUpdate() - connId=6, status=0
+09-22 16:35:32.574  1105  1335 D BluetoothGattServer: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=40 latency=0 timeout=500 status=0
+09-22 16:35:32.574  1105  1335 D BtGatt.GattService: onClientConnUpdate() - connId=7, status=0
+09-22 16:35:32.574  1105  1335 D BtGatt.GattService: onClientConnUpdate() - connId=8, status=0
+09-22 16:35:32.590 12048 12199 D BluetoothGatt: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=40 latency=0 timeout=500 status=0
+09-22 16:35:32.606  1105  1335 D BtGatt.GattService: onConfigureMTU() address=F0:1A:2B:3C:4D:5E, status=0, mtu=517
+09-22 16:35:32.609 12048 12199 D BluetoothGatt: onConfigureMTU() - Device=F0:1A:2B:3C:4D:5E mtu=517 status=0
+09-22 16:35:32.612 12048 12199 I PenBleSDK-BluetoothLeOperation: onMtuChanged: 517 status: 0 isSetDefMtu: false
+09-22 16:35:32.810 12048 12199 I PenBleSDK-BluetoothLeOperation: discoverServices
+09-22 16:35:32.810 12048 12199 I PenBleSDK-BluetoothLeOperation: start discoverServices
+09-22 16:35:32.826 12048 12199 D BluetoothGatt: discoverServices() - device: XX:XX:XX:XX:4D:5E
+09-22 16:35:32.841  1105  1682 D BtGatt.GattService: discoverServices() - address=F0:1A:2B:3C:4D:5E, connId=8
+09-22 16:35:32.842  1105  1335 D BtGatt.GattService: onSearchCompleted() - connId=8, status=0
+09-22 16:35:32.853  1105  1335 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_cache.cc:1035 bta_gattc_get_gatt_db: bta_gattc_get_gatt_db
+09-22 16:35:32.854  1105  1335 D BtGatt.GattService: onGetGattDb() - address=F0:1A:2B:3C:4D:5E
+09-22 16:35:32.854  1105  1335 D BtGatt.GattService: got service with UUID=00001800-0000-1000-8000-00805f9b34fb id: 1
+09-22 16:35:32.854  1105  1335 D BtGatt.GattService: got characteristic with UUID=00002a00-0000-1000-8000-00805f9b34fb id: 3
+09-22 16:35:32.854  1105  1335 D BtGatt.GattService: got characteristic with UUID=00002a01-0000-1000-8000-00805f9b34fb id: 5
+09-22 16:35:32.854  1105  1335 D BtGatt.GattService: got service with UUID=00001801-0000-1000-8000-00805f9b34fb id: 6
+09-22 16:35:32.854  1105  1335 D BtGatt.GattService: got characteristic with UUID=00002a05-0000-1000-8000-00805f9b34fb id: 8
+09-22 16:35:32.854  1105  1335 D BtGatt.GattService: got descriptor with UUID=00002902-0000-1000-8000-00805f9b34fb id: 9
+09-22 16:35:32.854  1105  1335 D BtGatt.GattService: got characteristic with UUID=00002b29-0000-1000-8000-00805f9b34fb id: 11
+09-22 16:35:32.855  1105  1335 D BtGatt.GattService: got characteristic with UUID=00002b2a-0000-1000-8000-00805f9b34fb id: 13
+09-22 16:35:32.855  1105  1335 D BtGatt.GattService: got service with UUID=00001910-0000-1000-8000-00805f9b34fb id: 14
+09-22 16:35:32.855  1105  1335 D BtGatt.GattService: got characteristic with UUID=00002bb0-0000-1000-8000-00805f9b34fb id: 16
+09-22 16:35:32.855  1105  1335 D BtGatt.GattService: got descriptor with UUID=00002902-0000-1000-8000-00805f9b34fb id: 17
+09-22 16:35:32.855  1105  1335 D BtGatt.GattService: got characteristic with UUID=00002bb1-0000-1000-8000-00805f9b34fb id: 19
+09-22 16:35:32.857  1105  1335 D BtGatt.GattService: got service with UUID=0000180f-0000-1000-8000-00805f9b34fb id: 20
+09-22 16:35:32.857  1105  1335 D BtGatt.GattService: got characteristic with UUID=00002a19-0000-1000-8000-00805f9b34fb id: 22
+09-22 16:35:32.857  1105  1335 D BtGatt.GattService: got descriptor with UUID=00002902-0000-1000-8000-00805f9b34fb id: 23
+09-22 16:35:32.864 12048 12199 D BluetoothGatt: onSearchComplete() = Device=F0:1A:2B:3C:4D:5E Status=0
+09-22 16:35:32.864 12048 12199 I PenBleSDK-BluetoothLeOperation: onServicesDiscovered status: 0
+09-22 16:35:32.865 12048 12199 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTED
+09-22 16:35:32.877 12048 12199 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_notify
+09-22 16:35:32.878 12048 12199 I PenBleSDK-BleAgentImpl: New Battery Service
+09-22 16:35:32.890 12048 12199 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_data_notify detail=new_battery_service_port_7
+09-22 16:35:32.954 12048 12199 D BluetoothGatt: setCharacteristicNotification() - uuid: 00002bb0-0000-1000-8000-00805f9b34fb enable: true
+09-22 16:35:32.957  1105  3522 D BtGatt.GattService: registerForNotification() - address=F0:1A:2B:3C:4D:5E enable: true
+09-22 16:35:32.996 12048 12207 I PenBleSDK-BluetoothLeOperation: -checkRequest-null-getRequestType-DescriptorWrite
+09-22 16:35:33.002  1105  1335 D BtGatt.GattService: onRegisterForNotifications() - address=null, status=0, registered=1, handle=16
+09-22 16:35:33.105 12048 12217 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=set_data_notify detail=new_battery_service_port_7
+09-22 16:35:33.106 12048 12217 I DeviceManager: bleConnectStage sn=8810000001 stage=set_data_notify detail=new_battery_service_port_7
+09-22 16:35:33.222 12048 12216 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=set_notify
+09-22 16:35:33.222 12048 12216 I DeviceManager: bleConnectStage sn=8810000001 stage=set_notify detail=-
+09-22 16:35:33.405 12048 12217 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=set_data_notify detail=new_battery_service_port_7
+09-22 16:35:33.577 12048 12199 I PenBleSDK-BluetoothLeOperation: -callBackRequest:null status:0
+09-22 16:35:33.665 12048 12199 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake
+09-22 16:35:33.666 12048 12216 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=set_notify detail=-
+09-22 16:35:33.670 12048 12199 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake detail=bind_token_empty
+09-22 16:35:33.849 12048 12199 W PenBleSDK-BleAgentImpl: bleConnectFail-UUID_IS_EMPTY{errCode=-3, errMsg='UUID为空'}
+09-22 16:35:33.850 12048 12199 I PenBleSDK-BluetoothLeOperation: start disconnect
+09-22 16:35:33.865 12048 12199 I PenBleSDK-BluetoothLeOperation: start disconnect ==>bleConnectFail
+09-22 16:35:33.904 12048 12199 D BluetoothGatt: cancelOpen() - device: XX:XX:XX:XX:4D:5E
+09-22 16:35:33.950  1105  3522 D BtGatt.GattService: clientDisconnect() - address=F0:1A:2B:3C:4D:5E, connId=8
+09-22 16:35:33.958  1105  3522 D BtGatt.GattService: Gatt Logging: metric_id=5, session_index=8, connection state=3, connection status=-1
+09-22 16:35:33.962  1105  1308 W bt_stack: [WARNING:eatt_impl.h(918)] disconnect no eatt device found
+09-22 16:35:33.968  1105  1308 E bt_stack: [ERROR:bta_gattc_utils.cc(576)] bta_gattc_mark_bg_conn unable to find the bg connection mask for bd_addr=xx:xx:xx:xx:4d:5e
+09-22 16:35:33.970 12048 12199 I PenBleSDK-BleAgentImpl: handshake fail UUID_IS_EMPTY
+09-22 16:35:33.989  1105  1335 D BtGatt.GattService: onDisconnected() - clientIf=8, connId=8, address=F0:1A:2B:3C:4D:5E
+09-22 16:35:33.989  1105  1335 D BtGatt.GattService: onDisconnected() - removing permit for address=F0:1A:2B:3C:4D:5E
+09-22 16:35:33.989  1105  1335 D BtGatt.GattService: Gatt Logging: metric_id=5, session_index=8, connection state=0, connection status=0
+09-22 16:35:33.992 12048 12199 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=8 device=F0:1A:2B:3C:4D:5E
+09-22 16:35:33.992 12048 12199 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: DISCONNECTED isConnectFailUseDisConnect:true
+09-22 16:35:33.997 12048 12199 I PenBleSDK-BluetoothLeOperation: start disconnect
+09-22 16:35:33.997 12048 12199 I PenBleSDK-BluetoothLeOperation: start disconnect ==>reset
+09-22 16:35:33.998 12048 12199 D BluetoothGatt: cancelOpen() - device: XX:XX:XX:XX:4D:5E
+09-22 16:35:34.002  1105  3522 D BtGatt.GattService: clientDisconnect() - address=F0:1A:2B:3C:4D:5E, connId=null
+09-22 16:35:34.003  1105  3522 D BtGatt.GattService: Gatt Logging: metric_id=5, session_index=8, connection state=3, connection status=-1
+09-22 16:35:34.004  1105  1308 E bt_stack: [ERROR:bta_gattc_act.cc(312)] No such connection need to be cancelled
+09-22 16:35:34.004  1105  1308 E bt_stack: [ERROR:bta_gattc_utils.cc(576)] bta_gattc_mark_bg_conn unable to find the bg connection mask for bd_addr=xx:xx:xx:xx:4d:5e
+09-22 16:35:34.005 12048 12199 D BluetoothGatt: close()
+09-22 16:35:34.006 12048 12199 D BluetoothGatt: unregisterApp() - mClientIf=8
+09-22 16:35:34.014  1105  3522 D BtGatt.GattService: unregisterClient() - clientIf=8
+09-22 16:35:34.025  1105  1308 I bt_stack: [INFO:gatt_api.cc(1279)] GATT_Deregister gatt_if=8
+09-22 16:35:35.044 12048 12219 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=first_handshake
+09-22 16:35:35.047 12048 12219 I DeviceManager: bleConnectStage sn=8810000001 stage=first_handshake detail=-
+09-22 16:35:35.100  1105  1308 W bt_stack: [WARNING:eatt_impl.h(918)] disconnect no eatt device found
+09-22 16:35:35.100  1105  1308 I bt_stack: [INFO:gatt_attr.cc(350)] gatt_connect_cback: remove untrusted client status, bda=xx:xx:xx:xx:4d:5e
+09-22 16:35:35.100  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:1310 bta_gattc_conn_cback: Disconnected att_id:3 addr:xx:xx:xx:xx:4d:5e, transport:BT_TRANSPORT_LE reason:GATT_CONN_TERMINATE_LOCAL_HOST
+09-22 16:35:35.101  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:1310 bta_gattc_conn_cback: Disconnected att_id:4 addr:xx:xx:xx:xx:4d:5e, transport:BT_TRANSPORT_LE reason:GATT_CONN_TERMINATE_LOCAL_HOST
+09-22 16:35:35.101  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:1310 bta_gattc_conn_cback: Disconnected att_id:5 addr:xx:xx:xx:xx:4d:5e, transport:BT_TRANSPORT_LE reason:GATT_CONN_TERMINATE_LOCAL_HOST
+09-22 16:35:35.101  1105  1308 I bt_bta_gattc: packages/modules/Bluetooth/system/bta/gatt/bta_gattc_act.cc:1310 bta_gattc_conn_cback: Disconnected att_id:7 addr:xx:xx:xx:xx:4d:5e, transport:BT_TRANSPORT_LE reason:GATT_CONN_TERMINATE_LOCAL_HOST
+09-22 16:35:35.120 12048 12220 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=first_handshake detail=bind_token_empty
+09-22 16:35:35.130  1105  1335 D BtGatt.GattService: onClientConnected() connId=6, address=F0:1A:2B:3C:4D:5E, connected=false
+09-22 16:35:35.131 12048 12220 I DeviceManager: bleConnectStage sn=8810000001 stage=first_handshake detail=bind_token_empty
+09-22 16:35:35.132  1105  1335 D BtGatt.GattService: onClientConnected() uid_not_found=android.uid.bluetooth:1002
+09-22 16:35:35.133  1105  1335 D BluetoothGattServer: onServerConnectionState() - status=0 serverIf=6 device=F0:1A:2B:3C:4D:5E
+09-22 16:35:35.134  1105  1335 D BtGatt.GattService: Gatt Logging: metric_id=5, app_uid=-1
+09-22 16:35:35.134  1105  1335 D BtGatt.GattService: Gatt Logging: metric_id=5, session_index=6, connection state=0, connection status=-1
+09-22 16:35:35.145 12048 12048 I PenBleSDK-TntAgent: bleConnectFail:sn:[5c4317a7]
+09-22 16:35:35.146 12048 12048 I PenBleSDK-BleAgentImpl: --- create ---
+09-22 16:35:35.201 12048 12219 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=first_handshake detail=-
+09-22 16:35:35.206 12048 12221 W PlaudDeviceAgent: bleConnectFail sn=8810000001 reason=UUID_IS_EMPTY
+09-22 16:35:35.206 12048 12221 I DeviceManager: bleConnectState: 2
+09-22 16:35:35.242 12048 12220 I PlaudSdk_SourceFile: bleConnectStage sn=8810000001 stage=first_handshake detail=bind_token_empty
+09-22 16:35:35.273 12048 12221 I PlaudSdk_SourceFile: bleConnectState: 2
+09-22 16:35:36.240 12048 12048 W DeviceManager: handshake rejected (auto=false)
+09-22 16:35:36.302 12048 12048 W PlaudSdk_SourceFile: handshake rejected (auto=false)

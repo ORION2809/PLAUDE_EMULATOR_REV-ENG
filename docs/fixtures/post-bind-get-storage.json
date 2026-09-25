@@ -1,0 +1,80 @@
+{
+  "fixture_name": "post_bind_get_storage",
+  "semantic_command": "getStorage",
+  "scope": "post-bind refreshDeviceInfo path on BOTH templates: iOS calls getState+getStorage, Android calls getChargingState+getStorage",
+  "confidence": "CONFIRMED",
+  "hardware_validated": false,
+  "sdk_integration_validated": false,
+  "caller": {
+    "source": "sdk/PlaudDeviceAgent.class: getStorage()V -> t3.F(c$b, c$c); templates call it from refreshDeviceInfo()",
+    "ios_template": "reference/plaud-org/plaud-sdk-public/ios/PlaudTemplateApp/Managers/DeviceManager.swift: refreshDeviceInfo() calls getState() then getStorage()",
+    "android_template": "reference/plaud-org/plaud-sdk-public/android/app/src/main/java/com/plaud/template/managers/DeviceManager.kt: refreshDeviceInfo() calls getChargingState() then getStorage()",
+    "routing": "q.F registers opcode [6], constructs new a3().enPkg(), sends via z.a (same 2BB1 send path as the getState exchange)",
+    "note": "Unlike getState (iOS-only post-bind), getStorage is the first exchange both platforms share after bind."
+  },
+  "request": {
+    "class": "com.plaud.sdk.proto.a3",
+    "agent_method": "PlaudDeviceAgent.getStorage() -> t3.F -> q.F",
+    "opcode": 6,
+    "protocol_type": 1,
+    "serialized_layout": "[u8 0x01][u16le opcode=0x0006]",
+    "example_bytes": [1, 6, 0],
+    "payload": null,
+    "ble_write": {
+      "service": "00001910-0000-1000-8000-00805f9b34fb",
+      "characteristic": "00002BB1-0000-1000-8000-00805f9b34fb",
+      "operation": "BluetoothGatt.writeCharacteristic",
+      "write_without_response": "UNKNOWN"
+    },
+    "evidence": [
+      "a3.getBleProtocolType() returns 1, getBleRequestType() returns 6 (classes.jar bytecode)",
+      "a3 has a no-arg constructor and no enPkg override: inherits l.enPkg, so the request is exactly the 3-byte type-1 header",
+      "q.F registers opcode array [6] and constructs new a3()",
+      "same z.a send entry (#466) as q.f, i.e. the same 2BB1 host-to-device path"
+    ]
+  },
+  "response": {
+    "class": "com.plaud.sdk.proto.n6",
+    "real_name": "StorageRsp",
+    "opcode": 6,
+    "protocol_type": 1,
+    "received_on": {
+      "service": "00001910-0000-1000-8000-00805f9b34fb",
+      "characteristic": "00002BB0-0000-1000-8000-00805f9b34fb"
+    },
+    "parser": "n6(byte[]); consumer PlaudDeviceAgent.process_item_data(n6) forwards n6.d()/c()/b() to listener.bleStorage(total, free, duration)",
+    "serialized_layout": [
+      {"offset": 0, "size": 1, "field": "protocol_type", "type": "u8", "value": 1},
+      {"offset": 1, "size": 2, "field": "opcode", "type": "u16le", "value": 6},
+      {"offset": 3, "size": 8, "field": "free", "type": "u64le", "value": "UNKNOWN"},
+      {"offset": 11, "size": 8, "field": "total", "type": "u64le", "value": "UNKNOWN"},
+      {"offset": 19, "size": 8, "field": "duration", "type": "u64le", "value": "UNKNOWN", "optional": true}
+    ],
+    "example_bytes": null,
+    "emulator_deterministic": {
+      "provenance": "emulator-controlled values for the R1b virtual-link test (tests/test_r1b_get_storage.py). Structure is SDK-derived (n6 parser offsets); values are NOT hardware-observed. free/total presumed bytes (strongly inferred: both templates compute storageUsed = total - free); duration unit UNKNOWN (both templates ignore it).",
+      "free": {"value": 8589934592, "hex_note": "0x200000000, 8 GiB"},
+      "total": {"value": 17179869184, "hex_note": "0x400000000, 16 GiB"},
+      "duration": {"value": 36000, "unit": "UNKNOWN"},
+      "example_bytes": [1, 6, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 160, 140, 0, 0, 0, 0, 0, 0],
+      "example_hex": "01060000000000020000000000000004000000a08c000000000000"
+    },
+    "minimum_structural_length": 19,
+    "minimum_structural_length_meaning": "Unconditional parser prefix: 3-byte header + u64 free + u64 total. duration@19 needs length >= 27; shorter frames return early with fewer fields.",
+    "opcode_aliasing": "No alias: n6 is the SOLE class with a()==6 among all 240 proto classes (bytecode scan). Callback routing via q.F still applies, but opcode 6 is unambiguous.",
+    "n6_evidence": "CONFIRMED SDK-derived, 2026-09-21, from plaud-sdk.aar classes.jar bytecode (parsed with jawa, no decompiler): n6<init> executes b=u64@3, c=u64@11 unconditionally and d=u64@19 when length>=27. n6.toString gives real name StorageRsp and maps free<-b, total<-c, duration<-d. Consumer mapping verified through shuffled getters: n6.c()->b, n6.d()->c, n6.b()->d, so process_item_data pushes (total, free, duration) into bleStorage(total, free, duration), matching both templates' signatures.",
+    "transport_note": "RESOLVED 2026-09-21 as ordinary ATT MTU expansion, no app segmentation: the Android SDK calls BluetoothGatt.requestMtu(255) on every STATE_CONNECTED (z.f, field default in z.<init>), stores/forwards the negotiated value in onMtuChanged, and consumes each notification as a single getValue() byte[] with no accumulation buffers in z/z$c. The 27-byte response therefore arrives as ONE notification iff negotiated MTU >= 30. Residual unknown: device-side MTU acceptance (firmware-side, invisible in app artifacts). The R1b virtual test's ATT MTU exchange is the source-backed equivalent. (The getPortVersion()<20 branch in onCharacteristicChanged is a legacy-device path, not a length gate.)",
+    "success_condition": "n6 constructor succeeds and opcode equals 6",
+    "evidence": [
+      "q.F callback chain constructs the response for opcode 6 and forwards n6 to process_item_data",
+      "n6 parses offsets 3 (u64), 11 (u64), and 19 (u64, len>=27)",
+      "PlaudDeviceAgent.process_item_data(n6) forwards to listener.bleStorage(total, free, duration)",
+      "iOS bleStorage(total, free, duration) sets storageTotal/total-free; Android bleStorage(total, free, duration) sets storageUsed/total identically"
+    ]
+  },
+  "consumer": {
+    "android_source": "reference/plaud-org/plaud-sdk-public/android/app/src/main/java/com/plaud/template/managers/DeviceManager.kt: bleStorage(total, free, duration) merges storageUsed/total into device state",
+    "ios_source": "reference/plaud-org/plaud-sdk-public/ios/PlaudTemplateApp/Managers/DeviceManager.swift: bleStorage(total, free, duration) sets storageTotal/Used",
+    "uses": ["populate storage totals", "derive storageUsed as total - free"]
+  }
+}

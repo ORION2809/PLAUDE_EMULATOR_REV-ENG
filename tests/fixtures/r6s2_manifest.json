@@ -1,0 +1,31 @@
+{
+  "generator": "scripts/generate_r6s2_fixture.py",
+  "fixtures": [
+    {
+      "path": "r6s2_16k_mono.ogg",
+      "synthetic": true,
+      "not_plaud_capture": true,
+      "sample_rate": 16000,
+      "channels": 1,
+      "duration_s": 2.0,
+      "pcm_samples_per_channel": 32000,
+      "encoder": "PyAV 18.1.0 / libopus",
+      "bit_rate": 32000,
+      "sha256": "0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d",
+      "bytes": 11271
+    },
+    {
+      "path": "r6s2_16k_stereo.ogg",
+      "synthetic": true,
+      "not_plaud_capture": true,
+      "sample_rate": 16000,
+      "channels": 2,
+      "duration_s": 2.0,
+      "pcm_samples_per_channel": 32000,
+      "encoder": "PyAV 18.1.0 / libopus",
+      "bit_rate": 32000,
+      "sha256": "e13d47c59d9bdcc6327343cc4eff4d2dad55ce93dd249575f65278558eff73b2",
+      "bytes": 13201
+    }
+  ]
+}

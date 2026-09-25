@@ -1,0 +1,7 @@
+# Track: Wi-Fi bulk-transfer emulator (emulator/plaudsim/wifi.py, wifi_device.py).
+# No packages were added to .venv for this track. It uses what was already
+# installed: websockets 17.1 (asyncio server/client), cryptography (AES-GCM and
+# ChaCha20-Poly1305 via plaudsim.sealed), pytest-asyncio 1.4.0.
+websockets>=17,<18
+cryptography
+pytest-asyncio

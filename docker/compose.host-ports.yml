@@ -1,0 +1,21 @@
+# Optional override: publish the services on the host loopback so a developer's
+# own Bumble central / curl can reach them. The default network in
+# docker-compose.yml is `internal: true` (sealed); Docker cannot publish ports
+# from an internal network, so this override also opens it. Usage:
+#
+#   docker compose -f docker-compose.yml -f docker/compose.host-ports.yml up -d --wait
+#   python docker/probe.py scan tcp-client:127.0.0.1:9000
+#   curl http://127.0.0.1:8787/_mock/health ; curl http://127.0.0.1:9001/
+#
+# HARNESS_POLICY: loopback only; nothing is exposed beyond this machine.
+services:
+  emulator:
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+  mockcloud:
+    ports:
+      - "127.0.0.1:8787:8787"
+networks:
+  harness:
+    internal: false

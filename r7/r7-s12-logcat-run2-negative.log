@@ -1,0 +1,8 @@
+09-23 16:41:13.318  5519  5519 I K3CAP   : K3CAP_START id="client_user_" targetSn=<first>
+09-23 16:41:13.553  5519  5519 I PenBleSDK-BleAgentImpl: --- create ---
+09-23 16:41:13.602  5519  5519 I K3CAP   : K3CAP_SCAN_STARTED
+09-23 16:41:13.807  5519  5563 I K3CAP   : K3CAP_SCAN n=1 sns=[8810000001]
+09-23 16:41:13.807  5519  5563 I PenBleSDK-BluetoothLeOperation: stopScanBLE
+09-23 16:41:13.813  5519  5563 I K3CAP   : K3CAP_RECOVERY calling recoveryConnectBleDevice sn=8810000001 id="client_user_"
+09-23 16:41:13.814  5519  5563 E PlaudDeviceAgent: recoveryConnect: historicalUserId 为空，中止
+09-23 16:41:13.814  5519  5563 I K3CAP   : K3CAP_CONNECT_STATE state=2

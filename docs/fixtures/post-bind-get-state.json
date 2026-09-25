@@ -1,0 +1,95 @@
+{
+  "fixture_name": "ios_post_bind_get_state",
+  "semantic_command": "getState",
+  "scope": "iOS template post-bind refreshDeviceInfo path",
+  "confidence": "CONFIRMED",
+  "hardware_validated": false,
+  "sdk_integration_validated": false,
+  "caller": {
+    "source": "reference/plaud-org/plaud-sdk-public/ios/PlaudTemplateApp/Managers/DeviceManager.swift",
+    "method": "bleBind(sn:status:protVersion:timezone:)",
+    "path": [
+      "bleBind(status == 0)",
+      "refreshDeviceInfo()",
+      "PlaudDeviceAgent.shared.getState()"
+    ],
+    "note": "The iOS template calls getState before getStorage. Android has a different post-connect order and calls syncTime before refreshDeviceInfo."
+  },
+  "request": {
+    "class": "com.plaud.sdk.proto.y2",
+    "agent_method": "com.plaud.sdk.proto.q.f(c.b, c.InterfaceC0000c<z2>)",
+    "opcode": 3,
+    "protocol_type": 1,
+    "serialized_layout": "[u8 0x01][u16le opcode=0x0003]",
+    "example_bytes": [1, 3, 0],
+    "payload": null,
+    "ble_write": {
+      "service": "00001910-0000-1000-8000-00805f9b34fb",
+      "characteristic": "00002BB1-0000-1000-8000-00805f9b34fb",
+      "operation": "BluetoothGatt.writeCharacteristic",
+      "write_without_response": "UNKNOWN"
+    },
+    "evidence": [
+      "q.f registers response opcode [3] and constructs new y2().enPkg()",
+      "y2.getBleProtocolType() returns 1",
+      "y2.getBleRequestType() returns 3",
+      "l.packHead() serializes type 1 plus little-endian u16 opcode",
+      "z.sendData resolves w.d.c (2BB1) for characteristic writes"
+    ]
+  },
+  "response": {
+    "class": "com.plaud.sdk.proto.z2",
+    "opcode": 3,
+    "protocol_type": 1,
+    "received_on": {
+      "service": "00001910-0000-1000-8000-00805f9b34fb",
+      "characteristic": "00002BB0-0000-1000-8000-00805f9b34fb"
+    },
+    "parser": "z2(byte[]), guarded by n(byte[]) opcode validation",
+    "serialized_layout": [
+      {"offset": 0, "size": 1, "field": "protocol_type", "type": "u8", "value": 1},
+      {"offset": 1, "size": 2, "field": "opcode", "type": "u16le", "value": 3},
+      {"offset": 3, "size": 4, "field": "state", "type": "u32le", "value": "UNKNOWN"},
+      {"offset": 7, "size": 1, "field": "privacy_enabled", "type": "bool_u8", "value": "UNKNOWN"},
+      {"offset": 8, "size": 1, "field": "key_state", "type": "bool_u8", "value": "UNKNOWN", "optional": true},
+      {"offset": 9, "size": 1, "field": "usb_state", "type": "bool_u8", "value": "UNKNOWN", "optional": true},
+      {"offset": 10, "size": 1, "field": "scene", "type": "u8", "value": "UNKNOWN", "optional": true},
+      {"offset": 11, "size": 4, "field": "session_id", "type": "u32le", "value": "UNKNOWN", "optional": true},
+      {"offset": 15, "size": 1, "field": "find_my_state", "type": "u8", "value": "UNKNOWN", "optional": true},
+      {"offset": 16, "size": 1, "field": "additional_state_16", "type": "u8", "value": "UNKNOWN", "optional": true},
+      {"offset": 17, "size": 1, "field": "additional_state_17", "type": "u8", "value": "UNKNOWN", "optional": true}
+    ],
+    "example_bytes": null,
+    "emulator_deterministic": {
+      "provenance": "emulator-controlled values for the R1a virtual-link test (tests/test_r1a_get_state.py). Structure is SDK-derived (z2 parser offsets); values are NOT hardware-observed.",
+      "state": {"value": 4097, "hex_note": "0x1001"},
+      "privacy_enabled": {"value": true},
+      "key_state": {"value": 1},
+      "usb_state": {"value": false},
+      "scene": {"value": 4},
+      "session_id": {"value": 305419896, "hex_note": "0x12345678"},
+      "find_my_state": {"value": 1},
+      "additional_state_16": {"value": 7},
+      "additional_state_17": {"value": 8},
+      "example_bytes": [1, 3, 0, 1, 16, 0, 0, 1, 1, 0, 4, 120, 86, 52, 18, 1, 7, 8],
+      "example_hex": "010300011000000101000478563412010708"
+    },
+    "minimum_structural_length": 8,
+    "minimum_structural_length_meaning": "Unconditional parser prefix only: 3-byte header + u32 state + u8 privacy. Optional fields need more (offset 8 needs >= 9, offset 9 needs >= 10, offsets 10-11 need >= 15, offset 15 needs >= 16, offset 16 needs >= 17, offset 17 needs >= 18); see z2_guard_chain in evidence.",
+    "opcode_aliasing": "Opcode 3 is NOT globally unique: o3 (HeartbeatPing, no parsed fields) shares it. z2 (GetStateRsp) is selected by the outstanding-request callback registered in q.f for the getState request, not by opcode alone.",
+    "z2_guard_chain": "From z2<init> bytecode: len>=9 -> d,e@8; len>=10 -> f@9; len>=15 -> j@10,k@11; len>=16 -> g@15; len>=17 -> h@16; len>=18 -> i@17. Shorter frames return early with fewer fields parsed.",
+    "offset_8_evidence": "CONFIRMED SDK-derived, 2026-09-21, from plaud-sdk.aar classes.jar bytecode (parsed with jawa, no decompiler): z2<init> executes d=u8@8 and e=(u8@8)==1 when length>=9. z2.toString gives the real class name GetStateRsp and maps keyState<-e, so key_state is bool-valued; the deterministic fixture uses 1 so a real parse reports keyState=1 (a raw byte of 2 would report 0). d is the SDK-internal raw byte at the same offset, unused by toString.",
+    "success_condition": "z2 constructor succeeds and opcode equals 3; null parse is treated as no result",
+    "evidence": [
+      "q.f callback constructs new z2(bArr2)",
+      "z.onCharacteristicChanged routes command opcode 3 to the registered callback",
+      "z2 parses offsets 3, 7, 8, 9, 10, 11, 15, 16, and 17",
+      "PlaudDeviceAgent.getState forwards state/privacy/keyState/uDisk to blePenState"
+    ]
+  },
+  "consumer": {
+    "source": "reference/plaud-org/plaud-sdk-public/ios/PlaudTemplateApp/Managers/DeviceManager.swift",
+    "callback": "blePenState(state:privacy:keyState:uDisk:findMyToken:hasSndpKey:deviceAccessToken:versionType:versionCode:)",
+    "uses": ["populate device state", "detect recording state", "start sync when already recording"]
+  }
+}

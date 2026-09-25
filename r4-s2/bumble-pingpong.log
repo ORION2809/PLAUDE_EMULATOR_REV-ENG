@@ -1,0 +1,5 @@
+I0922 15:29:17.500807 1653924 fork_posix.cc:71] Other threads are currently calling into gRPC, skipping fork() handlers
+I0922 15:29:17.515741 1653924 fork_posix.cc:71] Other threads are currently calling into gRPC, skipping fork() handlers
+2026-09-22 15:29:17,587 PINGPONG PINGPONG_PERIPHERAL_READY
+2026-09-22 15:40:58,536 PINGPONG PINGPONG_WRITE_RX bytes=70696e67
+2026-09-22 15:40:58,539 PINGPONG PINGPONG_NOTIF_TX pong

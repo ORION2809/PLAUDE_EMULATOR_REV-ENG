@@ -1,0 +1,52 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Bumble is the BLE stack under the emulator. It is a reference
+      # repository (immutable evidence), fetched rather than vendored.
+      - name: Fetch Bumble
+        run: |
+          mkdir -p reference/upstream
+          pin=$(awk '/bumble(\.git)?$/ {print $1; exit}' docs/reference-pins.txt)
+          git clone https://github.com/google/bumble.git reference/upstream/bumble
+          if [ -n "$pin" ]; then
+            git -C reference/upstream/bumble fetch --depth 1 origin "$pin" || true
+            git -C reference/upstream/bumble checkout "$pin"
+          fi
+          git -C reference/upstream/bumble rev-parse HEAD
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e reference/upstream/bumble pytest pytest-asyncio
+
+      # The conformance suite asserts the emulator against
+      # docs/evidence-digest.json, which is committed. The SDK itself is
+      # proprietary and is NOT fetched here, so the tests that need the
+      # decompiled tree skip; the ones that read the digest still run.
+      - name: Tests
+        run: python -m pytest tests/ -v
+
+      # reference/** is immutable evidence. Anything that writes into it is a
+      # bug in the tooling, so fail loudly rather than let it drift.
+      - name: Reference tree is pristine
+        run: |
+          for d in reference/*/*/; do
+            if [ -d "$d/.git" ]; then
+              out=$(git -C "$d" status --porcelain)
+              if [ -n "$out" ]; then echo "DIRTY: $d"; echo "$out"; exit 1; fi
+            fi
+          done
+          echo "all reference repositories clean"

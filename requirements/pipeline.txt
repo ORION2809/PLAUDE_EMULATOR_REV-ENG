@@ -1,0 +1,12 @@
+# Track: pipeline/ (ASR/diarization stack under test)
+#
+# No packages were added to .venv for this track.  Everything used is
+# already present: numpy, scipy, soundfile, av (PyAV 18 / libopus),
+# pytest, pyannote.metrics, meeteval.  scikit-learn is present in the venv
+# but deliberately NOT used (the model-free diarizer is numpy/scipy only).
+#
+# Optional adapters (UNTESTED here; not installed, not to be installed
+# without model weights and a licence check -- see docs/pipeline.md):
+#   faster-whisper
+#   pyannote.audio  (+ torch)
+#   whisperx        (+ torch)

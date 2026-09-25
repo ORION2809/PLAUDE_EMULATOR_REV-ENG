@@ -1,0 +1,56 @@
+[
+ {
+  "only_in_plaud": 1,
+  "only_in_plaud_mentioning_plaud": 0,
+  "common": 164,
+  "common_modified": 1,
+  "common_modified_mentioning_plaud": 0,
+  "only_in_upstream": 0,
+  "pair": "goreplay"
+ },
+ {
+  "only_in_plaud": 376,
+  "only_in_plaud_mentioning_plaud": 2,
+  "common": 676,
+  "common_modified": 220,
+  "common_modified_mentioning_plaud": 1,
+  "only_in_upstream": 1029,
+  "pair": "xiaozhi-esp32"
+ },
+ {
+  "only_in_plaud": 19,
+  "only_in_plaud_mentioning_plaud": 1,
+  "common": 134,
+  "common_modified": 72,
+  "common_modified_mentioning_plaud": 1,
+  "only_in_upstream": 60,
+  "pair": "client-sdk-esp32"
+ },
+ {
+  "only_in_plaud": 1503,
+  "only_in_plaud_mentioning_plaud": 0,
+  "common": 5460,
+  "common_modified": 3120,
+  "common_modified_mentioning_plaud": 0,
+  "only_in_upstream": 6163,
+  "pair": "plaud-opik"
+ },
+ {
+  "only_in_plaud": 227,
+  "only_in_plaud_mentioning_plaud": 1,
+  "common": 260,
+  "common_modified": 107,
+  "common_modified_mentioning_plaud": 0,
+  "only_in_upstream": 1357,
+  "pair": "live-agent"
+ },
+ {
+  "only_in_plaud": 964,
+  "only_in_plaud_mentioning_plaud": 3,
+  "common": 575,
+  "common_modified": 350,
+  "common_modified_mentioning_plaud": 4,
+  "only_in_upstream": 1237,
+  "pair": "live-agent-memory"
+ }
+]

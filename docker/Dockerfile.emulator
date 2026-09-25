@@ -1,0 +1,65 @@
+# plaud-harness emulator service: emulator/serve.py -- one PlaudPeripheral (portVersion 7)
+# on a Bumble virtual link, with a second virtual controller exposed as an HCI TCP server so a
+# central can attach without a radio (PLAUD_HCI_TRANSPORT), plus a JSON health listener.
+#
+# Base: python:3.11-slim (the venv here is CPython 3.11.16). Build context is the repo root
+# (docker-compose.yml: context ".", dockerfile docker/Dockerfile.<svc>); the matching
+# Dockerfile.<svc>.dockerignore next to this file keeps .venv/, build/, data/, the
+# Android rig and every reference/ tree except reference/upstream/bumble out of the context.
+#
+# Bumble (HARNESS_POLICY, documented in docs/compose.md): the harness installs it editable
+# from the immutable reference tree, so the image does the same from the build-context copy
+# of reference/upstream/bumble at the commit pinned in docs/reference-pins.txt. That copy
+# carries no .git (setuptools_scm would need one, plus git in the image), so the version
+# string the venv reports is passed to setuptools_scm explicitly. Alternative kept in a
+# comment below: clone the pin at build time (needs git and network during the build only).
+FROM python:3.11-slim
+
+ARG BUMBLE_PIN=d371a27ebd8ab87b871a542df8442718b7882fdb
+ARG BUMBLE_VERSION=0.1.dev1+gd371a27eb
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app:/app/emulator
+
+WORKDIR /app
+
+# Dependencies first so source edits do not invalidate the pip layer. The three
+# service Dockerfiles share this prologue verbatim, so BuildKit reuses these layers.
+COPY reference/upstream/bumble /app/reference/upstream/bumble
+COPY requirements /app/requirements
+RUN SETUPTOOLS_SCM_PRETEND_VERSION_FOR_BUMBLE=${BUMBLE_VERSION} \
+    SETUPTOOLS_SCM_PRETEND_VERSION=${BUMBLE_VERSION} \
+    pip install -e /app/reference/upstream/bumble \
+ && pip install -r /app/requirements/all.txt
+# Alternative to the COPY above (network + git at build time):
+#   RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/* \
+#    && git clone https://github.com/google/bumble.git /app/reference/upstream/bumble \
+#    && git -C /app/reference/upstream/bumble checkout ${BUMBLE_PIN}
+
+# Harness packages (all layers, identical in every image so the layers are shared).
+COPY emulator /app/emulator
+COPY mockcloud /app/mockcloud
+COPY generator /app/generator
+COPY pipeline /app/pipeline
+COPY evals /app/evals
+COPY tests/fixtures /app/tests/fixtures
+COPY docker/probe.py docker/job.sh /app/docker/
+
+# build/ is a named volume in docker-compose.yml (job output, mock persistence, meetings the
+# emulator may serve); create the mount point so it exists even without the volume.
+RUN mkdir -p /app/build
+VOLUME ["/app/build"]
+
+
+# Defaults duplicated from emulator/serve.py so `docker run` alone matches compose.
+ENV PLAUD_HCI_TRANSPORT=tcp-server:0.0.0.0:9000 \
+    PLAUD_HCI_MODE=bridge \
+    PLAUD_HEALTH_HOST=0.0.0.0 \
+    PLAUD_HEALTH_PORT=9001 \
+    PLAUD_BUMBLE_LOG=WARNING
+
+EXPOSE 9000 9001
+# Healthcheck lives in docker-compose.yml (one source of truth for the test suite).
+CMD ["python", "/app/emulator/serve.py"]

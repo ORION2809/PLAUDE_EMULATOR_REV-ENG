@@ -1,0 +1,365 @@
+{
+ "_comment": "R7 closure uncertainty matrix. Every item genuinely unresolved as of 2026-09-23, each with the exact experiment that would resolve it and whether that experiment is legitimately available here. status vocabulary: UNKNOWN (no evidence), EXTERNAL_DATA_REQUIRED (needs a real capture/recording), CREDENTIAL_REQUIRED (needs a real Plaud account/partner credential), DEVICE_REQUIRED (needs real Plaud hardware), CLOUD_REQUIRED (needs a live authorized cloud call). can_emulator_assume=false everywhere: none of these may be promoted to a device fact; the emulator either models them as explicitly-labelled HARNESS_POLICY or leaves them out. Items RESOLVED this session are listed under resolved_this_session for provenance. Updated 2026-09-24 after R7-S13: U19 refined; U15 and U17 updated with runtime facts (U17's Phase-1 rationale corrected); U23 is a duplicate of U15.",
+ "generated": "2026-09-23",
+ "aar_sha256": "041a6f8814d350dbc8bcd4a515487136529bb8bb4368fc88c9b36c9a386aedce",
+ "closure_totals": {
+  "tests_passed": 301,
+  "bytecode_asserting_test_files": 6,
+  "bytecode_asserting_test_functions": 69,
+  "verifiers_passed": 12,
+  "reference_pins_ok": "33/33",
+  "runtime_runs": 4
+ },
+ "unresolved": [
+  {
+   "id": "U1",
+   "question": "Exact manufacturer-data byte layout of the advertisement, including the portVersion offset and which of u4.a's three branches real hardware takes (was also U18).",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "u4.a(ScanResult) has three parse branches; only two assign portVersion, and the most serial-number-like layout is the branch that does not. The emulator advertises a self-consistent payload the real SDK parses, but which branch a real device populates is a firmware choice.",
+   "evidence_checked": [
+    "build/evidence/javap ALL.txt u4.a walk",
+    "emulator/plaudsim/advertising.py",
+    "R4-S3/R5-S1 runtime: SDK parsed our synthetic manufacturer data and resolved the product name"
+   ],
+   "legitimate_next_evidence": "A single BLE scan capture of any Plaud (or other Tinno-based) pen, read passively. No account, no connection.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U2",
+   "question": "Units of free/total/duration in the StorageRsp (opcode 6).",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "The field offsets/widths/names are DIRECT from n6.<init> and toString, but nothing in the SDK formats the values, so bytes-vs-KB and seconds-vs-ms are unfixed.",
+   "evidence_checked": [
+    "n6 parse offsets in evidence-digest",
+    "no formatter call site in the SDK"
+   ],
+   "legitimate_next_evidence": "One getStorage against real hardware, or a first-party app screen that formats the same values.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U3",
+   "question": "Semantics of the file-list entry `attribute` byte.",
+   "status": "UNKNOWN",
+   "why_unresolved": "q2 parses the byte and getAttribute() exists, but it has zero call sites in the shipped SDK, so no consumer defines its meaning.",
+   "evidence_checked": [
+    "q2.a([B,I) readers",
+    "grep for getAttribute call sites: none"
+   ],
+   "legitimate_next_evidence": "A newer SDK build that consumes it, or a real file-list capture correlated with known file properties.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U4",
+   "question": "Semantics of z2 (GetStateRsp) bytes 16 and 17.",
+   "status": "UNKNOWN",
+   "why_unresolved": "Read into fields with no toString name and no consumer found.",
+   "evidence_checked": [
+    "z2.<init> readers",
+    "z2.toString"
+   ],
+   "legitimate_next_evidence": "A real getState correlated with a known device state, or a newer SDK.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U5",
+   "question": "Whether the device honours a non-zero startSessionId or flag in the file-list request p2.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "No shipped code sends either as non-zero, so the device-side filtering behaviour is unobserved; the emulator parses but does not filter (POLICY).",
+   "evidence_checked": [
+    "p2.enPkg",
+    "emulator _serve_file_list"
+   ],
+   "legitimate_next_evidence": "A live experiment issuing p2 with a non-zero start/flag against real hardware.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U6",
+   "question": "The device's 0xFE12 fragment size (how the device chunks the secret package).",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "The host reassembles any chunking (dedupe+sort+concat), so the device's own fragment size is invisible from the client side.",
+   "evidence_checked": [
+    "z$c FE12 reassembly",
+    "R5-S9 synthetic peripheral chunks arbitrarily and the host accepts it"
+   ],
+   "legitimate_next_evidence": "One pv>=20 handshake capture from real hardware.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U7",
+   "question": "Whether the device validates the pushed RSA public key / the snSignature.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "This is the crux of why binding OUR client to real hardware is blocked: acceptance is the device's decision, and we cannot mint a cloud snSignature. Our emulator accepts by POLICY.",
+   "evidence_checked": [
+    "ledger §4.3-4.6",
+    "R7-S12: on pv<20 no key/signature is involved at all"
+   ],
+   "legitimate_next_evidence": "Push a self-generated key with a genuine cloud snSignature to real hardware — requires both a device and a credential; deliberately not attempted.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U8",
+   "question": "Semantics of the constant 0x02 at k3 offset 3, and of z.h() (stubbed to 0).",
+   "status": "UNKNOWN",
+   "why_unresolved": "k3 writes 0x02 unconditionally and z.h() returns a hard 0 in this build; no reader on the device side is visible, and the value was 0x02/0 in every runtime capture (R7-S12) so no variation was observed to constrain the meaning.",
+   "evidence_checked": [
+    "k3.enPkg ALL.txt:87361-87434",
+    "z.h() ALL.txt:76051",
+    "R7-S12 runs 1/3/4 all show 02 00 at offsets 3-4"
+   ],
+   "legitimate_next_evidence": "An older SDK build where z.h() is non-trivial, or the iOS encoder, or a device that rejects a wrong constant.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U9",
+   "question": "Device-side MTU acceptance and whether it enforces receive-sequence monotonicity on the sealed path.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "The client requests MTU 255 (negotiated to 517 on the AVD); what a real device grants, and whether it drops out-of-order sealed frames, is device behaviour.",
+   "evidence_checked": [
+    "R7-S12: AVD negotiated 517",
+    "R5-S6 host-side N accept-and-set"
+   ],
+   "legitimate_next_evidence": "Real hardware.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U10",
+   "question": "Device-side effect of isForceClear (0xFE20 vs 0xFE10).",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "Host-side accumulator behaviour is known; the firmware effect of a force-clear is not. On pv<20 the flag is inert (R7-S12 confirmed no marker is written), so it can only be observed on a pv>=20 device.",
+   "evidence_checked": [
+    "v4.getBleRequestType 65056 iff isForceClear",
+    "R7-S12: recovery sets isForceClear=true, no FE20 written on pv 7"
+   ],
+   "legitimate_next_evidence": "A pv>=20 device connected via the recovery path.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U11",
+   "question": "c5.start (resume record response) — byte offset or timestamp?",
+   "status": "UNKNOWN",
+   "why_unresolved": "The field is parsed but has no consumer in the Android code to disambiguate its units.",
+   "evidence_checked": [
+    "c5 parse offsets",
+    "no consumer of the start field"
+   ],
+   "legitimate_next_evidence": "A real resume-record exchange correlated with a known transfer position.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U12",
+   "question": "Whether the device emits file-list frames strictly in index order.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "The client has no gap recovery for the file list, so ordering matters, but the device's emission order is a firmware behaviour.",
+   "evidence_checked": [
+    "FileListAccumulator",
+    "client has no reordering logic"
+   ],
+   "legitimate_next_evidence": "An air capture of a multi-page file list.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U13",
+   "question": "What the transfer-tail CRC (t6) covers.",
+   "status": "UNKNOWN",
+   "why_unresolved": "The SDK stores and stringifies the u16 CRC but never verifies it; no tntGetCrc/tntGetFileCrc call site consumes it, so its coverage is undefined from the client side.",
+   "evidence_checked": [
+    "t6 layout",
+    "no CRC verification call site",
+    "tntGetFileCrc is OTA-only, CRC-16/CCITT-FALSE init 0xFFFF"
+   ],
+   "legitimate_next_evidence": "A real transfer whose tail CRC can be checked against candidate coverages of the delivered bytes.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U14",
+   "question": "Whether y6's `end` is inclusive or exclusive, and whether end==0 formally means EOF.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "The client sends end and never consumes it in the gap logic; the device defines its meaning. Every observed call site sends 0.",
+   "evidence_checked": [
+    "y6.enPkg",
+    "q$a gap logic ignores end",
+    "transfer.py start() discards end"
+   ],
+   "legitimate_next_evidence": "Issue y6 with end=start+N against real hardware and count delivered bytes.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U15",
+   "question": "EMPTY_PACKAGE code values other than 1.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "Client side now known (bytecode + R7-S13 runtime): with no recovery in flight any code completes the sync; during a recovery code 1 is ignored and other codes trigger a restart; codes 0 and 1 both completed live (runs 4b, 8). What real firmware sends, and why, is still unknown. The emulator sends 0 (HARNESS_POLICY).",
+   "evidence_checked": [
+    "q$a EMPTY_PACKAGE code read at i+5",
+    "R7-S13 runs 4b (code 0) and 8 (code 1): real SDK completes byte-exact on both"
+   ],
+   "legitimate_next_evidence": "A real end-of-transfer sequence.",
+   "can_emulator_assume": true,
+   "emulator_assumption": "EMPTY_PACKAGE(code 0); TransferSession.empty_package_code"
+  },
+  {
+   "id": "U16",
+   "question": "s6 (HEAD) status values beyond 'non-zero is an error'.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "The client treats any status>0 as failure without distinguishing codes.",
+   "evidence_checked": [
+    "s6 parse",
+    "q$a HEAD-failure branch"
+   ],
+   "legitimate_next_evidence": "Request a non-existent session, an out-of-range start, and a busy device against real hardware.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U17",
+   "question": "Whether the device emits the TAIL before, after, or instead of an EMPTY_PACKAGE at end-of-file.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "CORRECTED 2026-09-24. The Phase-1 wording ('both terminate a transfer through independent callbacks and nothing in the client orders them') was wrong for the client: at runtime the TAIL never completed the sync, only the EMPTY_PACKAGE did, and an EMPTY_PACKAGE sent after the TAIL was never acted on (R7-S13 runs 1/2/9 vs 4b/8 vs 7). So a device that works with the SDK must send EMPTY_PACKAGE before the TAIL. Whether real firmware also sends the TAIL, or sends EMPTY_PACKAGE alone, is still unknown.",
+   "evidence_checked": [
+    "q$a terminal paths for TAIL and EMPTY_PACKAGE",
+    "R7-S13 runtime runs (r7/r7-s13-recording-pull.md, ledger 15)"
+   ],
+   "legitimate_next_evidence": "One clean end-to-end transfer capture.",
+   "can_emulator_assume": true,
+   "emulator_assumption": "HEAD . DATA . EMPTY_PACKAGE . TAIL"
+  },
+  {
+   "id": "U19",
+   "question": "Cloud-exported audio vs the local SDK writer: real downloads carry OpusTags vendor 'PALUD.AI' while libjni_ogg.so writes 'TinnoTech123456789012' — does the cloud transcode or only re-tag?",
+   "status": "CREDENTIAL_REQUIRED",
+   "why_unresolved": "'PALUD.AI' appears nowhere in the SDK native library across all four ABIs, and R7-S13 (2026-09-24) showed the local SDK's AudioExportFormat.OPUS export of a plain-Ogg recording is a byte-exact passthrough (OpusTags vendor untouched, no re-encode), so neither local path can produce the cloud's tag: the cloud re-encodes/re-tags server-side; the exact transform is only visible in a real download.",
+   "evidence_checked": [
+    "libjni_ogg.so OpusTags @0x1648 = TinnoTech123456789012",
+    "riffado regression #160: real download OpusTags = PALUD.AI, .mp3 filename, Ogg/Opus bytes",
+    "R7-S13 run 4b/8/10: exportAudio(OPUS) output sha256 == served fixture sha256 (r7/r7-s13-evidence/SHA256SUMS)"
+   ],
+   "legitimate_next_evidence": "One lawfully obtained download from an account the operator owns, byte-compared against a device-written file.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U20",
+   "question": "Which of the four closed recording shapes ({plain, PLAUD.AI-encrypted} x {Ogg, raw Opus}) real firmware emits over BLE, and whether the 512-byte header is present on the BLE path.",
+   "status": "EXTERNAL_DATA_REQUIRED",
+   "why_unresolved": "The format-SELECTION chain is fully closed by bytecode (512-byte PLAUD.AI magic test, then 4-byte OggS sniff; isOggAudio is written but never read). Which shape a device actually sends is a firmware choice not present in any shipped artifact.",
+   "evidence_checked": [
+    "AudioExporter isE2eeEncrypted + OggS sniff (bytecode)",
+    "o4 pass-through so DATA payloads == stored file",
+    "R6-S3 whole-worktree sweep: zero authentic Plaud audio present"
+   ],
+   "legitimate_next_evidence": "One authentic Plaud BLE file-transfer capture; run classify on the concatenated DATA payloads.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U21",
+   "question": "The absolute host of the legacy TntAgent endpoints /recorder/device/{checkSn,checkCustomer,saveOperation}.",
+   "status": "UNKNOWN",
+   "why_unresolved": "r3 declares the path constants but the builder shows an empty host prefix; the base URL is assembled elsewhere and no literal host was found in r3/q3/p7.",
+   "evidence_checked": [
+    "r3.txt path constants I/J/K/L",
+    "no base-url literal in r3/q3/p7",
+    "query-signature auth with a hard-coded secret"
+   ],
+   "legitimate_next_evidence": "Static: trace r3.b(String) callers / the base-url provider. The endpoint must never be exercised (production, hard-coded secret, issues real tokens).",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U22",
+   "question": "Which capability bits (opcode 138) and which CommonSettings values (opcode 8) real firmware reports.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "Both channels are fully implemented and their layouts proven, but the VALUES a real device returns are firmware state. Only opcode-138 bit 3 has a recovered consumer; seven bits have no reader.",
+   "evidence_checked": [
+    "profile.py feature_bitmap / DEFAULT_COMMON_SETTINGS (POLICY)",
+    "q.f consumer for ENABLE_VAD/REC_MODE/... ",
+    "R7-S12 run 4: the SDK read ENABLE_VAD and REC_MODE"
+   ],
+   "legitimate_next_evidence": "Any real-device session log.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "MODERN-1",
+   "question": "FE11 live payload bytes and FE20 device-side effect (R5-S11 UNKNOWN set).",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "The host reads only the u16 marker of FE11 and dispatches; the payload after the marker is never parsed, and FE20's firmware effect is unobserved (host-side accumulator behaviour only).",
+   "evidence_checked": [
+    "R5-S10 FE11 marker-only dispatch",
+    "r5-s11/uncertainty_matrix.json"
+   ],
+   "legitimate_next_evidence": "A pv>=20 handshake capture from real hardware.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "MODERN-2",
+   "question": "Device sealed-TX start value and device ACK/chunk-ACK timing on the sealed path.",
+   "status": "DEVICE_REQUIRED",
+   "why_unresolved": "The host's first sealed sequence is 2 (proven); the device's own first TX value and any ACK timing are device state. R5-S8 modelled independent M/N counters synthetically.",
+   "evidence_checked": [
+    "R5-S6/S8 counter semantics",
+    "no transport ACK on the host side"
+   ],
+   "legitimate_next_evidence": "A real pv>=20 sealed session.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "CRED-1",
+   "question": "Real credential values: the handshake token, the cloud snSignature, and the RSA key pair.",
+   "status": "CREDENTIAL_REQUIRED",
+   "why_unresolved": "These are minted by Plaud's cloud (gen-key returns the private key; sn-sign returns the signature) against a partner userAccessToken. None exists in the repository and none can be produced offline. This is the single structural blocker for binding OUR client to real hardware.",
+   "evidence_checked": [
+    "ledger §4.5",
+    "r7/cloud-endpoint-inventory.md surfaces A/B",
+    "R4-S4 credential provenance: placeholders only, no test-credential mechanism"
+   ],
+   "legitimate_next_evidence": "A real Plaud partner account. Deliberately not attempted; using one would still not make the result evidence about the protocol, only about that account.",
+   "can_emulator_assume": false
+  },
+  {
+   "id": "U23",
+   "question": "Which EMPTY_PACKAGE code value(s) real firmware sends to close a transfer, and what they mean (0 vs 1 vs other)?",
+   "status": "DUPLICATE_OF_U15",
+   "why_unresolved": "Registered on 2026-09-24 before noticing U15 already asks this. Kept only so existing references resolve; tracked under U15 (code values) and U17 (ordering).",
+   "evidence_checked": [
+    "jadx q.java:257-282 / javap ALL.txt:69024-69108 (branches)",
+    "R7-S13 runs 4b (code 0) and 8 (code 1): both complete byte-exact; runs 1/2/9 (no sentinel) and 7 (after TAIL) never complete"
+   ],
+   "legitimate_next_evidence": "One BLE capture of a real device finishing a transfer (any pv < 20 unit) shows the code byte.",
+   "can_emulator_assume": true,
+   "emulator_assumption": "EMPTY_PACKAGE(code 0) before TAIL; configurable via TransferSession.empty_package_code"
+  }
+ ],
+ "resolved_this_session": [
+  {
+   "id": "R2b/k3",
+   "was": "PARTIAL — modern handshake blocked; k3 token value cloud-issued",
+   "now": "k3 CONSTRUCTION is SDK_PROVEN+BYTECODE_PROVEN+RUNTIME_PROVEN+EMULATOR_INTEGRATION_PROVEN via recoveryConnectBleDevice with a synthetic id on the pv<20 path; only the token VALUE for a real bind stays CRED-1",
+   "evidence": "r7/r7-s12-k3-runtime-capture.md, tests/test_r7_s12_k3_runtime.py"
+  },
+  {
+   "id": "OPCODE-8",
+   "was": "unknown opcode (emulator rejected it)",
+   "now": "CommonSettings channel fully resolved (q0/r0 layout, 21-entry non-ordinal CommonType table, consumer q.f), implemented and RUNTIME_PROVEN for the two READs",
+   "evidence": "ledger §5.12, tests/test_r7_s12_common_settings.py"
+  },
+  {
+   "id": "R3-resend",
+   "was": "loss-triggered resend evidence class open",
+   "now": "BYTECODE_PROVEN client behaviour: gap → restart-from-cursor; stopSync only via 5 s stall timeout; no ACK, no NAK; device performs neither",
+   "evidence": "ledger §5.8/§5.9 corrected"
+  },
+  {
+   "id": "AES-scope",
+   "was": "AES-GCM listed as a generic BLE alternate",
+   "now": "BLE is always ChaCha20-Poly1305; AES-GCM is Wi-Fi-only (opcode-138 bit 3)",
+   "evidence": "ledger §4.3 scoped, tests/test_r7_transport_scope.py"
+  },
+  {
+   "id": "audio-selection",
+   "was": "format selection mechanism uncertain",
+   "now": "sniff-based (512-byte PLAUD.AI magic then OggS); isOggAudio written-but-never-read — BYTECODE_PROVEN, pinned by a falsification test",
+   "evidence": "tests/test_r7_s12_audio_selection_pin.py; U20 is the only residual (external)"
+  },
+  {
+   "id": "bleBind-quirk",
+   "was": "bleBind protVersion=0 looked like an emulator gap",
+   "now": "facade forwards q.n = the l3 timezone byte as BOTH protVersion and timezone; RUNTIME_PROVEN (l3 tz=5 ⇒ protVersion=5)",
+   "evidence": "ledger §14 run 4"
+  }
+ ]
+}

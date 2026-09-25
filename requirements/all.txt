@@ -1,0 +1,27 @@
+# Consolidated runtime + test dependencies for every layer (2026-09-24).
+# Install order matters: bumble is editable from the immutable reference tree.
+#   python3.11 -m venv .venv
+#   .venv/bin/pip install -e reference/upstream/bumble
+#   .venv/bin/pip install -r requirements/all.txt
+# Per-track rationale lives in the sibling files (evals.txt, generator.txt, ...).
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-timeout==2.4.0
+numpy==2.4.6
+scipy==1.17.1
+soundfile==0.14.0
+av==18.1.0
+pyroomacoustics==0.10.1
+cryptography
+PyYAML==6.0.3
+websockets>=17,<18
+grpcio                # bumble android-netsim transport (R7 runtime rig)
+protobuf
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+httpx==0.28.1
+pyannote.metrics==4.1
+pyannote.core==6.0.1
+pyannote.database==6.1.1
+meeteval==0.4.3
+jiwer==4.0.0

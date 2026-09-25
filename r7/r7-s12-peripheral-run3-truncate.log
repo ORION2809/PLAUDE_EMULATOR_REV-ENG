@@ -1,0 +1,8 @@
+16:41:37.329 I R7S12: K3CAP_PERIPHERAL_READY port_version=7 addr=F0:1A:2B:3C:4D:5E capture=/Users/mivi/Desktop/plaud-harness/r7/r7-s12-k3-capture-run3-truncate.json
+16:41:41.717 I R7S12: K3CAP_WRITE char=2BB1 len=22 hex=01010002000030313233343536373839616263646566 opcode=1
+16:41:41.717 I R7S12: K3CAP_PARSED {"agent_value": 0, "stage": 0, "is_second": false, "token": "0123456789abcdef", "dev_token": null, "user_name": null}
+16:41:41.782 I R7S12: K3CAP_WRITE char=2BB1 len=9 hex=010400edb3b36a051e opcode=4
+16:41:41.811 I R7S12: K3CAP_WRITE char=2BB1 len=3 hex=010900 opcode=9
+16:41:41.841 I R7S12: K3CAP_WRITE char=2BB1 len=3 hex=010300 opcode=3
+16:41:41.876 I R7S12: K3CAP_WRITE char=2BB1 len=6 hex=010800010f00 opcode=8
+16:41:41.906 I R7S12: K3CAP_WRITE char=2BB1 len=6 hex=010800011100 opcode=8
