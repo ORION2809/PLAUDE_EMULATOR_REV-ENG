@@ -982,7 +982,7 @@ def _make_whisperx(config: PipelineConfig | None = None) -> Pipeline:
     "embedding-cluster",
     description=(
         "energy VAD + SpeechBrain ECAPA speaker embeddings (ungated model) + the model-free "
-        "clustering; no ASR (UNTESTED here: no models)"
+        "clustering; no ASR (first run against the real model 2026-09-28)"
     ),
     availability=lambda: _missing_any("speechbrain", "torch"),
     params=EMBEDDING_CLUSTER_PARAMS | COMMON_AUDIO_PARAMS,
@@ -994,10 +994,20 @@ def _make_embedding_cluster(config: PipelineConfig | None = None) -> Pipeline:
     batch = p.get("batch_windows", 32)
     if isinstance(batch, bool) or not isinstance(batch, int) or batch < 1:
         raise ParamError(f"batch_windows must be a positive integer, got {batch!r}")
-    embed = speechbrain_ecapa_embedder(
-        source=str(p.get("embedding_model", "speechbrain/spkrec-ecapa-voxceleb")),
-        savedir=p.get("embedding_savedir"),
-        device=str(p.get("device", "cpu")),
-        batch_windows=batch,
-    )
-    return ComposedPipeline(None, EmbeddingClusterDiarizer(embed, v, c), cfg, name="embedding-cluster")
+    from . import model_store
+
+    source = str(p.get("embedding_model", "speechbrain/spkrec-ecapa-voxceleb"))
+    # HARNESS_POLICY: SpeechBrain's savedir defaults to <models dir>/speechbrain-ecapa
+    # (git-ignored) so the model never lands in the working directory; its files
+    # are hashed into hyp.extra.models (unpinned: SpeechBrain fetches them).
+    savedir = str(p.get("embedding_savedir") or (model_store.models_dir() / "speechbrain-ecapa"))
+    t0 = time.perf_counter()
+    embed = speechbrain_ecapa_embedder(source=source, savedir=savedir, device=str(p.get("device", "cpu")),
+                                       batch_windows=batch)
+    d = EmbeddingClusterDiarizer(embed, v, c)
+    files = model_store.describe_local(savedir) if Path(savedir).is_dir() else {"path": savedir, "pinned": False, "files": {}}
+    d.models = {"embedding": {"source": source, **files}}
+    d.settings = {"source": source, "device": str(p.get("device", "cpu")), "batch_windows": batch,
+                  "vad": {f.name: getattr(v, f.name) for f in fields(v)},
+                  "cluster": {f.name: getattr(c, f.name) for f in fields(c)}}
+    return ModelComposedPipeline(None, d, cfg, name="embedding-cluster", load_s=time.perf_counter() - t0)
