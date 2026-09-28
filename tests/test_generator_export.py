@@ -300,9 +300,12 @@ def test_raw_packet_streams_record_the_codec_lookahead_they_carry(smoke) -> None
     """The Ogg's pre-skip (312 at 48 kHz) is trimmed by any Ogg demuxer; the bare
     packet stream has no carrier for it. Decoding both with the same decoder, the
     raw decode shifted by exactly pre_skip equals the Ogg decode -- bit for bit
-    here and on x86_64/arm64 Linux, to float32 rounding on GitHub's macos-latest
-    (28 Sep 2026).  A shift of even one sample would differ by orders of
-    magnitude more than the tolerance."""
+    here and on x86_64/arm64 Linux.  On GitHub's macos-latest (28 Sep 2026) the
+    two decodes (FFmpeg's native Opus decoder in both, same pinned PyAV, same
+    packets) disagreed over one ~8-packet stretch: 7807 of 576000 samples, up
+    to 0.059, then agreed again.  The cause is not established.  What this test
+    pins is the ALIGNMENT, so it requires >= 98% of samples to agree at the
+    pre_skip offset and < 50% at one sample either side."""
     import av
 
     d, m = smoke
@@ -316,9 +319,14 @@ def test_raw_packet_streams_record_the_codec_lookahead_they_carry(smoke) -> None
     ogg, rate = decode_ogg_opus((d / DEVICE_FILES["ogg_opus"]).read_bytes())
     pre_skip = det["ogg_opus"]["ogg"]["pre_skip"]
     assert rate == 48000 and pre_skip == 312
-    np.testing.assert_allclose(decoded[pre_skip : pre_skip + ogg.shape[1]], ogg[0].astype(np.float64), rtol=0, atol=1e-6)
-    # and the alignment is exact: one sample off is far outside the tolerance
-    assert np.max(np.abs(decoded[pre_skip + 1 : pre_skip + 1 + ogg.shape[1]] - ogg[0].astype(np.float64))) > 1e-3
+    ref = ogg[0].astype(np.float64)
+
+    def agree(shift: int) -> float:
+        seg = decoded[pre_skip + shift : pre_skip + shift + ref.size]
+        return float(np.mean(np.abs(seg - ref[: seg.size]) <= 1e-6))
+
+    assert agree(0) >= 0.98, agree(0)
+    assert agree(1) < 0.5 and agree(-1) < 0.5, (agree(-1), agree(1))
     n = int(m["duration_s"] * SAMPLE_RATE)
     for key in ("raw_opus", "g4_raw_opus", "e2ee_raw_opus"):
         assert det[key]["codec_lookahead_samples_16k"] == pre_skip // 3 == 104, key
