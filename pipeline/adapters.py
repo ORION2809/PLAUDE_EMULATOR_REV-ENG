@@ -868,6 +868,13 @@ class EmbeddingClusterDiarizer(Diarizer):
         return v, c
 
 
+#: HARNESS_POLICY: SpeechBrain's ECAPA runs with PyTorch's NNPACK convolution
+#: backend DISABLED on CPU (a process-wide torch flag).  NNPACK made ECAPA ~34x
+#: slower here (docs/v5-test-split.md, "embedding-cluster"); the numbers do not
+#: depend on it beyond floating-point rounding.
+ECAPA_CPU_NNPACK = False
+
+
 def speechbrain_ecapa_embedder(
     source: str = "speechbrain/spkrec-ecapa-voxceleb",
     savedir: str | None = None,
@@ -893,6 +900,11 @@ def speechbrain_ecapa_embedder(
         from speechbrain.inference.speaker import EncoderClassifier  # type: ignore[import-not-found]
     except ImportError:  # SpeechBrain < 1.0
         from speechbrain.pretrained import EncoderClassifier  # type: ignore[import-not-found]
+    nnpack = getattr(getattr(torch, "backends", None), "nnpack", None)
+    if device == "cpu" and not ECAPA_CPU_NNPACK and nnpack is not None:
+        # measured 2026-09-28, torch 2.14 on an M1: one batch of 32 x 1.5 s windows took
+        # 114.94 s through NNPACK's convolution and 3.39 s without it (34x)
+        nnpack.set_flags(False)
     kw: dict[str, Any] = {"source": source, "run_opts": {"device": device}}
     if savedir:
         kw["savedir"] = savedir
@@ -1009,6 +1021,7 @@ def _make_embedding_cluster(config: PipelineConfig | None = None) -> Pipeline:
     files = model_store.describe_local(savedir) if Path(savedir).is_dir() else {"path": savedir, "pinned": False, "files": {}}
     d.models = {"embedding": {"source": source, **files}}
     d.settings = {"source": source, "device": str(p.get("device", "cpu")), "batch_windows": batch,
+                  "nnpack": ECAPA_CPU_NNPACK,
                   "vad": {f.name: getattr(v, f.name) for f in fields(v)},
                   "cluster": {f.name: getattr(c, f.name) for f in fields(c)}}
     return ModelComposedPipeline(None, d, cfg, name="embedding-cluster", load_s=time.perf_counter() - t0)
