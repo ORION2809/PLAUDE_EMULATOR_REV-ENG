@@ -91,11 +91,40 @@ def test_word_takes_the_speaker_with_the_largest_total_overlap():
 
 def test_a_tie_goes_to_the_speaker_whose_overlapping_turn_started_first():
     turns = [(2.0, 3.0, "late"), (0.0, 2.0, "early")]  # unsorted on purpose
-    assert SpeakerIndex(turns).speaker_for(1.5, 2.5) == ("early", "overlap")
+    assert SpeakerIndex(turns).speaker_for(1.5, 2.5) == ("early", "tie")
     # A word wholly inside two overlapping turns: Y holds the floor (started at 5 s),
     # although X appeared first in the meeting.
     idx = SpeakerIndex([(0.0, 1.0, "X"), (5.0, 10.0, "Y"), (6.0, 9.0, "X")])
-    assert idx.speaker_for(7.0, 8.0) == ("Y", "overlap")
+    assert idx.speaker_for(7.0, 8.0) == ("Y", "tie")
+
+
+def test_each_tie_break_rule_and_the_default():
+    """assignment_tie_break (docs/pipeline.md §11.8): floor (default),
+    latest_start, first_seen, previous_word."""
+    from pipeline.base import DEFAULT_TIE_BREAK, TIE_BREAKS, tie_break_param
+
+    turns = [(0.0, 1.0, "X"), (5.0, 10.0, "Y"), (6.0, 9.0, "X"), (6.5, 8.5, "Z")]
+    word = (7.0, 8.0)  # inside Y, X and Z: a three-way tie
+    got = {tb: SpeakerIndex(turns, tie_break=tb).speaker_for(*word)[0] for tb in TIE_BREAKS}
+    assert got == {"floor": "Y", "latest_start": "Z", "first_seen": "X", "previous_word": "Y"}
+    assert SpeakerIndex(turns, tie_break="previous_word").speaker_for(*word, previous="Z") == ("Z", "tie")
+    assert SpeakerIndex(turns, tie_break="previous_word").speaker_for(*word, previous="Q") == ("Y", "tie")
+    # a clear winner is never a tie, whatever the rule
+    assert {SpeakerIndex(turns, tie_break=tb).speaker_for(5.1, 5.9) for tb in TIE_BREAKS} == {("Y", "overlap")}
+    assert DEFAULT_TIE_BREAK == "floor" and tie_break_param(None) == "floor"
+    with pytest.raises(ParamError):
+        tie_break_param("coin_flip")
+
+
+def test_previous_word_tie_break_keeps_a_run_together():
+    turns = [(0.0, 4.0, "A"), (2.0, 4.0, "B")]
+    seg = {"start": 1.0, "end": 3.5, "text": "one two three", "words": [
+        {"w": "one", "start": 1.0, "end": 1.5}, {"w": "two", "start": 2.2, "end": 2.6}, {"w": "three", "start": 3.0, "end": 3.4}]}
+    stats: dict = {}
+    for tb, want in (("previous_word", ["A"]), ("latest_start", ["A", "B"])):
+        out = assign_speakers([seg], turns, stats=stats, tie_break=tb)
+        assert [s["speaker"] for s in out] == want, tb
+        assert stats["tie"] == 2 and stats["overlap"] == 1
 
 
 def test_word_outside_every_turn_takes_the_nearest_turn_by_gap():
@@ -137,7 +166,7 @@ def test_assign_speakers_builds_contract_segments_from_word_runs():
     assert segs[2]["start"] == 3.0 and segs[2]["end"] == pytest.approx(3.0 + MIN_SEGMENT_S)
     assert (segs[0]["start"], segs[0]["end"]) == (0.0, 0.9)
     assert "words" not in segs[3]
-    assert stats == {"words": 5, "overlap": 4, "nearest": 1, "fallback": 0, "segments_without_words": 1}
+    assert stats == {"words": 5, "overlap": 4, "tie": 0, "nearest": 1, "fallback": 0, "segments_without_words": 1}
     _hyp_roundtrip(Hypothesis("m1", "t", segs).validate())
 
 
@@ -247,10 +276,12 @@ def _fw_standin(calls: dict, words: list[_Word]) -> types.ModuleType:
         def __init__(self, model_size_or_path, device="auto", device_index=0, compute_type="default", cpu_threads=0, **kw):
             calls["init"] = {"model": model_size_or_path, "device": device, "compute_type": compute_type, "cpu_threads": cpu_threads}
 
-        def transcribe(self, audio, language=None, beam_size=5, word_timestamps=False, vad_filter=False, **kw):
+        def transcribe(self, audio, language=None, beam_size=5, word_timestamps=False, vad_filter=False,
+                       temperature=(0.0, 0.2, 0.4, 0.6, 0.8, 1.0), **kw):
             calls["transcribe"] = {"language": language, "beam_size": beam_size, "word_timestamps": word_timestamps,
-                                   "vad_filter": vad_filter, "dtype": str(audio.dtype)}
-            seg = types.SimpleNamespace(start=words[0].start, end=words[-1].end, text=" ".join(w.word for w in words), words=words)
+                                   "vad_filter": vad_filter, "dtype": str(audio.dtype), "temperature": temperature}
+            seg = types.SimpleNamespace(start=words[0].start, end=words[-1].end, text=" ".join(w.word for w in words), words=words,
+                                        temperature=0.0)
             info = types.SimpleNamespace(language="en", language_probability=1.0, duration=len(audio) / SR, duration_after_vad=len(audio) / SR)
             return (s for s in [seg]), info
 
@@ -324,10 +355,11 @@ def test_faster_whisper_adapter_uses_the_installed_api_shape(monkeypatch, fake_m
     t = FasterWhisperTranscriber(model=str(asr_dir), language="en", cpu_threads=4, allow_library_names=False)
     segs = t.transcribe(np.zeros(SR, dtype=np.float64), SR)
     assert calls["init"] == {"model": str(asr_dir), "device": "cpu", "compute_type": "int8", "cpu_threads": 4}
-    assert calls["transcribe"] == {"language": "en", "beam_size": 5, "word_timestamps": True, "vad_filter": False, "dtype": "float32"}
+    assert calls["transcribe"] == {"language": "en", "beam_size": 5, "word_timestamps": True, "vad_filter": False, "dtype": "float32",
+                                   "temperature": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]}
     assert segs[0]["text"] == "so that's it" and [w["w"] for w in segs[0]["words"]] == ["so", "that's", "it"]
     assert t.last_info == {"language": "en", "language_probability": 1.0, "duration": 1.0, "duration_after_vad": 1.0,
-                           "n_segments": 1, "n_words": 3}
+                           "n_segments": 1, "n_words": 3, "temperatures": {"0.0": 1}, "fallback_segments": 0}
     with pytest.raises(ParamError, match="neither a pinned asset"):
         FasterWhisperTranscriber(model="tiny", allow_library_names=False)
 

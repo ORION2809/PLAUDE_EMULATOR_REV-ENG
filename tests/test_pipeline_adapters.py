@@ -15,6 +15,7 @@ libraries behave like the stand-ins -- that needs the packages and models
 
 from __future__ import annotations
 
+import json
 import sys
 import types
 from dataclasses import dataclass
@@ -29,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).parents[1]))
 from pyannote.core import Annotation, Segment
 
 from pipeline import PipelineConfig, get_pipeline, registered
+from pipeline.base import ParamError
 from pipeline import adapters
 from pipeline.adapters import EmbeddingClusterDiarizer, pyannote_annotation, repair_word_times, whisperx_segments
 from pipeline.synthetic import render_layout
@@ -138,16 +140,19 @@ def _faster_whisper_module(calls: dict):
         end: float
         text: str
         words: list
+        temperature: float = 0.0
 
     class WhisperModel:
         def __init__(self, model_size_or_path, device="auto", compute_type="default"):
             calls["init"] = {"model": model_size_or_path, "device": device, "compute_type": compute_type}
 
-        def transcribe(self, audio, beam_size=5, word_timestamps=False, language=None, vad_filter=False):
+        def transcribe(self, audio, beam_size=5, word_timestamps=False, language=None, vad_filter=False,
+                       temperature=(0.0, 0.2, 0.4, 0.6, 0.8, 1.0)):
             calls["transcribe"] = {"beam_size": beam_size, "word_timestamps": word_timestamps,
-                                   "language": language, "vad_filter": vad_filter, "dtype": str(audio.dtype)}
+                                   "language": language, "vad_filter": vad_filter, "dtype": str(audio.dtype),
+                                   "temperature": temperature}
             segs = [Seg(0.5, 2.0, " Hello, World!", [Word(0.5, 1.0, " Hello,"), Word(1.1, 2.0, " World!")]),
-                    Seg(3.0, 4.5, " Yes.", [Word(3.0, 4.5, " Yes.")])]
+                    Seg(3.0, 4.5, " Yes.", [Word(3.0, 4.5, " Yes.")], 0.4)]
             return iter(segs), {"language": "en"}
 
     m = types.ModuleType("faster_whisper")
@@ -283,6 +288,37 @@ def test_faster_whisper_transcriber_emits_the_contract(monkeypatch, wav, tmp_pat
     with pytest.raises(Exception, match="does not accept"):
         get_pipeline("faster-whisper", PipelineConfig(params={"diarization_model": "x"}))
     assert get_pipeline("faster-whisper", PipelineConfig(params={"chunk_s": 1.0, "model": str(model_dir)}))
+
+
+def test_faster_whisper_seed_and_temperature_are_forwarded_and_recorded(monkeypatch, wav, tmp_path):
+    """ASR repeatability (docs/pipeline.md §2): the transcriber passes the
+    temperature schedule through, records the seed, and counts the segments
+    each temperature produced; the stand-in's second segment needed the
+    sampled fallback (temperature 0.4)."""
+    from pipeline.adapters import DEFAULT_FW_SEED, FW_LIBRARY_TEMPERATURES, _faster_whisper_from_params
+
+    calls: dict = {}
+    model_dir = tmp_path / "fw-ct2-model"
+    model_dir.mkdir()
+    monkeypatch.setitem(sys.modules, "faster_whisper", _faster_whisper_module(calls))
+    asr = _faster_whisper_from_params({"model": str(model_dir)})
+    assert asr.settings["seed"] == DEFAULT_FW_SEED == 0
+    assert asr.settings["temperature"] == list(FW_LIBRARY_TEMPERATURES)
+    asr.transcribe(np.zeros(16000 * 5, dtype=np.float32), 16000)
+    assert calls["transcribe"]["temperature"] == list(FW_LIBRARY_TEMPERATURES)
+    assert asr.last_info["temperatures"] == {"0.0": 1, "0.4": 1}
+    assert asr.last_info["fallback_segments"] == 1
+
+    greedy = _faster_whisper_from_params({"model": str(model_dir), "temperature": 0, "seed": None})
+    greedy.transcribe(np.zeros(16000 * 5, dtype=np.float32), 16000)
+    assert calls["transcribe"]["temperature"] == 0.0
+    assert greedy.settings["seed"] is None and greedy.settings["seed_applied"] is False
+
+    for bad in ({"seed": -1}, {"seed": 1.5}, {"seed": True}, {"seed": 2**32}, {"temperature": -0.1},
+                {"temperature": []}, {"temperature": [0.0, "x"]}, {"temperature": float("nan")}):
+        with pytest.raises(ParamError):
+            _faster_whisper_from_params({"model": str(model_dir), **bad})
+    assert registered()["whisper-sherpa"].params >= {"seed", "temperature"}
 
 
 def test_faster_whisper_pyannote_forwards_vad_filter_and_uses_the_exclusive_timeline(monkeypatch, wav, tmp_path):
@@ -430,3 +466,87 @@ def test_real_faster_whisper_on_a_generator_clip(tmp_path):
         assert s["text"] == s["text"].lower()
         for w in s.get("words", []):
             assert w["w"] and w["w"] == w["w"].lower() and 0.0 <= w["start"] <= w["end"] <= m["duration_s"] + 0.5
+
+
+def test_real_faster_whisper_seeded_sampling_repeats_across_processes(tmp_path):
+    """ASR repeatability (docs/pipeline.md §2).  Forces the sampled path
+    (``temperature=[0.8]`` samples every window) and runs the transcriber in
+    two fresh processes with the same seed: the words must be identical.
+    Same opt-in as the test above: a real model only when faster-whisper is
+    installed and ``PLAUD_HARNESS_FW_MODEL`` names one."""
+    import json
+    import os
+    import subprocess
+
+    if not registered()["faster-whisper"].available():
+        return  # covered by test_real_faster_whisper_on_a_generator_clip's registry check
+    model = os.environ.get("PLAUD_HARNESS_FW_MODEL")
+    if not model:  # pragma: no cover - only once the package is installed
+        pytest.skip("faster-whisper is importable here; set PLAUD_HARNESS_FW_MODEL to run it against a real model")
+    from generator.testing import fixture_meeting
+
+    d, m = fixture_meeting(tmp_path, preset="smoke", seed=3)
+    wav = d / m["audio"]["mix_wav"]
+    code = (
+        "import json, sys, soundfile as sf\n"
+        "from pipeline.adapters import _faster_whisper_from_params\n"
+        "p = json.loads(sys.argv[1]); x, sr = sf.read(sys.argv[2], dtype='float32')\n"
+        "t = _faster_whisper_from_params(p)\n"
+        "segs = t.transcribe(x if x.ndim == 1 else x.mean(axis=1), sr)\n"
+        "print(json.dumps({'words': [w['w'] for s in segs for w in s['words']], 'info': t.last_info}))\n"
+    )
+    params = {"model": model, "language": "en", "temperature": [0.8], "seed": 0,
+              "allow_download": not Path(model).is_dir()}
+    root = Path(__file__).resolve().parents[1]
+    env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+
+    def once() -> dict:
+        r = subprocess.run([sys.executable, "-c", code, json.dumps(params), str(wav)], cwd=root, env=env,
+                           capture_output=True, text=True, timeout=600, check=True)
+        return json.loads(r.stdout.strip().splitlines()[-1])
+
+    a, b = once(), once()
+    assert a["info"]["temperatures"] and set(a["info"]["temperatures"]) == {"0.8"}  # every segment sampled
+    assert a["words"] == b["words"]
+
+
+def test_asr_cache_returns_the_stored_transcript_for_the_same_audio_and_settings(monkeypatch, tmp_path):
+    """``asr_cache`` (scripts/run-v5.sh): the first transcribe decodes and
+    stores; the same samples and settings hit the entry without decoding;
+    different samples or settings miss.  A corrupted entry is refused."""
+    from pipeline.adapters import ASR_CACHE_SCHEMA, _faster_whisper_from_params
+
+    calls: dict = {}
+    model_dir = tmp_path / "fw-ct2-model"
+    model_dir.mkdir()
+    cache = tmp_path / "asr-cache"
+    monkeypatch.setitem(sys.modules, "faster_whisper", _faster_whisper_module(calls))
+    x = np.linspace(-0.1, 0.1, 16000 * 5, dtype=np.float32)
+    a = _faster_whisper_from_params({"model": str(model_dir), "asr_cache": str(cache)})
+    first = a.transcribe(x, 16000)
+    assert a.last_info["cache"]["hit"] is False and "transcribe" in calls
+    entry = cache / f"{a.last_info['cache']['key']}.json"
+    assert json.loads(entry.read_text())["schema"] == ASR_CACHE_SCHEMA
+    calls.clear()
+    b = _faster_whisper_from_params({"model": str(model_dir), "asr_cache": str(cache)})
+    assert b.transcribe(x, 16000) == first and b.last_info["cache"]["hit"] is True
+    assert "transcribe" not in calls  # no decode on a hit
+    assert b.last_info["temperatures"] == a.last_info["temperatures"]
+    # other samples, or other decoding settings, are other entries
+    b.transcribe(x[:-1], 16000)
+    assert b.last_info["cache"]["hit"] is False
+    c = _faster_whisper_from_params({"model": str(model_dir), "asr_cache": str(cache), "beam_size": 1})
+    c.transcribe(x, 16000)
+    assert c.last_info["cache"]["hit"] is False
+    # a tampered entry is refused, not silently used
+    doc = json.loads(entry.read_text())
+    doc["key"] = "0" * 64
+    entry.write_text(json.dumps(doc))
+    with pytest.raises(Exception, match="not an asr_cache entry"):
+        _faster_whisper_from_params({"model": str(model_dir), "asr_cache": str(cache)}).transcribe(x, 16000)
+    for bad in ("", 3):
+        with pytest.raises(ParamError):
+            _faster_whisper_from_params({"model": str(model_dir), "asr_cache": bad})
+    (tmp_path / "file").write_text("x")
+    with pytest.raises(ParamError, match="not a directory"):
+        _faster_whisper_from_params({"model": str(model_dir), "asr_cache": str(tmp_path / "file")})

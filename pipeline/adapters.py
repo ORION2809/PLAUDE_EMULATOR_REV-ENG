@@ -30,7 +30,9 @@ All parameter defaults below are HARNESS_POLICY.
 
 from __future__ import annotations
 
+import hashlib
 import importlib
+import json
 import os
 import time
 from dataclasses import fields
@@ -40,12 +42,14 @@ from typing import Any, Callable
 import numpy as np
 
 from .base import (
+    ASSIGNMENT_PARAMS,
     ASSIGNMENT_RULE,
     COMMON_AUDIO_PARAMS,
     ComposedPipeline,
     Diarizer,
     Hypothesis,
     ParamError,
+    PipelineError,
     Pipeline,
     PipelineConfig,
     PipelineUnavailable,
@@ -56,6 +60,7 @@ from .base import (
     audio_provenance,
     make_segment,
     normalize_text,
+    tie_break_param,
     num_speakers_param,
     register,
     sort_segments,
@@ -104,8 +109,27 @@ def _major_version(dist: str) -> int | None:
 
 #: ``--param`` keys read by the faster-whisper transcriber factories.
 FASTER_WHISPER_PARAMS = frozenset(
-    {"model", "device", "compute_type", "language", "beam_size", "vad_filter", "cpu_threads"}
+    {"model", "device", "compute_type", "language", "beam_size", "vad_filter", "cpu_threads", "seed", "temperature",
+     "asr_cache"}
 )
+
+#: Schema tag of an ``asr_cache`` entry (see FasterWhisperTranscriber).
+ASR_CACHE_SCHEMA = "plaud-harness/asr-cache/1"
+
+#: HARNESS_POLICY: the seed given to CTranslate2 before the model is built.
+#: faster-whisper retries a window it judges poor at higher temperatures, and
+#: those retries SAMPLE; unseeded, one AMI meeting (EN2002a) gave 5504, 5118
+#: and 5223 words in three runs (docs/v5-results.md §8.3).  Checked on
+#: ctranslate2 4.8.2: a seed set before a model's first decode makes that
+#: model's sampled output repeat across fresh processes; calling
+#: ``set_random_seed`` again later in the same process does NOT restart the
+#: stream (docs/pipeline.md §2).  So the transcriber seeds once, in
+#: ``__init__``, and the harness runs one process per meeting.
+DEFAULT_FW_SEED = 0
+
+#: faster-whisper 1.2.1's own temperature schedule (``WhisperModel.transcribe``
+#: default), recorded explicitly so a hyp's settings say what ran.
+FW_LIBRARY_TEMPERATURES: tuple[float, ...] = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
 
 #: Extra ``--param`` of the entries that accept library model names
 #: (``faster-whisper``, ``faster-whisper+pyannote``; not ``whisper-sherpa``).
@@ -227,7 +251,25 @@ class FasterWhisperTranscriber(Transcriber):
     probability)`` with the word's leading space and punctuation attached.
     ``info`` is a ``TranscriptionInfo`` (``language``,
     ``language_probability``, ``duration``, ``duration_after_vad``, ...);
-    the fields used are copied to ``last_info``.
+    the fields used are copied to ``last_info``, together with how many
+    segments each decoding temperature produced (``temperatures``) and how
+    many needed the sampled fallback (``fallback_segments``).
+
+    Repeatability: ``seed`` (default ``DEFAULT_FW_SEED``) is passed to
+    ``ctranslate2.set_random_seed`` before the model is built, which makes the
+    first ``transcribe`` of this instance repeat exactly in a fresh process.
+    Later calls on the same instance continue the random stream, so they are
+    repeatable only as the same sequence of calls.  ``seed=None`` leaves the
+    library unseeded.  ``temperature=0`` (or any single value) disables the
+    fallback schedule entirely.
+
+    ``cache_dir`` (``--param asr_cache=<dir>``, opt-in) stores each transcript
+    under the sha256 of the audio samples, the decoding settings and the model
+    provenance, and returns a stored transcript instead of decoding again;
+    ``last_info["cache"]`` says whether it was a hit.  Used by
+    scripts/run-v5.sh so that several diarization settings of one meeting
+    share ONE transcript (the ASR does not depend on the diarizer).  A hit
+    reports no ASR time, so timing comes from the run that filled the entry.
     """
 
     name = "faster-whisper"
@@ -241,9 +283,12 @@ class FasterWhisperTranscriber(Transcriber):
         beam_size: int = 5,
         vad_filter: bool = False,
         cpu_threads: int | None = None,
+        seed: int | None = DEFAULT_FW_SEED,
+        temperature: float | tuple[float, ...] = FW_LIBRARY_TEMPERATURES,
         *,
         allow_library_names: bool = True,
         allow_download: bool = False,
+        cache_dir: str | Path | None = None,
     ) -> None:
         reason = _missing("faster_whisper")
         if reason:
@@ -257,21 +302,65 @@ class FasterWhisperTranscriber(Transcriber):
         kwargs: dict[str, Any] = {"device": device, "compute_type": compute_type}
         if cpu_threads is not None:  # 0 = the library's default (4 threads)
             kwargs["cpu_threads"] = int(cpu_threads)
+        seed_applied = False
+        if seed is not None:
+            try:
+                import ctranslate2  # type: ignore[import-not-found]  # a dependency of the real faster-whisper
+            except ImportError:  # only with a stand-in faster_whisper module (tests)
+                pass
+            else:
+                ctranslate2.set_random_seed(int(seed))  # before the first decode; see DEFAULT_FW_SEED
+                seed_applied = True
         self.model = WhisperModel(path, **kwargs)
         self.model_name = str(model)
         self.model_provenance = provenance
         self.language = language
         self.beam_size = beam_size
         self.vad_filter = vad_filter
+        self.seed = seed
+        self.temperature: float | list[float] = (
+            [float(t) for t in temperature] if isinstance(temperature, (list, tuple)) else float(temperature)
+        )
         self.settings = {"model": str(model), "device": device, "compute_type": compute_type, "language": language,
                          "beam_size": beam_size, "vad_filter": vad_filter, "cpu_threads": cpu_threads,
-                         "word_timestamps": True}
+                         "word_timestamps": True, "seed": seed, "seed_applied": seed_applied,
+                         "temperature": self.temperature}
+        self.cache_dir = None if cache_dir is None else Path(cache_dir)
         self.last_info: dict[str, Any] = {}
+
+    def cache_key(self, x: np.ndarray) -> str:
+        """sha256 over the schema tag, the decoding settings, the model
+        provenance and the float32 samples."""
+        h = hashlib.sha256(ASR_CACHE_SCHEMA.encode() + b"\0")
+        h.update(json.dumps({"settings": self.settings, "model": self.model_provenance},
+                            sort_keys=True, default=str).encode() + b"\0")
+        h.update(np.ascontiguousarray(x, dtype=np.float32).tobytes())
+        return h.hexdigest()
 
     def transcribe(self, pcm: np.ndarray, sample_rate: int) -> list[Segment]:
         if sample_rate != 16000:
             raise PipelineUnavailable("faster-whisper expects 16 kHz input; load with sample_rate=16000")
         x = np.asarray(pcm, dtype=np.float32)
+        if self.cache_dir is None:
+            return self._decode(x, sample_rate)
+        key = self.cache_key(x)
+        entry = self.cache_dir / f"{key}.json"
+        if entry.is_file():
+            doc = json.loads(entry.read_text())
+            if doc.get("schema") != ASR_CACHE_SCHEMA or doc.get("key") != key:
+                raise PipelineError(f"{entry}: not an asr_cache entry for this audio and settings")
+            self.last_info = {**doc["info"], "cache": {"hit": True, "key": key}}
+            return doc["segments"]
+        out = self._decode(x, sample_rate)
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        tmp = entry.with_suffix(f".{os.getpid()}.part")
+        tmp.write_text(json.dumps({"schema": ASR_CACHE_SCHEMA, "key": key, "settings": self.settings,
+                                   "info": self.last_info, "segments": out}) + "\n")
+        tmp.replace(entry)
+        self.last_info["cache"] = {"hit": False, "key": key}
+        return out
+
+    def _decode(self, x: np.ndarray, sample_rate: int) -> list[Segment]:
         duration = len(x) / float(sample_rate)
         segments, info = self.model.transcribe(
             x,
@@ -279,9 +368,14 @@ class FasterWhisperTranscriber(Transcriber):
             word_timestamps=True,
             language=self.language,
             vad_filter=self.vad_filter,
+            temperature=self.temperature,
         )
         out: list[Segment] = []
+        temps: dict[str, int] = {}
         for s in segments:  # consuming the generator is what runs the decoder
+            t = getattr(s, "temperature", None)
+            key = "unknown" if t is None else f"{float(t):.1f}"
+            temps[key] = temps.get(key, 0) + 1
             words = whisper_words(getattr(s, "words", None), duration)
             text = " ".join(w["w"] for w in words) if words else normalize_text(s.text)
             if not text:
@@ -296,6 +390,9 @@ class FasterWhisperTranscriber(Transcriber):
         }
         self.last_info["n_segments"] = len(out)
         self.last_info["n_words"] = sum(len(s["words"]) for s in out)
+        # counted over every decoded segment, including ones dropped as empty
+        self.last_info["temperatures"] = dict(sorted(temps.items()))
+        self.last_info["fallback_segments"] = sum(n for k, n in temps.items() if k not in ("0.0", "unknown"))
         return out
 
 
@@ -308,7 +405,8 @@ def _faster_whisper_from_params(p: dict[str, Any], **defaults: Any) -> FasterWhi
     the class defaults for one registry entry (HARNESS_POLICY per entry)."""
     allow = bool(defaults.pop("allow_library_names", True))
     d = {"model": DEFAULT_FW_MODEL, "device": "cpu", "compute_type": "int8", "language": None,
-         "beam_size": 5, "vad_filter": False, "cpu_threads": None, **defaults}
+         "beam_size": 5, "vad_filter": False, "cpu_threads": None, "seed": DEFAULT_FW_SEED,
+         "temperature": FW_LIBRARY_TEMPERATURES, **defaults}
     download = p.get(FW_DOWNLOAD_PARAM, False)
     if not isinstance(download, bool):
         raise ParamError(f"{FW_DOWNLOAD_PARAM} must be true or false, got {download!r}")
@@ -321,6 +419,14 @@ def _faster_whisper_from_params(p: dict[str, Any], **defaults: Any) -> FasterWhi
     vad = p.get("vad_filter", d["vad_filter"])
     if not isinstance(vad, bool):
         raise ParamError(f"vad_filter must be true or false, got {vad!r}")
+    seed = p.get("seed", d["seed"])
+    if seed is not None and (isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed < 2**32):
+        raise ParamError(f"seed must be an integer in [0, 2**32) or null, got {seed!r}")
+    temp = p.get("temperature", d["temperature"])
+    temps = list(temp) if isinstance(temp, (list, tuple)) else [temp]
+    if not temps or any(isinstance(t, bool) or not isinstance(t, (int, float)) or not np.isfinite(float(t)) or t < 0
+                        for t in temps):
+        raise ParamError(f"temperature must be a number >= 0 or a non-empty list of them, got {temp!r}")
     lang = p.get("language", d["language"])
     return FasterWhisperTranscriber(
         model=str(p.get("model", d["model"])),
@@ -330,9 +436,23 @@ def _faster_whisper_from_params(p: dict[str, Any], **defaults: Any) -> FasterWhi
         beam_size=beam,
         vad_filter=vad,
         cpu_threads=threads,
+        seed=seed,
+        temperature=tuple(float(t) for t in temps) if isinstance(temp, (list, tuple)) else float(temps[0]),
         allow_library_names=allow,
         allow_download=download,
+        cache_dir=_cache_dir_param(p.get("asr_cache")),
     )
+
+
+def _cache_dir_param(value: Any) -> Path | None:
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise ParamError(f"asr_cache must be a directory path, got {value!r}")
+    path = Path(value).expanduser()
+    if path.exists() and not path.is_dir():
+        raise ParamError(f"asr_cache {value!r} exists and is not a directory")
+    return path
 
 
 class ModelComposedPipeline(ComposedPipeline):
@@ -375,7 +495,9 @@ class ModelComposedPipeline(ComposedPipeline):
             asr = self.transcriber.transcribe(audio.pcm, audio.sample_rate)
             timing["asr_s"] = time.perf_counter() - t0
             t0 = time.perf_counter()
-            segments = assign_speakers(asr, turns, stats=stats)
+            tie_break = tie_break_param(self.config.param("assignment_tie_break"))
+            segments = assign_speakers(asr, turns, stats=stats, tie_break=tie_break)
+            stats["tie_break"] = tie_break
             timing["assign_s"] = time.perf_counter() - t0
         timing["audio_s"] = audio.duration_s
         compute = sum(v for k, v in timing.items() if k.endswith("_s") and k not in ("audio_s", "model_load_s"))
@@ -805,7 +927,7 @@ def speechbrain_ecapa_embedder(
         "HF cache or allow_download=true"
     ),
     availability=lambda: _missing("faster_whisper"),
-    params=FASTER_WHISPER_PARAMS | {FW_DOWNLOAD_PARAM} | DIARIZER_PARAMS | COMMON_AUDIO_PARAMS,
+    params=FASTER_WHISPER_PARAMS | {FW_DOWNLOAD_PARAM} | DIARIZER_PARAMS | COMMON_AUDIO_PARAMS | ASSIGNMENT_PARAMS,
 )
 def _make_faster_whisper(config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name="faster-whisper")
@@ -825,7 +947,7 @@ def _make_faster_whisper(config: PipelineConfig | None = None) -> Pipeline:
     "faster-whisper+pyannote",
     description="faster-whisper ASR + pyannote.audio diarization (UNTESTED here: no models)",
     availability=lambda: _missing_any("faster_whisper", "pyannote.audio", "torch"),
-    params=FASTER_WHISPER_PARAMS | {FW_DOWNLOAD_PARAM} | PYANNOTE_PARAMS | COMMON_AUDIO_PARAMS,
+    params=FASTER_WHISPER_PARAMS | {FW_DOWNLOAD_PARAM} | PYANNOTE_PARAMS | COMMON_AUDIO_PARAMS | ASSIGNMENT_PARAMS,
 )
 def _make_faster_whisper_pyannote(config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name="faster-whisper+pyannote")

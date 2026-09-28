@@ -48,6 +48,7 @@ from .adapters import (  # ModelComposedPipeline is re-exported here (it lived h
     _timed,
 )
 from .base import (
+    ASSIGNMENT_PARAMS,
     COMMON_AUDIO_PARAMS,
     Diarizer,
     ParamError,
@@ -262,7 +263,7 @@ def _sherpa_availability() -> str | None:
         "segmentation-3.0 + 3D-Speaker CAM++ embeddings); words take the max-overlap speaker"
     ),
     availability=_whisper_sherpa_availability,
-    params=FASTER_WHISPER_PARAMS | SHERPA_PARAMS | COMMON_AUDIO_PARAMS,
+    params=FASTER_WHISPER_PARAMS | SHERPA_PARAMS | COMMON_AUDIO_PARAMS | ASSIGNMENT_PARAMS,
 )
 def _make_whisper_sherpa(config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name="whisper-sherpa")

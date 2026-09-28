@@ -630,6 +630,27 @@ ASSIGNMENT_RULE = (
     "no overlap -> nearest turn by gap (HARNESS_POLICY, 2026-09-25)"
 )
 
+#: Tie-breaks for a word whose largest total overlap is shared by several
+#: speakers (``--param assignment_tie_break``; HARNESS_POLICY, 2026-09-28):
+#:
+#: * ``floor``         the tied speaker whose overlapping turn started earliest
+#:                     (the one holding the floor; the rule of 2026-09-25)
+#: * ``latest_start``  the tied speaker whose overlapping turn started latest
+#:                     (the one who just came in)
+#: * ``first_seen``    the tied speaker who appears first in the meeting
+#: * ``previous_word`` the previous word's speaker when it is among the tied
+#:                     ones, else ``floor`` (keeps a sentence together)
+TIE_BREAKS = ("floor", "latest_start", "first_seen", "previous_word")
+DEFAULT_TIE_BREAK = "floor"
+ASSIGNMENT_PARAMS = frozenset({"assignment_tie_break"})
+
+
+def tie_break_param(value: Any) -> str:
+    v = DEFAULT_TIE_BREAK if value is None else value
+    if v not in TIE_BREAKS:
+        raise ParamError(f"assignment_tie_break must be one of {', '.join(TIE_BREAKS)}, got {value!r}")
+    return str(v)
+
 
 class SpeakerIndex:
     """Diarization turns prepared for word lookup (HARNESS_POLICY rule).
@@ -656,7 +677,10 @@ class SpeakerIndex:
     turns stays well under a second.
     """
 
-    def __init__(self, turns: Iterable[Turn], fallback: str = FALLBACK_SPEAKER) -> None:
+    def __init__(self, turns: Iterable[Turn], fallback: str = FALLBACK_SPEAKER, tie_break: str = DEFAULT_TIE_BREAK) -> None:
+        if tie_break not in TIE_BREAKS:
+            raise ValueError(f"unknown tie_break {tie_break!r}")
+        self.tie_break = tie_break
         ts = sorted(((float(t0), float(t1), str(spk)) for t0, t1, spk in turns), key=lambda t: (t[0], t[1]))
         self.fallback = fallback
         self.speakers: list[str] = []
@@ -669,7 +693,10 @@ class SpeakerIndex:
         self.t1 = np.array([t[1] for t in ts], dtype=np.float64)
         self.spk = np.array([index[t[2]] for t in ts], dtype=np.int64)
 
-    def speaker_for(self, start: float, end: float) -> tuple[str, str]:
+    def speaker_for(self, start: float, end: float, previous: str | None = None) -> tuple[str, str]:
+        """``previous`` (the previous word's speaker) is used by the
+        ``previous_word`` tie-break only.  ``how`` is ``"tie"`` when several
+        speakers shared the largest overlap (counted separately in stats)."""
         if self.t0.size == 0:
             return self.fallback, "fallback"
         ov = np.minimum(end, self.t1) - np.maximum(start, self.t0)
@@ -677,9 +704,19 @@ class SpeakerIndex:
         if pos.any():
             totals = np.bincount(self.spk[pos], weights=ov[pos], minlength=len(self.speakers))
             tied = totals >= totals.max() - TIE_TOLERANCE_S
-            # turns are sorted by start: the first overlapping turn of a tied speaker
-            first = int(np.flatnonzero(pos & tied[self.spk])[0])
-            return self.speakers[int(self.spk[first])], "overlap"
+            # turns are sorted by start
+            cand = np.flatnonzero(pos & tied[self.spk])
+            n_tied = int(np.count_nonzero(tied))
+            if n_tied == 1 or self.tie_break == "floor":
+                pick = int(self.spk[cand[0]])
+            elif self.tie_break == "latest_start":
+                pick = int(self.spk[cand[-1]])
+            elif self.tie_break == "first_seen":
+                pick = int(np.flatnonzero(tied)[0])  # speakers are indexed by first appearance
+            else:  # previous_word
+                prev = self.speakers.index(previous) if previous in self.speakers else -1
+                pick = prev if prev >= 0 and tied[prev] else int(self.spk[cand[0]])
+            return self.speakers[pick], ("overlap" if n_tied == 1 else "tie")
         gap = np.maximum(0.0, np.maximum(self.t0 - end, start - self.t1))
         return self.speakers[int(self.spk[int(np.argmin(gap))])], "nearest"
 
@@ -711,6 +748,7 @@ def assign_speakers(
     turns: list[Turn],
     fallback: str = FALLBACK_SPEAKER,
     stats: dict[str, Any] | None = None,
+    tie_break: str = DEFAULT_TIE_BREAK,
 ) -> list[Segment]:
     """HARNESS_POLICY word-to-speaker rule (the idea whisperx documents):
 
@@ -721,12 +759,14 @@ def assign_speakers(
     hypothesis segment spanning exactly its words (never shorter than
     ``MIN_SEGMENT_S``), with its words sorted by start.  An ASR segment with
     no word timings is assigned as a whole by the same rule.  ``stats``, when
-    given, receives the counts ``{"words", "overlap", "nearest", "fallback",
-    "segments_without_words"}``.
+    given, receives the counts ``{"words", "overlap", "tie", "nearest",
+    "fallback", "segments_without_words"}`` (``tie``: words whose largest
+    overlap several speakers shared, decided by ``tie_break``, TIE_BREAKS).
     """
-    index = SpeakerIndex(turns, fallback)
-    counts = {"words": 0, "overlap": 0, "nearest": 0, "fallback": 0, "segments_without_words": 0}
+    index = SpeakerIndex(turns, fallback, tie_break)
+    counts = {"words": 0, "overlap": 0, "tie": 0, "nearest": 0, "fallback": 0, "segments_without_words": 0}
     out: list[Segment] = []
+    previous: str | None = None
     for seg in asr_segments:
         words = [x for w in (seg.get("words") or []) for x in _split_word(w)]
         if not words:
@@ -740,7 +780,8 @@ def assign_speakers(
             continue
         runs: list[tuple[str, list[Word]]] = []
         for w in words:
-            spk, how = index.speaker_for(w["start"], w["end"])
+            spk, how = index.speaker_for(w["start"], w["end"], previous)
+            previous = spk
             counts["words"] += 1
             counts[how] += 1
             if runs and runs[-1][0] == spk:
