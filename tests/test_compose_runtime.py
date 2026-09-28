@@ -500,7 +500,20 @@ def test_cloud_roundtrip_pushes_a_device_recording_through_the_mock_and_scores_i
         fields = dict(kv.split("=", 1) for kv in line.split()[1:])
         assert int(fields["parts"]) >= 2
         assert int(fields["bytes"]) == (mdir / "device" / "recording.ogg").stat().st_size
-        assert fields["states"] == "PENDING,STARTED,SUCCESS"
+        # The client polls every 0.05 s and the mock steps every 0.05 s, so a slow
+        # runner can poll past STARTED (GitHub macos-latest, 28 Sep 2026: PENDING,SUCCESS).
+        # Polled states must be an ordered part of the sequence; the mock's own
+        # history must hold every step.
+        polled = fields["states"].split(",")
+        assert polled[0] == "PENDING" and polled[-1] == "SUCCESS", polled
+        assert polled == [st for st in ("PENDING", "STARTED", "SUCCESS") if st in polled], polled
+        step = next(ln for ln in rt.stdout.splitlines() if ln.startswith("CLOUD_STEP transcribe"))
+        tid = dict(kv.split("=", 1) for kv in step.split()[2:] if "=" in kv)["id"]
+        import urllib.request
+
+        with urllib.request.urlopen(f"{mock.url}/_mock/state", timeout=10) as r:
+            history = [h[0] for h in json.loads(r.read())["tasks"][tid]["history"]]
+        assert history[-2:] == ["STARTED", "SUCCESS"], history
         assert fields["source"].startswith("objectstore+meeting+"), fields
         assert fields["meeting_id"] == meeting["meeting_id"]
         for step in ("identity", "bind", "presign", "upload", "complete", "download", "transcribe", "unbind"):
