@@ -8,8 +8,15 @@ Track owner: `docker/**`, `docker-compose.yml`, `scripts/compose-smoke.sh`,
 (Linux arm64). It built the three images in 121.38 s, which is outside the
 timed window by design. `docker compose up -d --wait` reached healthy in
 **6.58 s** against the 60 s target, and the job exited 0 in 11.34 s
-(section 2.1, `build/v6/compose-smoke-2026-09-25.log`, committed evidence). It has not
-run on x86_64 or on a GitHub runner.
+(section 2.1, `build/v6/compose-smoke-2026-09-25.log`, committed evidence).
+
+**28 September 2026: V6 also passed on a GitHub runner (x86_64, cold cache).**
+`.github/workflows/compose.yml` fetches Bumble at its pin and runs the same
+script on `ubuntu-latest`. Run 36396859985 (commit `94de5c9`), from the
+check-run notices: image build 102.56 s (outside the window, base image pulled
+cold), `up -d --wait` healthy in **5.81 s**, job exit 0 in 14.66 s. The
+workflow runs again whenever `docker/**`, the compose file, the smoke script
+or the code the images carry changes.
 
 > **Correction, 25 September 2026.** An earlier version of this status said
 > "V6 was NOT executed with Docker here", because no daemon answered at the
@@ -266,11 +273,11 @@ compose-smoke: PASS system live in 6.58s (target 60s); job exit 0
   byte-exact download, task states `PENDING,STARTED,SUCCESS`, source
   `objectstore+meeting+pipeline-oracle`), then `evals score` (PASS). All
   scores are 0.0000, as a harness self-test must give.
-* Still unverified: an x86_64 build and run, and a run on a GitHub runner.
-  The `tests` workflow never calls `compose-smoke.sh`. On a runner, where a
-  daemon answers, the suite resolves the file with `docker compose config`
-  and skips the smoke test. Also unverified: other compose versions, and a
-  cold build that also pulls the base image. The review's C11 (the running
+* An x86_64 build and run from a cold cache, on a GitHub runner, passed on
+  28 Sep (status above; `.github/workflows/compose.yml`). The `tests` workflow
+  still never calls `compose-smoke.sh`; on a runner where a daemon answers,
+  the suite resolves the file with `docker compose config` and skips the smoke
+  test. Still unverified: compose versions other than the two measured. The review's C11 (the running
   configuration's chunk size) is met by `--chunk-size 20000`: the Docker job's
   upload had 3 parts.
 

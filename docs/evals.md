@@ -821,8 +821,21 @@ integration tests named in the status line.
   * `wer_concat` interleaves overlapping segments by start time.
   * Per-speaker DER attribution inside overlap regions is the harness's
     equal-share rule, not a library definition.
-  * Same-speaker overlap is merged before DER/JER. NIST md-eval's treatment
-    of it has not been compared here.
+  * Same-speaker overlap is merged before DER/JER.
+* **DER agrees with NIST md-eval (checked 28 Sep 2026).**
+  `scripts/crosscheck-md-eval.sh` fetches `md-eval-22.pl` (nryant/dscore at a
+  pinned commit, sha256-checked, into git-ignored `data/tools/`) and scores
+  every hypothesis RTTM of a V5 run with it, with a UEM of `[0, duration]` and
+  the matching collar (the harness's 0.25 s total width is md-eval's
+  `-c 0.125`; collar 0 is `-c 0`). Overlapped speech is scored by both. On the
+  25 Sep V5 subset (5 systems' RTTMs plus derived views, 4 AMI meetings,
+  2 collars): 62 of 64 per-meeting DERs are identical to md-eval's printed
+  precision (1e-4), including the overlap-aware sherpa turns and the
+  model-free baseline. The two that differ are un-hinted sherpa turns with
+  30-95 hypothesis speakers at collar 0.25: EN2002a 0.7517 against 0.7545,
+  TS3003a 0.7756 against 0.7759. There the two tools' speaker mappings and
+  collar handling can diverge; the cause was not traced further. The
+  full-split run's cross-check is in `docs/v5-results.md`.
   * A meeting with an undefined rate drops out of that metric's macro mean
     (see [CLI](#cli)).
   * `hyp.rttm`/`hyp.stm` carry field-safe speaker labels (`Speaker_1`), not

@@ -209,8 +209,17 @@ so without the header every replayed POST would lose its body. Bodies that
 were not kept are marked `X-Mock-Body-Truncated: <original size>`. The
 intended replay is `gor --input-file … --output-http http://127.0.0.1:8787`.
 The test parses every exported record with h11 (an RFC 9112 parser) and checks
-that the delivered body equals the logged one; gor itself has not been run here
-(no Go toolchain). Plaud's own use of GoReplay (`cloud.md` §6, `source-map.md`)
+that the delivered body equals the logged one. **Since 28 Sep 2026 gor itself
+has replayed it:** `scripts/crosscheck-goreplay.sh` builds `gor` (GoReplay
+2.0.0) from `reference/upstream/goreplay` at its pinned commit (a `git archive`
+copy, with Go 1.27.1 fetched and sha256-checked into git-ignored
+`data/tools/`), drives the mock with `docker/cloud_roundtrip.py`, exports
+`?format=gor`, replays it with `gor --input-file … --output-http` into a
+recording server, and compares as multisets. All 14 logged requests (13 of the
+round trip plus the readiness probe) arrived with identical method, target and
+body. The three object-store part uploads, whose bodies are not kept, arrived
+with `X-Mock-Body-Truncated: 20000` and `9161`. gor replays concurrently, so
+order is not preserved. Plaud's own use of GoReplay (`cloud.md` §6, `source-map.md`)
 mirrors *their* traffic; what it mirrors is UNKNOWN and nothing here claims
 otherwise. `/_mock/*` requests are not logged.
 
@@ -322,7 +331,7 @@ sources. Changes:
 * Saves are synchronous on the event loop. After the split layout they cost
   the metadata JSON plus what is new, but `state.json` still grows with tokens
   and task results, and `state.log.jsonl` grows without rotation.
-* The GoReplay export was validated with h11, not with gor itself. Header
+* The GoReplay export was replayed by gor itself on 28 Sep (above). Header
   values are re-emitted as text, so a non-ASCII header byte is re-encoded as
   UTF-8.
 * Starlette-level errors (unknown route 404, wrong method 405, undecodable
