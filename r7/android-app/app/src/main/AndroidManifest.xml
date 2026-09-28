@@ -18,6 +18,15 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
+    <!-- DEBUG-ONLY (R7-S14 WifiCaptureActivity): declared so a control run can
+         grant it with `pm grant`; the template and the SDK AAR do not declare it.
+         CHANGE_NETWORK_STATE, which ConnectivityManager.requestNetwork needs, is
+         already merged in from the SDK AAR's own manifest. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="tiramisu" />
+
     <application
         android:name=".PlaudTemplateApp"
         android:allowBackup="true"
@@ -61,6 +70,11 @@
         <!-- R7-S13 recording-pull runtime driver (DEBUG-ONLY) -->
         <activity
             android:name=".debug.PullCaptureActivity"
+            android:exported="true" />
+
+        <!-- R7-S14 Wi-Fi fast-transfer runtime driver (DEBUG-ONLY) -->
+        <activity
+            android:name=".debug.WifiCaptureActivity"
             android:exported="true" />
 
         <!-- Recording (dark translucent theme) -->

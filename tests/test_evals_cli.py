@@ -14,7 +14,7 @@ REPO = Path(__file__).parents[1]
 sys.path.insert(0, str(REPO))
 
 from evals.cli import find_hypothesis, main, selfcheck_meeting  # noqa: E402
-from evals.io import Hypothesis, Segment, load_hypothesis, write_hypothesis_files, write_meeting, write_reference_files  # noqa: E402
+from evals.io import Hypothesis, Meeting, Segment, load_hypothesis, write_hypothesis_files, write_meeting, write_reference_files  # noqa: E402
 
 
 def make_meeting_dir(root: Path, meeting_id: str = "selfcheck-0001") -> tuple[Path, "Meeting"]:  # noqa: F821
@@ -155,7 +155,8 @@ def test_batch_gates_apply_to_the_chosen_aggregate(tmp_path: Path, capsys) -> No
 
 
 def test_batch_skips_cleanly_when_the_corpus_is_absent(tmp_path: Path, capsys) -> None:
-    rc = main(["batch", "--refs", str(REPO / "data" / "corpora" / "ami" / "meetings"), "--hyps", str(tmp_path / "out")])
+    # a path under tmp_path: the real data/corpora/ami/meetings exists on a machine that ran evals.ami
+    rc = main(["batch", "--refs", str(tmp_path / "data" / "corpora" / "ami" / "meetings"), "--hyps", str(tmp_path / "out")])
     assert rc == 3
     err = capsys.readouterr().err
     assert "skipped" in err and "does not exist" in err
@@ -229,3 +230,118 @@ def test_selfcheck_meeting_is_a_valid_contract_meeting(tmp_path: Path) -> None:
     assert back.to_dict() == m.to_dict()
     assert all(s.words for s in back.segments)
     assert load_hypothesis(write_hypothesis_files(Hypothesis(m.meeting_id, "x", list(m.segments)), tmp_path / "h")[0]).segments == m.segments
+
+
+# --------------------------------------------------------------------------- #
+# Review fixes (2026-09-25): exit codes mean what docs/evals.md says
+#   0 ok, 1 a gate failed, 2 input error (or anything unexpected), 3 nothing to score
+# --------------------------------------------------------------------------- #
+
+
+def quiet_meeting(root: Path, meeting_id: str = "quiet") -> Path:
+    """A valid meeting with no reference speech at all."""
+    m = Meeting(meeting_id, 16000, 10.0, 1, [{"id": "spk0"}], [], {"mix_wav": "mix.wav", "stems": {}, "device": {}}, {"name": "hand"})
+    d = root / "refs" / meeting_id
+    write_meeting(m, d)
+    write_hypothesis_files(Hypothesis(meeting_id, "sys", []), root / "hyps" / meeting_id)
+    return d
+
+
+def test_batch_survives_a_meeting_without_reference_speech(tmp_path: Path, capsys) -> None:
+    """EV-2.  Used to die with ZeroDivisionError (exit 1, no report)."""
+    d, m = make_meeting_dir(tmp_path, "good")
+    write_hypothesis_files(Hypothesis(m.meeting_id, "sys", list(m.segments)), tmp_path / "hyps" / "good")
+    quiet_meeting(tmp_path)
+    base = ["batch", "--refs", str(tmp_path / "refs"), "--hyps", str(tmp_path / "hyps"), "--suite", "synthetic-clean",
+            "--report", str(tmp_path / "b.json"), "--quiet"]
+    assert main(base) == 0  # macro: the undefined rates are left out of the mean, and counted
+    doc = json.loads((tmp_path / "b.json").read_text())
+    assert doc["n_meetings"] == 2 and doc["errors"] == []
+    quiet = next(r for r in doc["meetings"] if r["meeting_id"] == "quiet")
+    assert quiet["der"]["der"] is None and quiet["jer"]["jer"] is None
+    assert doc["macro"]["counts"]["der.der"] == 1
+    assert main(base + ["--gate-on", "each"]) == 1  # per meeting the undefined numbers fail closed
+    doc = json.loads((tmp_path / "b.json").read_text())
+    assert {g["target"]: g["passed"] for g in doc["gates"]} == {"good": True, "quiet": False}
+
+
+def test_score_on_a_meeting_without_reference_speech_fails_its_gate_closed(tmp_path: Path) -> None:
+    d = quiet_meeting(tmp_path)
+    hyp = tmp_path / "hyps" / "quiet" / "hyp.json"
+    assert main(["score", "--ref", str(d), "--hyp", str(hyp), "--quiet", "--report", str(tmp_path / "r.json")]) == 0
+    assert main(["score", "--ref", str(d), "--hyp", str(hyp), "--quiet", "--suite", "synthetic-clean"]) == 1
+
+
+def test_selfcheck_with_a_bad_gates_path_is_an_input_error(tmp_path: Path, capsys) -> None:
+    """EV-5(a).  Was a GateConfigError traceback and exit 1 (= 'gate failed')."""
+    assert main(["selfcheck", "--gates", str(tmp_path / "nope.yaml")]) == 2
+    assert "file not found" in capsys.readouterr().err
+
+
+def test_score_with_a_non_utf8_hypothesis_is_an_input_error(tmp_path: Path, capsys) -> None:
+    """EV-5(b).  Was a UnicodeDecodeError traceback and exit 1."""
+    d, m = make_meeting_dir(tmp_path)
+    bad = tmp_path / "latin1.json"
+    bad.write_bytes(json.dumps(Hypothesis(m.meeting_id, "caf\u00e9", list(m.segments)).to_dict(), ensure_ascii=False).encode("latin-1"))
+    assert main(["score", "--ref", str(d), "--hyp", str(bad), "--suite", "oracle"]) == 2
+    assert "not valid UTF-8" in capsys.readouterr().err
+
+
+def test_batch_rejects_an_unknown_suite_before_looking_for_the_corpus(tmp_path: Path, capsys) -> None:
+    """EV-5(c).  A mistyped --suite on the (absent) AMI command exited 3 and hid the typo."""
+    rc = main(["batch", "--refs", str(tmp_path / "does-not-exist"), "--hyps", str(tmp_path / "x"), "--suite", "typo-suite"])
+    assert rc == 2
+    assert "unknown suite 'typo-suite'" in capsys.readouterr().err
+    assert main(["batch", "--refs", str(tmp_path / "does-not-exist"), "--hyps", str(tmp_path / "x"), "--suite", "oracle"]) == 3
+
+
+def test_batch_where_no_meeting_has_a_hypothesis_is_an_input_error_even_with_skip(tmp_path: Path, capsys) -> None:
+    """EV-5(d).  A pipeline that produced nothing must not look like 'skipped'."""
+    make_meeting_dir(tmp_path, "mtg-a")
+    make_meeting_dir(tmp_path, "mtg-b")
+    (tmp_path / "hyps").mkdir()
+    args = ["batch", "--refs", str(tmp_path / "refs"), "--hyps", str(tmp_path / "hyps"), "--suite", "oracle", "--report", str(tmp_path / "b.json")]
+    assert main(args + ["--missing", "skip"]) == 2
+    assert "none of the 2 meeting(s) has a hypothesis" in capsys.readouterr().err
+    assert json.loads((tmp_path / "b.json").read_text())["n_meetings"] == 0
+    assert main(args) == 2
+
+
+@pytest.mark.parametrize("flag", ["--der-collar", "--tcp-collar"])
+@pytest.mark.parametrize("value", ["-1", "nan", "inf", "abc"])
+def test_negative_or_non_finite_collars_are_refused_by_every_command(tmp_path: Path, capsys, flag: str, value: str) -> None:
+    """EV-5(e).  pyannote reads a negative collar as 0 while the report recorded
+    the negative value; meeteval's own CLI refuses x < 0."""
+    d, m = make_meeting_dir(tmp_path)
+    write_hypothesis_files(Hypothesis(m.meeting_id, "oracle", list(m.segments)), tmp_path / "h")
+    for argv in (
+        ["selfcheck", flag, value],
+        ["score", "--ref", str(d), "--hyp", str(tmp_path / "h"), flag, value],
+        ["batch", "--refs", str(tmp_path / "refs"), "--hyps", str(tmp_path / "h"), flag, value],
+    ):
+        with pytest.raises(SystemExit) as exc:
+            main(argv)
+        assert exc.value.code == 2, argv
+        assert "finite number >= 0" in capsys.readouterr().err
+    assert main(["selfcheck", flag, "0"]) == 0  # zero is a legitimate collar
+
+
+def test_an_unexpected_exception_exits_2_never_1(tmp_path: Path, capsys, monkeypatch) -> None:
+    """EV-5(f).  Exit 1 is reserved for 'a gate failed'."""
+    import evals.cli as cli
+
+    d, m = make_meeting_dir(tmp_path)
+    hyps = tmp_path / "hyps"
+    write_hypothesis_files(Hypothesis(m.meeting_id, "oracle", list(m.segments)), hyps / m.meeting_id)
+
+    def boom(*a, **k):
+        raise RuntimeError("synthetic failure")
+
+    monkeypatch.setattr(cli, "score_meeting", boom)
+    assert main(["score", "--ref", str(d), "--hyp", str(hyps / m.meeting_id)]) == 2
+    assert "RuntimeError: synthetic failure" in capsys.readouterr().err
+    rc = main(["batch", "--refs", str(tmp_path / "refs"), "--hyps", str(hyps), "--report", str(tmp_path / "b.json")])
+    assert rc == 2
+    doc = json.loads((tmp_path / "b.json").read_text())  # the report is still written, naming the meeting
+    assert "RuntimeError: synthetic failure" in doc["errors"][0]["error"]
+    assert main(["selfcheck"]) == 2

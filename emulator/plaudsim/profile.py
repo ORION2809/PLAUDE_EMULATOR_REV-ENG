@@ -23,11 +23,12 @@ the peripheral refuses to serve cleartext while claiming a modern device.
 from __future__ import annotations
 
 import asyncio
-
 import enum
+import functools
+import weakref
 from dataclasses import dataclass
 from struct import pack, unpack_from
-from typing import Any
+from typing import Any, Callable
 
 from bumble.device import Connection, Device
 from bumble.gatt import (
@@ -412,6 +413,11 @@ def parse_common_settings_request(data: bytes) -> dict[str, object]:
 # every value the emulator returns is HARNESS_POLICY.
 OPCODE_OPEN_WIFI = 10       # req i4 OpenWiFiReq (ALL.txt:70643-70760) -> rsp j4 OpenWiFiRsp (ALL.txt:26526-26599)
 OPCODE_CLOSE_WIFI = 13      # req k0, header only (ALL.txt:69681-69697) -> rsp l0 CloseWiFiRsp (ALL.txt:55388-55420)
+# R7-S14: q.P registers the k0 request's response bean on opcode {10}, not 13
+# (ALL.txt:46011-46030, `bipush 10`); at runtime the SDK logged
+# `010D00-checkRequest-[10]`, and our opcode-13 answer was seen (`cmd type:13`)
+# but never reached the l0 callback. Which opcode real firmware answers with
+# is UNKNOWN; the emulator keeps answering 13 (r7/r7-s14-wifi-real-sdk.md).
 OPCODE_WEBSOCKET_REQ = 16   # req d3 GET (ALL.txt:49719-49786) / b6 SET (ALL.txt:52659-52788)
 OPCODE_WEBSOCKET_RSP = 17   # rsp v2 GetSetWebsocketRsp (ALL.txt:49949-50074)
 
@@ -438,10 +444,30 @@ WEBSOCKET_TOKEN_MAX = 16
 #: i4.<init>: "OpenWiFiReq wifiPass must be 8 ASCII bytes" (ALL.txt:70661-70695);
 #: j4.<init>: wifiPass = ASCII bytes [4..12) iff len >= 12 (ALL.txt:26538-26580).
 WIFI_PASS_LEN = 8
-#: The status the template treats as "device busy streaming" for openWiFi
-#: (CLAIM, SyncManager.kt:31-32 and :144-146: "status 4 (busy)"). Harness policy
-#: when applied; the mapping itself is a template-app comment, not bytecode.
+#: openWiFi status 4. Two separate CLAIMS in template-app comments (not
+#: bytecode; SyncManager.kt = reference/plaud-org/plaud-sdk-public/android/app/
+#: src/main/java/com/plaud/template/managers/SyncManager.kt):
+#:   * busy streaming -- "The device refuses to open its hotspot while still
+#:     streaming (openWiFi status 4 / connect 1003)" (:31-32; again :173-176);
+#:   * already open -- a second openWiFi while a Wi-Fi session is already
+#:     opening or running "the device rejects with status 4 ("WiFi fast
+#:     transfer already in progress")" (:142-148).
+#: The emulator answers `wifi_busy_status` (default this 4) in both cases;
+#: applying the claims is HARNESS_POLICY.
 WIFI_OPEN_STATUS_BUSY = 4
+
+#: R7-S13 (r7/r7-s13-recording-pull.md §4.4, runs 6b-13; RUNTIME_PROVEN on the
+#: AVD against the genuine SDK): the device must stream a transfer from a
+#: cancellable task with inter-frame pacing and abandon it on a new
+#: syncFileStart / stopSync, or the op-queue races (-98/-99) and gap recovery
+#: corrupts the export (run 6). The runs got these values from
+#: r7/pull_capture_peripheral.py's environment defaults (PULLCAP_PACING_S=0.004,
+#: PULLCAP_ABORT_ON_RESTART=1) and emulator/serve.py sets them explicitly; the
+#: PlaudPeripheral CONSTRUCTOR defaults are inline and unpaced (in-process
+#: tests). `PlaudPeripheral.for_real_sdk()` applies these. The 4 ms value is
+#: HARNESS_POLICY that converged, not a firmware fact.
+REAL_SDK_STREAM_IN_TASK = True
+REAL_SDK_RESPONSE_PACING_S = 0.004
 
 #: HARNESS_POLICY defaults for the WebSocket profile. Synthetic and plainly
 #: non-operational; `serToken`/`devToken` are 16 chars, the width the SET
@@ -454,23 +480,33 @@ DEFAULT_WEBSOCKET_PROFILE: dict[int, str] = {
 
 
 def parse_open_wifi_request(data: bytes) -> dict[str, object]:
-    """i4 OpenWiFiReq: [01][0A 00][u8 onOff] (+ 8 ASCII wifiPass bytes when given).
+    """i4 OpenWiFiReq: [01][0A 00][u8 mode] (+ 8 ASCII wifiPass bytes when given).
 
     i4.enPkg (ALL.txt:70697-70760) merges packHead, c(a) [one byte] and, when
     `b` is non-null, its US-ASCII bytes (constructor-checked to be exactly 8).
     The entity-layer `sdk.ble.entity.request.OpenWifiReq` (ALL.txt:131639-131670)
     sends packHead ONLY (3 bytes), so a header-only request is also genuine;
-    `on_off` is None in that case (HARNESS_POLICY: treat as "open").
+    `mode` is None in that case.
+
+    The byte is NOT an on/off flag (R7-S14, r7/r7-s14-wifi-real-sdk.md): q.d(Z)
+    -> q.a(Z, null) -> new i4(Z, null) (ALL.txt:45963-45997). The SDK's own
+    fast-transfer open, WifiAgentImpl.openDeviceWifi, passes FALSE
+    (KappaValueObject.txt:57 `iconst_0`, :64 t3.d) -- RUNTIME_PROVEN: the genuine
+    SDK wrote `01 0a 00 00` (r7/r7-s14-evidence, run 1b) and then joined the
+    SoftAP -- while PlaudDeviceAgent.setDeviceWiFi(true) passes TRUE and
+    setDeviceWiFi(false) sends opcode 13, not opcode 10 with 0
+    (PlaudDeviceAgent.txt:1173-1199). Its meaning is UNKNOWN (the iOS
+    `operateWiFi(open:isOTA:hotspotPassword:)` suggests `isOTA`; orientation only).
     """
     raw = bytes(data)
     if len(raw) < 3 or raw[0] != 1 or unpack_from("<H", raw, 1)[0] != OPCODE_OPEN_WIFI:
         raise ValueError(f"not an opcode-10 openWiFi request: {raw.hex()}")
     if len(raw) == 3:
-        return {"on_off": None, "wifi_pass": None}
+        return {"mode": None, "wifi_pass": None}
     if len(raw) == 4:
-        return {"on_off": raw[3], "wifi_pass": None}
+        return {"mode": raw[3], "wifi_pass": None}
     if len(raw) == 4 + WIFI_PASS_LEN:
-        return {"on_off": raw[3], "wifi_pass": raw[4:].decode("ascii", "replace")}
+        return {"mode": raw[3], "wifi_pass": raw[4:].decode("ascii", "replace")}
     raise ValueError(f"openWiFi request has an unrecognised length: {len(raw)}")
 
 
@@ -657,7 +693,29 @@ class PlaudPeripheral:
     any well-formed request is answered regardless of its payload values. An
     earlier version compared whole requests against fixed byte strings, which
     made syncTime answerable only for one hard-coded timestamp.
+
+    CONSTRUCTOR DEFAULTS ARE NOT THE R7-S13 DEVICE. By default a transfer is
+    emitted inline and unpaced (`stream_in_task=False, response_pacing_s=0.0`),
+    which suits in-process Bumble tests but is the configuration R7-S13 showed
+    racing the genuine SDK's op-queue and corrupting its export on gap
+    recovery. Anything that faces a real phone or the unmodified SDK should
+    build the peripheral with `PlaudPeripheral.for_real_sdk(...)`.
+
+    Wi-Fi handoff (HARNESS_POLICY): with `wifi_device_factory` set, an accepted
+    OpenWiFi (opcode 10, any mode byte -- R7-S14) calls `factory(self)` for a
+    fresh `plaudsim.wifi_device.WifiDevice` and runs it; CloseWiFi (opcode 13)
+    closes it. See `plaudsim.wifi_device.phone_dialer`. Without a factory,
+    opcodes 10/13 only record what the phone asked for.
     """
+
+    @classmethod
+    def for_real_sdk(cls, device: Any, **kwargs: Any) -> "PlaudPeripheral":
+        """The configuration R7-S13 converged with against the unmodified SDK
+        (task streaming, 4 ms pacing, abort on restart/stop; see
+        REAL_SDK_RESPONSE_PACING_S). Explicit keyword arguments still win."""
+        kwargs.setdefault("stream_in_task", REAL_SDK_STREAM_IN_TASK)
+        kwargs.setdefault("response_pacing_s", REAL_SDK_RESPONSE_PACING_S)
+        return cls(device, **kwargs)
 
     def __init__(
         self,
@@ -689,6 +747,7 @@ class PlaudPeripheral:
         wifi_close_status: int = 0,
         wifi_busy_status: int = WIFI_OPEN_STATUS_BUSY,
         websocket_profile: dict[int, str] | None = None,
+        wifi_device_factory: Callable[["PlaudPeripheral"], Any] | None = None,
     ) -> None:
         if port_version >= ENCRYPTED_PORT_VERSION:
             raise ValueError(
@@ -738,6 +797,15 @@ class PlaudPeripheral:
         self.stream_in_task = stream_in_task
         self.response_pacing_s = response_pacing_s
         self._stream_task: Any = None
+        self._stream_connection: Any = None
+        self._inline_streams = 0
+        # Links whose disconnection this peripheral has seen. Bumble drops a
+        # notification to a gone link SILENTLY: on_disconnection pops the
+        # subscriber (reference/upstream/bumble/bumble/gatt_server.py:560-561)
+        # and the notify path then returns early (:401-406, "not notifying, no
+        # subscribers"), so the peripheral has to remember which links are
+        # dead to stop "sending" into them.
+        self._lost_links: "weakref.WeakSet[Any]" = weakref.WeakSet()
         self.stream_log: list[dict[str, Any]] = []
         # HARNESS POLICY, stated as such: this device accepts any handshake
         # token. Real hardware certainly does not. `handshake_status` lets a
@@ -761,11 +829,13 @@ class PlaudPeripheral:
         # `protVersion` argument (ALL.txt:44308, :878-961) -- a facade quirk.
         self.l3_timezone = l3_timezone
         # HARNESS_POLICY: the Wi-Fi handoff answers. `wifi_open_status` is what
-        # opcode 10 reports when idle; `wifi_busy_status` (CLAIM: 4) when a
-        # transfer is mid-stream; `wifi_close_status` answers opcode 13. The
-        # WebSocket profile (opcode 16/17) is a synthetic url/serToken/devToken
-        # triple that SET overwrites and GET reads back. Nothing here raises a
-        # SoftAP; `wifi_hotspot_on` only records what the phone asked for.
+        # opcode 10 reports when idle; `wifi_busy_status` (CLAIM: 4) while a
+        # transfer is still being emitted or a Wi-Fi session is already open;
+        # `wifi_close_status` answers opcode 13. The WebSocket profile (opcode
+        # 16/17) is a synthetic url/serToken/devToken triple that SET
+        # overwrites and GET reads back. Nothing here raises a SoftAP;
+        # `wifi_hotspot_on` records the hotspot state the phone asked for (and
+        # drops when a started Wi-Fi session ends).
         self.wifi_open_status = wifi_open_status
         self.wifi_close_status = wifi_close_status
         self.wifi_busy_status = wifi_busy_status
@@ -774,6 +844,11 @@ class PlaudPeripheral:
             DEFAULT_WEBSOCKET_PROFILE if websocket_profile is None else websocket_profile
         )
         self.wifi_log: list[dict[str, object]] = []
+        self.wifi_device_factory = wifi_device_factory
+        self.wifi_device: Any = None
+        self._wifi_task: Any = None
+        self._wifi_close_tasks: set[Any] = set()
+        self.wifi_session_log: list[dict[str, Any]] = []
         self.transfer: TransferSession | None = None
         self.packet_log: list[dict[str, Any]] = []
         self.lifecycle = PlaudLifecycle.DISCONNECTED
@@ -929,11 +1004,36 @@ class PlaudPeripheral:
         self._set_lifecycle(PlaudLifecycle.CONNECTED)
         connection.on(
             Connection.EVENT_DISCONNECTION,
-            lambda *_: (
-                setattr(self, "connection", None),
-                self._set_lifecycle(PlaudLifecycle.DISCONNECTED),
-            ),
+            lambda *_: self._on_disconnection(connection),
         )
+
+    def _on_disconnection(self, connection: Any) -> None:
+        """The link is gone: nothing sent on it arrives any more, so a stream
+        serving it is aborted rather than left "completing" into the void
+        (HARNESS_POLICY; a real device's behaviour is UNKNOWN). A running
+        Wi-Fi session is left alone -- the template claims the pen drops BLE
+        on purpose while its hotspot is up (SyncManager.kt:184)."""
+        self._lost_links.add(connection)
+        self.connection = None
+        self._set_lifecycle(PlaudLifecycle.DISCONNECTED)
+        if self._stream_task is not None and self._stream_connection is connection:
+            self._abort_stream("disconnected")
+
+    def _link_alive(self, connection: Any) -> bool:
+        return connection is None or connection not in self._lost_links
+
+    @property
+    def transfer_streaming(self) -> bool:
+        """True while frames of a y6 transfer are still being emitted.
+
+        Deliberately NOT `transfer.done`: TransferSession.frames() builds the
+        whole frame list and marks the session done before the first frame
+        leaves, so that flag is already True mid-stream.
+        """
+        if self._inline_streams > 0:
+            return True
+        task = self._stream_task
+        return task is not None and not task.done()
 
     # --- command dispatch ------------------------------------------------
 
@@ -966,17 +1066,33 @@ class PlaudPeripheral:
         handler = handlers.get(opcode)
         if handler is None:
             return self._reject(request, "unsupported_opcode")
-        if opcode in (OPCODE_SYNC_START, OPCODE_STOP_SYNC):
-            self._abort_stream("new_sync_start" if opcode == OPCODE_SYNC_START else "stop_sync")
+        # The request is parsed BEFORE a running stream is touched: a
+        # malformed y6/z6 is rejected and leaves the stream (and
+        # `self.transfer`) alone. Nothing awaits between the handler and the
+        # abort, so the old stream cannot emit in between.
         try:
             frames = handler(request)
         except ValueError as exc:
             return self._reject(request, f"malformed_request: {exc}")
+        if opcode in (OPCODE_SYNC_START, OPCODE_STOP_SYNC):
+            self._abort_stream("new_sync_start" if opcode == OPCODE_SYNC_START else "stop_sync")
         if opcode == OPCODE_SYNC_START and self.stream_in_task:
+            self._stream_connection = connection
             self._stream_task = asyncio.ensure_future(self._stream(connection, frames))
             return None
-        for frame in frames:
-            await self._emit(connection, frame)
+        streaming = opcode == OPCODE_SYNC_START
+        if streaming:
+            self._inline_streams += 1
+        try:
+            for frame in frames:
+                if not self._link_alive(connection):
+                    if streaming:
+                        self.stream_log.append({"event": "aborted", "reason": "disconnected", "mode": "inline"})
+                    break
+                await self._emit(connection, frame)
+        finally:
+            if streaming:
+                self._inline_streams -= 1
 
     # --- streamed transfers (R7-S13 policy, see __init__) -----------------
 
@@ -986,11 +1102,21 @@ class PlaudPeripheral:
             task.cancel()
             self.stream_log.append({"event": "aborted", "reason": reason})
         self._stream_task = None
+        self._stream_connection = None
 
     async def _stream(self, connection: Any, frames: list[bytes]) -> None:
+        """Emit one transfer from a task. Every way it can end is logged: a
+        transport error ends it with an `error` entry (and is NOT re-raised,
+        so the task never dies with an unretrieved exception), a dead link
+        with `aborted`/`disconnected`, a cancel with `cancelled`."""
         sent = 0
         try:
             for frame in frames:
+                if not self._link_alive(connection):
+                    self.stream_log.append(
+                        {"event": "aborted", "reason": "disconnected", "frames_sent": sent, "frames_total": len(frames)}
+                    )
+                    return
                 await self._emit(connection, frame)
                 sent += 1
                 if self.response_pacing_s > 0:
@@ -999,6 +1125,10 @@ class PlaudPeripheral:
         except asyncio.CancelledError:
             self.stream_log.append({"event": "cancelled", "frames_sent": sent, "frames_total": len(frames)})
             raise
+        except Exception as exc:
+            self.stream_log.append(
+                {"event": "error", "error": type(exc).__name__, "frames_sent": sent, "frames_total": len(frames)}
+            )
 
     def _reject(self, request: bytes, reason: str) -> None:
         self.packet_log.append(
@@ -1097,6 +1227,14 @@ class PlaudPeripheral:
             self._set_lifecycle(PlaudLifecycle.BOUND)
         return [self.synctime.encode_response()]
 
+    def file_bytes_for(self, session_id: int) -> bytes:
+        """The content served for `session_id`. HARNESS_POLICY: this device
+        serves one buffer for every session; subclasses may map sessions to
+        files (faults.FaultyPeripheral) and the Wi-Fi handoff reuses it
+        (wifi_device.phone_dialer)."""
+        del session_id
+        return self.file_bytes
+
     def _start_transfer(self, request: bytes) -> list[bytes]:
         """y6: (re)place the session, then emit HEAD + DATA + TAIL.
 
@@ -1105,7 +1243,7 @@ class PlaudPeripheral:
         """
         params = parse_sync_start_request(request)
         self.transfer = TransferSession(
-            file_bytes=self.file_bytes,
+            file_bytes=self.file_bytes_for(params["session_id"]),
             crc=self.tail_crc & 0xFFFF,
             port_version=self.port_version,
             empty_package_code=self.empty_package_code,
@@ -1166,21 +1304,33 @@ class PlaudPeripheral:
         """i4 OpenWiFiReq (opcode 10) -> j4 OpenWiFiRsp.
 
         BYTECODE_PROVEN layouts; HARNESS_POLICY answers: status
-        `wifi_open_status` (0) when idle, `wifi_busy_status` (4, CLAIM from the
-        template comments) while a transfer is still streaming, and the 8-byte
-        passphrase only on a successful open. `onOff == 0` is treated as a
-        request to drop the hotspot (its real meaning is UNKNOWN; the shipped
-        driver always sends the boolean it was given).
+        `wifi_open_status` (0) when idle; `wifi_busy_status` (4) while a y6
+        transfer is still being emitted ("streaming", CLAIM SyncManager.kt:
+        31-32) or while the hotspot is already up ("already_open", CLAIM
+        SyncManager.kt:142-148); the 8-byte passphrase only on a successful
+        open. EVERY opcode 10 is an open, whatever its mode byte: the SDK's
+        fast-transfer path sends mode 0 (RUNTIME_PROVEN, R7-S14 run 1b) and
+        closes with opcode 13 (see `parse_open_wifi_request`); before R7-S14
+        this handler read mode 0 as "drop the hotspot", so the genuine SDK's
+        startWifiTransfer never got a Wi-Fi device. The mode is logged, not
+        interpreted. With a `wifi_device_factory`, a successful open starts a
+        fresh Wi-Fi device.
         """
         parsed = parse_open_wifi_request(request)
-        on_off = parsed["on_off"]
-        wants_on = True if on_off is None else bool(on_off)
-        busy = self.transfer is not None and not self.transfer.done
-        status = self.wifi_busy_status if (busy and wants_on) else self.wifi_open_status
+        busy: str | None = None
+        if self.transfer_streaming:
+            busy = "streaming"
+        elif self.wifi_hotspot_on:
+            busy = "already_open"
+        status = self.wifi_busy_status if busy else self.wifi_open_status
         if status == 0:
-            self.wifi_hotspot_on = wants_on
-        self.wifi_log.append({"opcode": OPCODE_OPEN_WIFI, **parsed, "status": status, "hotspot_on": self.wifi_hotspot_on})
-        wifi_pass = self.wifi_password() if (status == 0 and wants_on) else None
+            self.wifi_hotspot_on = True
+        self.wifi_log.append(
+            {"opcode": OPCODE_OPEN_WIFI, **parsed, "status": status, "busy": busy, "hotspot_on": self.wifi_hotspot_on}
+        )
+        if status == 0:
+            self._start_wifi_device()
+        wifi_pass = self.wifi_password() if status == 0 else None
         return [encode_open_wifi_response(status, wifi_pass)]
 
     def _close_wifi(self, request: bytes) -> list[bytes]:
@@ -1188,12 +1338,73 @@ class PlaudPeripheral:
 
         NiceBuildSdk.stopWifiTransfer sends this over BLE when BLE is up
         (NiceBuildSdk.txt:3315-3364) and only logs the status
-        ("设备热点关闭响应 status=", :1354). HARNESS_POLICY status.
+        ("设备热点关闭响应 status=", :1354). HARNESS_POLICY status. A running
+        Wi-Fi device (see `wifi_device_factory`) is asked to close.
         """
         parse_close_wifi_request(request)
         self.wifi_hotspot_on = False
         self.wifi_log.append({"opcode": OPCODE_CLOSE_WIFI, "status": self.wifi_close_status, "hotspot_on": False})
+        self._stop_wifi_device("ble_close_wifi")
         return [encode_close_wifi_response(self.wifi_close_status)]
+
+    # --- the Wi-Fi device behind opcodes 10 / 13 (HARNESS_POLICY hook) ------------
+
+    @property
+    def wifi_active(self) -> bool:
+        """A Wi-Fi device started by opcode 10 is still running."""
+        task = self._wifi_task
+        return task is not None and not task.done()
+
+    def _start_wifi_device(self) -> None:
+        """Build a NEW device per accepted open (WifiDevice is single-use) and
+        run it. HARNESS_POLICY: the real pen raises a SoftAP and dials the
+        phone that joined it; this one dials whatever the factory configured,
+        as soon as the j4 answer is queued (IP connectivity assumed)."""
+        if self.wifi_device_factory is None:
+            return
+        if self.wifi_active:
+            # Only reachable when the previous device is still winding down
+            # after a close (the hotspot flag was already dropped): let it
+            # finish and start the new one alongside.
+            self._stop_wifi_device("replaced")
+        device = self.wifi_device_factory(self)
+        self.wifi_device = device
+        task = asyncio.ensure_future(device.run())
+        self._wifi_task = task
+        self.wifi_session_log.append({"event": "started", "uri": getattr(device, "uri", None)})
+        task.add_done_callback(functools.partial(self._on_wifi_session_done, device))
+
+    def _stop_wifi_device(self, reason: str) -> None:
+        device = self.wifi_device
+        if device is None or not self.wifi_active:
+            return
+        close = asyncio.ensure_future(device.close(reason))
+        self._wifi_close_tasks.add(close)
+        close.add_done_callback(self._on_wifi_close_done)
+
+    def _on_wifi_close_done(self, task: Any) -> None:
+        self._wifi_close_tasks.discard(task)
+        if not task.cancelled() and task.exception() is not None:
+            self.wifi_session_log.append({"event": "close_error", "error": repr(task.exception())})
+
+    def _on_wifi_session_done(self, device: Any, task: Any) -> None:
+        """HARNESS_POLICY: when the pen's Wi-Fi session ends -- closed over BLE,
+        self-closed after idle heartbeats / the exit timeout, or a failed dial
+        -- the pen drops its hotspot, so a later opcode 10 is accepted again
+        (the CLAIM that Wi-Fi teardown is device-led, docs/product-evidence/
+        agent-findings-2026-09-23.json)."""
+        if task.cancelled():
+            error: str | None = "cancelled"
+        else:
+            exc = task.exception()
+            error = None if exc is None else repr(exc)
+        state = getattr(getattr(device, "state", None), "value", None)
+        self.wifi_session_log.append(
+            {"event": "ended", "state": state, "reason": getattr(device, "close_reason", None), "error": error}
+        )
+        if self.wifi_device is device:
+            self._wifi_task = None
+            self.wifi_hotspot_on = False
 
     def _websocket_profile(self, request: bytes) -> list[bytes]:
         """d3 GET / b6 SET (opcode 16) -> v2 GetSetWebsocketRsp (opcode 17).
@@ -1227,9 +1438,16 @@ class PlaudPeripheral:
 
     # --- transport -------------------------------------------------------
 
-    async def _emit(self, connection: Any, payload: bytes) -> None:
-        self.packet_log.append({"direction": "response", "bytes": payload.hex()})
+    async def _emit(self, connection: Any, payload: bytes) -> bool:
+        """Send one frame; True when it was handed to the link. It is logged
+        as a `response` only once `_respond` returned; a frame for a link
+        already known to be gone is logged as `undelivered` and not sent."""
+        if not self._link_alive(connection):
+            self.packet_log.append({"direction": "undelivered", "reason": "disconnected", "bytes": payload.hex()})
+            return False
         await self._respond(connection, payload)
+        self.packet_log.append({"direction": "response", "bytes": payload.hex()})
+        return True
 
     async def _respond(self, connection: Any, response: bytes) -> None:
         # Emulator compatibility behaviour, not a device claim: answer through

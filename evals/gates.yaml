@@ -2,12 +2,16 @@
 #
 # Every threshold in this file is HARNESS_POLICY: a number the harness chooses
 # so that CI has something to fail on.  None is derived from device, SDK or
-# cloud evidence, and none is a calibrated claim about any pipeline's quality.
+# cloud evidence, and none is a claim about what quality is good enough.
+# Two suites (ami-subset-whisper-sherpa, synthetic-piper-whisper-sherpa) are
+# REGRESSION gates calibrated on a measured run (docs/v5-results.md): measured
+# value + a stated margin.  The others are uncalibrated.
 # Metric names are the dotted paths of evals.metrics.MeetingReport.flat().
 #
 # Semantics (evals/gates.py): a check passes when the metric satisfies every
-# bound it declares (max / min / eq with optional tol).  A missing or None
-# metric FAILS its check (fail closed).
+# bound it declares (max / min / eq with optional tol).  A missing, None or
+# non-finite metric FAILS its check (fail closed).  Bounds and tol must be
+# finite numbers, and contradictory bounds (min > max) are refused on load.
 
 schema: plaud-harness/gates/1
 
@@ -29,7 +33,8 @@ suites:
   synthetic-clean:
     description: >
       Layer 2 synthetic meetings with no noise or reverberation.  Thresholds
-      are placeholders until a pipeline exists to calibrate them.
+      are uncalibrated placeholders (HARNESS_POLICY); the calibrated gate for
+      the Piper set is synthetic-piper-whisper-sherpa.
     gates:
       - {metric: der.der,                 max: 0.05}
       - {metric: cpwer.error_rate,        max: 0.10}
@@ -47,9 +52,52 @@ suites:
 
   ami-headset:
     description: >
-      V5 target on held-out AMI (headset mix).  UNCALIBRATED placeholder: no
-      AMI data is present in this checkout (docs/evals.md, "What is not
-      done"), so these numbers have never been exercised.
+      V5 TARGET on the FULL AMI test split (all 16 meetings of the standard
+      full-corpus partition, headset mix).  It has not been measured: only 4
+      of the 16 test meetings have audio here.  The thresholds are an
+      uncalibrated target (HARNESS_POLICY), not derived from any run; the
+      4-meeting subset is measured and regression-gated by
+      ami-subset-whisper-sherpa (docs/v5-results.md), and on that subset the
+      measured DER and cpWER are far above these bounds.
     gates:
       - {metric: der.der,          max: 0.20}
       - {metric: cpwer.error_rate, max: 0.30}
+
+  # Calibrated regression gates (docs/v5-results.md "Gates").  HARNESS_POLICY:
+  # threshold = macro value measured on 2026-09-25 + margin, rounded up to 3
+  # decimals; margin 0.03 absolute on every rate, 0.25 on the mean absolute
+  # speaker-count error (one meeting off by one more speaker).  Apply with
+  # --gate-on macro to `whisper-sherpa --param num_speakers=<reference count>`
+  # hypotheses (scripts/run-v5.sh).  They catch a regression; they are not a
+  # quality target, and passing them says nothing about being good.
+
+  ami-subset-whisper-sherpa:
+    description: >
+      REGRESSION gate (HARNESS_POLICY), calibrated on one measured run:
+      whisper-sherpa with num_speakers=4 on the 4 local AMI test-split
+      meetings EN2002a, ES2004a, IS1009a, TS3003a (full length, Mix-Headset),
+      macro average, evals defaults.  Measured values and margin in
+      docs/v5-results.md.  Not the AMI test set and not the V5 target (that is
+      ami-headset).
+    gates:
+      - {metric: der.der,                 max: 0.686}
+      - {metric: jer.jer,                 max: 0.845}
+      - {metric: cpwer.error_rate,        max: 0.884}
+      - {metric: tcpwer.error_rate,       max: 1.001}
+      - {metric: wer_concat.wer,          max: 0.356}
+      - {metric: speaker_count.abs_error, max: 0.25}
+
+  synthetic-piper-whisper-sherpa:
+    description: >
+      REGRESSION gate (HARNESS_POLICY), calibrated on one measured run:
+      whisper-sherpa with num_speakers = each meeting's reference speaker
+      count on the 4-meeting synthetic Piper set (build/synthetic/piper,
+      mix.wav; docs/generator.md 6.3), macro average, evals defaults.
+      Measured values and margin in docs/v5-results.md.
+    gates:
+      - {metric: der.der,                 max: 0.645}
+      - {metric: jer.jer,                 max: 0.8}
+      - {metric: cpwer.error_rate,        max: 1.13}
+      - {metric: tcpwer.error_rate,       max: 1.154}
+      - {metric: wer_concat.wer,          max: 0.281}
+      - {metric: speaker_count.abs_error, max: 0.5}

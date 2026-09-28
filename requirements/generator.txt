@@ -1,8 +1,9 @@
 # Layer 2 generator track: NO packages were added to .venv.
 # Everything below was already installed by the harness; versions recorded
 # for reproducibility (see docs/generator.md). Optional TTS backends
-# (piper-tts, kokoro + torch) are deliberately NOT listed: they are
-# import-guarded and never installed or downloaded by the harness.
+# (piper-tts >= 1.3, i.e. the SynthesisConfig / synthesize -> AudioChunk API;
+# kokoro + torch) are deliberately NOT listed: they are import-guarded and
+# never installed or downloaded by the harness.
 numpy==2.4.6
 scipy==1.17.1
 soundfile==0.14.0

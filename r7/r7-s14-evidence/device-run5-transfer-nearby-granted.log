@@ -1,0 +1,43 @@
+I0925 13:10:11.045491 3894034 fork_posix.cc:71] Other threads are currently calling into gRPC, skipping fork() handlers
+I0925 13:10:11.058457 3894034 fork_posix.cc:71] Other threads are currently calling into gRPC, skipping fork() handlers
+[32m13:10:11.108 I R7S14: [0mWIFICAP_PERIPHERAL_READY pv=7 sn=8810000001 file=/Users/mivi/Desktop/plaud-harness/tests/fixtures/r6s2_16k_mono.ogg len=11271 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d session=1700000000 wifi=ws://127.0.0.1:18081
+[32m13:10:24.263 I R7S14: [0mWIFICAP_BLE_WIFI_WRITE opcode=10 hex=010a0000
+[32m13:10:24.264 I R7S14: [0mWIFICAP_WIFI_DEVICE_STARTED uri=ws://127.0.0.1:18081
+[32m13:10:24.265 I R7S14: [0mWIFICAP_WIFI_STATE connecting
+[32m13:10:24.286 I R7S14: [0mWIFICAP_BLE_WIFI_NOTIFY opcode=10 hex=010a00003130303030303031
+[32m13:10:24.300 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 1}
+[32m13:10:25.354 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 2}
+[32m13:10:26.381 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 3}
+[32m13:10:27.393 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 4}
+[32m13:10:28.413 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 5}
+[32m13:10:29.423 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 6}
+[32m13:10:30.433 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 7}
+[32m13:10:31.445 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 8}
+[32m13:10:32.464 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 9}
+[32m13:10:33.472 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 10}
+[32m13:10:34.478 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 11}
+[32m13:10:35.491 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 12}
+[32m13:10:36.507 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 13}
+[32m13:10:37.517 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 14}
+[32m13:10:38.532 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 15}
+[32m13:10:39.540 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 16}
+[32m13:10:40.556 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 17}
+[32m13:10:41.571 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 18}
+[32m13:10:42.585 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 19}
+[32m13:10:43.599 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 20}
+[32m13:10:44.612 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 21}
+[32m13:10:45.626 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 22}
+[32m13:10:46.635 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 23}
+[32m13:10:47.651 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 24}
+[32m13:10:48.658 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 25}
+[32m13:10:49.670 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 26}
+[32m13:10:50.677 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 27}
+[32m13:10:51.689 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 28}
+[32m13:10:52.704 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 29}
+[32m13:10:53.718 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 30}
+[32m13:10:54.759 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 31}
+[32m13:10:55.369 I R7S14: [0mWIFICAP_BLE_WIFI_WRITE opcode=13 hex=010d00
+[32m13:10:55.370 I R7S14: [0mWIFICAP_WIFI_STATE closing
+[32m13:10:55.371 I R7S14: [0mWIFICAP_WIFI_EVENT dial_cancelled {'reason': 'ble_close_wifi', 'attempt': 32}
+[32m13:10:55.371 I R7S14: [0mWIFICAP_WIFI_STATE closed
+[32m13:10:55.378 I R7S14: [0mWIFICAP_BLE_WIFI_NOTIFY opcode=13 hex=010d0000

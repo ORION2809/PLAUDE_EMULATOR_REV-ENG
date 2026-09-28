@@ -1,5 +1,7 @@
 # plaud-harness job: docker/job.sh -- probes both services, attaches a central to the emulator,
-# generates a small synthetic set, runs the oracle pipeline and scores it with the evals gates.
+# generates a small synthetic set, runs the oracle pipeline and scores it with the evals gates,
+# then pushes one device recording through the mock cloud (docker/cloud_roundtrip.py) and
+# scores the transcription it returns.
 # Exits non-zero on any failure (gate failure included); docker compose reports the code.
 #
 # Base: python:3.11-slim (the venv here is CPython 3.11.16). Build context is the repo root
@@ -11,8 +13,14 @@
 # from the immutable reference tree, so the image does the same from the build-context copy
 # of reference/upstream/bumble at the commit pinned in docs/reference-pins.txt. That copy
 # carries no .git (setuptools_scm would need one, plus git in the image), so the version
-# string the venv reports is passed to setuptools_scm explicitly. Alternative kept in a
+# string the venv reports is passed to setuptools_scm explicitly; scripts/compose-smoke.sh
+# refuses to build (exit 3) when the tree on disk is not at the pin. Alternative kept in a
 # comment below: clone the pin at build time (needs git and network during the build only).
+#
+# Compiler (review finding C3): meeteval==0.4.3 ships only an sdist whose C++ extensions are
+# mandatory, and python:3.11-slim has no compiler, so the pip layer installs build-essential
+# first and purges it again in the same layer (the images stay slim; nothing needs a compiler
+# at run time). Any other pin without a wheel for the build platform is covered the same way.
 FROM python:3.11-slim
 
 ARG BUMBLE_PIN=d371a27ebd8ab87b871a542df8442718b7882fdb
@@ -29,10 +37,14 @@ WORKDIR /app
 # service Dockerfiles share this prologue verbatim, so BuildKit reuses these layers.
 COPY reference/upstream/bumble /app/reference/upstream/bumble
 COPY requirements /app/requirements
-RUN SETUPTOOLS_SCM_PRETEND_VERSION_FOR_BUMBLE=${BUMBLE_VERSION} \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential \
+ && SETUPTOOLS_SCM_PRETEND_VERSION_FOR_BUMBLE=${BUMBLE_VERSION} \
     SETUPTOOLS_SCM_PRETEND_VERSION=${BUMBLE_VERSION} \
     pip install -e /app/reference/upstream/bumble \
- && pip install -r /app/requirements/all.txt
+ && pip install -r /app/requirements/all.txt \
+ && apt-get purge -y --auto-remove build-essential \
+ && rm -rf /var/lib/apt/lists/*
 # Alternative to the COPY above (network + git at build time):
 #   RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/* \
 #    && git clone https://github.com/google/bumble.git /app/reference/upstream/bumble \
@@ -45,7 +57,7 @@ COPY generator /app/generator
 COPY pipeline /app/pipeline
 COPY evals /app/evals
 COPY tests/fixtures /app/tests/fixtures
-COPY docker/probe.py docker/job.sh /app/docker/
+COPY docker/probe.py docker/cloud_roundtrip.py docker/job.sh /app/docker/
 
 # build/ is a named volume in docker-compose.yml (job output, mock persistence, meetings the
 # emulator may serve); create the mount point so it exists even without the volume.
@@ -60,6 +72,7 @@ ENV MOCKCLOUD_URL=http://mockcloud:8787 \
     JOB_MEETINGS=2 \
     JOB_SCENARIO=smoke \
     JOB_SEED=1 \
-    JOB_SUITE=oracle
+    JOB_SUITE=oracle \
+    JOB_CLOUD_TIMEOUT=60
 
 CMD ["bash", "/app/docker/job.sh"]

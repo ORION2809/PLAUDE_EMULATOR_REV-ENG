@@ -2,11 +2,24 @@
 #
 # No packages were added to .venv for this track.  Everything used is
 # already present: numpy, scipy, soundfile, av (PyAV 18 / libopus),
-# pytest, pyannote.metrics, meeteval.  scikit-learn is present in the venv
-# but deliberately NOT used (the model-free diarizer is numpy/scipy only).
+# pytest, pyannote.core (6.x, the stand-in tests build Annotations with it),
+# pyannote.metrics, meeteval.  scikit-learn is present in the venv but
+# deliberately NOT used (the model-free diarizer is numpy/scipy only).
 #
-# Optional adapters (UNTESTED here; not installed, not to be installed
-# without model weights and a licence check -- see docs/pipeline.md):
-#   faster-whisper
-#   pyannote.audio  (+ torch)
-#   whisperx        (+ torch)
+# The model-backed stack that IS installed and run (faster-whisper, sherpa-onnx, ...) is
+# pinned in requirements/models.txt (2026-09-25; docs/pipeline.md section 11).
+#
+# Other optional adapters -- NOT installed, never run against a model here (see
+# docs/pipeline.md section 8).  Their own logic is tested against stand-in
+# modules (tests/test_pipeline_adapters.py).  The API each adapter targets,
+# to be turned into real pins (">=tested,<next-major") by the stage that
+# installs them and runs them on a real model:
+#   faster-whisper      installed: 1.2.1, see requirements/models.txt
+#   pyannote.audio      3.x (returns an Annotation; use_auth_token=) AND 4.x
+#                       (returns .speaker_diarization / .exclusive_speaker_diarization; token=)
+#                       + torch.  Both default pipelines are gated on Hugging Face.
+#   whisperx            >= 3.3 (whisperx.diarize.DiarizationPipeline) + torch
+#   speechbrain         >= 1.0 (speechbrain.inference.speaker.EncoderClassifier; < 1.0's
+#                       speechbrain.pretrained is also tried) + torch -- the
+#                       "embedding-cluster" diarizer's default, ungated model
+#                       speechbrain/spkrec-ecapa-voxceleb (check its licence first)

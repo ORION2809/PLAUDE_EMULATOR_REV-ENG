@@ -13,15 +13,19 @@ Evidence classes used in this package follow docs/protocol-ledger.md
   HARNESS_POLICY   a choice this harness makes; NOT a claim about the device
   UNKNOWN          not recoverable from the available evidence
 
-Exactly one device fact is encoded in this package, and only as the default
-target sample rate of the audio loader:
+Device facts encoded in this package (three, all about the codec):
 
   * The recorder's audio is 16 000 Hz Opus in 20 ms / 320-sample frames.
     BYTECODE_PROVEN: ``OggUtils.b = 16000`` and ``OggUtils.c = 320``
     (build/evidence/javap/ALL.txt:11496-11498; ``sipush 16000`` /
     ``sipush 320`` in ``OggUtils.a()`` at ALL.txt:11548-11550), corroborated
     by docs/protocol-ledger.md section 8 ("Codec parameters") and mirrored in
-    emulator/plaudsim/audio.py:22-25.
+    emulator/plaudsim/audio.py:21-22.  This module uses the rate only, as the
+    audio loader's default target rate; the frame size is exported as a
+    constant and not otherwise used.
+  * Opus at 32 kbps CBR, exactly 80 bytes per 20 ms frame per channel
+    (SOURCE-DERIVED, docs/protocol-ledger.md:1171-1180).  Used only by
+    ``pipeline.synthetic`` to shape its synthetic device/recording.ogg.
 
 Everything else here -- the hypothesis schema, the registry, the mono
 downmix, the polyphase resampler, the word-to-speaker assignment rule of
@@ -73,7 +77,11 @@ class PipelineUnavailable(PipelineError):
 
 
 class AudioFormatError(PipelineError):
-    """The audio file could not be decoded into PCM."""
+    """The audio file could not be decoded into PCM, or decoded damaged."""
+
+
+class ParamError(PipelineError, ValueError):
+    """A ``--param`` key the pipeline does not accept, or a bad value."""
 
 
 # --- configuration -----------------------------------------------------------
@@ -110,7 +118,14 @@ class PipelineConfig:
 
 @dataclass(frozen=True)
 class LoadedAudio:
-    """Mono float32 PCM in [-1, 1] plus provenance of how it got that way."""
+    """Mono float32 PCM clipped to [-1, 1] plus provenance of how it got that way.
+
+    ``gaps`` lists ``(start_s, end_s)`` spans where the container's timestamps
+    jumped forward (lost or corrupted packets) and zeros were inserted so that
+    later audio keeps its true time (PyAV path only).  ``warnings`` records
+    anything else suspicious (e.g. decoded length != container duration).
+    Both are empty for an intact file.  HARNESS_POLICY.
+    """
 
     pcm: np.ndarray
     sample_rate: int
@@ -118,13 +133,30 @@ class LoadedAudio:
     container: str  # "wav" (soundfile) | "pyav" (Ogg/Opus and anything else)
     source_sample_rate: int  # the decoder's output rate (Opus decodes at 48 kHz)
     source_channels: int
+    gaps: tuple[tuple[float, float], ...] = ()
+    container_duration_s: float | None = None
+    warnings: tuple[str, ...] = ()
 
     @property
     def duration_s(self) -> float:
         return float(len(self.pcm)) / float(self.sample_rate)
 
+    @property
+    def damaged(self) -> bool:
+        return bool(self.gaps or self.warnings)
+
 
 _SOUNDFILE_SUFFIXES = {".wav", ".flac", ".aiff", ".aif"}
+
+#: HARNESS_POLICY: a forward jump in frame timestamps larger than this is a gap.
+PTS_GAP_TOLERANCE_S = 0.001
+#: HARNESS_POLICY: decoded length may differ from the container's declared
+#: duration by this much (one 20 ms Opus frame) before it is recorded.
+CONTAINER_DURATION_TOLERANCE_S = 0.020
+#: HARNESS_POLICY: decoded audio may differ from meeting.json ``duration_s``
+#: by this much before ``audio_check="strict"`` refuses it.
+DEFAULT_DURATION_TOLERANCE_S = 0.05
+GAP_POLICIES = ("zero_fill", "error")
 
 
 def _to_mono(x: np.ndarray) -> np.ndarray:
@@ -162,56 +194,118 @@ def _load_with_soundfile(path: Path) -> tuple[np.ndarray, int, int]:
     return data, int(rate), int(data.shape[1])
 
 
-def _load_with_pyav(path: Path) -> tuple[np.ndarray, int, int]:
+@dataclass
+class _PyavResult:
+    data: np.ndarray
+    rate: int
+    channels: int
+    gaps: list[tuple[float, float]]
+    container_duration_s: float | None
+    warnings: list[str]
+
+
+def _load_with_pyav(path: Path, on_gap: str = "zero_fill") -> _PyavResult:
     """Decode any container PyAV understands (Ogg/Opus is the one we need).
 
     Frames are converted to packed float32 at the decoder's own rate and
     layout; the mono downmix and resampling happen in numpy/scipy afterwards
     so the wav and Ogg paths share exactly one resampler.
+
+    Frame timestamps are checked (HARNESS_POLICY): libopus/PyAV decode past a
+    damaged Ogg page without an error and simply skip the lost packets, so a
+    naive concatenation would shift every later sample early.  A forward
+    jump larger than PTS_GAP_TOLERANCE_S is either zero-filled
+    (``on_gap="zero_fill"``, recorded in the result) or refused
+    (``on_gap="error"``).  Errors raised while decoding become
+    AudioFormatError, like errors raised while opening.
     """
     import av
 
+    if on_gap not in GAP_POLICIES:
+        raise ValueError(f"on_gap must be one of {GAP_POLICIES}, got {on_gap!r}")
     try:
         container = av.open(str(path))
     except Exception as exc:  # av.error.* hierarchy varies across versions
         raise AudioFormatError(f"{path}: PyAV could not open: {exc}") from exc
+    gaps: list[tuple[float, float]] = []
+    warnings: list[str] = []
+    chunks: list[np.ndarray] = []
+    rate = 0
+    container_duration_s: float | None = None
     try:
         if not container.streams.audio:
             raise AudioFormatError(f"{path}: no audio stream")
         stream = container.streams.audio[0]
         channels = int(stream.codec_context.channels or 1)
+        if stream.duration is not None and stream.time_base is not None:
+            container_duration_s = float(stream.duration * stream.time_base)
         layout = "mono" if channels == 1 else ("stereo" if channels == 2 else None)
         resampler_kwargs: dict[str, Any] = {"format": "flt"}
         if layout is not None:
             resampler_kwargs["layout"] = layout
         resampler = av.AudioResampler(**resampler_kwargs)
-        chunks: list[np.ndarray] = []
-        rate = 0
-        for frame in container.decode(stream):
-            for out in resampler.resample(frame):
+
+        def emit(frames: Any) -> None:
+            nonlocal rate
+            for out in frames:
                 rate = int(out.sample_rate)
                 arr = out.to_ndarray()  # packed: shape (1, n*channels)
                 chunks.append(arr.reshape(-1, channels) if channels > 1 else arr.reshape(-1, 1))
-        for out in resampler.resample(None):
-            arr = out.to_ndarray()
-            chunks.append(arr.reshape(-1, channels) if channels > 1 else arr.reshape(-1, 1))
+
+        expected: float | None = None  # where the next frame should start (s)
+        for frame in container.decode(stream):
+            t0 = float(frame.pts * frame.time_base) if frame.pts is not None and frame.time_base else None
+            if t0 is not None and expected is not None and t0 - expected > PTS_GAP_TOLERANCE_S:
+                gap = (round(expected, 6), round(t0, 6))
+                if on_gap == "error":
+                    raise AudioFormatError(
+                        f"{path}: timestamps jump from {gap[0]:.3f} s to {gap[1]:.3f} s "
+                        "(lost or corrupted packets)"
+                    )
+                gaps.append(gap)
+                fill = int(round((t0 - expected) * int(frame.sample_rate)))
+                chunks.append(np.zeros((fill, channels), dtype=np.float32))
+            if t0 is not None:
+                expected = t0 + frame.samples / float(frame.sample_rate)
+            elif expected is not None:
+                expected += frame.samples / float(frame.sample_rate)
+            emit(resampler.resample(frame))
+        emit(resampler.resample(None))
+    except AudioFormatError:
+        raise
+    except Exception as exc:  # decode-time av.error.* (damaged packets, bad headers)
+        raise AudioFormatError(f"{path}: PyAV could not decode: {type(exc).__name__}: {exc}") from exc
     finally:
         container.close()
     if not chunks or rate == 0:
         raise AudioFormatError(f"{path}: decoded zero audio frames")
-    return np.concatenate(chunks, axis=0), rate, channels
+    data = np.concatenate(chunks, axis=0)
+    if container_duration_s is not None:
+        decoded = len(data) / float(rate)
+        if abs(decoded - container_duration_s) > CONTAINER_DURATION_TOLERANCE_S:
+            warnings.append(
+                f"decoded {decoded:.3f} s but the container declares {container_duration_s:.3f} s"
+            )
+    return _PyavResult(data, rate, channels, gaps, container_duration_s, warnings)
 
 
-def load_audio(path: str | Path, target_sr: int = DEVICE_SAMPLE_RATE_HZ) -> LoadedAudio:
+def load_audio(
+    path: str | Path, target_sr: int = DEVICE_SAMPLE_RATE_HZ, *, on_gap: str = "zero_fill"
+) -> LoadedAudio:
     """Load wav (soundfile) or Ogg/Opus and friends (PyAV) as mono float32.
 
     HARNESS_POLICY: routing is by suffix -- soundfile for .wav/.flac/.aiff,
     PyAV for everything else.  A wav that soundfile rejects is NOT retried
-    with PyAV; a clear error is preferred to a silent format guess.
+    with PyAV; a clear error is preferred to a silent format guess.  Every
+    path ends clipped to [-1, 1] (a float wav can exceed full scale).
+    ``on_gap`` is the PyAV timestamp-gap policy (see ``_load_with_pyav``).
     """
     p = Path(path)
     if not p.is_file():
         raise FileNotFoundError(p)
+    gaps: list[tuple[float, float]] = []
+    warnings: list[str] = []
+    container_duration_s: float | None = None
     if p.suffix.lower() in _SOUNDFILE_SUFFIXES:
         try:
             data, rate, channels = _load_with_soundfile(p)
@@ -219,10 +313,15 @@ def load_audio(path: str | Path, target_sr: int = DEVICE_SAMPLE_RATE_HZ) -> Load
             raise AudioFormatError(f"{p}: soundfile could not read: {exc}") from exc
         container = "wav"
     else:
-        data, rate, channels = _load_with_pyav(p)
+        r = _load_with_pyav(p, on_gap=on_gap)
+        data, rate, channels = r.data, r.rate, r.channels
+        gaps, warnings, container_duration_s = r.gaps, r.warnings, r.container_duration_s
         container = "pyav"
     mono = _to_mono(data)
     pcm = resample(mono, rate, int(target_sr))
+    # Every buffer here was freshly decoded by us, so clip in place (no second
+    # full-length copy); resample() only clips on its resampling branch.
+    pcm = np.clip(pcm, -1.0, 1.0, out=pcm) if pcm.flags.writeable else np.clip(pcm, -1.0, 1.0)
     return LoadedAudio(
         pcm=pcm,
         sample_rate=int(target_sr),
@@ -230,6 +329,9 @@ def load_audio(path: str | Path, target_sr: int = DEVICE_SAMPLE_RATE_HZ) -> Load
         container=container,
         source_sample_rate=rate,
         source_channels=channels,
+        gaps=tuple(gaps),
+        container_duration_s=container_duration_s,
+        warnings=tuple(warnings),
     )
 
 
@@ -400,21 +502,107 @@ class Pipeline(abc.ABC):
     def run(self, audio_path: str | Path, meeting_dir: str | Path | None = None) -> Hypothesis: ...
 
     # helpers shared by implementations
-    def resolve_meeting_id(self, audio_path: str | Path, meeting_dir: str | Path | None) -> str:
-        """HARNESS_POLICY: the meeting.json id when one is discoverable, else
-        the audio file stem."""
+    def find_meeting(self, audio_path: str | Path, meeting_dir: str | Path | None) -> dict[str, Any] | None:
+        """meeting.json for this audio (validated), or None when there is none.
+
+        A meeting.json that exists but does not validate raises
+        MeetingFormatError: silently falling back to the audio stem would let
+        the evals layer join the hypothesis to the wrong reference.
+        """
         from .meeting import find_meeting_json, read_meeting
 
         mj = find_meeting_json(audio_path, meeting_dir)
-        if mj is not None:
-            try:
-                return str(read_meeting(mj)["meeting_id"])
-            except Exception:
-                pass
-        return Path(audio_path).stem
+        return read_meeting(mj) if mj is not None else None
+
+    def resolve_meeting_id(self, audio_path: str | Path, meeting_dir: str | Path | None) -> str:
+        """HARNESS_POLICY: the meeting.json id when one is discoverable, else
+        the audio file stem.  A malformed meeting.json is an error."""
+        m = self.find_meeting(audio_path, meeting_dir)
+        return str(m["meeting_id"]) if m is not None else Path(audio_path).stem
 
     def load(self, audio_path: str | Path) -> LoadedAudio:
         return load_audio(audio_path, self.config.sample_rate)
+
+    def check_audio(self, audio: LoadedAudio, meeting: dict[str, Any] | None) -> list[str]:
+        """Apply the ``audio_check`` policy; return the problems found.
+
+        ``strict`` (default) raises AudioFormatError on timestamp gaps, a
+        decoded length that disagrees with the container, or a decoded
+        length that differs from meeting.json ``duration_s`` by more than
+        ``duration_tolerance_s``.  ``warn`` returns them (the pipeline records
+        them in ``hyp.extra["audio"]["problems"]``); ``off`` skips the check.
+        """
+        return check_audio(
+            audio,
+            meeting,
+            policy=str(self.config.param("audio_check", "strict")),
+            tolerance_s=float(self.config.param("duration_tolerance_s", DEFAULT_DURATION_TOLERANCE_S)),
+        )
+
+
+#: HARNESS_POLICY: what a pipeline does with damaged or mis-sized audio.
+AUDIO_CHECKS = ("strict", "warn", "off")
+
+#: Parameter keys every audio-loading pipeline accepts (HARNESS_POLICY).
+COMMON_AUDIO_PARAMS = frozenset({"num_speakers", "audio_check", "duration_tolerance_s"})
+
+
+def check_audio(
+    audio: LoadedAudio,
+    meeting: dict[str, Any] | None,
+    *,
+    policy: str = "strict",
+    tolerance_s: float = DEFAULT_DURATION_TOLERANCE_S,
+) -> list[str]:
+    """See ``Pipeline.check_audio``."""
+    if policy not in AUDIO_CHECKS:
+        raise ParamError(f"audio_check must be one of {AUDIO_CHECKS}, got {policy!r}")
+    if policy == "off":
+        return []
+    problems = [f"timestamp gap {a:.3f}-{b:.3f} s zero-filled" for a, b in audio.gaps]
+    problems += list(audio.warnings)
+    if meeting is not None and "duration_s" in meeting:
+        want = float(meeting["duration_s"])
+        if abs(audio.duration_s - want) > tolerance_s:
+            problems.append(
+                f"decoded {audio.duration_s:.3f} s but meeting.json says duration_s={want:.3f} "
+                f"(tolerance {tolerance_s:.3f} s)"
+            )
+    if problems and policy == "strict":
+        raise AudioFormatError(
+            f"{audio.path}: damaged or mis-sized audio: " + "; ".join(problems)
+            + " (pass --param audio_check=warn to score it anyway)"
+        )
+    return problems
+
+
+def num_speakers_param(value: Any) -> int | None:
+    """Validate the ``num_speakers`` hint: None or a positive int (not a bool)."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, np.integer)) or int(value) < 1:
+        raise ParamError(f"num_speakers must be a positive integer, got {value!r}")
+    return int(value)
+
+
+def validate_params(name: str, accepted: frozenset[str] | None, params: dict[str, Any]) -> None:
+    """Reject unknown keys (when the pipeline declares its keys) and bad
+    values of the common keys.  Raises ParamError."""
+    if accepted is not None:
+        unknown = sorted(set(params) - set(accepted))
+        if unknown:
+            raise ParamError(
+                f"pipeline {name!r} does not accept parameter(s) {', '.join(unknown)}; "
+                f"accepted: {', '.join(sorted(accepted)) or '(none)'}"
+            )
+    if "num_speakers" in params:
+        num_speakers_param(params["num_speakers"])
+    if "audio_check" in params and params["audio_check"] not in AUDIO_CHECKS:
+        raise ParamError(f"audio_check must be one of {AUDIO_CHECKS}, got {params['audio_check']!r}")
+    if "duration_tolerance_s" in params:
+        v = params["duration_tolerance_s"]
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(float(v)) or float(v) < 0:
+            raise ParamError(f"duration_tolerance_s must be a finite number >= 0, got {v!r}")
 
 
 # --- composition: transcriber + diarizer -> hypothesis -----------------------
@@ -424,65 +612,150 @@ def _overlap(a0: float, a1: float, b0: float, b1: float) -> float:
     return max(0.0, min(a1, b1) - max(a0, b0))
 
 
-def assign_speakers(
-    asr_segments: list[Segment], turns: list[Turn], fallback: str = FALLBACK_SPEAKER
-) -> list[Segment]:
-    """HARNESS_POLICY word-to-speaker rule (the same idea whisperx documents):
+#: HARNESS_POLICY: the shortest hypothesis segment a word run may produce.
+#: The evals contract needs ``end > start`` and ASR engines emit zero-length
+#: words (faster-whisper: 4 of 198 words on a 60 s AMI clip), so a run whose
+#: words span no time is widened to this length.
+MIN_SEGMENT_S = 0.01
 
-    each word takes the speaker whose turn overlaps it most; a word that
-    overlaps no turn takes the nearest turn's speaker; with no turns at all
-    every word takes ``fallback``.  Consecutive same-speaker words inside one
-    ASR segment become one hypothesis segment.
+
+#: HARNESS_POLICY: overlap totals closer than this (seconds) are a tie.
+TIE_TOLERANCE_S = 1e-9
+
+#: The rule ``SpeakerIndex`` implements, recorded in ``hyp.extra["assignment"]``
+#: so a score can be tied to the rule that produced it.  Its tie-break was
+#: chosen without evidence (docs/pipeline.md §11.5 shows it can move cpWER).
+ASSIGNMENT_RULE = (
+    "max total overlap per speaker; ties to the speaker of the earliest-starting overlapping turn; "
+    "no overlap -> nearest turn by gap (HARNESS_POLICY, 2026-09-25)"
+)
+
+
+class SpeakerIndex:
+    """Diarization turns prepared for word lookup (HARNESS_POLICY rule).
+
+    ``speaker_for(start, end)`` returns ``(speaker, how)``:
+
+    * ``"overlap"``: the speaker whose turns overlap ``[start, end]`` for the
+      largest TOTAL time (summed over all of that speaker's turns, so two
+      turns of one speaker beat one longer-overlapping turn of another only
+      when their sum is larger).  A tie (typically a word lying wholly inside
+      two overlapping turns) goes to the tied speaker whose overlapping turn
+      started earliest -- the one holding the floor.  This tie-break is a
+      choice made WITHOUT evidence: on one 60 s AMI clip the alternative
+      "tie to the speaker that appeared first in the meeting" gave a lower
+      cpWER with num_speakers=4 and a slightly higher one without a hint
+      (docs/pipeline.md §11.5); choosing between them needs a dev split.
+    * ``"nearest"``: nothing overlaps with positive length (a word outside
+      every turn, or a zero-length word): the speaker of the turn at the
+      smallest gap ``max(0, t0 - end, start - t1)``; a zero-length word
+      inside a turn has gap 0.  Ties go to the earliest turn.
+    * ``"fallback"``: there are no turns.
+
+    Vectorised over turns with numpy so an hour of words against an hour of
+    turns stays well under a second.
     """
+
+    def __init__(self, turns: Iterable[Turn], fallback: str = FALLBACK_SPEAKER) -> None:
+        ts = sorted(((float(t0), float(t1), str(spk)) for t0, t1, spk in turns), key=lambda t: (t[0], t[1]))
+        self.fallback = fallback
+        self.speakers: list[str] = []
+        index: dict[str, int] = {}
+        for _, _, spk in ts:
+            if spk not in index:
+                index[spk] = len(self.speakers)
+                self.speakers.append(spk)
+        self.t0 = np.array([t[0] for t in ts], dtype=np.float64)
+        self.t1 = np.array([t[1] for t in ts], dtype=np.float64)
+        self.spk = np.array([index[t[2]] for t in ts], dtype=np.int64)
+
+    def speaker_for(self, start: float, end: float) -> tuple[str, str]:
+        if self.t0.size == 0:
+            return self.fallback, "fallback"
+        ov = np.minimum(end, self.t1) - np.maximum(start, self.t0)
+        pos = ov > 0.0
+        if pos.any():
+            totals = np.bincount(self.spk[pos], weights=ov[pos], minlength=len(self.speakers))
+            tied = totals >= totals.max() - TIE_TOLERANCE_S
+            # turns are sorted by start: the first overlapping turn of a tied speaker
+            first = int(np.flatnonzero(pos & tied[self.spk])[0])
+            return self.speakers[int(self.spk[first])], "overlap"
+        gap = np.maximum(0.0, np.maximum(self.t0 - end, start - self.t1))
+        return self.speakers[int(self.spk[int(np.argmin(gap))])], "nearest"
+
+
+def _split_word(w: Word) -> list[Word]:
+    """A word whose text normalises to k tokens becomes k words sharing its
+    interval equally (the evals layer's rule); pure punctuation vanishes."""
+    toks = normalize_text(str(w["w"])).split()
+    start, end = float(w["start"]), float(w["end"])
+    end = max(start, end)
+    if len(toks) <= 1:
+        return [{"w": toks[0], "start": start, "end": end}] if toks else []
+    step = (end - start) / len(toks)
+    return [
+        {"w": t, "start": start + i * step, "end": start + (i + 1) * step if i + 1 < len(toks) else end}
+        for i, t in enumerate(toks)
+    ]
+
+
+def _run_segment(spk: str, words: list[Word]) -> Segment:
+    ws = sorted(words, key=lambda w: (w["start"], w["end"]))
+    start = min(w["start"] for w in ws)
+    end = max(max(w["end"] for w in ws), start + MIN_SEGMENT_S)
+    return make_segment(spk, start, end, " ".join(w["w"] for w in ws), ws)
+
+
+def assign_speakers(
+    asr_segments: list[Segment],
+    turns: list[Turn],
+    fallback: str = FALLBACK_SPEAKER,
+    stats: dict[str, Any] | None = None,
+) -> list[Segment]:
+    """HARNESS_POLICY word-to-speaker rule (the idea whisperx documents):
+
+    each ASR word takes the diarization speaker with the maximal total
+    overlap (``SpeakerIndex``); a word that overlaps no turn takes the nearest
+    turn's speaker; with no turns at all every word takes ``fallback``.
+    Consecutive same-speaker words inside one ASR segment become one
+    hypothesis segment spanning exactly its words (never shorter than
+    ``MIN_SEGMENT_S``), with its words sorted by start.  An ASR segment with
+    no word timings is assigned as a whole by the same rule.  ``stats``, when
+    given, receives the counts ``{"words", "overlap", "nearest", "fallback",
+    "segments_without_words"}``.
+    """
+    index = SpeakerIndex(turns, fallback)
+    counts = {"words": 0, "overlap": 0, "nearest": 0, "fallback": 0, "segments_without_words": 0}
     out: list[Segment] = []
     for seg in asr_segments:
-        words = seg.get("words") or []
+        words = [x for w in (seg.get("words") or []) for x in _split_word(w)]
         if not words:
-            # No word timing: assign the whole segment by overlap.
-            spk = _best_speaker(float(seg["start"]), float(seg["end"]), turns, fallback)
-            out.append(make_segment(spk, seg["start"], seg["end"], normalize_text(seg.get("text", ""))))
+            text = normalize_text(seg.get("text", ""))
+            if not text:
+                continue
+            spk, _how = index.speaker_for(float(seg["start"]), float(seg["end"]))
+            counts["segments_without_words"] += 1
+            start = float(seg["start"])
+            out.append(make_segment(spk, start, max(float(seg["end"]), start + MIN_SEGMENT_S), text))
             continue
         runs: list[tuple[str, list[Word]]] = []
         for w in words:
-            spk = _best_speaker(float(w["start"]), float(w["end"]), turns, fallback)
+            spk, how = index.speaker_for(w["start"], w["end"])
+            counts["words"] += 1
+            counts[how] += 1
             if runs and runs[-1][0] == spk:
                 runs[-1][1].append(w)
             else:
                 runs.append((spk, [w]))
-        for spk, ws in runs:
-            toks = [normalize_text(str(w["w"])) for w in ws]
-            ws_norm = [
-                {"w": t, "start": float(w["start"]), "end": float(w["end"])}
-                for t, w in zip(toks, ws)
-                if t
-            ]
-            if not ws_norm:
-                continue
-            out.append(
-                make_segment(
-                    spk,
-                    ws_norm[0]["start"],
-                    ws_norm[-1]["end"],
-                    " ".join(w["w"] for w in ws_norm),
-                    ws_norm,
-                )
-            )
+        out.extend(_run_segment(spk, ws) for spk, ws in runs)
+    if stats is not None:
+        stats.update(counts)
     return sort_segments(out)
 
 
 def _best_speaker(start: float, end: float, turns: list[Turn], fallback: str) -> str:
-    if not turns:
-        return fallback
-    best, best_ov = None, 0.0
-    for t0, t1, spk in turns:
-        ov = _overlap(start, end, t0, t1)
-        if ov > best_ov:
-            best, best_ov = spk, ov
-    if best is not None:
-        return best
-    mid = 0.5 * (start + end)
-    t0, t1, spk = min(turns, key=lambda t: min(abs(t[0] - mid), abs(t[1] - mid)))
-    return spk
+    """One-off form of ``SpeakerIndex.speaker_for`` (kept for callers)."""
+    return SpeakerIndex(turns, fallback).speaker_for(float(start), float(end))[0]
 
 
 class ComposedPipeline(Pipeline):
@@ -509,11 +782,13 @@ class ComposedPipeline(Pipeline):
         self.diarizer = diarizer
 
     def run(self, audio_path: str | Path, meeting_dir: str | Path | None = None) -> Hypothesis:
+        num = num_speakers_param(self.config.param("num_speakers"))
         audio = self.load(audio_path)
-        meeting_id = self.resolve_meeting_id(audio_path, meeting_dir)
+        meeting = self.find_meeting(audio_path, meeting_dir)
+        meeting_id = str(meeting["meeting_id"]) if meeting is not None else Path(audio_path).stem
+        problems = self.check_audio(audio, meeting)
         turns: list[Turn] = []
         if self.diarizer is not None:
-            num = self.config.param("num_speakers")
             turns = list(self.diarizer.diarize(audio.pcm, audio.sample_rate, num_speakers=num))
         if self.transcriber is None:
             segments = sort_segments([make_segment(spk, t0, t1, "") for t0, t1, spk in turns])
@@ -525,14 +800,7 @@ class ComposedPipeline(Pipeline):
             system=self.config.name or self.name,
             segments=segments,
             extra={
-                "audio": {
-                    "path": str(audio.path),
-                    "container": audio.container,
-                    "source_sample_rate": audio.source_sample_rate,
-                    "source_channels": audio.source_channels,
-                    "sample_rate": audio.sample_rate,
-                    "duration_s": audio.duration_s,
-                },
+                "audio": audio_provenance(audio, problems),
                 "components": {
                     "transcriber": getattr(self.transcriber, "name", None),
                     "diarizer": getattr(self.diarizer, "name", None),
@@ -540,6 +808,25 @@ class ComposedPipeline(Pipeline):
             },
         )
         return hyp.validate()
+
+
+def audio_provenance(audio: LoadedAudio, problems: list[str] | None = None) -> dict[str, Any]:
+    """The ``hyp.extra["audio"]`` block (HARNESS_POLICY field names)."""
+    d: dict[str, Any] = {
+        "path": str(audio.path),
+        "container": audio.container,
+        "source_sample_rate": audio.source_sample_rate,
+        "source_channels": audio.source_channels,
+        "sample_rate": audio.sample_rate,
+        "duration_s": audio.duration_s,
+    }
+    if audio.container_duration_s is not None:
+        d["container_duration_s"] = audio.container_duration_s
+    if audio.gaps:
+        d["gaps"] = [list(g) for g in audio.gaps]
+    if problems:
+        d["problems"] = list(problems)
+    return d
 
 
 # --- registry ----------------------------------------------------------------
@@ -554,6 +841,7 @@ class RegistryEntry:
     description: str
     is_system_under_test: bool
     availability: Callable[[], str | None]  # None == available, else the reason
+    params: frozenset[str] | None = None  # accepted ``--param`` keys; None = undeclared
 
     def available(self) -> bool:
         return self.availability() is None
@@ -575,14 +863,21 @@ def register(
     description: str = "",
     is_system_under_test: bool = True,
     availability: Callable[[], str | None] = _always_available,
+    params: Iterable[str] | None = None,
 ) -> Callable[[PipelineFactory], PipelineFactory]:
-    """Register a factory ``(config | None) -> Pipeline`` under ``name``."""
+    """Register a factory ``(config | None) -> Pipeline`` under ``name``.
+
+    ``params`` is the set of ``config.params`` keys the pipeline reads;
+    ``get_pipeline`` rejects any other key (a typo'd ``--param`` must not be
+    silently ignored).  ``None`` leaves the pipeline's keys unchecked.
+    """
 
     def deco(factory: PipelineFactory) -> PipelineFactory:
         if name in _REGISTRY:
             raise PipelineError(f"pipeline {name!r} already registered")
         _REGISTRY[name] = RegistryEntry(
-            name, factory, description, is_system_under_test, availability
+            name, factory, description, is_system_under_test, availability,
+            frozenset(params) if params is not None else None,
         )
         return factory
 
@@ -605,6 +900,7 @@ def describe_registry() -> list[dict[str, Any]]:
                 "reason": reason,
                 "system_under_test": e.is_system_under_test,
                 "description": e.description,
+                "params": sorted(e.params) if e.params is not None else None,
             }
         )
     return rows
@@ -621,7 +917,13 @@ def get_pipeline(name: str, config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name=name)
     if not cfg.name:
         cfg.name = name
-    return e.factory(cfg)
+    validate_params(name, e.params, cfg.params)
+    try:
+        return e.factory(cfg)
+    except PipelineError:
+        raise
+    except (ValueError, TypeError) as exc:  # a param value the factory could not coerce
+        raise ParamError(f"pipeline {name!r}: bad parameter value: {exc}") from exc
 
 
 _BUILTINS_LOADED = False
@@ -633,4 +935,4 @@ def _ensure_builtin_registrations() -> None:
     if _BUILTINS_LOADED:
         return
     _BUILTINS_LOADED = True
-    from . import adapters, energy_vad, oracle  # noqa: F401  (side effect: registration)
+    from . import adapters, energy_vad, oracle, whisper_sherpa  # noqa: F401  (side effect: registration)

@@ -37,7 +37,17 @@ from plaudsim.handshake import (  # noqa: E402
 )
 from plaudsim.profile import PlaudLifecycle, PlaudPeripheral, PlaudSyncTimeState  # noqa: E402
 
-from test_mockcloud_helpers import APP, BASIC, PARTNER, bearer, client, make_app, partner_token, user_token  # noqa: E402
+from test_mockcloud_helpers import (  # noqa: E402,F401 - no_outbound_network is an autouse fixture
+    APP,
+    BASIC,
+    PARTNER,
+    bearer,
+    client,
+    make_app,
+    no_outbound_network,
+    partner_token,
+    user_token,
+)
 from mockcloud import MOCK_JWT_SECRET  # noqa: E402
 from mockcloud import jwt as mjwt  # noqa: E402
 

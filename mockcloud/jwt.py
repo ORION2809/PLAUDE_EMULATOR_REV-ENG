@@ -20,6 +20,7 @@ import base64
 import hashlib
 import hmac
 import json
+import re
 from typing import Any
 
 
@@ -27,13 +28,32 @@ class JwtError(ValueError):
     """Malformed token, bad signature, or expired."""
 
 
+#: RFC 7515 section 2 / RFC 4648 section 5: base64url, no padding. Anything else
+#: in a segment (including '=' padding, '+', '/', whitespace or a non-ASCII
+#: character) makes the token malformed.
+_B64URL_SEGMENT = re.compile(r"[A-Za-z0-9_-]*")
+
+
 def _b64url(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
 
 
 def _b64url_decode(text: str) -> bytes:
-    pad = "=" * (-len(text) % 4)
-    return base64.urlsafe_b64decode(text + pad)
+    """Strict, canonical base64url decode (HARNESS_POLICY strictness).
+
+    Rejects characters outside the base64url alphabet, padding, impossible
+    lengths (len % 4 == 1) and non-canonical encodings whose unused low bits
+    are set, so exactly one segment string maps to each byte string and a
+    signature segment cannot be altered without failing verification.
+    """
+    if not isinstance(text, str) or not _B64URL_SEGMENT.fullmatch(text):
+        raise JwtError("segment is not base64url without padding")
+    if len(text) % 4 == 1:
+        raise JwtError("segment has an impossible base64url length")
+    data = base64.b64decode(text + "=" * (-len(text) % 4), altchars=b"-_", validate=True)
+    if _b64url(data) != text:
+        raise JwtError("segment is not canonical base64url")
+    return data
 
 
 def encode(claims: dict[str, Any], secret: str) -> str:
@@ -45,49 +65,64 @@ def encode(claims: dict[str, Any], secret: str) -> str:
     return f"{header}.{payload}.{_b64url(sig)}"
 
 
-def decode(token: str, secret: str, now: float | None = None) -> dict[str, Any]:
-    """Verify the signature (and `exp` when `now` is given) and return the claims."""
+def _split(token: Any) -> list[str]:
+    if not isinstance(token, str):
+        raise JwtError("token must be a string")
     parts = token.strip().split(".")
     if len(parts) != 3:
         raise JwtError("token must have three segments")
-    header_b64, payload_b64, sig_b64 = parts
+    for part in parts:
+        if not _B64URL_SEGMENT.fullmatch(part):
+            raise JwtError("token segments must be base64url without padding")
+    return parts
+
+
+def _json_object(segment: str, what: str) -> dict[str, Any]:
     try:
-        header = json.loads(_b64url_decode(header_b64))
-    except Exception as exc:  # noqa: BLE001 - any decode failure is a bad token
-        raise JwtError(f"bad header: {exc}") from exc
-    if header.get("alg") != "HS256":
-        raise JwtError(f"unsupported alg {header.get('alg')!r}")
-    expected = hmac.new(
-        secret.encode("utf-8"), f"{header_b64}.{payload_b64}".encode("ascii"), hashlib.sha256
-    ).digest()
+        value = json.loads(_b64url_decode(segment))
+    except JwtError:
+        raise
+    except (ValueError, TypeError, UnicodeError, RecursionError) as exc:
+        raise JwtError(f"bad {what}: {type(exc).__name__}") from exc
+    if not isinstance(value, dict):
+        raise JwtError(f"{what} is not a JSON object")
+    return value
+
+
+def decode(token: str, secret: str, now: float | None = None) -> dict[str, Any]:
+    """Verify the signature (and `exp` when `now` is given) and return the claims.
+
+    Every malformed input raises JwtError -- never another exception type -- so
+    callers can map it to a 401 (review finding MC-2: a non-ASCII byte or a
+    list-shaped header used to escape as a 500).
+    """
     try:
+        header_b64, payload_b64, sig_b64 = _split(token)
+        header = _json_object(header_b64, "header")
+        if header.get("alg") != "HS256":
+            raise JwtError(f"unsupported alg {header.get('alg')!r}")
+        expected = hmac.new(
+            secret.encode("utf-8"), f"{header_b64}.{payload_b64}".encode("ascii"), hashlib.sha256
+        ).digest()
         actual = _b64url_decode(sig_b64)
-    except Exception as exc:  # noqa: BLE001
-        raise JwtError(f"bad signature encoding: {exc}") from exc
-    if not hmac.compare_digest(expected, actual):
-        raise JwtError("signature mismatch")
-    try:
-        claims = json.loads(_b64url_decode(payload_b64))
-    except Exception as exc:  # noqa: BLE001
-        raise JwtError(f"bad payload: {exc}") from exc
-    if not isinstance(claims, dict):
-        raise JwtError("payload is not an object")
-    if now is not None:
-        exp = claims.get("exp")
-        if not isinstance(exp, (int, float)):
-            raise JwtError("missing exp")
-        if now >= exp:
-            raise JwtError("token expired")
-    return claims
+        if not hmac.compare_digest(expected, actual):
+            raise JwtError("signature mismatch")
+        claims = _json_object(payload_b64, "payload")
+        if now is not None:
+            exp = claims.get("exp")
+            if isinstance(exp, bool) or not isinstance(exp, (int, float)):
+                raise JwtError("missing exp")
+            if not now < exp:  # also rejects a NaN exp
+                raise JwtError("token expired")
+        return claims
+    except JwtError:
+        raise
+    except (ValueError, TypeError, AttributeError, UnicodeError, OverflowError) as exc:
+        raise JwtError(f"malformed token: {type(exc).__name__}") from exc
 
 
 def peek_claims(token: str) -> dict[str, Any]:
     """Payload WITHOUT verification -- the template's JwtUtils does exactly this
     (reference/plaud-org/plaud-sdk-public/android/.../common/JwtUtils.kt:16-33)."""
-    parts = token.strip().split(".")
-    if len(parts) != 3:
-        raise JwtError("token must have three segments")
-    claims = json.loads(_b64url_decode(parts[1]))
-    if not isinstance(claims, dict):
-        raise JwtError("payload is not an object")
-    return claims
+    _, payload_b64, _ = _split(token)
+    return _json_object(payload_b64, "payload")

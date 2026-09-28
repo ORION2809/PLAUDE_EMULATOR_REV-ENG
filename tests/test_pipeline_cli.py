@@ -203,3 +203,162 @@ def test_parse_param_coercion():
 def test_main_in_process_matches_subprocess_exit_codes(tmp_path):
     assert main(["run", "--pipeline", "nope", "--audio", "x", "--out", "y"]) == 2
     assert main(["list"]) == 0
+
+
+# --- PIPE-04: meeting.json fields are not trusted as paths -------------------------------------------
+
+
+def _meeting_json_edit(d: Path, **over):
+    m = json.loads((d / "meeting.json").read_text())
+    for k, v in over.items():
+        if k == "mix_wav":
+            m["audio"]["mix_wav"] = v
+        else:
+            m[k] = v
+    (d / "meeting.json").write_text(json.dumps(m))
+
+
+def test_batch_refuses_a_meeting_id_that_escapes_out(tmp_path):
+    """Review finding PIPE-04 (1): meeting_id '../escaped' passed validation and
+    batch wrote <out>/../escaped/hyp.json."""
+    root = tmp_path / "root"
+    _, d = synthetic_meeting(root / "evil", meeting_id="evil")
+    _meeting_json_edit(d, meeting_id="../escaped")
+    out = tmp_path / "hyps"
+    assert main(["batch", "--pipeline", "oracle", "--root", str(root), "--out", str(out)]) == 1
+    assert not (tmp_path / "escaped").exists()
+    idx = json.loads((out / "batch.json").read_text())
+    assert idx["failed"] == 1 and "MeetingFormatError" in idx["meetings"][0]["error"]
+
+
+def test_batch_reports_a_duplicate_meeting_id_instead_of_overwriting(tmp_path):
+    """Review finding PIPE-04 (2): two dirs with meeting_id 'dup' both reported ok
+    and the second silently overwrote the first."""
+    root = tmp_path / "root"
+    synthetic_meeting(root / "a", meeting_id="dup")
+    synthetic_meeting(root / "b", meeting_id="dup", layout=[(0.5, 1.5, "spk0"), (2.0, 3.5, "spk1")])
+    out = tmp_path / "hyps"
+    assert main(["batch", "--pipeline", "oracle", "--root", str(root), "--out", str(out)]) == 1
+    idx = json.loads((out / "batch.json").read_text())
+    assert idx["ok"] == 1 and idx["failed"] == 1
+    first, second = idx["meetings"]
+    assert first["status"] == "ok" and second["status"] == "error" and "duplicate meeting_id" in second["error"]
+    # the surviving hypothesis is the first meeting's (4 segments), not the second's (2)
+    assert len(read_hypothesis(out / "dup" / "hyp.json").segments) == 4
+
+
+@pytest.mark.parametrize("bad", ["../elsewhere.wav", "ABSOLUTE"])
+def test_batch_refuses_meeting_json_audio_paths_outside_the_meeting_dir(tmp_path, bad):
+    """Review finding PIPE-04 (3): resolve_audio joined md / rel unchecked."""
+    root = tmp_path / "root"
+    _, d = synthetic_meeting(root / "m", meeting_id="m")
+    outside = tmp_path / "root" / "elsewhere.wav"
+    outside.write_bytes((d / "mix.wav").read_bytes())
+    _meeting_json_edit(d, mix_wav=str(outside) if bad == "ABSOLUTE" else bad)
+    out = tmp_path / "hyps"
+    assert main(["batch", "--pipeline", "energy-vad-cluster", "--root", str(root), "--out", str(out)]) == 1
+    row = json.loads((out / "batch.json").read_text())["meetings"][0]
+    assert row["status"] == "error" and "MeetingFormatError" in row["error"] and "audio" not in row
+
+
+def test_batch_literal_audio_key_is_the_operators_choice(tmp_path):
+    root = tmp_path / "root"
+    _, d = synthetic_meeting(root / "m", meeting_id="m")
+    (root / "shared.wav").write_bytes((d / "mix.wav").read_bytes())
+    out = tmp_path / "hyps"
+    assert main(["batch", "--pipeline", "energy-vad-cluster", "--root", str(root), "--out", str(out),
+                 "--audio-key", "../shared.wav"]) == 0
+
+
+# --- PIPE-06: import-stm with a different --meeting-id ----------------------------------------------
+
+
+def test_import_stm_meeting_id_renames_a_single_meeting_stm(tmp_path, meeting):
+    """Review finding PIPE-06: --meeting-id ami_ES2002a on an STM whose rows say
+    ES2002a imported an EMPTY meeting and exited 0."""
+    _, d = meeting
+    stm = tmp_path / "ref.stm"
+    stm.write_text("ES2002a 1 alice 0.50 2.00 one two three\nES2002a 1 bob 3.00 4.50 four five\n")
+    out = tmp_path / "corpus" / "ami_ES2002a"
+    rc = main(["import-stm", "--stm", str(stm), "--audio", str(d / "mix.wav"), "--out", str(out),
+               "--meeting-id", "ami_ES2002a"])
+    assert rc == 0
+    m = read_meeting(out)
+    assert m["meeting_id"] == "ami_ES2002a" and len(m["segments"]) == 2
+    assert m["generator"]["scenario"]["stm_file_id"] == "ES2002a"
+    assert (out / "ref.stm").read_text().startswith("ami_ES2002a 1 alice 0.500 2.000 one two three")
+
+
+def test_import_stm_meeting_id_matching_nothing_in_a_multi_meeting_stm_fails(tmp_path, meeting, capsys):
+    _, d = meeting
+    stm = tmp_path / "ref.stm"
+    stm.write_text("A 1 alice 0 1 x\nB 1 bob 0 1 y\n")
+    out = tmp_path / "corpus" / "C"
+    rc = main(["import-stm", "--stm", str(stm), "--audio", str(d / "mix.wav"), "--out", str(out), "--meeting-id", "C"])
+    assert rc == 1 and "matches no STM rows" in capsys.readouterr().err
+    assert not (out / "meeting.json").exists()
+
+
+def test_import_stm_drops_the_nist_label_field(tmp_path, meeting):
+    """Review finding PIPE-08 at the CLI: '<o,f0,female>' became a reference word."""
+    _, d = meeting
+    stm = tmp_path / "ref.stm"
+    stm.write_text("ES2002a 1 alice 0.50 2.00 <o,f0,female> one two three\nES2002a 1 inter_segment_gap 2.0 3.0\n")
+    out = tmp_path / "corpus" / "ES2002a"
+    assert main(["import-stm", "--stm", str(stm), "--audio", str(d / "mix.wav"), "--out", str(out)]) == 0
+    m = read_meeting(out)
+    assert [s["id"] for s in m["speakers"]] == ["alice"]
+    assert [w["w"] for w in m["segments"][0]["words"]] == ["one", "two", "three"]
+
+
+# --- PIPE-11: params and the exit-code contract -------------------------------------------------------
+
+
+@pytest.mark.parametrize("param", ["num_speaker=5", "distance_treshold=0.1"])
+def test_typod_param_is_a_usage_error(meeting, tmp_path, capsys, param):
+    """Review finding PIPE-11: typo'd --param keys were silently ignored (rc 0)."""
+    _, d = meeting
+    rc = main(["run", "--pipeline", "energy-vad-cluster", "--audio", str(d / "mix.wav"),
+               "--out", str(tmp_path / "h.json"), "--param", param])
+    assert rc == 2
+    assert "does not accept" in capsys.readouterr().err and not (tmp_path / "h.json").exists()
+
+
+def test_bad_param_value_is_a_usage_error_not_an_exception(meeting, tmp_path, capsys):
+    """Review finding PIPE-11: num_speakers=two raised TypeError out of main()."""
+    _, d = meeting
+    for argv_tail in (["--param", "num_speakers=two"], ["--param", "num_speakers=0"], ["--param", "hangover_ms=long"]):
+        rc = main(["run", "--pipeline", "energy-vad-cluster", "--audio", str(d / "mix.wav"),
+                   "--out", str(tmp_path / "h.json"), *argv_tail])
+        assert rc == 2, argv_tail
+    rc = main(["batch", "--pipeline", "perturbed-oracle", "--root", str(d), "--out", str(tmp_path / "b"),
+               "--param", "word_del_rate=lots"])
+    assert rc == 2
+
+
+def test_unexpected_exception_in_run_is_exit_1(meeting, tmp_path, monkeypatch, capsys):
+    from pipeline import cli
+
+    class Exploding:
+        is_system_under_test = True
+
+        def run(self, audio, meeting_dir):
+            raise ZeroDivisionError("boom")
+
+    monkeypatch.setattr(cli, "get_pipeline", lambda name, cfg: Exploding())
+    _, d = meeting
+    rc = main(["run", "--pipeline", "anything", "--audio", str(d / "mix.wav"), "--out", str(tmp_path / "h.json")])
+    assert rc == 1 and "ZeroDivisionError: boom" in capsys.readouterr().err
+
+
+def test_malformed_meeting_json_is_an_error_not_a_silent_stem_fallback(tmp_path, meeting, capsys):
+    """Review finding PIPE-11: resolve_meeting_id swallowed a malformed meeting.json
+    and fell back to the audio stem, so evals could mis-join."""
+    _, d = meeting
+    lone = tmp_path / "broken"
+    lone.mkdir()
+    (lone / "mix.wav").write_bytes((d / "mix.wav").read_bytes())
+    (lone / "meeting.json").write_text('{"schema": "plaud-harness/meeting/1", "meeting_id": "x"')
+    rc = main(["run", "--pipeline", "energy-vad-cluster", "--audio", str(lone / "mix.wav"),
+               "--out", str(tmp_path / "h.json")])
+    assert rc == 1 and "not JSON" in capsys.readouterr().err

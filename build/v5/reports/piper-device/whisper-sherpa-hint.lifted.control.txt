@@ -1,0 +1,8 @@
+meeteval cpWER 20-speaker guard lifted in-process (supplementary scoring, docs/v5-results.md)
+synth-piper-2spk-overlap-s0102 [whisper-sherpa]  cpWER 0.7818  tcpWER 0.7906  DER 0.4071  JER 0.5884
+synth-piper-2spk-s0101 [whisper-sherpa]  cpWER 0.9415  tcpWER 0.9439  DER 0.6298  JER 0.7490
+synth-piper-3spk-reverb-noise-s0103 [whisper-sherpa]  cpWER 1.2744  tcpWER 1.2744  DER 0.5743  JER 0.7799
+synth-piper-4spk-s0104 [whisper-sherpa]  cpWER 1.1774  tcpWER 1.2306  DER 0.8095  JER 0.8563
+macro  n=4  cpWER 1.0438  tcpWER 1.0599  DER 0.6052  JER 0.7434
+micro  n=4  cpWER 1.0277  tcpWER 1.0437  DER 0.6105  JER 0.7672
+# exit 0

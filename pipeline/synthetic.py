@@ -14,9 +14,10 @@ two things the pipeline tests need without any external data:
 Everything here is HARNESS_POLICY.  Nothing is a claim about speech or
 about the device; the Ogg/Opus written under ``device/`` is a *standard*
 Ogg/Opus container encoded by PyAV/libopus at the recorder's rate
-(BYTECODE_PROVEN 16 kHz, base.py) and bit rate (32 kbps CBR,
-docs/protocol-ledger.md section 8) -- the same shape as the R6-S2 fixtures
-and, like them, explicitly ``not_plaud_capture``.
+(BYTECODE_PROVEN 16 kHz, base.py) in hard-CBR 20 ms frames of exactly 80
+bytes at 32 kbps (SOURCE-DERIVED, docs/protocol-ledger.md:1171-1180: the
+SDK's repack stage rejects variable-size packets), and, like the R6-S2
+fixtures, explicitly ``not_plaud_capture``.
 """
 
 from __future__ import annotations
@@ -48,6 +49,15 @@ WORDS = (
 #: Opus bit rate the SDK repacks at: 32 kbps CBR (docs/protocol-ledger.md
 #: section 8, "Codec parameters").  Used only to shape the device/ file.
 DEVICE_OPUS_BITRATE = 32000
+#: SOURCE-DERIVED: 80 bytes per 20 ms frame per channel (same ledger section).
+DEVICE_OPUS_FRAME_BYTES = 80
+#: libopus options that realise that shape (HARNESS_POLICY choice of
+#: encoder flags).  Without ``vbr=off`` libopus defaults to VBR and packet
+#: sizes vary.  generator/opus.py also sets ``application=voip``; it is left
+#: at libopus's default here because the voip mode's speech filtering lowers
+#: the fidelity of the pure-tone round-trip tests, and nothing in the
+#: evidence fixes the encoder's application mode.
+DEVICE_OPUS_OPTIONS = {"vbr": "off", "frame_duration": "20"}
 
 
 def voice_signal(f0: float, band: tuple[float, float], dur_s: float, seed: int, sr: int = DEVICE_SAMPLE_RATE_HZ) -> np.ndarray:
@@ -145,15 +155,18 @@ def synthetic_meeting(
 
 
 def write_device_ogg_opus(path: Path, pcm: np.ndarray, sr: int = DEVICE_SAMPLE_RATE_HZ) -> Path:
-    """Standard Ogg/Opus, mono, 16 kHz, 32 kbps (PyAV/libopus) -- SYNTHETIC."""
+    """Standard Ogg/Opus, mono, 16 kHz, 32 kbps hard CBR, 20 ms frames of
+    exactly 80 bytes (PyAV/libopus) -- SYNTHETIC."""
     import av
 
+    path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     int16 = (np.clip(pcm, -1.0, 1.0) * 32767.0).astype(np.int16).reshape(1, -1)
     container = av.open(str(path), "w", format="ogg")
     stream = container.add_stream("libopus", rate=sr)
     stream.layout = "mono"
     stream.bit_rate = DEVICE_OPUS_BITRATE
+    stream.options = dict(DEVICE_OPUS_OPTIONS)
     frame = av.AudioFrame.from_ndarray(int16, format="s16", layout="mono")
     frame.sample_rate = sr
     for packet in stream.encode(frame):

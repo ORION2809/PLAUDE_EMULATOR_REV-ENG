@@ -251,11 +251,16 @@ class PerturbedOraclePipeline(OraclePipeline):
         ).validate()
 
 
-@register("oracle", description=OraclePipeline.description, is_system_under_test=False)
+@register("oracle", description=OraclePipeline.description, is_system_under_test=False, params=())
 def _make_oracle(config: PipelineConfig | None = None) -> Pipeline:
     return OraclePipeline(config)
 
 
-@register("perturbed-oracle", description=PerturbedOraclePipeline.description, is_system_under_test=False)
+@register(
+    "perturbed-oracle",
+    description=PerturbedOraclePipeline.description,
+    is_system_under_test=False,
+    params=tuple(f for f in asdict(PerturbationConfig())),
+)
 def _make_perturbed_oracle(config: PipelineConfig | None = None) -> Pipeline:
     return PerturbedOraclePipeline(config)

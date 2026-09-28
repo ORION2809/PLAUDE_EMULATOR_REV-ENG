@@ -1,0 +1,25 @@
+# 2026-09-25T09:02:13Z piper oracle synth-piper-2spk-overlap-s0102 pipeline=oracle hint=0 n_active=2
+# audio /Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-2spk-overlap-s0102/mix.wav
+# load average at start: { 2.11 2.17 2.58 }
+# swap at start: total = 8192.00M  used = 6797.38M  free = 1394.62M  (encrypted)
+oracle: 67 segments, 2 speakers, 0.01s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper/oracle/synth-piper-2spk-overlap-s0102.partial/hyp.json (+ .rttm, .stm)  [HARNESS SELF-TEST, not a system under test]
+        0.28 real         0.24 user         0.03 sys
+            72450048  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                7248  page reclaims
+                  22  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  22  voluntary context switches
+                 168  involuntary context switches
+          2619822702  instructions retired
+           881294421  cycles elapsed
+            53708032  peak memory footprint
+# load average at end: { 2.11 2.17 2.58 }
+# exit 0

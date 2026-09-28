@@ -535,3 +535,131 @@ def test_data_header_len_follows_the_portversion_branch() -> None:
     assert data_header_len(7) == 10 and data_header_len(6) == 6
     assert len(pack_file_data_frame(0, b"", SID, 7)) == 10
     assert len(pack_file_data_frame(0, b"", None, 6)) == 6
+
+
+# --- FaultyPeripheral stream scoping (review T7) and the invariant (T10) ---------------
+
+
+class _StubDevice:
+    def on(self, *_a, **_k):
+        return None
+
+
+def _faulty(**kw):
+    from plaudsim.faults import FaultyPeripheral
+
+    p = FaultyPeripheral(_StubDevice(), **kw)
+    wire: list[bytes] = []
+
+    async def respond(_conn, frame: bytes) -> None:
+        wire.append(frame)
+
+    p._respond = respond  # type: ignore[assignment]
+    return p, wire
+
+
+def _kinds(wire: list[bytes]) -> list[tuple[str, int | None]]:
+    out = []
+    for f in wire:
+        k, _, _, off = classify_frame(f, 7)
+        out.append((k.value, off if k is Kind.DATA else None))
+    return out
+
+
+async def _drain(p) -> None:
+    for _ in range(200):
+        tasks = [t for t in [p._stream_task, *p._orphans] if t is not None and not t.done()]
+        if not tasks:
+            return
+        await asyncio.sleep(0.01)
+    raise AssertionError("streams did not finish")
+
+
+def test_a_cut_stays_cut_when_the_client_writes_something_else() -> None:
+    """T7: `_suppressed` was cleared by EVERY write, so an unrelated getState
+    un-silenced a paced stream the device had cut, and its EMPTY_PACKAGE and
+    TAIL went out after all."""
+    p, wire = _faulty(faults=[Fault(FaultKind.CUT_AFTER, Kind.DATA, offsets=(64,))], pace=0.005, file_bytes=bytes(256))
+
+    async def main() -> None:
+        await p._on_command_write(None, pack_sync_start(7, 0, 0))
+        await asyncio.sleep(0.05)
+        await p._on_command_write(None, b"\x01\x03\x00")          # unrelated getState
+        await _drain(p)
+
+    asyncio.run(main())
+    kinds = _kinds(wire)
+    assert kinds[:4] == [("head", None), ("data", 0), ("data", 32), ("data", 64)]
+    assert kinds[4:] == [("other", None)], kinds            # only the getState answer
+    assert p.stream_events("device_went_silent")
+
+
+def test_orphan_stream_keeps_its_own_fault_ordinals() -> None:
+    """T7: begin_stream() reset the per-kind ordinals and the stream id while
+    an orphan stream (abandon_stream_on_restart=False) was still emitting, so
+    a fault scoped to stream 0 stopped applying to stream 0's later frames."""
+    p, wire = _faulty(
+        faults=[Fault(FaultKind.DROP, Kind.DATA, streams=(0,), once=False)],
+        pace=0.004, file_bytes=bytes(512), abandon_stream_on_restart=False,
+    )
+
+    async def main() -> None:
+        await p._on_command_write(None, pack_sync_start(7, 0, 0))
+        await asyncio.sleep(0.02)
+        await p._on_command_write(None, pack_sync_start(7, 256, 0))
+        await _drain(p)
+
+    asyncio.run(main())
+    data_offsets = [off for k, off in _kinds(wire) if k == "data"]
+    assert data_offsets == list(range(256, 512, 32)), data_offsets
+    assert p.stream_events("not_abandoned")
+    dropped_streams = {e["info"].stream for e in p.injector.log if e["event"] == "fault"}
+    assert dropped_streams == {0}
+
+
+def test_unknown_session_is_refused_instead_of_serving_the_last_file() -> None:
+    """T7: with `files` set, a y6 for a session not in it silently served
+    whatever file had been served last (`_start_transfer` mutated file_bytes)."""
+    a, b = bytes(range(64)), bytes(range(100, 196))
+    p, wire = _faulty(files={1: a, 2: b})
+
+    async def main() -> None:
+        await p._on_command_write(None, pack_sync_start(2, 0, 0))
+        wire.clear()
+        await p._on_command_write(None, pack_sync_start(3, 0, 0))
+
+    asyncio.run(main())
+    assert wire == [pack_sync_head(3, p.unknown_session_head_status)]
+    assert p.unknown_session_head_status != 0
+    assert p.file_bytes == b"" and p.transfer is None
+    assert p.stream_events("unknown_session")
+
+
+def test_file_revisions_serve_the_next_revision_on_each_sync_start() -> None:
+    """T10 device hook: the n-th y6 for a session serves revision n (the last
+    repeats) -- the file changing under an active sync, HARNESS_POLICY."""
+    r0, r1 = bytes(64), bytes([0xAA]) * 64
+    p, wire = _faulty(file_revisions={9: [r0, r1]})
+
+    async def main() -> None:
+        for start in (0, 32, 32):
+            await p._on_command_write(None, pack_sync_start(9, start, 0))
+
+    asyncio.run(main())
+    payloads = [f[10:] for f in wire if classify_frame(f, 7)[0] is Kind.DATA]
+    assert payloads == [r0[:32], r0[32:], r1[32:], r1[32:]]
+
+
+def test_outcome_of_raises_on_wrong_bytes_at_the_right_offset() -> None:
+    """T10: the invariant's corruption branch is reachable in principle."""
+    from fault_support import SilentCorruption, TransferResult, outcome_of
+
+    r = TransferResult(
+        session_id=SID, data=b"\x00\x01\xff", complete=True, failure=None, cursor=3, restarts=0, stop_syncs=0,
+        timer_restarts=0, tail_seen=True, tail_crc=None, head_statuses=[], finish_codes=[0], post_finish=[],
+        session_mismatches=0, dropped_behind=0, dropped_no_receiver=0, other_frames=0, data_frames=1,
+        events=[], elapsed_s=0.0,
+    )
+    with pytest.raises(SilentCorruption, match="SILENT CORRUPTION"):
+        outcome_of(r, b"\x00\x01\x02")
+    assert issubclass(SilentCorruption, AssertionError)

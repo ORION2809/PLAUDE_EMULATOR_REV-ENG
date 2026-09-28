@@ -6,7 +6,7 @@ emulator over `android-netsim`, listed the served recording, pulled it over
 BLE through both public paths — the raw collector (`syncFile` →
 `bleData`/`bleDataComplete`) and the product path (`exportAudio(…, OPUS)`) —
 and handed the application bytes that hash identically to the file the
-emulator served. Its own gap recovery was exercised three times (offsets 3200, 8000,
+emulator served. Its own gap recovery was exercised four times (runs 6b and 6c at offset 3200, 6d at 8000, 13 at
 3200 again on the shipped code) and converged to the same byte-exact file. Along the way the runs
 **falsified one frozen protocol claim and refined two others** (§4).
 
@@ -52,9 +52,9 @@ peripheral process, `logcat -c`, `am start … --es mode <m>`, 65 s, `logcat -d`
 | 6c | same | raw + stop | `bleDataComplete`, byte-exact; two stopSyncs on the wire (SDK's own on the gap, then the app's) |
 | 6d | drop@8000 | export | resend from 8000 at +3.99 s; byte-exact |
 | 10 | clean, abort+pacing | export | byte-exact; op-queue `[28,29]` callback `status:0` (see §4.4) |
-| 11 | **shipped `PlaudPeripheral` defaults** (EMPTY code 0, `stream_in_task`, 4 ms pacing), no experimental override | export | byte-exact; `[28,29]` `status:0`; no retries |
-| 12 | shipped defaults | raw + stop | `bleDataComplete`, byte-exact; app's `stopSyncFile()` acked |
-| 13 | shipped defaults, drop@3200 | export | one stopSync, one restart from 3200, byte-exact |
+| 11 | shipped `PlaudPeripheral` code path, no experimental override, configured by **`r7/pull_capture_peripheral.py`'s `PULLCAP_*` defaults** (`stream_in_task` on via `PULLCAP_ABORT_ON_RESTART=1`, 4 ms pacing via `PULLCAP_PACING_S=0.004`, EMPTY code 0 because `PULLCAP_EMPTY_CODE` was unset) — what `PlaudPeripheral.for_real_sdk()` now packages; the bare constructor is inline and unpaced (the "shipped-default" evidence file names predate this correction) | export | byte-exact; `[28,29]` `status:0`; no retries |
+| 12 | as run 11 | raw + stop | `bleDataComplete`, byte-exact; app's `stopSyncFile()` acked |
+| 13 | as run 11, drop@3200 | export | one stopSync, one restart from 3200, byte-exact |
 
 Every "byte-exact" above is `0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d`
 (`SHA256SUMS`).
@@ -133,6 +133,16 @@ written only when the SDK *builds* an Ogg from raw packets. The cloud's
 
 ## 5. What this does not prove
 
+> **Correction, 25 September 2026.** Every run in this report also tried to send one automatic
+> request from the SDK to Plaud's partner server (`POST platform-jp.plaud.ai/
+> developer/api/open/partner/sdk/gen-key`), triggered by `initSDK` with the driver's
+> synthetic token. Runs 1–10 (14 logs) show it rejected with HTTP 401. In runs
+> 11–13 the host name did not resolve (UnknownHostException), so the request
+> never reached the server (visible in `r7-s13-evidence/logcat-*`).
+> Nothing authenticated and no real credential existed, but the earlier statement
+> that the runs touched no Plaud infrastructure was wrong. Fixed in the drivers
+> (blank token) and verified offline, R7-S14 D7.
+
 Real firmware's frame sizes, pacing, EMPTY_PACKAGE code values, TAIL field
 content, whether the device abandons a stream on a new `syncFileStart`, and
 everything above `portVersion 20` (sealed link) remain UNKNOWN. The emulator's
@@ -145,10 +155,17 @@ claims.
 * `emulator/plaudsim/transfer.py`: `TransferSession.frames()` now emits
   `EMPTY_PACKAGE(code 0)` before the TAIL by default (`empty_package_code`
   parameter, `None` restores the pre-R7-S13 sequence for the negative test).
-* `emulator/plaudsim/profile.py`: transfers stream from a cancellable task with
-  `response_pacing_s` (default 0.004) and are aborted by a new `syncFileStart`
-  or `stopSync` (`abort_stream_on_restart=True`).
+* `emulator/plaudsim/profile.py`: `PlaudPeripheral(stream_in_task=True,
+  response_pacing_s=...)` streams a transfer from a cancellable task with that
+  inter-frame pacing, and a new `syncFileStart` or `stopSync` aborts the
+  in-flight stream. Both are OFF by default (`stream_in_task=False`,
+  `response_pacing_s=0.0`: inline and unpaced, for in-process tests);
+  `PlaudPeripheral.for_real_sdk(...)` applies the R7-S13 values
+  (`REAL_SDK_STREAM_IN_TASK = True`, `REAL_SDK_RESPONSE_PACING_S = 0.004`).
+  Runs 11–13 got them from `r7/pull_capture_peripheral.py`'s `PULLCAP_*`
+  defaults, not from the constructor.
 * Tests: `tests/test_r7_s13_transfer_close.py` pins the sequence, the ordering
-  rule, the abort behaviour and the negative control.
-* Ledger §5.8/§14 and `docs/reconstruction-log.md` updated; PROJECT.md 4b V3
+  rule, the abort behaviour, the negative control and the `for_real_sdk()`
+  preset versus the constructor defaults.
+* Ledger §5.8/§15 and `docs/reconstruction-log.md` updated; PROJECT.md 4b V3
   moved to achieved-for-transfer; U19 refined.

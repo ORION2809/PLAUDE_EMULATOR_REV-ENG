@@ -1,3 +1,6 @@
+> **Superseded.** This is the 21 September 2026 snapshot, taken before any code was written. The implementation
+> directories it calls empty now hold code. For the current state read [`project-state.md`](project-state.md).
+
 # Repository Map
 
 This map records the supplied repositories as inspected on 2026-09-21. The

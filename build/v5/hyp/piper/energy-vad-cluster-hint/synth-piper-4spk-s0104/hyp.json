@@ -1,0 +1,667 @@
+{
+  "schema": "plaud-harness/hypothesis/1",
+  "meeting_id": "synth-piper-4spk-s0104",
+  "system": "energy-vad-cluster",
+  "segments": [
+    {
+      "speaker": "spk0",
+      "start": 0.49,
+      "end": 1.99,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 1.99,
+      "end": 3.5300000000000002,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 4.16,
+      "end": 5.16,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 5.16,
+      "end": 6.11,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 6.4,
+      "end": 7.9,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 7.9,
+      "end": 9.1,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 9.71,
+      "end": 10.21,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 10.21,
+      "end": 11.17,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 11.34,
+      "end": 14.34,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 14.34,
+      "end": 15.4,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 15.99,
+      "end": 16.990000000000002,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 16.990000000000002,
+      "end": 17.400000000000002,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 17.59,
+      "end": 19.09,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 19.09,
+      "end": 19.59,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 19.59,
+      "end": 21.09,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 21.09,
+      "end": 22.400000000000002,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 22.89,
+      "end": 25.89,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 25.89,
+      "end": 26.39,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 26.39,
+      "end": 28.39,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 28.39,
+      "end": 31.39,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 31.39,
+      "end": 32.36,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 32.71,
+      "end": 34.71,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 34.71,
+      "end": 35.21,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 35.21,
+      "end": 35.71,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 35.71,
+      "end": 36.21,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 36.21,
+      "end": 36.99,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 37.32,
+      "end": 39.52,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 40.230000000000004,
+      "end": 40.730000000000004,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 40.730000000000004,
+      "end": 42.28,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 42.6,
+      "end": 45.6,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 45.6,
+      "end": 46.61,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 47.19,
+      "end": 48.480000000000004,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 49.06,
+      "end": 50.06,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 50.06,
+      "end": 53.04,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 53.75,
+      "end": 54.77,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 55.45,
+      "end": 58.95,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 58.95,
+      "end": 59.68,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 60.01,
+      "end": 62.01,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 62.01,
+      "end": 62.79,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 63.04,
+      "end": 64.03999999999999,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 64.03999999999999,
+      "end": 64.66,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 64.94,
+      "end": 65.94,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 65.94,
+      "end": 67.54,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 68.16,
+      "end": 69.16,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 69.16,
+      "end": 69.66,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 69.66,
+      "end": 70.66,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 70.66,
+      "end": 71.52,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 71.94,
+      "end": 72.94,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 72.94,
+      "end": 73.83,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 73.98,
+      "end": 75.48,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 75.48,
+      "end": 78.13,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 78.33,
+      "end": 80.24,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 80.56,
+      "end": 83.06,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 83.06,
+      "end": 84.07000000000001,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 84.46000000000001,
+      "end": 85.53,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 86.24,
+      "end": 88.24,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 88.24,
+      "end": 89.31,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 89.78,
+      "end": 91.78,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 91.78,
+      "end": 92.28,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 92.28,
+      "end": 93.78,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 93.78,
+      "end": 94.85000000000001,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 95.22,
+      "end": 98.72,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 98.72,
+      "end": 99.04,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 99.75,
+      "end": 100.75,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 100.75,
+      "end": 102.76,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 103.44,
+      "end": 104.44,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 104.44,
+      "end": 104.94,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 104.94,
+      "end": 106.12,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 106.58,
+      "end": 107.58,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 107.58,
+      "end": 109.4,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 109.95,
+      "end": 111.45,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 111.45,
+      "end": 112.34,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 112.89,
+      "end": 116.89,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 116.89,
+      "end": 117.89,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 117.89,
+      "end": 119.89,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 119.89,
+      "end": 120.25,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 120.82000000000001,
+      "end": 122.82000000000001,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 122.82000000000001,
+      "end": 123.32000000000001,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 123.32000000000001,
+      "end": 124.3,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 124.71000000000001,
+      "end": 127.21000000000001,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 127.21000000000001,
+      "end": 128.14000000000001,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 128.62,
+      "end": 129.62,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 129.62,
+      "end": 134.1,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 134.5,
+      "end": 136.0,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 136.0,
+      "end": 137.39000000000001,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 137.73,
+      "end": 138.73,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 138.73,
+      "end": 139.24,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 139.45000000000002,
+      "end": 140.45000000000002,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 140.45000000000002,
+      "end": 140.97,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 141.56,
+      "end": 143.06,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 143.06,
+      "end": 143.73,
+      "text": ""
+    },
+    {
+      "speaker": "spk2",
+      "start": 144.32,
+      "end": 147.82,
+      "text": ""
+    },
+    {
+      "speaker": "spk3",
+      "start": 147.82,
+      "end": 148.97,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 149.37,
+      "end": 149.99,
+      "text": ""
+    }
+  ],
+  "extra": {
+    "audio": {
+      "path": "/Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-4spk-s0104/mix.wav",
+      "container": "wav",
+      "source_sample_rate": 16000,
+      "source_channels": 1,
+      "sample_rate": 16000,
+      "duration_s": 150.0
+    },
+    "components": {
+      "transcriber": null,
+      "diarizer": "energy-vad-cluster"
+    },
+    "diarization": {
+      "n_clusters": 4,
+      "n_regions": 42,
+      "n_chunks": 264,
+      "chunk_s": 0.5,
+      "n_without_f0": 0,
+      "vad": {
+        "mode": "contrast",
+        "floor_db": -120.0,
+        "contrast_db": 103.2192013647489,
+        "otsu_db": -29.705950871439374,
+        "threshold_db": -60.0,
+        "voiced_fraction": null
+      },
+      "count": {
+        "method": "spectral",
+        "affinity_knn": 7,
+        "eigenvalues": [
+          1.0,
+          0.9900300731511102,
+          0.8866740398485726,
+          0.7700778736953131,
+          0.7037901107699157,
+          0.6025717536035669,
+          0.4890358420578915,
+          0.46280273180832,
+          0.44709415916679196
+        ],
+        "k": 4,
+        "hint": 4
+      },
+      "params": {
+        "vad": {
+          "frame_ms": 25.0,
+          "hop_ms": 10.0,
+          "threshold_db": 12.0,
+          "floor_percentile": 10.0,
+          "hangover_ms": 150.0,
+          "min_speech_ms": 200.0,
+          "min_silence_ms": 150.0,
+          "absolute_floor_db": -60.0,
+          "min_threshold_db": 6.0,
+          "contrast_percentile": 90.0,
+          "dense_min_db": -40.0,
+          "dense_min_voiced": 0.3
+        },
+        "mfcc": {
+          "n_mfcc": 13,
+          "n_mels": 26,
+          "frame_ms": 25.0,
+          "hop_ms": 10.0,
+          "fmin_hz": 50.0,
+          "fmax_hz": null,
+          "preemphasis": 0.97,
+          "drop_c0": true
+        },
+        "pitch": {
+          "pitch_frame_ms": 40.0,
+          "f0_min_hz": 60.0,
+          "f0_max_hz": 400.0,
+          "f0_peak_frac": 0.85,
+          "voicing_threshold": 0.5
+        },
+        "cluster": {
+          "chunk_s": 0.5,
+          "window_s": 1.5,
+          "min_chunk_s": 0.2,
+          "max_chunks": 2000,
+          "f0_weight": 1.0,
+          "min_voiced_frames": 5,
+          "octave_fix_frac": 0.25,
+          "linkage": "average",
+          "distance_threshold": 2.0,
+          "max_speakers": 8,
+          "affinity_knn": 7,
+          "min_cluster_frac": 0.02,
+          "min_cluster_chunks": 3,
+          "min_segment_s": 0.3,
+          "merge_gap_s": 0.3
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+I0925 12:57:09.446247 3858199 fork_posix.cc:71] Other threads are currently calling into gRPC, skipping fork() handlers
+I0925 12:57:09.468743 3858199 fork_posix.cc:71] Other threads are currently calling into gRPC, skipping fork() handlers
+[32m12:57:09.578 I R7S14: [0mWIFICAP_PERIPHERAL_READY pv=7 sn=8810000001 file=/Users/mivi/Desktop/plaud-harness/tests/fixtures/r6s2_16k_mono.ogg len=11271 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d session=1700000000 wifi=ws://127.0.0.1:18081
+[32m12:57:30.756 I R7S14: [0mWIFICAP_BLE_WIFI_WRITE opcode=10 hex=010a0000
+[32m12:57:30.789 I R7S14: [0mWIFICAP_BLE_WIFI_NOTIFY opcode=10 hex=010a0000
+[32m12:58:03.696 I R7S14: [0mWIFICAP_BLE_WIFI_WRITE opcode=13 hex=010d00
+[32m12:58:03.737 I R7S14: [0mWIFICAP_BLE_WIFI_NOTIFY opcode=13 hex=010d0000

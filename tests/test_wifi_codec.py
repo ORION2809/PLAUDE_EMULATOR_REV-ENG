@@ -297,6 +297,12 @@ def test_chacha_wiring_against_the_rfc_vector():
     assert sealer._seal_raw(RFC_PT) == RFC_CT_TAG
 
 
+#: u16le at wire offset 4 of HeartbeatPong(1) sealed with the synthetic
+#: (J, K, L) at seq 2 -- computed once with the `cryptography` primitives and
+#: pinned, so a change to the sealing layout or the keys shows up here.
+PONG_SEALED_U16_AT_4 = {False: 57069, True: 28869}   # ChaCha20-Poly1305, AES-GCM
+
+
 @pytest.mark.parametrize("use_aes", [False, True])
 def test_seal_frames_seq_then_pdu_and_opens_across_endpoints(use_aes):
     tx = WifiSealer(SealedSession(SYNTHETIC_J, SYNTHETIC_K, SYNTHETIC_L), use_aes=use_aes)
@@ -305,7 +311,17 @@ def test_seal_frames_seq_then_pdu_and_opens_across_endpoints(use_aes):
     wire = tx.seal(pdu)
     assert tx.tx_seq == 2                       # SealedSession: reset 1, pre-increment
     assert len(wire) == 4 + len(pdu) + 16       # [u32 seq][pdu] + 16-byte tag
-    assert looks_encrypted(wire) or not looks_encrypted(wire)  # either is possible; heuristic is probabilistic
+    # Review T11: the classifier outcome is deterministic for fixed keys and
+    # seq. Recompute the ciphertext with the AEAD primitive directly (not via
+    # WifiSealer) and pin both the bytes 4..5 and the verdict.
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
+
+    aead = AESGCM(SYNTHETIC_J) if use_aes else ChaCha20Poly1305(SYNTHETIC_J)
+    expected = aead.encrypt(SYNTHETIC_K, (2).to_bytes(4, "little") + pdu, SYNTHETIC_L)
+    assert wire == expected
+    u16_at_4 = wire[4] | wire[5] << 8
+    assert u16_at_4 == PONG_SEALED_U16_AT_4[use_aes]
+    assert looks_encrypted(wire) is (PONG_SEALED_U16_AT_4[use_aes] > CIPHERTEXT_TYPE_THRESHOLD)
     assert rx.open(wire) == pdu
     assert rx.rx_seq == 2
     # the plaintext really starts with the sequence number
@@ -354,3 +370,20 @@ def test_counters_can_be_shared_with_the_ble_session():
     peer.counters.rx_seq = 2         # the peer already saw BLE seq 2
     assert peer.open(wifi.seal(b"x")) == b"x"   # seq 4 > 2
     assert PDU_HEADER_LEN == 8
+
+
+def test_opt_int_treats_non_finite_numbers_as_absent():
+    """Review T5: `{"start": 1e400}` parses to float inf and int(inf) raised
+    OverflowError inside a request handler. HARNESS_POLICY: a non-finite
+    number (or a numeric string that overflows) reads as the default, like a
+    missing key -- Python has no Java-style narrowing to copy."""
+    from plaudsim.wifi import FileSyncRequest, _opt_int
+
+    assert _opt_int({"a": float("inf")}, "a", 7) == 7
+    assert _opt_int({"a": float("-inf")}, "a", 7) == 7
+    assert _opt_int({"a": float("nan")}, "a", 7) == 7
+    assert _opt_int({"a": "1e400"}, "a", 7) == 7
+    assert _opt_int({"a": "nan"}, "a", 7) == 7
+    assert _opt_int({"a": 12.9}, "a", 7) == 12 and _opt_int({"a": "12.9"}, "a", 7) == 12
+    req = FileSyncRequest.from_pdu(parse_pdu(pack_pdu(12, b'{"session":5,"scene":1,"start":1e400,"end":0}')))
+    assert (req.session, req.start, req.end) == (5, 0, 0)

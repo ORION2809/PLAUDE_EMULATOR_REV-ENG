@@ -82,7 +82,7 @@ def test_eq_min_max_and_tolerance_semantics() -> None:
     assert evaluate_check(both, {"x": 0.5}).reason == "exceeds max 0.4"
     assert evaluate_check(both, {"x": 0.1}).reason == "below min 0.2"
     assert evaluate_check(Check("x", max=0.1, tol=0.01), {"x": 0.105}).passed
-    assert Check("x", min=0.2, max=0.4, eq=0.3, tol=0.1).describe() == "x <= 0.4 and >= 0.2 and == 0.3 ±0.1"
+    assert Check("x", min=0.2, max=0.4, eq=0.3, tol=0.1).describe() == "x <= 0.4 (+0.1 tol) and >= 0.2 (-0.1 tol) and == 0.3 ±0.1"
 
 
 @pytest.mark.parametrize(
@@ -127,3 +127,50 @@ def test_gate_file_errors_name_the_file(tmp_path: Path) -> None:
 
 def test_exit_codes_are_distinct_and_documented() -> None:
     assert (EXIT_OK, EXIT_GATE_FAILED, EXIT_INPUT_ERROR, EXIT_SKIPPED) == (0, 1, 2, 3)
+
+
+# --------------------------------------------------------------------------- #
+# Review fixes (2026-09-25): gate files cannot fail open
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.parametrize(
+    "check_yaml, needle",
+    [
+        ("{metric: der.der, max: .nan}", "max: expected a finite number"),
+        ("{metric: der.der, max: .inf}", "max: expected a finite number"),
+        ("{metric: der.der, min: -.inf}", "min: expected a finite number"),
+        ("{metric: der.der, eq: .nan}", "eq: expected a finite number"),
+        ("{metric: cpwer.error_rate, max: 0.1, tol: .inf}", "tol: expected a finite number"),
+        ("{metric: cpwer.error_rate, max: 0.1, tol: .nan}", "tol: expected a finite number"),
+        ("{metric: der.der, min: 0.5, max: 0.1}", "min 0.5 is above max 0.1"),
+        ("{metric: der.der, eq: 0.9, max: 0.1}", "eq 0.9 lies outside"),
+        ("{metric: der.der, eq: 0.0, min: 0.5, tol: 0.1}", "eq 0.0 lies outside"),
+    ],
+)
+def test_gate_files_with_non_finite_or_contradictory_bounds_are_rejected(tmp_path: Path, check_yaml: str, needle: str) -> None:
+    """EV-6.  ``max: .nan`` made ``value > nan`` always False and ``tol: .inf``
+    widened a max to infinity: both passed any value.  min > max never passes."""
+    p = tmp_path / "g.yaml"
+    p.write_text(f"schema: plaud-harness/gates/1\nsuites:\n  s:\n    gates:\n      - {check_yaml}\n")
+    with pytest.raises(GateConfigError) as exc:
+        load_gates(p)
+    assert needle in str(exc.value), str(exc.value)
+
+
+def test_describe_shows_the_tolerance_on_every_bound_it_widens() -> None:
+    assert Check("cpwer.error_rate", max=0.1, tol=0.05).describe() == "cpwer.error_rate <= 0.1 (+0.05 tol)"
+    assert Check("x", min=0.9, tol=0.01).describe() == "x >= 0.9 (-0.01 tol)"
+    assert Check("x", max=0.1).describe() == "x <= 0.1"
+    assert Check("der.der", eq=0.0, tol=1e-9).describe() == "der.der == 0.0 ±1e-09"
+    res = evaluate(Suite("s", (Check("cpwer.error_rate", max=0.1, tol=0.05),)), {"cpwer.error_rate": 0.2})
+    assert "cpwer.error_rate <= 0.1 (+0.05 tol) (got 0.2: exceeds max 0.1" in res.summary()
+
+
+def test_gate_file_that_is_not_utf8_or_not_a_file_is_a_config_error(tmp_path: Path) -> None:
+    p = tmp_path / "latin1.yaml"
+    p.write_bytes(b"schema: plaud-harness/gates/1\n# caf\xe9\n")
+    with pytest.raises(GateConfigError, match="not valid UTF-8"):
+        load_gates(p)
+    with pytest.raises(GateConfigError, match="cannot read"):
+        load_gates(tmp_path)

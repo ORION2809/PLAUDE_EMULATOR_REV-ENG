@@ -17,6 +17,7 @@ must not contain whitespace (both formats are whitespace-delimited).
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -73,8 +74,23 @@ def parse_rttm(text: str) -> list[dict[str, Any]]:
     return out
 
 
+#: NIST STM optional label field, e.g. ``<o,f0,male>``: a single ``<...>``
+#: token with at least one comma right after the end time.  A comma-less
+#: ``<...>`` token (``<unk>``-style) is ambiguous and is kept as text.
+STM_LABEL_RE = re.compile(r"^<[^<>\s]*,[^<>\s]*>$")
+
+#: NIST sclite pseudo-speakers: they mark regions, they are not talkers.
+STM_PSEUDO_SPEAKERS = frozenset({"inter_segment_gap", "excluded_region", "ignore_time_segment_in_scoring"})
+
+
 def parse_stm(text: str) -> list[dict[str, Any]]:
-    """Parse STM lines into ``{"meeting_id", "speaker", "start", "end", "text"}``."""
+    """Parse STM lines into ``{"meeting_id", "speaker", "start", "end", "text", "label"}``.
+
+    NIST STM allows an optional ``<label>`` field between the end time and
+    the transcript; it is returned under ``"label"`` (else None) and is NOT
+    part of ``"text"``.  Pseudo-speaker rows (``STM_PSEUDO_SPEAKERS``) are
+    returned as-is; ``meeting_from_stm`` decides what to do with them.
+    """
     out = []
     for n, raw in enumerate(text.splitlines(), 1):
         line = raw.strip()
@@ -83,13 +99,23 @@ def parse_stm(text: str) -> list[dict[str, Any]]:
         f = line.split(maxsplit=5)
         if len(f) < 5:
             raise PipelineError(f"STM line {n}: expected '<id> 1 <speaker> <start> <end> [text]': {raw!r}")
+        try:
+            start, end = float(f[3]), float(f[4])
+        except ValueError as exc:
+            raise PipelineError(f"STM line {n}: bad time: {raw!r}") from exc
+        body = f[5] if len(f) > 5 else ""
+        label = None
+        head, _, rest = body.partition(" ")
+        if STM_LABEL_RE.match(head):
+            label, body = head, rest.strip()
         out.append(
             {
                 "meeting_id": f[0],
                 "speaker": f[2],
-                "start": float(f[3]),
-                "end": float(f[4]),
-                "text": f[5] if len(f) > 5 else "",
+                "start": start,
+                "end": end,
+                "text": body,
+                "label": label,
             }
         )
     return out

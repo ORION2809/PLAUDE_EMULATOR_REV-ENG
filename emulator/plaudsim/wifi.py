@@ -60,6 +60,7 @@ access$encryptWifiMessage, WifiAgentImpl.txt:505-698). `WifiSealer` wraps
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, tzinfo
 from struct import pack, unpack_from
@@ -296,19 +297,28 @@ def pad_wifi_token(token: str) -> str:
 
 
 def _opt_int(obj: dict[str, Any] | None, key: str, default: int) -> int:
-    """org.json optInt: Number/numeric-String coerce, anything else -> default."""
+    """org.json optInt: Number/numeric-String coerce, anything else -> default.
+
+    HARNESS_POLICY for non-finite numbers: Python's json parses `1e400` as
+    float inf (and accepts NaN/Infinity literals); `int()` of those raises.
+    They read as the default, like a missing key -- Java would narrow them
+    instead, which is not worth imitating for values no phone sends.
+    """
     if obj is None or key not in obj:
         return default
     value = obj[key]
     if isinstance(value, bool):
         return default
-    if isinstance(value, (int, float)):
-        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value) if math.isfinite(value) else default
     if isinstance(value, str):
         try:
-            return int(float(value))
+            number = float(value)
         except ValueError:
             return default
+        return int(number) if math.isfinite(number) else default
     return default
 
 
@@ -688,8 +698,8 @@ class FileListResponse(WifiMessage):
 class FileSyncRequest(WifiMessage):
     """Type 12, phone -> pen: {"session": long, "scene": int, "start": int, "end": int}
     (FileSyncRequest.txt:33-69; proto v1 same keys). WifiAgentImpl sends
-    start=0, end=fileSize (EpsilonDataStream.txt:205-235: `iconst_0` then
-    `getFileSize l2i`); the iOS `appSyncFile(_:_:_:_:)` defaults end to 0, whose
+    start=0, end=fileSize (EpsilonDataStream.txt:130-143: `iconst_0` then
+    `getFileSize l2i`, constructor call at :143); the iOS `appSyncFile(_:_:_:_:)` defaults end to 0, whose
     meaning is UNKNOWN (HARNESS_POLICY in the device: end <= 0 means EOF)."""
 
     TYPE: ClassVar[int] = MSG_FILE_SYNC

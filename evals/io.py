@@ -13,6 +13,7 @@ Choices that are not forced by those conventions are labelled HARNESS_POLICY.
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -144,12 +145,46 @@ class Hypothesis:
 
 
 def _is_number(x: Any) -> bool:
-    return isinstance(x, (int, float)) and not isinstance(x, bool)
+    """A JSON number that is finite.
+
+    ``json.loads`` accepts the non-standard ``NaN``/``Infinity`` tokens; an
+    infinite segment end used to load and then turn tcpWER into total failure
+    through NaN pseudo-timings, so non-finite values are refused here, where
+    the error can name the element.
+    """
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
 def _require(cond: bool, where: str, msg: str) -> None:
     if not cond:
         raise ContractError(f"{where}: {msg}")
+
+
+_WHITESPACE_CHAR = re.compile(r"\s")
+
+
+def field_problem(value: str) -> str | None:
+    """Why ``value`` cannot be written as one RTTM/STM field, or None if it can.
+
+    Both formats are whitespace-separated, ``;;`` opens a comment line (a
+    meeting id is the first field of an STM line), and ``<NA>`` is RTTM's
+    placeholder for an absent field (the parsers read a ``<NA>`` speaker as
+    "no speaker").
+    """
+    if value == "":
+        return "is empty"
+    if _WHITESPACE_CHAR.search(value):
+        return "must not contain whitespace"
+    if value.startswith(";;"):
+        return "starts with ';;' (the RTTM/STM comment marker)"
+    if value == "<NA>":
+        return "is '<NA>' (RTTM's placeholder for an absent field)"
+    return None
+
+
+def _require_field(value: str, where: str, what: str) -> None:
+    problem = field_problem(value)
+    _require(problem is None, where, f"{what} {value!r} {problem} (RTTM/STM field)")
 
 
 def _parse_word(raw: Any, where: str, seg_start: float, seg_end: float) -> Word:
@@ -158,7 +193,7 @@ def _parse_word(raw: Any, where: str, seg_start: float, seg_end: float) -> Word:
         _require(key in raw, where, f"word is missing required key '{key}'")
     _require(isinstance(raw["w"], str) and raw["w"].strip() != "", where, "word 'w' must be a non-empty string")
     _require(" " not in raw["w"].strip(), where, f"word 'w' must be a single token, got {raw['w']!r}")
-    _require(_is_number(raw["start"]) and _is_number(raw["end"]), where, "word 'start'/'end' must be numbers")
+    _require(_is_number(raw["start"]) and _is_number(raw["end"]), where, "word 'start'/'end' must be finite numbers")
     start, end = float(raw["start"]), float(raw["end"])
     _require(end >= start, where, f"word end {end} is before its start {start}")
     _require(
@@ -180,14 +215,18 @@ def _parse_segment(
     for key in ("speaker", "start", "end", "text"):
         _require(key in raw, where, f"segment is missing required key '{key}'")
     speaker = raw["speaker"]
-    _require(isinstance(speaker, str) and speaker != "", where, "segment 'speaker' must be a non-empty string")
+    _require(
+        isinstance(speaker, str) and speaker.strip() != "", where, "segment 'speaker' must be a non-empty string"
+    )
     if allowed_speakers is not None:
         _require(
             speaker in allowed_speakers,
             where,
             f"segment speaker {speaker!r} is not declared in 'speakers' {sorted(allowed_speakers)}",
         )
-    _require(_is_number(raw["start"]) and _is_number(raw["end"]), where, "segment 'start'/'end' must be numbers")
+    _require(
+        _is_number(raw["start"]) and _is_number(raw["end"]), where, "segment 'start'/'end' must be finite numbers"
+    )
     start, end = float(raw["start"]), float(raw["end"])
     _require(start >= 0.0, where, f"segment start {start} is negative")
     _require(end > start, where, f"segment end {end} must be strictly after start {start}")
@@ -245,11 +284,22 @@ def _parse_segments(
     return segs
 
 
-def _load_json(path: Path, where: str) -> Any:
+def _read_text(path: Path, where: str) -> str:
+    """UTF-8 text of a contract file; every way that can fail is a ContractError."""
     try:
-        text = path.read_text(encoding="utf-8")
+        return path.read_text(encoding="utf-8")
     except FileNotFoundError:
         raise ContractError(f"{where}: file not found: {path}") from None
+    except UnicodeDecodeError as exc:
+        raise ContractError(
+            f"{where}: not valid UTF-8 ({exc.reason} at byte {exc.start}); contract files are UTF-8"
+        ) from None
+    except OSError as exc:
+        raise ContractError(f"{where}: cannot read file ({exc.strerror or exc})") from None
+
+
+def _load_json(path: Path, where: str) -> Any:
+    text = _read_text(path, where)
     try:
         return json.loads(text)
     except json.JSONDecodeError as exc:
@@ -275,12 +325,12 @@ def meeting_from_dict(data: Any, *, where: str = "meeting.json", path: Path | No
 
     mid = data["meeting_id"]
     _require(isinstance(mid, str) and mid.strip() != "", where, "'meeting_id' must be a non-empty string")
-    _require(not re.search(r"\s", mid), where, f"'meeting_id' {mid!r} must not contain whitespace (RTTM/STM field)")
+    _require_field(mid, where, "'meeting_id'")
 
     sr = data["sample_rate"]
     _require(isinstance(sr, int) and not isinstance(sr, bool) and sr > 0, where, "'sample_rate' must be a positive integer")
     dur = data["duration_s"]
-    _require(_is_number(dur) and dur > 0, where, "'duration_s' must be a positive number")
+    _require(_is_number(dur) and dur > 0, where, "'duration_s' must be a positive finite number")
     ch = data["channels"]
     _require(isinstance(ch, int) and not isinstance(ch, bool) and ch >= 1, where, "'channels' must be an integer >= 1")
 
@@ -292,14 +342,14 @@ def meeting_from_dict(data: Any, *, where: str = "meeting.json", path: Path | No
         _require(isinstance(spk, dict), w, "speaker must be an object")
         _require("id" in spk, w, "speaker is missing required key 'id'")
         _require(isinstance(spk["id"], str) and spk["id"] != "", w, "speaker 'id' must be a non-empty string")
-        _require(not re.search(r"\s", spk["id"]), w, f"speaker id {spk['id']!r} must not contain whitespace")
+        _require_field(spk["id"], w, "speaker id")
         _require(spk["id"] not in ids, w, f"duplicate speaker id {spk['id']!r}")
         if "position_m" in spk:
             pos = spk["position_m"]
             _require(
                 isinstance(pos, list) and len(pos) == 3 and all(_is_number(v) for v in pos),
                 w,
-                "'position_m' must be [x, y, z] numbers",
+                "'position_m' must be [x, y, z] finite numbers",
             )
         ids.append(spk["id"])
 
@@ -369,10 +419,15 @@ def hypothesis_from_dict(data: Any, *, where: str = "hyp.json", path: Path | Non
         _require(key in data, where, f"missing required key '{key}'")
     mid = data["meeting_id"]
     _require(isinstance(mid, str) and mid.strip() != "", where, "'meeting_id' must be a non-empty string")
+    # It must equal the reference's meeting_id, so it obeys the same rule.
+    _require_field(mid, where, "'meeting_id'")
     system = data["system"]
     _require(isinstance(system, str) and system.strip() != "", where, "'system' must be a non-empty string")
     # HARNESS_POLICY: hypothesis segments need not be sorted (the contract only
     # requires sortedness for the reference); they are sorted when scored.
+    # Speaker labels are opaque non-blank strings and MAY contain whitespace
+    # (the mock cloud's documented labels are "Speaker 1", ...); the RTTM/STM
+    # writers map such labels to single fields (see rttm_speaker_fields).
     segments = _parse_segments(
         data["segments"], f"{where}.segments", allowed_speakers=None, duration_s=None, require_sorted=False
     )
@@ -417,11 +472,59 @@ def _parse_time(token: str, where: str, what: str) -> float:
     return v
 
 
+def _field_token(label: str) -> str:
+    tok = re.sub(r"\s+", "_", label.strip()) or "_"
+    if tok == "<NA>":
+        tok = "_NA_"
+    if tok.startswith(";;"):
+        tok = "_" + tok
+    return tok
+
+
+def rttm_speaker_fields(labels: Iterable[str]) -> dict[str, str]:
+    """Injective map from speaker labels to single RTTM/STM fields (HARNESS_POLICY).
+
+    A label that already is one field (:func:`field_problem` is None) is kept
+    as-is.  Any other label has each whitespace run replaced by ``_``
+    (``"Speaker 1"`` -> ``"Speaker_1"``), ``<NA>`` becomes ``_NA_`` and a
+    leading ``;;`` gets a ``_`` prefix; if the result is already taken, ``#2``,
+    ``#3``, ... is appended, so distinct speakers stay distinct.  Labels are
+    processed in sorted order, so the map depends only on the set of labels
+    (hyp.rttm and hyp.stm always agree).  hyp.json keeps the original labels.
+    """
+    unique = sorted(set(labels))
+    out: dict[str, str] = {lab: lab for lab in unique if field_problem(lab) is None}
+    used = set(out.values())
+    for lab in unique:
+        if lab in out:
+            continue
+        base = cand = _field_token(lab)
+        n = 2
+        while cand in used:
+            cand = f"{base}#{n}"
+            n += 1
+        out[lab] = cand
+        used.add(cand)
+    return out
+
+
+def _check_file_id(meeting_id: str) -> None:
+    problem = field_problem(meeting_id)
+    if problem is not None:
+        raise ContractError(f"meeting_id {meeting_id!r} {problem}; it cannot be the RTTM/STM file-id field")
+
+
 def rttm_lines(segments: Iterable[Segment], meeting_id: str) -> list[str]:
-    """``SPEAKER <meeting_id> 1 <start> <dur> <NA> <NA> <speaker> <NA> <NA>``"""
+    """``SPEAKER <meeting_id> 1 <start> <dur> <NA> <NA> <speaker> <NA> <NA>``
+
+    Speaker labels go through :func:`rttm_speaker_fields`.
+    """
+    _check_file_id(meeting_id)
+    segs = list(segments)
+    field = rttm_speaker_fields(s.speaker for s in segs)
     return [
-        f"SPEAKER {meeting_id} 1 {format_time(s.start)} {format_time(s.duration)} <NA> <NA> {s.speaker} <NA> <NA>"
-        for s in segments
+        f"SPEAKER {meeting_id} 1 {format_time(s.start)} {format_time(s.duration)} <NA> <NA> {field[s.speaker]} <NA> <NA>"
+        for s in segs
     ]
 
 
@@ -466,11 +569,7 @@ def parse_rttm(
 
 def load_rttm(path: str | Path, *, meeting_id: str | None = None) -> list[Segment]:
     p = Path(path)
-    try:
-        text = p.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        raise ContractError(f"{p}: file not found") from None
-    return parse_rttm(text, source=str(p), meeting_id=meeting_id)
+    return parse_rttm(_read_text(p, str(p)), source=str(p), meeting_id=meeting_id)
 
 
 def write_rttm(segments: Iterable[Segment], meeting_id: str, path: str | Path) -> Path:
@@ -482,10 +581,18 @@ def write_rttm(segments: Iterable[Segment], meeting_id: str, path: str | Path) -
 
 
 def stm_lines(segments: Iterable[Segment], meeting_id: str) -> list[str]:
-    """``<meeting_id> 1 <speaker> <start> <end> <text>`` (one line per segment)."""
+    """``<meeting_id> 1 <speaker> <start> <end> <text>`` (one line per segment).
+
+    Speaker labels go through :func:`rttm_speaker_fields`; the text is written
+    whitespace-collapsed on one line (STM cannot hold a line break, and
+    :func:`parse_stm` collapses whitespace anyway).
+    """
+    _check_file_id(meeting_id)
+    segs = list(segments)
+    field = rttm_speaker_fields(s.speaker for s in segs)
     return [
-        f"{meeting_id} 1 {s.speaker} {format_time(s.start)} {format_time(s.end)} {s.text}".rstrip()
-        for s in segments
+        f"{meeting_id} 1 {field[s.speaker]} {format_time(s.start)} {format_time(s.end)} {' '.join(s.text.split())}".rstrip()
+        for s in segs
     ]
 
 
@@ -521,11 +628,7 @@ def parse_stm(text: str, *, source: str = "<stm>", meeting_id: str | None = None
 
 def load_stm(path: str | Path, *, meeting_id: str | None = None) -> list[Segment]:
     p = Path(path)
-    try:
-        text = p.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        raise ContractError(f"{p}: file not found") from None
-    return parse_stm(text, source=str(p), meeting_id=meeting_id)
+    return parse_stm(_read_text(p, str(p)), source=str(p), meeting_id=meeting_id)
 
 
 def write_stm(segments: Iterable[Segment], meeting_id: str, path: str | Path) -> Path:

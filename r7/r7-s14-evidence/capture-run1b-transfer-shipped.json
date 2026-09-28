@@ -1,0 +1,168 @@
+{
+ "stats": {
+  "file": "/Users/mivi/Desktop/plaud-harness/tests/fixtures/r6s2_16k_mono.ogg",
+  "file_len": 11271,
+  "file_sha256": "0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d",
+  "session_id": 1700000000,
+  "host_port": 18081,
+  "connect_attempts": 90,
+  "retry_s": 1.0,
+  "t0": 1790321402.790422
+ },
+ "ble": [
+  {
+   "t": 9.485,
+   "dir": "write",
+   "len": 22,
+   "hex": "01010002000053594e54484849535430303031303030",
+   "opcode": 1
+  },
+  {
+   "t": 9.495,
+   "dir": "notify",
+   "len": 16,
+   "hex": "01010000070005000100000056010000",
+   "delivered": true,
+   "opcode": 1
+  },
+  {
+   "t": 9.519,
+   "dir": "write",
+   "len": 9,
+   "hex": "0104000423b66a051e",
+   "opcode": 4
+  },
+  {
+   "t": 9.53,
+   "dir": "notify",
+   "len": 9,
+   "hex": "01040000f153650000",
+   "delivered": true,
+   "opcode": 4
+  },
+  {
+   "t": 9.556,
+   "dir": "write",
+   "len": 3,
+   "hex": "010900",
+   "opcode": 9
+  },
+  {
+   "t": 9.565,
+   "dir": "notify",
+   "len": 5,
+   "hex": "0109000057",
+   "delivered": true,
+   "opcode": 9
+  },
+  {
+   "t": 9.585,
+   "dir": "write",
+   "len": 3,
+   "hex": "010300",
+   "opcode": 3
+  },
+  {
+   "t": 9.593,
+   "dir": "notify",
+   "len": 18,
+   "hex": "010300011000000101000400f15365000000",
+   "delivered": true,
+   "opcode": 3
+  },
+  {
+   "t": 9.614,
+   "dir": "write",
+   "len": 6,
+   "hex": "010800010f00",
+   "opcode": 8
+  },
+  {
+   "t": 9.624,
+   "dir": "notify",
+   "len": 9,
+   "hex": "0108000f0001000000",
+   "delivered": true,
+   "opcode": 8
+  },
+  {
+   "t": 9.649,
+   "dir": "write",
+   "len": 6,
+   "hex": "010800011100",
+   "opcode": 8
+  },
+  {
+   "t": 9.666,
+   "dir": "notify",
+   "len": 9,
+   "hex": "010800110001000000",
+   "delivered": true,
+   "opcode": 8
+  },
+  {
+   "t": 10.576,
+   "dir": "write",
+   "len": 3,
+   "hex": "011d00",
+   "opcode": 29
+  },
+  {
+   "t": 10.585,
+   "dir": "notify",
+   "len": 3,
+   "hex": "011e00",
+   "delivered": true,
+   "opcode": 30
+  },
+  {
+   "t": 12.081,
+   "dir": "write",
+   "len": 4,
+   "hex": "010a0000",
+   "opcode": 10
+  },
+  {
+   "t": 12.099,
+   "dir": "notify",
+   "len": 4,
+   "hex": "010a0000",
+   "delivered": true,
+   "opcode": 10
+  },
+  {
+   "t": 43.208,
+   "dir": "write",
+   "len": 3,
+   "hex": "010d00",
+   "opcode": 13
+  },
+  {
+   "t": 43.218,
+   "dir": "notify",
+   "len": 4,
+   "hex": "010d0000",
+   "delivered": true,
+   "opcode": 13
+  }
+ ],
+ "wifi": [],
+ "wifi_devices": [],
+ "peripheral_wifi_log": [
+  {
+   "opcode": 10,
+   "on_off": 0,
+   "wifi_pass": null,
+   "status": 0,
+   "busy": null,
+   "hotspot_on": false
+  },
+  {
+   "opcode": 13,
+   "status": 0,
+   "hotspot_on": false
+  }
+ ],
+ "peripheral_wifi_session_log": [],
+ "hotspot_on": false
+}

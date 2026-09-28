@@ -1,0 +1,25 @@
+# 2026-09-25T10:04:43Z piper-device whisper-sherpa synth-piper-4spk-s0104 pipeline=whisper-sherpa hint=0 n_active=4
+# audio /Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-4spk-s0104/device/recording.ogg
+# load average at start: { 5.85 5.88 6.62 }
+# swap at start: total = 9216.00M  used = 8021.56M  free = 1194.44M  (encrypted)
+whisper-sherpa: 67 segments, 10 speakers, 57.97s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper-device/whisper-sherpa/synth-piper-4spk-s0104.partial/hyp.json (+ .rttm, .stm)
+       59.68 real       216.74 user        19.20 sys
+          1156775936  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             2184188  page reclaims
+                 779  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                1261  voluntary context switches
+             1242670  involuntary context switches
+       1194079242608  instructions retired
+        386714042828  cycles elapsed
+          1524127616  peak memory footprint
+# load average at end: { 10.36 6.99 6.97 }
+# exit 0

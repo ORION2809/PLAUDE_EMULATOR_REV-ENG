@@ -112,3 +112,33 @@ def test_header_alone_is_still_512_bytes_and_a_truncated_one_is_not_encrypted() 
     assert len(seal_recording(b"", channels=2, duration_s=0)) == 512
     assert classify_recording(seal_recording(b"", 1, 0))["encrypted"] is True
     assert classify_recording(seal_recording(b"", 1, 0)[:511])["encrypted"] is False  # the SDK's length guard
+
+
+def test_protocol_ledger_citations_resolve_to_real_section_headings() -> None:
+    """GEN-7: ledger citations by line number drifted into section 7 (Wi-Fi).
+    Citations are by section and heading now, and every one must resolve."""
+    import re
+
+    root = Path(__file__).parents[1]
+    ledger = (root / "docs" / "protocol-ledger.md").read_text(encoding="utf-8").splitlines()
+    sections: dict[str, list[str]] = {}
+    current = None
+    for line in ledger:
+        m = re.match(r"^## (\d+)\. (.*)$", line)
+        if m:
+            current = m.group(1)
+            sections[current] = [m.group(2)]  # the section title itself, then its ### headings
+        elif current and line.startswith("### "):
+            sections[current].append(line[4:])
+    sources = [*sorted((root / "generator").rglob("*.py")), root / "docs" / "generator.md"]
+    cited = 0
+    for path in sources:
+        text = path.read_text(encoding="utf-8")
+        stale = re.findall(r"(?:ledger|protocol-ledger\.md)[^\n]{0,60}?(?:§|section )\d+[^\n]{0,40}?lines? \d{3,}", text)
+        assert stale == [], f"{path.name}: line-number ledger citations drift: {stale}"
+        for sec, heading in re.findall(r"(?:§|section )(\d+) \"([^\"]+)\"", text):
+            heading = " ".join(heading.split())  # citations may wrap inside docstrings
+            cited += 1
+            assert sec in sections, f"{path.name}: no section {sec} in the ledger"
+            assert any(h.startswith(heading) for h in sections[sec]), f"{path.name}: §{sec} has no heading {heading!r}"
+    assert cited >= 5

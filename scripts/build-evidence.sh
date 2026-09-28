@@ -20,7 +20,10 @@ AAR="$ROOT/reference/plaud-org/plaud-sdk-public/sdk/android/plaud-sdk.aar"
 OUT="$ROOT/build/evidence"
 TOOLS="${PLAUD_TOOLS:-/tmp/plaud-tools}"
 JADX_VERSION="1.5.1"
-JDK_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.13%2B11/OpenJDK17U-jdk_x64_mac_hotspot_17.0.13_11.tar.gz"
+# Temurin JDK 17.0.13+11, fetched only when no JDK is found (see "java" below).
+# The build is per platform: the macOS x64 one this script used to fetch
+# everywhere does not run on Linux, and on Apple silicon only under Rosetta.
+JDK_URL_BASE="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.13%2B11"
 
 # Pinned input: any change here invalidates every protocol claim in docs/.
 EXPECTED_AAR_SHA=041a6f8814d350dbc8bcd4a515487136529bb8bb4368fc88c9b36c9a386aedce
@@ -39,17 +42,53 @@ actual=$(shasum -a 256 "$AAR" | cut -d' ' -f1)
 mkdir -p "$TOOLS"
 
 # --- java ---------------------------------------------------------------
+# javap is the ground truth, so a JDK is required (a JRE has no javap). Order:
+# $JAVA_HOME; the original analysis machine's JDK; a JDK this script fetched
+# into $TOOLS/jdk earlier; else download the Temurin build for this platform
+# (macOS or Linux, x64 or arm64) -- anything else is a clear error, never a
+# download of a JDK that cannot run here.
+jdk_home_under() { # <dir> -> a JAVA_HOME below it with bin/javap (macOS Contents/Home or Linux layout), or nothing
+  local javap
+  javap="$(find "$1" -maxdepth 5 -path '*/bin/javap' -type f 2>/dev/null | head -1 || true)"
+  if [ -n "$javap" ]; then dirname "$(dirname "$javap")"; fi
+}
+jdk_asset() { # "<uname -s>/<uname -m>" -> the Temurin asset infix, or nothing
+  case "$1" in
+    Darwin/x86_64)              echo x64_mac ;;
+    Darwin/arm64)               echo aarch64_mac ;;
+    Linux/x86_64)               echo x64_linux ;;
+    Linux/aarch64|Linux/arm64)  echo aarch64_linux ;;
+  esac
+}
+PLATFORM="$(uname -s)/$(uname -m)"
 if [ -n "${JAVA_HOME:-}" ] && [ -x "${JAVA_HOME}/bin/javap" ]; then
   :
 elif [ -d /tmp/plaud-analysis/jdk-17.0.20.1+1/Contents/Home ]; then
   export JAVA_HOME=/tmp/plaud-analysis/jdk-17.0.20.1+1/Contents/Home
-elif [ -d "$TOOLS/jdk" ]; then
-  export JAVA_HOME="$(find "$TOOLS/jdk" -maxdepth 3 -name Home -type d | head -1)"
+elif [ -n "$(jdk_home_under "$TOOLS/jdk")" ]; then
+  export JAVA_HOME="$(jdk_home_under "$TOOLS/jdk")"
 else
-  echo "==> fetching JDK 17"
+  asset="$(jdk_asset "$PLATFORM")"
+  if [ -z "$asset" ]; then
+    echo "ERROR: no JDK found, and there is no JDK 17 download for this platform ($PLATFORM);" >&2
+    echo "  the script fetches Temurin builds for macOS and Linux on x64/arm64 only." >&2
+    echo "  Install a JDK 17 (javap is required; a JRE is not enough) and re-run with JAVA_HOME set." >&2
+    exit 1
+  fi
+  echo "==> fetching JDK 17 ($asset) into $TOOLS/jdk"
   mkdir -p "$TOOLS/jdk"
-  curl -sL "$JDK_URL" | tar xz -C "$TOOLS/jdk"
-  export JAVA_HOME="$(find "$TOOLS/jdk" -maxdepth 3 -name Home -type d | head -1)"
+  jdk_url="$JDK_URL_BASE/OpenJDK17U-jdk_${asset}_hotspot_17.0.13_11.tar.gz"
+  curl -fsSL "$jdk_url" | tar xz -C "$TOOLS/jdk" || {
+    echo "ERROR: could not download/unpack $jdk_url; install a JDK 17 and set JAVA_HOME instead." >&2
+    exit 1
+  }
+  export JAVA_HOME="$(jdk_home_under "$TOOLS/jdk")"
+fi
+if [ -z "${JAVA_HOME:-}" ] || [ ! -x "$JAVA_HOME/bin/javap" ] || ! "$JAVA_HOME/bin/java" -version >/dev/null 2>&1; then
+  echo "ERROR: no usable JDK on $PLATFORM: JAVA_HOME=${JAVA_HOME:-<unset>} has no working bin/java + bin/javap." >&2
+  echo "  Set JAVA_HOME to a JDK 17 for this platform (e.g. \$(/usr/libexec/java_home -v 17) on macOS," >&2
+  echo "  /usr/lib/jvm/java-17-openjdk-amd64 on Debian/Ubuntu), or remove $TOOLS/jdk to re-download." >&2
+  exit 1
 fi
 "$JAVA_HOME/bin/java" -version 2>&1 | head -1
 

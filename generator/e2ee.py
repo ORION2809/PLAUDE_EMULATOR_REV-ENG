@@ -1,8 +1,9 @@
 """The 512-byte PLAUD.AI E2EE recording header and its raw-ChaCha20 payload.
 
-EVIDENCE for the LAYOUT (SOURCE-DERIVED; docs/protocol-ledger.md section 8,
-lines 1100-1125, and the constructor `sdk.ble.util.PlaudEncryptHeader(byte[])`
-at build/evidence/javap/ALL.txt:125016-125147 which reads, little-endian:
+EVIDENCE for the LAYOUT (SOURCE-DERIVED; docs/protocol-ledger.md §8 "Recorded
+audio", the PlaudEncryptHeader table at the top of that section, and the
+constructor `sdk.ble.util.PlaudEncryptHeader(byte[])` at
+build/evidence/javap/ALL.txt:125016-125147 which reads, little-endian:
 8-byte magic, u16 version, u16 headerSize, u32 crc, 32-byte userId, u16
 fileType, u16 channel, u16 encryptType, u32 duration, 70 bytes skipped,
 u32 counter, 12-byte nonce, u32 segment, 108-byte algParams, 256-byte
@@ -10,12 +11,19 @@ keyCipher; guard "Data must be at least 512 bytes" at ALL.txt:125147;
 HEADER_SIZE = 512 and MAGIC_STRING = "PLAUD.AI" at ALL.txt:124983-124986;
 `isEncrypted()` at ALL.txt:125195 compares the trimmed magic).
 
-EVIDENCE for the PAYLOAD (SOURCE-DERIVED, ledger "File encryption", lines
-1178-1207): raw ChaCha20 (RFC 7539) with NO Poly1305 tag, a fresh engine per
-chunk with the same key, same nonce and counter 0; `AudioExporter` skips the
-first 512 bytes (ALL.txt:96623) before decrypting; the 32-byte key is the
-RSA-unwrapped `keyCipher`. Of the fourteen fields only magic, nonce, segment
-and keyCipher have a consumer.
+EVIDENCE for the PAYLOAD (SOURCE-DERIVED, ledger §8 "File encryption"): raw
+ChaCha20 (RFC 7539) with NO Poly1305 tag, a fresh engine per chunk with the
+same key, same nonce and counter 0; `AudioExporter` skips the first 512 bytes
+(ALL.txt:96623) before decrypting; the 32-byte key is the RSA-unwrapped
+`keyCipher`. Of the fourteen fields only magic, nonce, segment and keyCipher
+have a consumer. Why one continuous pass is right for segment == 0 (DIRECT,
+AudioExporter bytecode): `getSegment` (ALL.txt:96618) is compared with 0
+(`lcmp; ifle 402`, ALL.txt:96662-96663); segment > 0 decrypts segment-sized
+chunks with `AudioDecryptor.decryptChaCha20(..., 0)` each (ALL.txt:96705),
+while segment == 0 initialises ONE `ChaCha7539Engine` (ALL.txt:96756-96776)
+and streams 65536-byte reads through it (ALL.txt:96777, processBytes :96815),
+i.e. one keystream from counter 0 over the whole payload -- which is what
+`seal_recording` produces.
 
 HARNESS_POLICY (values, not layout): the synthetic key and nonce below, a
 `keyCipher` that is a labelled filler rather than an RSA-2048 ciphertext (no
@@ -23,9 +31,11 @@ Plaud RSA key exists here, and none may be fabricated), version=1,
 headerSize=512, crc=0 (never verified by the SDK), fileType=0 and
 encryptType=0 (semantics UNKNOWN), counter=0 (never read), segment=0 (so
 `AudioDecryptor` and `AudioExporter`, which disagree for segment > 0, agree),
-reserved and algParams zero-filled. The realised shape is therefore
-"encrypted_ogg" with a harness key: same bytes on the wire as far as the
-SDK's two tests can see, but NOT decryptable by any real Plaud key material.
+reserved and algParams zero-filled. The realised shapes are therefore
+"encrypted_ogg" (sealed mono Ogg) and "encrypted_raw_opus" (sealed bare packet
+stream) with a harness key: the layout AudioExporter's two tests and its
+decrypt loop expect, but NOT decryptable by any real Plaud key material (the
+SDK would fail at the RSA unwrap of the filler keyCipher).
 """
 
 from __future__ import annotations

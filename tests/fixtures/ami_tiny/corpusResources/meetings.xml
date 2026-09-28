@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<!-- HAND-MADE test fixture in the AMI NXT layout; not AMI data. Ids and names are fictional. -->
+<nite:root nite:id="meet.tiny" xmlns:nite="http://nite.sourceforge.net/">
+   <meeting nite:id="meet_t1" type="scenario" observation="TT0001a" name="tiny fixture meeting" duration="15.0">
+      <speaker nite:id="TT0001a_2" channel="1" nxt_agent="B" global_name="MTT002" role="ID"/>
+      <speaker nite:id="TT0001a_1" channel="0" nxt_agent="A" global_name="FTT001" role="PM"/>
+      <speaker nite:id="TT0001a_3" channel="2" nxt_agent="C" global_name="FTT003" role="UI"/>
+      <speaker nite:id="TT0001a_4" channel="3" nxt_agent="D" global_name="MTT004" role="ME"/>
+   </meeting>
+   <meeting nite:id="meet_t2" type="nonscenario" observation="TT0002a" name="tiny fixture meeting without annotations" duration="5.0">
+      <speaker nite:id="TT0002a_1" nxt_agent="A" global_name="FTT001" channel="0"/>
+   </meeting>
+</nite:root>

@@ -1,24 +1,31 @@
 # plaud-harness -- V6: `docker compose up -d --wait` brings the whole system live.
 #
-#   emulator   emulator/serve.py    PlaudPeripheral (portVersion 7) on a Bumble virtual link; a second
-#                                   virtual controller is exposed as an HCI TCP server on :9000 so any
+#   emulator   emulator/serve.py    PlaudPeripheral (portVersion 7) on a Bumble virtual link; every TCP
+#                                   client of :9000 gets its own virtual controller on that link, so any
 #                                   Bumble central attaches without a radio; JSON health line on :9001
 #   mockcloud  python -m mockcloud  local mock of the Plaud partner cloud contract on :8787
 #   job        docker/job.sh        one-shot system check (profile "check"): probes both services,
-#                                   attaches a central and sees the advertisement, generates a small
+#                                   attaches a central and checks the advertisement, generates a small
 #                                   synthetic set, runs the oracle pipeline, scores it against the
-#                                   `oracle` gate suite; non-zero exit on any failure
+#                                   `oracle` gate suite, pushes one device recording through the mock
+#                                   cloud (bind, multipart upload, transcription) and scores the result;
+#                                   non-zero exit on any failure
 #
 #   docker compose up -d --wait                       # the system (emulator + mockcloud), healthy
 #   docker compose run --rm job                       # the end-to-end check (exit code = verdict)
 #   docker compose --profile check up --abort-on-container-exit --exit-code-from job   # same, attached
 #   ./scripts/compose-smoke.sh                        # times the bring-up against the 60 s target
+#   PLAUD_MEETING_DIR=/app/build/compose/job/meetings/synth-smoke-s0001 docker compose up -d emulator
+#                                                     # serve a generated meeting (config changes -> recreated)
 #
 # HARNESS_POLICY (see docs/compose.md): everything is built locally from python:3.11-slim; the
 # network is a private bridge marked internal (no route out, nothing published -- use
 # docker/compose.host-ports.yml to publish on 127.0.0.1); build/ artefacts live in the named
-# volume harness-build; the job is behind a profile so `up --wait` is well defined on every
-# compose version (a one-shot service that exits 0 is treated inconsistently by --wait);
+# volume harness-build; the network and the volume carry no explicit `name:`, so compose
+# prefixes them with the project (`-p` / COMPOSE_PROJECT_NAME isolate two stacks); the job is
+# behind a profile so `up --wait` is well defined on every compose version (a one-shot service
+# that exits 0 is treated inconsistently by --wait); the mock's multipart ChunkSize is 20000 so
+# the job's ~49 KB upload is a genuine multipart one (the documented default is 5 MiB);
 # no secrets, no env files, no external network, no image pulls beyond the base image.
 
 name: plaud-harness
@@ -35,7 +42,11 @@ services:
       PLAUD_HEALTH_HOST: 0.0.0.0
       PLAUD_HEALTH_PORT: "9001"
       PLAUD_BUMBLE_LOG: WARNING
-      # PLAUD_MEETING_DIR: /app/build/compose/job/meetings/synth-smoke-s0001   # serve a generated meeting
+      # Served file: empty = unset = the R6-S2 fixture (emulator/serve.py). Compose forwards
+      # nothing from the shell by itself; these interpolations are what make
+      # `PLAUD_MEETING_DIR=/app/build/... docker compose up -d emulator` take effect.
+      PLAUD_MEETING_DIR: ${PLAUD_MEETING_DIR:-}
+      PLAUD_FILE: ${PLAUD_FILE:-}
     expose:
       - "9000"
       - "9001"
@@ -57,7 +68,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.mockcloud
     image: plaud-harness/mockcloud:local
-    command: ["python", "-m", "mockcloud", "--host", "0.0.0.0", "--port", "8787", "--local-file-root", "/app/build"]
+    command: ["python", "-m", "mockcloud", "--host", "0.0.0.0", "--port", "8787", "--local-file-root", "/app/build", "--chunk-size", "20000"]
     expose:
       - "8787"
     volumes:
@@ -89,6 +100,7 @@ services:
       JOB_SCENARIO: smoke
       JOB_SEED: "1"
       JOB_SUITE: oracle
+      JOB_CLOUD_TIMEOUT: "60"
       PROBE_TIMEOUT: "30"
     depends_on:
       emulator:
@@ -101,11 +113,9 @@ services:
     restart: "no"
 
 volumes:
-  harness-build:
-    name: plaud-harness-build
+  harness-build: {}   # resolves to <project>_harness-build (plaud-harness_harness-build by default)
 
 networks:
-  harness:
-    name: plaud-harness
+  harness:            # resolves to <project>_harness (plaud-harness_harness by default)
     driver: bridge
     internal: true

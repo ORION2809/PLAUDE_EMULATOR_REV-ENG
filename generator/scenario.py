@@ -76,10 +76,10 @@ class Speakers:
 class Export:
     opus_bitrate_per_channel: int = 32000  # EVIDENCE: 80 B / 20 ms / channel (ledger section 8)
     opus_complexity: int = 5  # HARNESS_POLICY: libopus complexity 0-10; firmware value UNKNOWN; 5 halves encode time
-    include_stereo_ogg: bool = True
+    include_stereo_ogg: bool = True  # required when device.channels == 2 (it is then the primary recording)
     include_raw_opus: bool = True
     include_g4: bool = True
-    include_e2ee: bool = True
+    include_e2ee: bool = True  # both encrypted shapes: sealed Ogg and sealed bare packet stream
     write_mics_wav: bool = True
 
 
@@ -163,6 +163,11 @@ class Scenario:
             errors.append(f"device.preset must be one of {sorted(DEVICE_PRESETS)}")
         if self.device.channels not in (1, 2):
             errors.append("device.channels must be 1 or 2")
+        if self.device.channels == 2 and not self.export.include_stereo_ogg:
+            errors.append(
+                "device.channels=2 makes the stereo Ogg the primary device recording "
+                "(audio.device_primary); export.include_stereo_ogg=false would drop it"
+            )
         if not _inside(self.device.position_m, dims):
             errors.append("device.position_m must lie inside the room")
         if self.noise.kind not in NOISE_KINDS:
@@ -270,6 +275,26 @@ PRESETS: dict[str, Scenario] = {
         duration_s=30.0,
         device=Device(preset="mono", position_m=(3.0, 2.5, 0.75)),
         turn_taking=TurnTaking(pause_min_s=0.4, pause_max_s=1.5),
+    ),
+    # Real, intelligible speech (generator/tts/piper.py; needs the local-only
+    # piper-tts package and data/voices/piper). Voices come from the piper
+    # palette (PiperBackend.assign_voices). Longer piper meetings override
+    # duration_s and friends on the command line (docs/generator.md section 6).
+    "piper_smoke": Scenario(
+        name="piper_smoke",
+        n_speakers=2,
+        duration_s=25.0,
+        tts_backend="piper",
+        room=Room(dims_m=(4.0, 3.0, 2.5), rt60_s=0.2),
+        device=Device(preset="mono", position_m=(2.0, 1.5, 0.75)),
+        turn_taking=TurnTaking(overlap_ratio=0.1, words_min=4, words_max=10, pause_min_s=0.2, pause_max_s=0.6),
+    ),
+    "piper_meeting": Scenario(
+        name="piper_meeting",
+        n_speakers=2,
+        duration_s=60.0,
+        tts_backend="piper",
+        turn_taking=TurnTaking(model="alternating", overlap_ratio=0.0),
     ),
 }
 

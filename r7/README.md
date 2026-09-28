@@ -2,21 +2,28 @@
 
 | item | what | status |
 |---|---|---|
-| `android-app/` | Our copy of the Plaud Android template (SDK bundled at `app/libs/plaud-sdk.aar`, same sha256 as the reference copy) plus one debug driver `debug/K3CaptureActivity.kt` that uses only public SDK API with a synthetic identifier. `local.properties` holds a synthetic placeholder token only. | built, `--offline` |
+| `android-app/` | Our modified copy of Plaud's Apache-2.0 Android template (SDK bundled at `app/libs/plaud-sdk.aar`, same sha256 as the reference copy) plus three debug drivers, `debug/K3CaptureActivity.kt` (R7-S12), `debug/PullCaptureActivity.kt` (R7-S13) and `debug/WifiCaptureActivity.kt` (R7-S14), that use only public SDK API with a synthetic identifier. `local.properties` holds a synthetic placeholder token only. Licence: `android-app/LICENSE` (Apache-2.0, copied from the reference repository); modifications and trademark note: `android-app/NOTICE-MODIFICATIONS.md`. | built, `--offline` |
 | `k3_capture_peripheral.py` | Frozen `PlaudPeripheral` (portVersion 7) on Bumble `android-netsim`, mirroring every 2BB1 write to JSON. | used for runs 1-4 |
 | `r7-s12-k3-runtime-capture.md` | **R7-S12 report**: the official SDK's k3 captured byte-exact; falsifiers; l3 round-trip; `bleBind` facade quirk; opcode-8 discovery. | RUNTIME_PROVEN |
 | `r7-s12-k3-capture-*.json`, `r7-s12-logcat-*.log`, `r7-s12-peripheral-*.log` | Raw evidence per run (1, 2-negative, 3-truncate, 4-settings). `k3-capture.json` is the last run's live file. | evidence |
-| `pull_capture_peripheral.py` | R7-S13 peripheral: serves `tests/fixtures/r6s2_16k_mono.ogg`, mirrors every 2BB1 write, knobs for EMPTY_PACKAGE code/position, DATA drop offset, TAIL field, abort-on-restart streaming and pacing. | used for runs 1–10 |
+| `pull_capture_peripheral.py` | R7-S13 peripheral: serves `tests/fixtures/r6s2_16k_mono.ogg`, mirrors every 2BB1 write, knobs for EMPTY_PACKAGE code/position, DATA drop offset, TAIL field, abort-on-restart streaming and pacing. `pull-capture.json` is the last run's live file (gitignored). | used for runs 1–13 (11–13 on the shipped `PlaudPeripheral` code path) |
 | `android-app/.../debug/PullCaptureActivity.kt` | R7-S13 driver: `getFileList()` then `syncFile` (raw collector) and/or `exportAudio(OPUS)`; hashes what the SDK delivers. Public API only, synthetic id. | built, `--offline` |
 | `r7-s13-recording-pull.md` | **R7-S13 report**: recording pulled byte-exact through the genuine SDK on both public paths; EMPTY_PACKAGE closes the transfer; stopSync-then-restart on gaps observed live; op-queue pacing; OPUS export passthrough. | RUNTIME_PROVEN |
-| `r7-s13-evidence/` | Per-run captures, filtered logcat, peripheral logs, batch scripts, SHA256SUMS, the two corrupted outputs (runs 3, 6). | evidence |
-| `cloud-endpoint-inventory.md` | 50 endpoints across five surfaces, static only, none exercised; the cloud↔SDK↔BLE correlation statement. | CLOUD_OBSERVED |
+| `r7-s13-evidence/` | Per-run captures, filtered logcat, peripheral logs, batch scripts, SHA256SUMS, the two corrupted outputs (runs 3, 6). `batch1.sh`, `batch2.sh`, `batch3.sh` are archival: they carry the original machine's absolute paths (`ROOT`, `ADB`, scratch dir) and are kept byte-identical as evidence, not as runnable scripts. | evidence |
+| `wifi_capture_device.py` | R7-S14 device: the R7-S13 BLE peripheral (`PlaudPeripheral.for_real_sdk`, pv 7) plus the Wi-Fi pen (`plaudsim.wifi_device.WifiDevice`, started by opcode 10) dialling `ws://127.0.0.1:18081` (adb-forwarded to the AVD's tcp:8081); mirrors every 2BB1 write / notification and every WebSocket frame and dial attempt to JSON. `WIFICAP_CLOSE_RSP_OPCODE` is a run-4-only experiment knob. The default capture path `r7/wifi-capture.json` is NOT gitignored; the runs passed `WIFICAP_CAPTURE` into the evidence folder. | used for runs 1–5 |
+| `android-app/.../debug/WifiCaptureActivity.kt` | R7-S14 driver: `mode=transfer` replays the template's `SyncManager.startWiFiTransfer` (stopSyncFile → 1.5 s → `startWifiTransfer(arg, cb)`, READY → `getWifiAgent().getFileList()` → `exportAudioViaWiFi`, failure → guard probes → `endWiFiTransfer()` + `setDeviceWiFi(false)`); `mode=open` drives `setDeviceWiFi(true/false)`. Public API only, synthetic id; joins, fakes or approves no network. Manifest: one DEBUG-ONLY activity entry and a DEBUG-ONLY `NEARBY_WIFI_DEVICES` declaration (granted in run 5 only). | built, `--offline` |
+| `r7-s14-wifi-real-sdk.md` | **R7-S14 report**: the genuine SDK's Wi-Fi transfer blocks on the SoftAP join (`requestNetwork(WifiNetworkSpecifier PLAUD0001)`, 30 s, error 1003) before its WebSocket server exists; no Wi-Fi PDU was exchanged. Opcode-10 mode-0 emulator bug found and fixed; CloseWiFi response-opcode mismatch in the SDK; Wi-Fi token ≠ BLE token on the recovery path; `initSDK` contacts the partner cloud (`gen-key`, 401) — disclosed. | RUNTIME_PROVEN (up to the join) |
+| `r7-s14-evidence/` | Per-run captures, app-process and system logcat, probes (`/proc/net/tcp*` for :8081, top activity, specifier requests, visible SSIDs), screenshots, permissions, `run.sh`, SHA256SUMS. Run 1's logcat was truncated by the ring buffer (`*.TRUNCATED.log`) and repeated as run 1b. `run.sh` is archival (this machine's paths). | evidence |
+| `cloud-endpoint-inventory.md` | 50 endpoints across five surfaces, read statically; none called by our code. The SDK itself sent `partner/sdk/gen-key` automatically during the R7 runs (see the dated correction in the file). | CLOUD_OBSERVED |
 
 Earlier R7 work already in the tree: `tests/test_r7_feature_exchange.py`
 (opcode 138), `tests/test_r7_transport_scope.py` (AES-GCM is Wi-Fi-only),
 `tests/test_r7_audio_shapes.py`. R7-S12 adds `tests/test_r7_s12_k3_runtime.py`,
 `tests/test_r7_s12_common_settings.py`, `tests/test_r7_s12_audio_selection_pin.py`.
-R7-S13 adds `tests/test_r7_s13_transfer_close.py`.
+R7-S13 adds `tests/test_r7_s13_transfer_close.py`. R7-S14 adds the `test_r7_s14_*`
+regressions in `tests/test_wifi_ble_handoff.py` and `tests/test_wifi_ble_crossover.py`.
 
 Closure documents: `docs/final-closure-report.md`, `docs/final-architecture.md`,
-`docs/final-uncertainty-matrix.json`, `docs/protocol-ledger.md` §5.12/§5.13/§14.
+`docs/final-uncertainty-matrix.json`, `docs/protocol-ledger.md` §5.12/§5.13/§14/§15.
+
+Note: the debug driver activities are declared in `app/src/main`, so they are present in every build of this app copy; "DEBUG-ONLY" marks intent, not a build-type restriction. All three drivers pass a blank token to `initSDK` (see `r7-s14-wifi-real-sdk.md`, D7).

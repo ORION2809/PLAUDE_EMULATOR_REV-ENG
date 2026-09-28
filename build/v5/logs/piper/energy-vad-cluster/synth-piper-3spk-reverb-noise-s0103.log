@@ -1,0 +1,25 @@
+# 2026-09-25T09:02:15Z piper energy-vad-cluster synth-piper-3spk-reverb-noise-s0103 pipeline=energy-vad-cluster hint=0 n_active=3
+# audio /Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-3spk-reverb-noise-s0103/mix.wav
+# load average at start: { 2.02 2.15 2.57 }
+# swap at start: total = 8192.00M  used = 6781.38M  free = 1410.62M  (encrypted)
+energy-vad-cluster: 62 segments, 3 speakers, 0.33s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper/energy-vad-cluster/synth-piper-3spk-reverb-noise-s0103.partial/hyp.json (+ .rttm, .stm)
+        0.60 real         0.54 user         0.04 sys
+           141492224  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               11574  page reclaims
+                   0  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   4  voluntary context switches
+                 183  involuntary context switches
+          6384083685  instructions retired
+          1875848596  cycles elapsed
+           121341312  peak memory footprint
+# load average at end: { 2.02 2.15 2.57 }
+# exit 0

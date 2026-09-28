@@ -4,7 +4,9 @@
     batch    --n K --out DIR [--scenario ...] [--seed N] [--set ...]
     presets  list the built-in scenario presets (as YAML with --yaml)
     backends report which TTS backends are usable offline
-    validate DIR   check a meeting directory against the contract
+    validate DIR   check a meeting directory against the contract, its RTTM/STM
+                   against meeting.json, and stems/, device/ and mics.wav for
+                   files meeting.json does not list
 """
 
 from __future__ import annotations
@@ -101,9 +103,16 @@ def cmd_validate(args: argparse.Namespace) -> int:
             problems.append(f"segment {i}: ref.rttm disagrees with meeting.json")
         if (s["speaker"], s["start"], s["end"], s["text"]) != (seg["speaker"], seg["start"], seg["end"], seg["text"]):
             problems.append(f"segment {i}: ref.stm disagrees with meeting.json")
-    for rel in [meeting["audio"]["mix_wav"], *meeting["audio"]["stems"].values(), *meeting["audio"]["device"].values()]:
+    from generator.export import unlisted_files
+
+    audio = meeting["audio"]
+    listed = [audio["mix_wav"], *audio["stems"].values(), *audio["device"].values()]
+    listed += [rel for rel in (audio.get("mics_wav"), (audio.get("activity") or {}).get("path")) if rel]
+    for rel in listed:
         if not (d / rel).is_file():
             problems.append(f"missing file {rel}")
+    for rel in unlisted_files(d, meeting):
+        problems.append(f"unlisted file {rel} (not in meeting.json; left by another meeting?)")
     if problems:
         print("\n".join(problems), file=sys.stderr)
         return 1

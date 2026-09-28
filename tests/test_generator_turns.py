@@ -12,11 +12,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from generator.contract import GRID_SAMPLES, SAMPLE_RATE
-from generator.meeting import generate_meeting
+from generator.meeting import assign_voices, generate_meeting
 from generator.scenario import Scenario, TurnTaking, load_scenario
 from generator.text import TextSource
 from generator.tts.formant import FormantBackend
-from generator.turns import activity_mask, build_dry_stems, mask_to_segments, overlap_ratio, plan_turns
+from generator.turns import Turn, activity_mask, build_dry_stems, mask_to_segments, overlap_ratio, plan_turns
 
 VOICES = ["fv-alto", "fv-bass", "fv-tenor", "fv-mezzo"]
 
@@ -68,7 +68,142 @@ def test_overlap_target_is_realised_within_tolerance(target: float) -> None:
     mask = activity_mask(turns, 3, int(sc.duration_s * SAMPLE_RATE))
     realised = overlap_ratio(mask)
     assert abs(realised - target) <= 0.04, (target, realised)
-    assert mask.sum(axis=0).max() <= 2, "the controller never stacks three speakers"
+    assert invariant_violations(turns, sc) == []
+
+
+# --- planner invariants as a property over many seeds and presets (GEN-1) ---------
+#
+# The documented guarantees: no three speakers ever stack, a speaker never
+# overlaps themself, an overlap never exceeds max_overlap_fraction of the shorter
+# of the two turns (measured on the grid-quantised spans), a turn only ever
+# overlaps its immediate neighbours, and the dry stem holds each turn's PCM
+# untouched. One seed proved nothing: overlap_heavy seed 1 stacked three
+# speakers for 250 samples and seed 27 overwrote the tail of a spk2 word.
+
+
+def plan_scenario(sc: Scenario) -> list:
+    backend = FormantBackend()
+    return plan_turns(sc, TextSource(sc.seed, sc.text_corpus), backend, assign_voices(backend.voices(), sc.n_speakers, sc.seed))
+
+
+def invariant_violations(turns: list, sc: Scenario) -> list[str]:
+    n = int(round(sc.duration_s * SAMPLE_RATE))
+    frac = sc.turn_taking.max_overlap_fraction
+    problems: list[str] = []
+    mask = activity_mask(turns, sc.n_speakers, n)
+    peak = int(mask.sum(axis=0).max())
+    if peak > 2:
+        problems.append(f"{peak} speakers stack for {int(np.count_nonzero(mask.sum(axis=0) > 2))} samples")
+    last_by_speaker: dict[int, object] = {}
+    for t in turns:
+        if t.start_sample % GRID_SAMPLES or t.end_sample % GRID_SAMPLES:
+            problems.append(f"turn {t.index} is off the grid")
+        before = last_by_speaker.get(t.speaker)
+        if before is not None and t.start_sample < before.end_sample:
+            problems.append(f"spk{t.speaker} overlaps itself: turn {before.index} ends {before.end_sample}, turn {t.index} starts {t.start_sample}")
+        last_by_speaker[t.speaker] = t
+    for a, b in zip(turns, turns[1:]):
+        ov = a.end_sample - b.start_sample
+        shorter = min(a.end_sample - a.start_sample, b.end_sample - b.start_sample)
+        if ov > 0 and ov > frac * shorter:
+            problems.append(f"turns {a.index}/{b.index} overlap {ov} samples > {frac} x {shorter}")
+    for i, a in enumerate(turns):
+        for b in turns[i + 2 :]:
+            if b.start_sample < a.end_sample:
+                problems.append(f"turn {b.index} overlaps non-adjacent turn {a.index}")
+    # the mask is the table: its runs are the turns, except that same-speaker
+    # turns which touch (end == next start) merge into one run
+    merged: list[list[int]] = []
+    for spk, a, b in sorted((t.speaker, t.start_sample, t.end_sample) for t in turns):
+        if merged and merged[-1][0] == spk and merged[-1][2] == a:
+            merged[-1][2] = b
+        else:
+            merged.append([spk, a, b])
+    if sorted(mask_to_segments(mask)) != sorted(tuple(m) for m in merged):
+        problems.append("activity mask runs differ from the (touch-merged) turn table")
+    try:
+        stems = build_dry_stems(turns, sc.n_speakers, n)
+    except ValueError as exc:
+        problems.append(f"build_dry_stems refused the table: {exc}")
+    else:
+        for t in turns:
+            if not np.array_equal(stems[t.speaker, t.start_sample : t.start_sample + len(t.pcm)], t.pcm):
+                problems.append(f"turn {t.index}: dry stem differs from its utterance (clobbered)")
+    return problems
+
+
+def stress(n_speakers: int, model: str, seed: int) -> Scenario:
+    """Short turns and near-zero pauses at the maximum overlap: every cap binds."""
+    return Scenario(
+        name="stress", n_speakers=n_speakers, duration_s=30.0, seed=seed,
+        turn_taking=TurnTaking(model=model, overlap_ratio=0.45, words_min=1, words_max=3, pause_min_s=0.0, pause_max_s=0.2),
+    ).validate()
+
+
+PROPERTY_CASES = [
+    ("overlap_heavy", {}, range(1, 31)),
+    ("notepin_s_noisy", {"turn_taking.overlap_ratio": 0.3}, range(1, 21)),
+    ("default", {"turn_taking.overlap_ratio": 0.3}, range(1, 11)),
+    ("smoke", {"n_speakers": 3, "turn_taking.overlap_ratio": 0.2}, range(1, 11)),
+]
+
+
+@pytest.mark.parametrize("preset, overrides, seeds", PROPERTY_CASES, ids=[c[0] for c in PROPERTY_CASES])
+def test_planner_invariants_hold_for_every_seed_of_the_presets(preset: str, overrides: dict, seeds: range) -> None:
+    failures = {}
+    for seed in seeds:
+        sc = load_scenario(preset, dict(overrides, seed=seed))
+        problems = invariant_violations(plan_scenario(sc), sc)
+        if problems:
+            failures[seed] = problems[:3]
+    assert failures == {}
+
+
+@pytest.mark.parametrize("n_speakers, model", [(2, "alternating"), (3, "alternating"), (4, "random")])
+def test_planner_invariants_hold_when_every_overlap_cap_binds(n_speakers: int, model: str) -> None:
+    failures = {}
+    for seed in range(1, 13):
+        sc = stress(n_speakers, model, seed)
+        turns = plan_scenario(sc)
+        assert len(turns) >= 20
+        problems = invariant_violations(turns, sc)
+        if problems:
+            failures[seed] = problems[:3]
+    assert failures == {}
+
+
+#: Measured |realised - target| (docs/generator.md section 1). Alternating turns
+#: land within 0.0064 of 0.30 (default preset, seeds 1..30). In the random model a
+#: same-speaker continuation adds speech that cannot be overlapped and catch-up is
+#: capped at half the shorter turn, so overlap_heavy (target 0.30) falls short by
+#: up to 0.043 (seed 10 of 1..30; mean -0.004). Bounds below: measured + margin.
+TARGET_CASES = [
+    ("overlap_heavy", {}, range(1, 31), 0.045, 0.01),
+    ("default", {"turn_taking.overlap_ratio": 0.3}, range(1, 11), 0.01, 0.005),
+]
+
+
+@pytest.mark.parametrize("preset, overrides, seeds, worst, mean_tol", TARGET_CASES, ids=[c[0] for c in TARGET_CASES])
+def test_overlap_target_is_met_across_seeds(preset: str, overrides: dict, seeds: range, worst: float, mean_tol: float) -> None:
+    """The controller tracks the running ratio; measured over many seeds."""
+    errors = []
+    for seed in seeds:
+        sc = load_scenario(preset, dict(overrides, seed=seed))
+        mask = activity_mask(plan_scenario(sc), sc.n_speakers, int(round(sc.duration_s * SAMPLE_RATE)))
+        errors.append(overlap_ratio(mask) - sc.turn_taking.overlap_ratio)
+    assert max(abs(e) for e in errors) <= worst, errors
+    assert abs(float(np.mean(errors))) <= mean_tol, errors
+
+
+def test_build_dry_stems_refuses_a_same_speaker_overlap() -> None:
+    """Assignment would silently overwrite the earlier turn's tail; refuse instead."""
+    pcm = np.full(1000, 1000, dtype=np.int16)
+    a = Turn(index=0, speaker=0, start_sample=0, end_sample=1000, text="a", words=[], pcm=pcm)
+    b = Turn(index=1, speaker=0, start_sample=875, end_sample=1875, text="b", words=[], pcm=pcm)
+    with pytest.raises(ValueError, match="overlap"):
+        build_dry_stems([a, b], 1, 4000)
+    c = Turn(index=1, speaker=0, start_sample=1000, end_sample=2000, text="c", words=[], pcm=pcm)
+    assert build_dry_stems([a, c], 1, 4000)[0, :2000].min() == 1000  # touching spans are fine
 
 
 def test_overlap_only_between_different_speakers() -> None:
@@ -115,3 +250,15 @@ def test_impossible_duration_raises_clearly() -> None:
     sc = load_scenario("smoke", {"duration_s": 1.0, "turn_taking.words_min": 30, "turn_taking.words_max": 30, "turn_taking.lead_in_s": 0.9})
     with pytest.raises(ValueError, match="no utterance fits"):
         generate_meeting(sc)
+
+
+def test_auto_assigned_voices_are_never_shared_between_speakers() -> None:
+    """Two ground-truth speakers with one voice are indistinguishable by design;
+    auto-assignment refuses instead of silently wrapping around the voice list."""
+    voices = FormantBackend().voices()
+    assert len(set(assign_voices(voices, len(voices), 3))) == len(voices)
+    with pytest.raises(ValueError, match="speakers.voices"):
+        assign_voices(voices, len(voices) + 1, 3)
+    # an explicit list may repeat a voice on purpose
+    sc = load_scenario("smoke", {"duration_s": 3.0, "speakers.voices": ["fv-alto", "fv-alto"]})
+    assert generate_meeting(sc).voices == ["fv-alto", "fv-alto"]

@@ -33,12 +33,13 @@ from __future__ import annotations
 
 import asyncio
 import enum
+import functools
 import time
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable
 
 from websockets.asyncio.client import connect
-from websockets.exceptions import ConnectionClosed
+from websockets.exceptions import ConnectionClosed, WebSocketException
 
 from plaudsim.transfer import FileTable
 from plaudsim.wifi import (
@@ -56,6 +57,8 @@ from plaudsim.wifi import (
     MSG_SEND_OTA_FILE_INFO,
     MSG_SPEED_TEST,
     MESSAGE_NAMES,
+    MAX_TOTAL_SIZE,
+    PDU_HEADER_LEN,
     PDU_VERSION_HOST,
     WS_PORT,
     ExtendExitTimeRequest,
@@ -97,6 +100,21 @@ DEFAULT_EXIT_TIMEOUT = 120.0       # CLAIM "~2 min" -> then WifiClose, unless Ex
 DEFAULT_SESSION_ID = "SYN-WIFI-SESSION-0001"   # synthetic, clearly labelled
 DEFAULT_SPEED_TEST_PACKETS = 3
 DEFAULT_DEVICE_LOG = b"SYNTHETIC-DEVICE-LOG: plaudsim wifi emulator\n"
+DEFAULT_CONNECT_ATTEMPTS = 1       # dial once; the BLE handoff may allow retries
+DEFAULT_CONNECT_RETRY_INTERVAL = 0.2
+
+#: Bytes reserved for the FileSyncContent JSON ({"session","offset","length",
+#: "last"} with 64-bit values is under 100 bytes).
+FILE_SYNC_JSON_RESERVE = 256
+#: Largest file slice one FileSyncContent can carry: the PDU's totalSize is a
+#: u24 (wifi.MAX_TOTAL_SIZE, BYTECODE_PROVEN envelope) and counts the 8-byte
+#: header, the JSON and the tail. DERIVED bound; the chunk size itself is
+#: HARNESS_POLICY.
+MAX_CHUNK_SIZE = MAX_TOTAL_SIZE - PDU_HEADER_LEN - FILE_SYNC_JSON_RESERVE
+
+
+class WifiNotConnected(RuntimeError):
+    """`WifiDevice.send()` was called while no WebSocket is open."""
 
 
 class WifiDeviceState(enum.Enum):
@@ -154,10 +172,25 @@ class WifiFileStore:
 
     @classmethod
     def from_file_table(cls, table: FileTable, contents: dict[int, bytes]) -> "WifiFileStore":
+        for e in table.entries:
+            cls._check(e["session_id"], e["file_size"], e.get("scene", 1))
         store = cls(entries=[dict(e) for e in table.entries], contents=dict(contents))
         return store
 
+    @staticmethod
+    def _check(session_id: int, size: int, scene: int) -> None:
+        """The Wi-Fi record is [u32le sessionId][u32le fileSize][u16le scene]
+        (wifi.FileRecord); refuse what it cannot carry instead of failing
+        later inside a GetFileList handler."""
+        if not 0 <= session_id <= 0xFFFFFFFF:
+            raise ValueError(f"session id out of u32 range: {session_id}")
+        if not 0 <= size <= 0xFFFFFFFF:
+            raise ValueError(f"file size out of u32 range: {size}")
+        if not 0 <= scene <= 0xFFFF:
+            raise ValueError(f"scene out of u16 range: {scene}")
+
     def add(self, session_id: int, data: bytes, scene: int = 1) -> None:
+        self._check(session_id, len(data), scene)
         self.entries = [e for e in self.entries if e["session_id"] != session_id]
         self.entries.append({"session_id": session_id, "file_size": len(data), "scene": scene})
         self.contents[session_id] = bytes(data)
@@ -181,6 +214,16 @@ class WifiDevice:
     Inbound classification mirrors the phone's own rule (HARNESS_POLICY that
     the pen does the same): a frame whose u16le@4 exceeds 200 is opened with
     the sealer when one is installed; anything else is parsed as plaintext.
+
+    SINGLE-USE (HARNESS_POLICY): one device runs one session. `run()` raises
+    on a second call; build a new WifiDevice per session, as the BLE handoff
+    does for every accepted OpenWiFi. `close()` is safe in every state: before
+    `run()` it ends the session before it starts, while dialling it cancels
+    the dial, once connected it announces WifiClose and hangs up.
+
+    Robustness: a request handler that raises is logged (`handler_error`) and
+    the session keeps serving; a transfer task that fails is logged
+    (`transfer_failed`). Neither kills `run()`.
     """
 
     def __init__(
@@ -209,9 +252,11 @@ class WifiDevice:
         device_log: bytes = DEFAULT_DEVICE_LOG,
         speed_test_packets: int = DEFAULT_SPEED_TEST_PACKETS,
         open_timeout: float = 5.0,
+        connect_attempts: int = DEFAULT_CONNECT_ATTEMPTS,
+        connect_retry_interval: float = DEFAULT_CONNECT_RETRY_INTERVAL,
     ) -> None:
-        if chunk_size <= 0:
-            raise ValueError("chunk_size must be positive")
+        if not 0 < chunk_size <= MAX_CHUNK_SIZE:
+            raise ValueError(f"chunk_size must be in 1..{MAX_CHUNK_SIZE} (u24 totalSize), got {chunk_size}")
         self.uri = f"ws://{host}:{port}"
         self.store = store if store is not None else WifiFileStore()
         # SayHello fields. `sn`/`version` are what the phone logs
@@ -239,6 +284,11 @@ class WifiDevice:
         self.device_log = bytes(device_log)
         self.speed_test_packets = speed_test_packets
         self.open_timeout = open_timeout
+        # HARNESS_POLICY: how long the pen keeps trying to reach the phone.
+        # Real hardware must wait for the phone to join its SoftAP and start
+        # the server; its retry behaviour is UNKNOWN.
+        self.connect_attempts = max(1, connect_attempts)
+        self.connect_retry_interval = connect_retry_interval
 
         self.state = WifiDeviceState.IDLE
         self.state_log: list[str] = [self.state.value]
@@ -253,6 +303,8 @@ class WifiDevice:
         self.transfer_offset = 0
         self.transfer_chunks_sent = 0
         self._exit_deadline: float | None = None
+        self._started = False
+        self._close_requested = asyncio.Event()
         self._send_lock = asyncio.Lock()
         self._tasks: list[asyncio.Task[Any]] = []
         self.connected = asyncio.Event()
@@ -277,6 +329,13 @@ class WifiDevice:
     # --- lifecycle -------------------------------------------------------------
 
     def _set_state(self, state: WifiDeviceState) -> None:
+        """Advance the lifecycle. CLOSED and FAILED are terminal, and nothing
+        but CLOSED/FAILED follows CLOSING -- a late connect or handshake can
+        no longer overwrite a close that was already requested."""
+        if self.state in (WifiDeviceState.CLOSED, WifiDeviceState.FAILED):
+            return
+        if self.state is WifiDeviceState.CLOSING and state not in (WifiDeviceState.CLOSED, WifiDeviceState.FAILED):
+            return
         self.state = state
         self.state_log.append(state.value)
 
@@ -288,43 +347,109 @@ class WifiDevice:
         return self.transfer_task is not None and not self.transfer_task.done()
 
     async def run(self) -> None:
-        """Dial the phone, speak SayHello, serve until the socket closes."""
+        """Dial the phone, speak SayHello, serve until the socket closes.
+
+        Single-use: raises RuntimeError when called a second time. A dial
+        failure is reported (state FAILED, `connect_failed`), not raised.
+        """
+        if self._started:
+            raise RuntimeError("WifiDevice is single-use: run() was already called; build a new device per session")
+        self._started = True
+        if self._close_requested.is_set():
+            # close() came first: the session ended before it began.
+            self._event("run_after_close", reason=self.close_reason)
+            self.closed.set()
+            return
         self._set_state(WifiDeviceState.CONNECTING)
         try:
-            async with connect(
-                self.uri,
-                ping_interval=None,   # mirrors setConnectionLostTimeout(0) on the phone
-                max_size=None,
-                open_timeout=self.open_timeout,
-            ) as ws:
-                self.ws = ws
-                self._set_state(WifiDeviceState.CONNECTED)
-                self.connected.set()
-                self._extend_exit()
-                # The phone sends nothing until it sees SayHello (wifi.SayHello).
-                await self.send(SayHello(self.serial, self.version, self.token, self.p_ver))
-                if self.heartbeat_interval:
-                    self._tasks.append(asyncio.create_task(self._heartbeat_loop()))
-                if self.exit_timeout:
-                    self._tasks.append(asyncio.create_task(self._exit_timer()))
+            ws = await self._dial()
+            if ws is None:
+                return
+            self.ws = ws
+            try:
+                await self._serve(ws)
+            finally:
+                await self._cancel_tasks()
                 try:
-                    async for raw in ws:
-                        if isinstance(raw, str):
-                            # The phone only logs text frames (WebSocketOperation$startServer$1.txt:118-138).
-                            self._event("text_frame_ignored", length=len(raw))
-                            continue
-                        await self._on_frame(bytes(raw))
-                except ConnectionClosed as exc:
-                    self._event("connection_closed", code=getattr(exc, "code", None))
-                finally:
-                    await self._cancel_tasks()
-        except OSError as exc:
-            self._set_state(WifiDeviceState.FAILED)
-            self._event("connect_failed", error=repr(exc))
+                    await ws.close()
+                except (ConnectionClosed, OSError):
+                    pass
         finally:
             if self.state is not WifiDeviceState.FAILED:
                 self._set_state(WifiDeviceState.CLOSED)
             self.closed.set()
+
+    async def _dial(self) -> Any:
+        """Open the WebSocket, retrying per policy; None when close() won the
+        race or every attempt failed (state FAILED)."""
+        for attempt in range(1, self.connect_attempts + 1):
+            if self._close_requested.is_set():
+                self._event("dial_cancelled", reason=self.close_reason, attempt=attempt)
+                return None
+            dial = asyncio.ensure_future(
+                connect(
+                    self.uri,
+                    ping_interval=None,   # mirrors setConnectionLostTimeout(0) on the phone
+                    max_size=None,
+                    open_timeout=self.open_timeout,
+                )
+            )
+            stop = asyncio.ensure_future(self._close_requested.wait())
+            try:
+                await asyncio.wait({dial, stop}, return_when=asyncio.FIRST_COMPLETED)
+            except asyncio.CancelledError:
+                dial.cancel()
+                stop.cancel()
+                raise
+            stop.cancel()
+            if self._close_requested.is_set():
+                if not dial.done():
+                    dial.cancel()
+                    await asyncio.wait({dial})
+                if not dial.cancelled() and dial.exception() is None:
+                    try:
+                        await dial.result().close()
+                    except (ConnectionClosed, OSError):
+                        pass
+                self._event("dial_cancelled", reason=self.close_reason, attempt=attempt)
+                return None
+            exc = dial.exception()
+            if exc is None:
+                return dial.result()
+            if not isinstance(exc, (OSError, WebSocketException)):
+                raise exc
+            if attempt == self.connect_attempts:
+                self._set_state(WifiDeviceState.FAILED)
+                self._event("connect_failed", error=repr(exc), attempts=attempt)
+                return None
+            self._event("connect_retry", error=repr(exc), attempt=attempt)
+            try:
+                await asyncio.wait_for(self._close_requested.wait(), self.connect_retry_interval)
+            except asyncio.TimeoutError:
+                pass
+        return None
+
+    async def _serve(self, ws: Any) -> None:
+        self._set_state(WifiDeviceState.CONNECTED)
+        self.connected.set()
+        if self._close_requested.is_set():
+            return
+        self._extend_exit()
+        try:
+            # The phone sends nothing until it sees SayHello (wifi.SayHello).
+            await self.send(SayHello(self.serial, self.version, self.token, self.p_ver))
+            if self.heartbeat_interval:
+                self._tasks.append(asyncio.create_task(self._heartbeat_loop()))
+            if self.exit_timeout:
+                self._tasks.append(asyncio.create_task(self._exit_timer()))
+            async for raw in ws:
+                if isinstance(raw, str):
+                    # The phone only logs text frames (WebSocketOperation$startServer$1.txt:118-138).
+                    self._event("text_frame_ignored", length=len(raw))
+                    continue
+                await self._on_frame(bytes(raw))
+        except ConnectionClosed as exc:
+            self._event("connection_closed", code=getattr(exc, "code", None))
 
     async def _cancel_tasks(self) -> None:
         tasks = list(self._tasks)
@@ -341,26 +466,37 @@ class WifiDevice:
                 pass
 
     async def close(self, reason: str = "app") -> None:
-        """Announce WifiClose, then close the socket.
+        """End the session, whatever state it is in.
 
-        On WifiClose the phone stops its server and closes the client socket
-        (WifiAgentImpl.txt:1187-1292), so the pen's receive loop ends either way.
+        Before run(): the device goes straight to CLOSED and a later run()
+        returns at once. While dialling: the dial is cancelled (run() ends
+        CLOSED without speaking). Once connected: announce WifiClose, then
+        close the socket; on WifiClose the phone stops its server and closes
+        the client socket (WifiAgentImpl.txt:1187-1292), so the pen's receive
+        loop ends either way. The pen-side choices are HARNESS_POLICY.
         """
         if self.state in (WifiDeviceState.CLOSING, WifiDeviceState.CLOSED, WifiDeviceState.FAILED):
             return
-        self._set_state(WifiDeviceState.CLOSING)
         self.close_reason = reason
+        self._close_requested.set()
+        if self.state is WifiDeviceState.IDLE:
+            self._set_state(WifiDeviceState.CLOSED)
+            self._event("closed_before_connect", reason=reason)
+            self.closed.set()
+            return
+        self._set_state(WifiDeviceState.CLOSING)
+        if self.ws is None:
+            return          # still dialling: run() sees the request and hangs up
         if self.transfer_task is not None and not self.transfer_task.done():
             self.transfer_task.cancel()
         try:
             await self.send(WifiClose(reason=reason, status=0))
         except ConnectionClosed:
             pass
-        if self.ws is not None:
-            try:
-                await self.ws.close()
-            except ConnectionClosed:
-                pass
+        try:
+            await self.ws.close()
+        except ConnectionClosed:
+            pass
 
     async def wait_handshaked(self, timeout: float = 5.0) -> None:
         await asyncio.wait_for(self.handshaked.wait(), timeout)
@@ -371,18 +507,27 @@ class WifiDevice:
     # --- transport -------------------------------------------------------------
 
     async def send(self, message: WifiMessage) -> bytes:
-        """Encode, seal when keyed, and send one message. Returns the wire bytes."""
+        """Encode, seal when keyed, and send one message. Returns the wire bytes.
+
+        Raises WifiNotConnected when no WebSocket is open. Sealing happens
+        under the send lock, so wire order is sequence order and the logged
+        `seq` is this frame's own.
+        """
+        ws = self.ws
+        if ws is None:
+            raise WifiNotConnected(f"cannot send {MESSAGE_NAMES.get(message.TYPE)}: the WebSocket is not open")
         pdu = message.encode(self.pdu_version)
-        wire = self.sealer.seal(pdu) if self.sealer is not None else pdu
         async with self._send_lock:
-            await self.ws.send(wire)
+            wire = self.sealer.seal(pdu) if self.sealer is not None else pdu
+            seq = self.sealer.tx_seq if self.sealer is not None else None
+            await ws.send(wire)
         self.log.append(
             {
                 "dir": "out",
                 "type": message.TYPE,
                 "name": MESSAGE_NAMES.get(message.TYPE),
                 "sealed": self.sealer is not None,
-                "seq": self.sealer.tx_seq if self.sealer is not None else None,
+                "seq": seq,
                 "len": len(wire),
             }
         )
@@ -423,7 +568,14 @@ class WifiDevice:
         if handler is None:
             self._event("unknown_message_type", type=pdu.msg_type)
             return
-        await handler(pdu)
+        try:
+            await handler(pdu)
+        except ConnectionClosed:
+            raise
+        except Exception as exc:
+            # HARNESS_POLICY: log and keep serving; the phone's request runs
+            # into its own 30 s timeout (WifiRequestBean.txt:55).
+            self._event("handler_error", type=pdu.msg_type, name=pdu.name, error=f"{type(exc).__name__}: {exc}")
 
     # --- timers ----------------------------------------------------------------
 
@@ -468,8 +620,9 @@ class WifiDevice:
         ok = self.expected_token is None or req.token == pad_wifi_token(self.expected_token)
         self._event("handshake", token=req.token, stamp=req.stamp, accepted=ok)
         if ok:
-            self._set_state(WifiDeviceState.HANDSHAKED)
-            self.handshaked.set()
+            if self.state in (WifiDeviceState.CONNECTED, WifiDeviceState.HANDSHAKED):
+                self._set_state(WifiDeviceState.HANDSHAKED)
+                self.handshaked.set()
             await self.send(HandshakeResponse(self.status.handshake_ok, self.session_id))
         else:
             await self.send(HandshakeResponse(self.status.handshake_token_mismatch, ""))
@@ -517,6 +670,16 @@ class WifiDevice:
         await self.send(FileSyncStatus(self.status.sync_ok, req.session, len(data)))
         self.transfer_session = req.session
         self.transfer_task = asyncio.create_task(self._stream_file(req, data))
+        self.transfer_task.add_done_callback(functools.partial(self._on_transfer_done, req.session))
+
+    def _on_transfer_done(self, session: int, task: asyncio.Task[None]) -> None:
+        """A stream that died of an exception is logged, not lost. The phone
+        still only sees its request time out; telling it is out of scope."""
+        if task.cancelled():
+            return
+        exc = task.exception()
+        if exc is not None:
+            self._event("transfer_failed", session=session, error=f"{type(exc).__name__}: {exc}")
 
     async def _stream_file(self, req: FileSyncRequest, data: bytes) -> None:
         """Emit FileSyncContent frames in offset order until `end`, last=1 on the final one.
@@ -601,16 +764,80 @@ class WifiDevice:
         self._event("unsupported_ota", type=pdu.msg_type)
 
 
+# --- the BLE handoff: build a WifiDevice from a PlaudPeripheral ------------------------
+
+
+def store_from_peripheral(peripheral: Any) -> WifiFileStore:
+    """The Wi-Fi file table a BLE peripheral would serve: one record per BLE
+    file-table entry, with the bytes its y6 would stream
+    (`peripheral.file_bytes_for(session_id)`) and the entry's scene.
+    HARNESS_POLICY: the two transports serve the same recordings; entries the
+    peripheral has no content for are left out."""
+    store = WifiFileStore()
+    for entry in peripheral.file_table.entries:
+        sid = entry["session_id"]
+        try:
+            data = peripheral.file_bytes_for(sid)
+        except KeyError:
+            continue
+        store.add(sid, data, entry.get("scene", 1))
+    return store
+
+
+def phone_dialer(
+    host: str,
+    port: int = WS_PORT,
+    *,
+    store: WifiFileStore | None = None,
+    **device_kwargs: Any,
+) -> Callable[[Any], "WifiDevice"]:
+    """A `PlaudPeripheral(wifi_device_factory=...)` factory: every accepted
+    BLE OpenWiFi builds a NEW WifiDevice that dials `ws://host:port`.
+
+    HARNESS_POLICY, all of it: the real pen raises a SoftAP and dials the
+    phone that joined it (ledger section 7); here the phone's address is
+    configured and IP connectivity is assumed. SayHello carries the BLE
+    identity -- `sn` = the advertised serial, `version` = versionType +
+    4-digit versionCode, `pVer` = the BLE portVersion (that pVer equals the
+    portVersion is UNKNOWN, docs/wifi-transport.md section 7). The file store
+    defaults to `store_from_peripheral`. `device_kwargs` go to WifiDevice and
+    win over these defaults.
+    """
+
+    def factory(peripheral: Any) -> WifiDevice:
+        fields = peripheral.scan_fields
+        kwargs: dict[str, Any] = {
+            "serial": fields.serial_number,
+            "version": f"{fields.version_type}{int(fields.version_code):04d}",
+            "p_ver": peripheral.port_version,
+        }
+        kwargs.update(device_kwargs)
+        return WifiDevice(
+            host,
+            port,
+            store=store if store is not None else store_from_peripheral(peripheral),
+            **kwargs,
+        )
+
+    return factory
+
+
 __all__ = [
     "DEFAULT_CHUNK_SIZE",
+    "DEFAULT_CONNECT_ATTEMPTS",
+    "DEFAULT_CONNECT_RETRY_INTERVAL",
     "DEFAULT_DEVICE_LOG",
     "DEFAULT_EXIT_TIMEOUT",
     "DEFAULT_HEARTBEAT_INTERVAL",
     "DEFAULT_IDLE_HEARTBEATS",
     "DEFAULT_SESSION_ID",
     "DEFAULT_SPEED_TEST_PACKETS",
+    "MAX_CHUNK_SIZE",
     "WifiDevice",
     "WifiDeviceState",
     "WifiFileStore",
+    "WifiNotConnected",
     "WifiStatusPolicy",
+    "phone_dialer",
+    "store_from_peripheral",
 ]

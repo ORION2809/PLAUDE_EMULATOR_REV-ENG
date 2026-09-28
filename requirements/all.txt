@@ -13,6 +13,7 @@ soundfile==0.14.0
 av==18.1.0
 pyroomacoustics==0.10.1
 cryptography
+pycryptodome==3.23.0  # tests/test_r5_s7_sealed.py: second, independent ChaCha20-Poly1305 (importorskip)
 PyYAML==6.0.3
 websockets>=17,<18
 grpcio                # bumble android-netsim transport (R7 runtime rig)

@@ -11,10 +11,10 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, StrictBool, StrictStr
 
 from ..common import MockHTTPError, ctx_of, new_id, require_client_keys
-from ..worker import schedule
+from ..worker import TERMINAL, schedule  # noqa: F401 - TERMINAL re-exported
 from ..state import TranscriptionTask
 
 router = APIRouter(tags=["Transcription API"])
@@ -22,12 +22,48 @@ PREFIX = "/developer/api/open/partner/ai/transcriptions"
 
 #: DOC-EXACT enum.
 STATUSES = ("PENDING", "RECEIVED", "STARTED", "PROGRESS", "SUCCESS", "FAILURE", "REVOKED")
-TERMINAL = ("SUCCESS", "FAILURE", "REVOKED")
+
+
+# Parameter objects: field names and JSON types are DOC-EXACT
+# (openapi_transcription.json TranscriptionRequest.params, :181-229, plus
+# `transcribe.model` from openapi_transcription-model.json:186-190). A value of
+# the wrong JSON type is refused at submit with 422 -- HARNESS_POLICY status,
+# the docs list no error responses (review finding MC-11: it used to be
+# accepted and fail later with a Python exception text as the task message).
+# Scalars are strict (a JSON string for `string`, a JSON true/false for
+# `boolean`: "yes" or 1 is a 422, not a coercion). Unknown keys are allowed and
+# kept (extra="allow"): the two spec files disagree on the parameter set, so
+# the mock accepts the union and more.
+class _Params(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+class TranscribeParams(_Params):
+    language: StrictStr | None = None
+    model: StrictStr | None = None
+    detection_level: StrictStr | None = None
+
+
+class VadParams(_Params):
+    decode_silence: StrictBool | None = None
+
+
+class DiarizationParams(_Params):
+    enabled: StrictBool | None = None
+    return_embedding: StrictBool | None = None
+
+
+class TranscriptionParams(_Params):
+    transcribe: TranscribeParams | None = None
+    vad: VadParams | None = None
+    diarization: DiarizationParams | None = None
+    #: DOC-EXACT type: "comma separated string of hotwords".
+    hotwords: StrictStr | None = None
 
 
 class TranscriptionRequest(BaseModel):
     file_url: str
-    params: dict[str, Any] | None = None
+    params: TranscriptionParams | None = None
 
 
 def _envelope(task: TranscriptionTask) -> dict[str, Any]:
@@ -35,7 +71,7 @@ def _envelope(task: TranscriptionTask) -> dict[str, Any]:
     if task.message is not None:
         # HARNESS_POLICY: a top-level `message` on FAILURE. The Android
         # template reads exactly `resp.optString("message", status)` on
-        # FAILURE/REVOKED (TranscriptionManager.kt:299) -- INFERRED shape.
+        # FAILURE/REVOKED (TranscriptionManager.kt:231) -- INFERRED shape.
         out["message"] = task.message
     return out
 
@@ -54,7 +90,8 @@ async def create_transcription(request: Request, body: TranscriptionRequest) -> 
         transcription_id=new_id("task_exec_"),
         status="PENDING",
         file_url=body.file_url,
-        params=body.params or {},
+        # What the client sent (unset fields omitted, unknown keys kept).
+        params=body.params.model_dump(exclude_unset=True) if body.params is not None else {},
         client_id=app.client_id,
         created_at=now,
         updated_at=now,

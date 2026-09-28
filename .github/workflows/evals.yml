@@ -1,9 +1,11 @@
-# Layer 3 evaluation harness: unit tests + oracle self-check.
+# Layer 3 evaluation harness: unit tests + oracle self-check, on the evals
+# dependencies ALONE (requirements/evals.txt). The full suite, evals tests
+# included, runs in tests.yml; this job's distinct job is to prove the evals
+# package installs and works from its own declared requirements.
 #
-# This workflow has NOT been executed from this checkout (no CI runner here);
-# docs/evals.md says so.  It deliberately does not fetch Bumble or the SDK:
-# the evals tests are pure Python over the three metric libraries and never
-# touch reference/** or build/**.
+# It deliberately does not fetch Bumble or the SDK: the evals tests are pure
+# Python over the three metric libraries and never touch reference/** or
+# build/**. Reported green on GitHub Actions for commit 70249ba.
 name: evals
 
 on:
@@ -11,45 +13,62 @@ on:
     paths:
       - "evals/**"
       - "tests/test_evals_*.py"
+      - "tests/conftest.py"
+      - "docs/evals.md"
       - "requirements/evals.txt"
       - ".github/workflows/evals.yml"
   pull_request:
     paths:
       - "evals/**"
       - "tests/test_evals_*.py"
+      - "tests/conftest.py"
+      - "docs/evals.md"
       - "requirements/evals.txt"
       - ".github/workflows/evals.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   evals:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # tests/conftest.py disables bytecode writing inside pytest; the env var
+      # covers the CLI steps too, so nothing is ever written under reference/**.
+      PYTHONDONTWRITEBYTECODE: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements/evals.txt
 
+      # pytest-timeout is CI-only here (the pin matches requirements/all.txt).
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements/evals.txt
+          pip install -r requirements/evals.txt pytest-timeout==2.4.0
 
-      # tests/conftest.py disables bytecode writing; the env var covers the
-      # selfcheck step too so nothing is ever written under reference/**.
+      # Every tests/test_evals_*.py (the path filter above uses the same glob), so a
+      # new evals test module runs here without editing this file. test_evals_docs.py
+      # reads docs/evals.md, evals/metrics.py, tests/test_v4_e2e.py and docker/job.sh
+      # as text and imports only meeteval, so evals.txt alone still suffices.
       - name: Evals tests
-        env:
-          PYTHONDONTWRITEBYTECODE: "1"
-        run: python -m pytest tests/test_evals_io.py tests/test_evals_metrics.py tests/test_evals_gates.py tests/test_evals_cli.py -q -p no:cacheprovider
+        run: >-
+          python -m pytest tests/test_evals_*.py
+          -rfEs -p no:cacheprovider --timeout=300
 
       # A hand-built meeting scored against itself must pass the 'oracle'
       # suite: DER 0, JER 0, cpWER 0, tcpWER 0.  Exit code 1 fails the job.
       - name: Oracle self-check
-        env:
-          PYTHONDONTWRITEBYTECODE: "1"
         run: python -m evals selfcheck --report out/selfcheck.json
 
       - name: Gate suites are well-formed
-        env:
-          PYTHONDONTWRITEBYTECODE: "1"
         run: python -m evals suites

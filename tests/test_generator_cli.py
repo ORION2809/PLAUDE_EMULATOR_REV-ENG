@@ -70,3 +70,42 @@ def test_module_entry_point_runs_as_a_subprocess(tmp_path: Path) -> None:
     assert (tmp_path / "sub" / "device" / "recording.ogg").is_file()
     bad = run_module("make", "--scenario", "nope", "--out", str(tmp_path / "x"))
     assert bad.returncode != 0
+
+
+def test_validate_flags_files_the_meeting_does_not_list(tmp_path: Path, capsys) -> None:
+    """GEN-8: stale stems/device files from another meeting must not pass."""
+    out = tmp_path / "m"
+    assert main(["make", "--scenario", "smoke", "--out", str(out), "--seed", "6", "--set", "duration_s=3", "--set", "export.write_mics_wav=false"]) == 0
+    assert main(["validate", str(out)]) == 0
+    for stray in ("stems/spk7.wav", "device/recording_old.ogg", "mics.wav"):
+        (out / stray).write_bytes(b"stale")
+        capsys.readouterr()
+        assert main(["validate", str(out)]) == 1, stray
+        assert stray in capsys.readouterr().err
+        (out / stray).unlink()
+    assert main(["validate", str(out)]) == 0
+
+
+def test_make_synthetic_set_writes_a_relative_out_under_the_callers_cwd(tmp_path: Path) -> None:
+    """GEN-9: the script used to mkdir OUT in the caller's cwd, then cd to the repo
+    root and write the meetings under <repo>/OUT."""
+    import shutil
+    import uuid
+
+    rel = f"gen9-{uuid.uuid4().hex[:8]}"
+    caller = tmp_path / "caller"
+    caller.mkdir()
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", PYTHON=sys.executable, N="1", SCENARIO="smoke", SEED="4")
+    try:
+        proc = subprocess.run(
+            ["bash", str(ROOT / "scripts" / "make-synthetic-set.sh"), f"{rel}/set",
+             "--set", "duration_s=3", "--set", "export.include_stereo_ogg=false", "--set", "export.include_g4=false"],
+            cwd=caller, env=env, capture_output=True, text=True, timeout=300,
+        )
+        assert proc.returncode == 0, proc.stderr
+        assert load_meeting(caller / rel / "set" / "synth-smoke-s0004")["generator"]["seed"] == 4
+        assert not (ROOT / rel).exists(), "nothing may be written under the repository root"
+        last = proc.stdout.strip().splitlines()[-1]
+        assert last.startswith("wrote /") and Path(last[len("wrote ") :]).resolve() == (caller / rel / "set").resolve()
+    finally:
+        shutil.rmtree(ROOT / rel, ignore_errors=True)  # only ever created by the pre-fix bug

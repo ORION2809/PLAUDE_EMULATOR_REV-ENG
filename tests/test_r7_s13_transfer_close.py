@@ -207,16 +207,42 @@ async def test_stop_sync_aborts_a_streaming_transfer() -> None:
 # --- (e) the archived runtime evidence ----------------------------------------
 
 
+def _sums(path: Path) -> list[tuple[str, str]]:
+    rows = []
+    for line in path.read_text().splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        digest, name = line.split(None, 1)
+        rows.append((digest, name.split("   #")[0].strip()))
+    return rows
+
+
 def test_runtime_evidence_pins_byte_exact_delivery() -> None:
-    sums = (EVIDENCE / "SHA256SUMS").read_text().split()
+    import re
+
     fixture_sha = hashlib.sha256(FIXTURE.read_bytes()).hexdigest()
-    byte_exact = [n for s, n in zip(sums[0::2], sums[1::2]) if s == fixture_sha]
+    # What the SDK delivered, hashed on the Mac after each run. Not archived because each equals
+    # the fixture; DELIVERED-OUTPUTS.sha256.txt explains this (28 Sep correction).
+    delivered = _sums(EVIDENCE / "DELIVERED-OUTPUTS.sha256.txt")
+    byte_exact = [n for s, n in delivered if s == fixture_sha]
     # raw collector path, OPUS export path, and the gap-recovery runs all delivered the served bytes
     assert any("raw-run1b" in n for n in byte_exact)
     assert any("export-run4b" in n for n in byte_exact)
     assert any("run6b" in n for n in byte_exact) and any("run6d" in n for n in byte_exact)
+    assert len(byte_exact) == len(delivered)
+    # independent record: the driver printed the same hash on the device, in that run's own log
+    for _, name in delivered:
+        run = re.sub(r"^pullcap-(raw|export)-", "", name).rsplit(".", 1)[0]
+        log = (EVIDENCE / f"logcat-{run}.filtered.log").read_text(errors="replace")
+        device = re.findall(r"PULLCAP_(?:RAW|EXPORT)_DONE[^\n]*sha256=([0-9a-f]{64})", log)
+        assert device and device[-1] == fixture_sha, name
+    # SHA256SUMS covers exactly the files archived in the folder, and every entry verifies
+    archived = _sums(EVIDENCE / "SHA256SUMS")
+    for digest, name in archived:
+        assert hashlib.sha256((EVIDENCE / name).read_bytes()).hexdigest() == digest, name
     # the two corrupted outputs are archived and are NOT byte-exact
-    assert not any("corrupted" in n or "concatenated" in n for n in byte_exact)
+    corrupted = [(s, n) for s, n in archived if "corrupted" in n or "concatenated" in n]
+    assert len(corrupted) == 2 and all(s != fixture_sha for s, _ in corrupted)
 
 
 def test_runtime_evidence_shows_completion_only_with_empty_package() -> None:
@@ -237,3 +263,115 @@ def test_runtime_evidence_shows_stop_sync_then_restart_on_gap() -> None:
     ops = [(w.get("opcode"), w.get("sync_start", {}).get("start")) for w in cap["writes"] if w.get("opcode") in (28, 29)]
     assert ops == [(28, 0), (29, None), (28, 3200)]
     assert cap["stats"]["stop_syncs"] == 1 and cap["stats"]["streams_aborted"] == 1
+
+
+# --- (f) the real-SDK preset and stream robustness (review T2, T6) --------------
+
+
+class _StubDevice:
+    def on(self, *_a, **_k):
+        return None
+
+
+def test_real_sdk_preset_is_the_r7_s13_device_and_the_constructor_default_is_not() -> None:
+    """T2: runs 6b-13 converged against a task-streamed, 4 ms-paced device.
+    Those values came from r7/pull_capture_peripheral.py's environment
+    defaults and emulator/serve.py, not from the constructor, whose defaults
+    stay inline and unpaced for in-process tests. `for_real_sdk` names the
+    R7-S13 configuration so a real-SDK rig cannot silently get the other one."""
+    from plaudsim.profile import REAL_SDK_RESPONSE_PACING_S, REAL_SDK_STREAM_IN_TASK
+
+    plain = PlaudPeripheral(_StubDevice())
+    assert plain.stream_in_task is False and plain.response_pacing_s == 0.0
+    preset = PlaudPeripheral.for_real_sdk(_StubDevice(), file_bytes=FILE)
+    assert REAL_SDK_STREAM_IN_TASK is True and REAL_SDK_RESPONSE_PACING_S == 0.004
+    assert preset.stream_in_task is True and preset.response_pacing_s == 0.004
+    assert preset.file_bytes == FILE
+    # an explicit override still wins
+    assert PlaudPeripheral.for_real_sdk(_StubDevice(), response_pacing_s=0.01).response_pacing_s == 0.01
+
+
+@pytest.mark.asyncio
+async def test_task_stream_is_aborted_when_the_central_disconnects() -> None:
+    """T6: after a disconnection Bumble drops notifications silently, so a
+    stream that keeps running logs frames nobody received and ends 'completed'."""
+    devices, peripheral, peer, data, command = await connect_like_the_sdk(
+        lambda d: PlaudPeripheral(d, file_bytes=bytes(1024), stream_in_task=True, response_pacing_s=0.005)
+    )
+    got: list[bytes] = []
+    await peer.subscribe(data, got.append, prefer_notify=True)
+    await peer.write_value(command, pack_sync_start(SID, 0, 0), with_response=True)
+    await asyncio.sleep(0.03)
+    await devices.connections[0].disconnect()
+    await asyncio.sleep(0.3)
+    events = [e["event"] for e in peripheral.stream_log]
+    assert "completed" not in events, peripheral.stream_log
+    assert {"event": "aborted", "reason": "disconnected"} in peripheral.stream_log
+    logged = [e for e in peripheral.packet_log if e["direction"] == "response"]
+    assert len(logged) < 35
+    assert len(logged) - len(got) <= 1, (len(logged), len(got))
+    assert not peripheral.transfer_streaming
+
+
+@pytest.mark.asyncio
+async def test_task_stream_emit_error_is_logged_and_retrieved() -> None:
+    """T6: an exception from the transport ends the stream with an 'error'
+    entry; the frame that failed is not logged as a response, and the task's
+    exception never reaches the loop's 'never retrieved' handler."""
+    import gc
+
+    loop = asyncio.get_running_loop()
+    seen: list[str] = []
+    previous = loop.get_exception_handler()
+    loop.set_exception_handler(lambda _l, ctx: seen.append(str(ctx.get("message"))))
+    try:
+        p = PlaudPeripheral(_StubDevice(), file_bytes=bytes(256), stream_in_task=True, response_pacing_s=0.001)
+        calls = {"n": 0}
+
+        async def respond(_conn, _frame):
+            calls["n"] += 1
+            if calls["n"] == 4:
+                raise TimeoutError("indication not confirmed")
+
+        p._respond = respond  # type: ignore[assignment]
+        await p._on_command_write(None, pack_sync_start(7, 0, 0))
+        await asyncio.sleep(0.1)
+        assert p.stream_log == [{"event": "error", "error": "TimeoutError", "frames_sent": 3, "frames_total": 11}]
+        assert len([e for e in p.packet_log if e["direction"] == "response"]) == 3
+        assert not p.transfer_streaming
+        p = None
+        gc.collect()
+        await asyncio.sleep(0)
+        assert not [m for m in seen if "never retrieved" in m], seen
+    finally:
+        loop.set_exception_handler(previous)
+
+
+@pytest.mark.parametrize(
+    "malformed",
+    [bytes.fromhex("011c00") + b"\x00\x00\x00", bytes.fromhex("011d00") + b"\x00"],
+    ids=["short_y6", "z6_with_payload"],
+)
+@pytest.mark.asyncio
+async def test_malformed_sync_start_or_stop_does_not_abort_the_running_stream(malformed: bytes) -> None:
+    """T6: the stream was aborted before the request was validated, so a
+    malformed y6/z6 silenced the device and left `transfer` pointing at a
+    stream that never finished."""
+    p = PlaudPeripheral(_StubDevice(), file_bytes=bytes(512), stream_in_task=True, response_pacing_s=0.002)
+    wire: list[bytes] = []
+
+    async def respond(_conn, frame):
+        wire.append(frame)
+
+    p._respond = respond  # type: ignore[assignment]
+    await p._on_command_write(None, pack_sync_start(7, 0, 0))
+    running = p.transfer
+    await asyncio.sleep(0.01)
+    await p._on_command_write(None, malformed)
+    assert any(e["direction"] == "error" and "malformed" in e["reason"] for e in p.packet_log)
+    assert not [e for e in p.stream_log if e["event"] == "aborted"], p.stream_log
+    assert p._stream_task is not None, "the running stream was dropped by a malformed request"
+    await asyncio.wait_for(p._stream_task, 2)
+    assert [e["event"] for e in p.stream_log] == ["completed"], p.stream_log
+    assert p.transfer is running
+    assert wire[-1] == pack_sync_tail(7, 0x1234)

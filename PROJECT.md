@@ -37,7 +37,7 @@ that sentence or to prove the pipeline behind it is real.
 |---|---|
 | `plaud-sdk-public` repo | Apache 2.0. Template apps are source. Safe to read and quote. |
 | `sdk/` binaries inside it | Explicitly **proprietary, separate license**. Analysing them for interoperability is the classic protected case; do not redistribute them. |
-| Vendoring the binaries into this repo | **No.** `scripts/fetch-sdk.sh` pulls them at analysis time. They are gitignored. |
+| Vendoring the binaries into this repo | **No.** `scripts/fetch-references.sh` fetches them at analysis time (`scripts/fetch-sdk.sh` is a deprecated shim). They are git-ignored, and so are Gradle build folders, which hold a dexed copy. |
 | AGPL (`openplaud`, `riffado`) | Personal use is unconstrained. If we publish this repo and derive from their code, this repo goes AGPL too. That is fine and costs us nothing. Decision: **AGPL-3.0 this repo** so the option stays open. |
 | Firmware / app decompilation | **Not needed, not doing it.** Everything so far came from artifacts Plaud published themselves. Keep it that way — it is both the cleaner story and the stronger one. |
 
@@ -97,7 +97,7 @@ dominates, `reference/**` is unchanged, and the repo is clean. Otherwise
 | R6-S4 | Ingestion readiness — new-file scan since R6-S3 returns only project outputs; no legitimate external recording available; stop per stop rule (no synthetic fixture, no pipeline change); ingestion path + evidence requirements documented | BLOCKED — AUTHENTIC PLAUD RECORDING NOT AVAILABLE (`r6-s4/`, readiness note only) | readiness record only, 2026-09-23 |
 | R7-S12a | Genuine SDK k3 over android-netsim — `recoveryConnectBleDevice(device, synthetic id)` builds k3 byte-exact vs `build_k3`; emulator accepts it; `bleBind status=0`; empty-id falsifier writes nothing; truncation confirmed | COMPLETE — RUNTIME_PROVEN + EMULATOR_INTEGRATION_PROVEN (`r7/r7-s12-k3-runtime-capture.md`) | 4 runtime runs + 8 tests, 2026-09-23 |
 | R7-S12b | Opcode 8 CommonSettings (q0→r0) discovered at runtime and fully resolved — 21-entry non-ordinal CommonType table, consumer `q.f`; two READs RUNTIME_PROVEN | COMPLETE — OPCODE 8 RECONSTRUCTED + IMPLEMENTED (ledger §5.12) | 19 tests, 2026-09-23 |
-| R7-S12c | Cloud endpoint inventory — 50 endpoints across 5 surfaces, static only, none exercised; cloud≠local-writer distinction fixed | COMPLETE — CLOUD_OBSERVED, ALL EXTERNALLY BLOCKED (`r7/cloud-endpoint-inventory.md`) | inventory, 2026-09-23 |
+| R7-S12c | Cloud endpoint inventory — 50 endpoints across 5 surfaces, static only, none exercised; cloud≠local-writer distinction fixed. **Correction 2026-09-25:** "none exercised" was wrong for `partner/sdk/gen-key` — the SDK, initialised by our drivers with a synthetic token, POSTed it once per app start (every visible response 401); drivers now pass a blank token (§8) | COMPLETE — CLOUD_OBSERVED, ALL EXTERNALLY BLOCKED (`r7/cloud-endpoint-inventory.md`) | inventory, 2026-09-23 |
 | R7-S12d | Corrections — R3 resend is BYTECODE_PROVEN (gap→restart, stopSync only on 5 s timeout); AES-GCM scoped Wi-Fi-only; opcode 138 added to ledger; bleBind facade quirk proven | COMPLETE — LEDGER RECONCILED | ledger §5.8/§5.9/§4.3/§5.13/§14 |
 
 **R2 splits in two, and earlier work had collapsed both halves into one
@@ -133,14 +133,18 @@ Each rung is a test that either passes or fails. Nothing subjective.
   the real SDK's own k3 was later captured against the emulator over
   android-netsim (V3-partial, R7-S12).
 - [x] **V2** Emulator survives a fault-injection suite without corrupting a transfer —
-  61-cell matrix over Bumble (`tests/test_v2_fault_matrix.py`, `docs/v2-fault-matrix.md`):
+  60 counted cells plus 2 content-fault rows over Bumble (`tests/test_v2_fault_matrix.py`,
+  `docs/v2-fault-matrix.md`; 61 rows on 2026-09-24, when the bit-flip row was counted):
   drops, duplicates, reorder, truncation, wrong session, TAIL/HEAD faults, disconnect and
   resume, stopSync mid-transfer, MTU 23–517, CCCD modes, delete during sync, back-to-back
   syncs, and the R7-S13 sentinel cases; every cell is byte-exact or a detected failure,
   scored by a bytecode-derived receiver model (`tests/fault_support.py`) that was
   corrected against the runtime facts. Outcomes: 38 recovered, 6 recovered by app resume,
-  15 detected, 1 corruption-risk (the run-6 device that never abandons its stream),
-  1 documented undetectable (payload bit-flip: no CRC on DATA).
+  15 detected, 1 corruption-risk (the run-6 device that never abandons its stream).
+  Outside the count: a payload bit-flip (undetectable by the SDK: no CRC on DATA) and a
+  restart serving another file revision; the harness's invariant check flags both. The
+  2026-09-25 review (T10) showed that "no silent corruption" holds by construction in
+  every counted cell, so the matrix tests completion, not content integrity.
 - [x] **V3** **Real `plaud-sdk-public` connects to the emulator over
   `android-netsim` and pulls a recording** — ACHIEVED for the transfer path
   (R7-S13, 2026-09-23/24). The unmodified AAR on an AVD, driven through the
@@ -148,7 +152,7 @@ Each rung is a test that either passes or fails. Nothing subjective.
   pulled it through both `syncFile` (raw collector) and `exportAudio(OPUS)`,
   and delivered bytes hashing identically to the served Ogg/Opus fixture;
   its gap recovery (stopSync → syncFileStart from cursor) converged
-  byte-exact twice. Doing so falsified the frozen HEAD·DATA·TAIL sequence:
+  byte-exact in all four gap runs (6b, 6c, 6d, 13). Doing so falsified the frozen HEAD·DATA·TAIL sequence:
   the client completes only on an EMPTY_PACKAGE sentinel before the TAIL
   (emulator corrected). Still NOT done: binding OUR client to real hardware
   (blocked — token/snSignature/RSA keys are cloud-issued, CRED-1) and anything
@@ -159,19 +163,24 @@ Each rung is a test that either passes or fails. Nothing subjective.
   `tests/test_v4_e2e.py` (generator → oracle pipeline on the device Ogg → evals: DER, JER,
   cpWER, tcpWER all 0.0; perturbations move every metric the right way; a speaker swap
   leaves cpWER at 0 while literal WER lies — the decision-log rationale, asserted).
-- [ ] **V5** Full pipeline hits target cpWER / DER on held-out AMI — **procedure only.**
-  `evals/` (DER/JER/WER/cpWER/tcpWER + gates), `pipeline/` (interfaces; oracle,
-  perturbed-oracle and a model-free energy-VAD + MFCC clustering diarizer; import-guarded
-  faster-whisper / pyannote.audio / whisperx adapters, untested) and the AMI layout +
-  commands (`docs/pipeline.md` §7, `docs/evals.md`) exist; no AMI audio, no ASR model and
-  no network fetch here, so the number was not produced.
-- [~] **V6** `docker compose up` brings the whole system live in under 60 seconds —
-  **written, rehearsed without Docker.** `docker-compose.yml` + `docker/` (emulator on a
-  Bumble TCP transport with a health port, mock cloud, one-shot generate→oracle→evals job),
-  `scripts/compose-smoke.sh` (times `up -d --wait` against 60 s), and `scripts/local-up.sh`
-  running the same topology on the venv: services live in 0.94 s, job done in 6.6 s
-  (2026-09-24, this Mac). Docker is not installed here, so the compose path itself has not
-  been executed (`docs/compose.md`).
+- [ ] **V5** Full pipeline hits target cpWER / DER on held-out AMI — **NOT MET; a subset
+  was measured (2026-09-25).** `whisper-sherpa` (faster-whisper small.en + sherpa-onnx
+  diarization, weights sha256-pinned) ran at full length on 4 of the 16 AMI test-split
+  meetings (EN2002a, ES2004a, IS1009a, TS3003a; the only ones with audio here) and on a
+  4-meeting synthetic Piper set (`docs/v5-results.md`, `scripts/run-v5.sh`). With the
+  reference speaker count as a hint (an oracle value): AMI macro DER 0.6557, cpWER 0.8533,
+  WER 0.3250; Piper `mix.wav` DER 0.6149, cpWER 1.0993, WER 0.2501. These numbers are
+  poor. Without the hint sherpa found 95/35/36/47 clusters on the 4-speaker AMI meetings,
+  and `evals batch` could score none of them (meeteval refuses > 20 speakers). Two
+  regression-gate suites are calibrated on the hinted runs. The V5 target — the full
+  16-meeting test split, suite `ami-headset` — remains unmeasured.
+- [x] **V6** `docker compose up` brings the whole system live in under 60 seconds —
+  **executed under Docker once (2026-09-25).** `scripts/compose-smoke.sh` on this M1 with
+  Colima (Linux arm64 VM, Docker daemon 29.5.2): images built in 121.38 s (excluded from the
+  timed window by design), `up -d --wait` healthy in **6.58 s** (target 60 s), job exit 0 in
+  11.34 s — probes, scan, 2 generated meetings, oracle pipeline + evals, and a mock-cloud
+  round trip (`build/v6/compose-smoke-2026-09-25.log`, `docs/compose.md`). Not run on
+  x86_64 or on a GitHub runner. The job's zeros are harness self-tests, not system scores.
 
 ---
 
@@ -308,6 +317,9 @@ frames → TAIL (opcode 29) — with its own cursor tracking and loss recovery, 
 what `PlaudDeviceAgent.syncFile(sessionId, start, end)` drives. Wi-Fi is an
 *additional*, faster path (`startWifiTransfer` / `exportAudioViaWiFi`), not the only
 one. The emulator implements the BLE path; the Wi-Fi path is not implemented.
+(Correction 2026-09-25: the Wi-Fi path is now implemented on the pen side and tested
+against a bytecode-derived phone double only — `docs/wifi-transport.md`; the real SDK's
+Wi-Fi transfer stopped at the hotspot join in R7-S14.)
 
 Audio: the SDK **enforces** an Opus codec geometry of 16 kHz, 20 ms frames,
 32 kbps CBR, exactly 80 bytes per frame per channel natively in `libjni_ogg`
@@ -357,6 +369,30 @@ numbered register (U1–U18), each with what would settle it.
 
 ## 8. STATUS
 
+**Phase 4 — review, fixes and first measurements, 2026-09-25.** Full account:
+[`docs/progress-report.md`](docs/progress-report.md) §8.
+Commit `70249ba` (the work to 2026-09-24) was pushed to
+`github.com/ORION2809/PLAUDE_EMULATOR_REV-ENG` (public); its `tests` workflow failed
+(the install line lacked the dependencies, and the two Ogg fixtures were git-ignored) and
+its `evals` workflow passed. The fix is uncommitted and has passed only in local
+clean-clone simulations. An independent review of the phase-3 layers found **71 findings**
+(23 major, 48 minor; 69 confirmed, 2 plausible, none refuted); each was fixed or narrowed,
+among them the mock cloud's pipeline-oracle hook (MC-1). The same pass closed the 24 Sep
+known gap of the opcode-10 → Wi-Fi hand-over (with a `wifi_device_factory`, opcode 10 now starts the Wi-Fi device over
+loopback; a full session has run only against our phone double, never with the real SDK). **V6 ran under Docker**: live in 6.58 s, job exit 0.
+**First real-model numbers** (`docs/v5-results.md`): `whisper-sherpa` on 4 of the 16 AMI
+test meetings, hinted macro DER 0.6557 / cpWER 0.8533 — poor, and not V5. **R7-S14**
+(`r7/r7-s14-wifi-real-sdk.md`): the real SDK's Wi-Fi transfer stopped at the SoftAP join;
+no Wi-Fi PDU was exchanged; one emulator bug (the opcode-10 mode byte read as on/off) was
+fixed. **Correction — cloud contact:** earlier statements that no Plaud endpoint was
+called were wrong for the Android runtime runs. The SDK, initialised by our debug drivers
+with a synthetic token, POSTed `partner/sdk/gen-key` to `platform-jp.plaud.ai` once per
+app start; the request is visible in 22 archived R7-S13/R7-S14 logs, and every visible
+response (19) was 401. The drivers now pass a blank token; an offline re-run pulled the
+file byte-exact with no `gen-key` line. Suite: `1365 passed, 4 skipped, 11 warnings in 339.00s (0:05:38)`. Rung status: V1 ✅ V2 ✅ V3 ✅
+(BLE transfer path) V4 ✅ V5 ◻ (subset measured, target unmeasured) V6 ✅ (one Docker run,
+arm64).
+
 **Phase 3 — the remaining layers, completed 2026-09-24.** Everything PROJECT.md
 listed as "not started" or partial now exists and is tested: the V2 fault matrix,
 the Wi-Fi bulk-transfer emulator (ledger §7, now implemented: `emulator/plaudsim/wifi*.py`,
@@ -368,11 +404,11 @@ integration tests (`docs/integration.md`) and the compose topology (`docs/compos
 **V3 was completed** by driving the real AAR to pull a recording (R7-S13,
 `r7/r7-s13-recording-pull.md`), which falsified the frozen HEAD·DATA·TAIL sequence:
 the client completes only on an EMPTY_PACKAGE sentinel before the TAIL (ledger §5.8,
-§15; emulator corrected; U15/U17 updated). Suite: **978 tests, all passing**
+§15; emulator corrected; U15/U17 updated). Suite as of 2026-09-24: **978 tests, all passing**
 (`PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ --timeout=120`), 33/33
-reference pins, `reference/**` unmodified. Rung status: V1 ✅ V2 ✅ V3 ✅ (transfer
-path) V4 ✅ V5 ◻ (procedure only, no AMI/model here) V6 ◻ (written, rehearsed on the
-venv, Docker absent).
+reference pins, `reference/**` unmodified. Rung status as of 2026-09-24: V1 ✅ V2 ✅ V3 ✅
+(transfer path) V4 ✅ V5 ◻ (procedure only, no AMI/model here) V6 ◻ (written, rehearsed
+on the venv, Docker absent).
 
 **Phase 2 — product reconstruction (R1), completed 2026-09-23.** The BLE layer
 was frozen and the rest of the product was reconstructed from the corpus:
@@ -384,8 +420,8 @@ RECONSTRUCTION COMPLETE WITH EXTERNAL-EVIDENCE BLOCKERS**. Entry point:
 claims in [`docs/product-ledger.md`](docs/product-ledger.md); one file per
 layer under [`docs/architecture/`](docs/architecture/); sources in
 [`docs/source-map.md`](docs/source-map.md); machine-readable graph in
-[`docs/evidence-graph.json`](docs/evidence-graph.json) (397 claims, 2 004
-edges, built by `scripts/build_evidence_graph.py` from
+[`docs/evidence-graph.json`](docs/evidence-graph.json) (397 claims, 2 072
+edges — corrected 2026-09-25, this file said 2 004 — built by `scripts/build_evidence_graph.py` from
 `docs/product-evidence/`). Nothing below this line was re-derived.
 
 **Phase 1 — protocol reconstruction. Re-audited from first principles 2026-09-22.**
@@ -437,20 +473,23 @@ device to their client, not a client to their device.
 
 ### Next, in order
 
-1. **V5 for real.** Obtain AMI (CC BY 4.0) under `data/corpora/ami/`, write the
-   NXT→contract converter, install one ASR/diarization system (models are not
-   fetched by the harness), run `python -m pipeline batch` + `python -m evals batch
-   --suite ami-headset`, and calibrate `evals/gates.yaml` (its thresholds are
-   placeholders).
-2. **V6 under Docker.** `scripts/compose-smoke.sh` on a machine with Docker; check
-   wheel availability for the pinned deps on the build platform.
-3. **U18, U15 and U17 need a device**: one scan capture settles the advertising branch;
+(Refreshed 2026-09-25. The 2026-09-24 items "V6 under Docker", "Wi-Fi ↔ BLE handoff" and
+"mock-cloud round trip in the compose job" are done.)
+
+1. **Commit, then read the first GitHub run** of the fixed `tests` workflow (Linux x86_64
+   has never run it; the diarizer's speaker-count tests are the likeliest to differ).
+2. **V5 for real.** Fetch the other 12 AMI test-split headset-mix WAVs (CC BY 4.0) and
+   convert them (`python -m evals.ami`). Before scoring the test split: calibrate
+   sherpa's `cluster_threshold` on the AMI dev split (never on test meetings), make
+   `evals` report DER/JER when meeteval refuses > 20 speakers, and seed or pin the ASR
+   decode (EN2002a was not reproducible). Then `scripts/run-v5.sh` and suite `ami-headset`.
+3. **Wi-Fi with the real SDK**: a hotspot the AVD can join, or a physical phone; raise
+   the pen's dial attempts for that run (the phone's server starts only after the join).
+4. **U1 (with U18 merged into it), U15 and U17 need a device**: one scan capture settles the advertising branch;
    one transfer capture settles the EMPTY_PACKAGE code value (U15) and whether a TAIL follows it (U17).
-4. **Wi-Fi ↔ BLE handoff**: opcode 10 in `profile.py` answers but does not spawn the
-   Wi-Fi device; wiring `OpenWiFi` to `wifi_device.WifiDevice` would let one session
-   cross both transports.
-5. Push the generated recording through the mock cloud's upload→transcribe flow from
-   the compose job (the integration test already proves it in-process).
+5. **iOS** needs Xcode (not on this machine) and a Bluetooth bridge for the simulator.
+6. **Piper voice licence**: decide before any Piper-made audio is redistributed (the
+   lessac base voice's dataset licence is research-only; `docs/generator.md` §6.2).
 
 ## 9. Repo layout
 
@@ -502,24 +541,27 @@ plaud-harness/
 ## 10. How to resume
 
 ```bash
-cd ~/Desktop/plaud-harness
-./scripts/fetch-references.sh    # if reference/ is missing (~2.5 GB shallow)
+cd plaud-harness                 # your clone
+./scripts/fetch-references.sh    # if reference/ is missing (~2.5 GB; each repository at its pin)
 ./scripts/build-evidence.sh      # rebuild build/evidence/ (~2 min)
 
 python3.11 -m venv .venv
 .venv/bin/pip install -e reference/upstream/bumble
-.venv/bin/pip install -r requirements/all.txt   # all layers: emulator, generator, evals, pipeline, mock cloud
-.venv/bin/python -m pytest tests/ -v
+.venv/bin/pip install -r requirements/all.txt      # all layers: emulator, generator, evals, pipeline, mock cloud
+.venv/bin/pip install -r requirements/models.txt   # optional: whisper-sherpa and Piper (piper-tts is GPL-3.0-or-later)
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ -q -p no:cacheprovider --timeout=120
 ```
 
 Then read, in this order:
 
-1. [`docs/protocol-ledger.md`](docs/protocol-ledger.md) — what we believe and why
-2. [`docs/reconstruction-log.md`](docs/reconstruction-log.md) — what earlier work got wrong
-3. [`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md) — the whole product above the radio
-4. [`r7/r7-s13-recording-pull.md`](r7/r7-s13-recording-pull.md) — the real SDK pulling a recording, and what it corrected
-5. The layer docs: `docs/v2-fault-matrix.md`, `docs/wifi-transport.md`, `docs/generator.md`, `docs/evals.md`, `docs/pipeline.md`, `docs/mockcloud.md`, `docs/integration.md`, `docs/compose.md`
-6. §8 above — what is next
+1. [`docs/project-state.md`](docs/project-state.md) — the current state in one document: what works, what does not, the numbers, how each was proven
+2. [`docs/progress-report.md`](docs/progress-report.md) — the dated account: what was done, what was wrong, how it was checked
+3. [`docs/protocol-ledger.md`](docs/protocol-ledger.md) — what we believe and why
+4. [`docs/reconstruction-log.md`](docs/reconstruction-log.md) — what earlier work got wrong
+5. [`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md) — the whole product above the radio
+6. [`r7/r7-s13-recording-pull.md`](r7/r7-s13-recording-pull.md) — the real SDK pulling a recording, and what it corrected; [`r7/r7-s14-wifi-real-sdk.md`](r7/r7-s14-wifi-real-sdk.md) — its Wi-Fi transfer, blocked at the join
+7. The layer docs: `docs/v2-fault-matrix.md`, `docs/wifi-transport.md`, `docs/generator.md`, `docs/evals.md`, `docs/pipeline.md`, `docs/mockcloud.md`, `docs/integration.md`, `docs/compose.md`, and `docs/v5-results.md`
+8. §8 above — what is next
 
 **Two rules that are not negotiable.** `reference/**` is immutable evidence; every
 derived artifact goes to `build/`. And when jadx and javap disagree, javap wins —

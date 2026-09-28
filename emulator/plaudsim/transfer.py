@@ -208,6 +208,11 @@ class TransferSession:
     offset order from the requested start, close with EMPTY_PACKAGE before
     the TAIL, and (see profile.PlaudPeripheral.stream_in_task) abandon the
     previous stream when a new syncFileStart or stopSync arrives.
+
+    `done` means "every frame of this session has been GENERATED" -- it is
+    set by `frames()` before the caller has emitted any of them. Whether a
+    transfer is still going out on the link is the peripheral's business
+    (`PlaudPeripheral.transfer_streaming`), not this flag's.
     """
 
     session_id: int = 0
@@ -218,7 +223,7 @@ class TransferSession:
     payload_size: int = DEFAULT_DATA_PAYLOAD_SIZE   # HARNESS POLICY
     head_status: int = 0                            # HARNESS POLICY
     empty_package_code: int | None = DEFAULT_EMPTY_PACKAGE_CODE  # R7-S13; None = legacy 3-part sequence
-    done: bool = False
+    done: bool = False                              # frames generated, NOT frames emitted
 
     def start(self, session_id: int, start: int, end: int) -> None:
         del end  # y6's `end` is 0 at every observed call site and is stored nowhere

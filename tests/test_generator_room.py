@@ -132,3 +132,45 @@ def test_reverberant_room_realises_the_requested_rt60_roughly() -> None:
     assert res.max_order == 24  # DEFAULT_MAX_ORDER_CAP
     assert res.rt60_measured_s is not None and 0.2 < res.rt60_measured_s < 0.45
     assert res.rir_len > 2000
+
+
+# --- GEN-2: the requested SNR is the SNR of the recording, not of one capsule ------
+#
+# Averaging k capsules (Note Pro mono: 4, stereo: 2 per side; NotePin mono: 2)
+# lowers independent noise by 10*log10(k) while the correlated speech stays, so a
+# per-capsule SNR made mix.wav and every device/* file 3-6 dB cleaner than
+# meeting.json said. The reference point is now the device mix at
+# scenario.device.channels, i.e. mix.wav, and the other mixes are reported.
+
+
+@pytest.mark.parametrize(
+    "preset, channels",
+    [("note_pro_4mic", 1), ("note_pro_4mic", 2), ("notepin_s_2mic", 1), ("notepin_s_2mic", 2)],
+)
+def test_requested_snr_is_measured_in_mix_wav(preset: str, channels: int, tmp_path: Path) -> None:
+    from generator.export import read_wav, write_meeting
+    from generator.meeting import generate_meeting
+    from generator.scenario import load_scenario
+
+    sc = load_scenario("smoke", {
+        "duration_s": 5.0, "seed": 4, "device.preset": preset, "device.channels": channels,
+        "noise.kind": "white", "noise.snr_db": 15.0,
+        "export.include_raw_opus": False, "export.include_g4": False, "export.include_e2ee": False,
+    })
+    meeting = generate_meeting(sc)
+    payload = write_meeting(meeting, tmp_path / "m")
+    mix, rate = read_wav(tmp_path / "m" / payload["audio"]["mix_wav"])
+    assert rate == SAMPLE_RATE and mix.shape[0] == channels
+    # mix.wav = int16(gain * (device_mix(speech) + device_mix(noise))); remove the known noise
+    noise = device_mix(meeting.room.noise, PRESETS[preset], channels) * meeting.gain
+    speech = mix.astype(np.float64) / 32767.0 - noise
+    active = np.any(meeting.dry_stems != 0, axis=0)
+    snr = 10 * np.log10(np.mean(speech[:, active] ** 2) / np.mean(noise ** 2))
+    assert abs(snr - 15.0) < 0.1, snr
+    realised = payload["noise"]["snr_db_realised"]
+    assert payload["noise"]["snr_reference"] == "mix"
+    assert abs(realised["mix"] - 15.0) < 0.01
+    assert abs(realised["mono_mix" if channels == 1 else "stereo_mix"] - realised["mix"]) < 1e-9
+    # averaging capsules is what made the old per-capsule figure wrong; it is still reported
+    if PRESETS[preset].n_mics > channels:
+        assert realised["capsules"] < realised["mix"] - 2.0

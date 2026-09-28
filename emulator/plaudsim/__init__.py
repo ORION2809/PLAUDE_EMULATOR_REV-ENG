@@ -86,6 +86,8 @@ from .profile import (
     PlaudR1aPeripheral,
     PlaudStorageState,
     PlaudSyncTimeState,
+    REAL_SDK_RESPONSE_PACING_S,
+    REAL_SDK_STREAM_IN_TASK,
     COMMON_ACTION_READ,
     COMMON_ACTION_SET,
     COMMON_TYPE_NAMES,
@@ -138,10 +140,14 @@ from .wifi import (
     parse_pdu,
 )
 from .wifi_device import (
+    MAX_CHUNK_SIZE,
     WifiDevice,
     WifiDeviceState,
     WifiFileStore,
+    WifiNotConnected,
     WifiStatusPolicy,
+    phone_dialer,
+    store_from_peripheral,
 )
 from .transfer import (
     DEFAULT_EMPTY_PACKAGE_CODE,

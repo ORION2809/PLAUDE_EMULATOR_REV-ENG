@@ -39,7 +39,7 @@ from plaudsim.profile import (  # noqa: E402
     parse_websocket_request,
     parse_websocket_response,
 )
-from plaudsim.transfer import TransferSession  # noqa: E402
+from plaudsim.filesync import pack_stop_sync_request, pack_sync_start  # noqa: E402
 
 OPEN_ON = bytes.fromhex("010a00" "01")
 OPEN_OFF = bytes.fromhex("010a00" "00")
@@ -52,10 +52,10 @@ CLOSE = bytes.fromhex("010d00")
 
 
 def test_open_wifi_request_layouts():
-    assert parse_open_wifi_request(OPEN_ON) == {"on_off": 1, "wifi_pass": None}
-    assert parse_open_wifi_request(OPEN_OFF) == {"on_off": 0, "wifi_pass": None}
-    assert parse_open_wifi_request(OPEN_HEADER_ONLY) == {"on_off": None, "wifi_pass": None}
-    assert parse_open_wifi_request(OPEN_WITH_PASS) == {"on_off": 1, "wifi_pass": "12345678"}
+    assert parse_open_wifi_request(OPEN_ON) == {"mode": 1, "wifi_pass": None}
+    assert parse_open_wifi_request(OPEN_OFF) == {"mode": 0, "wifi_pass": None}
+    assert parse_open_wifi_request(OPEN_HEADER_ONLY) == {"mode": None, "wifi_pass": None}
+    assert parse_open_wifi_request(OPEN_WITH_PASS) == {"mode": 1, "wifi_pass": "12345678"}
     for bad in (b"\x01\x0a", b"\x01\x0b\x00\x01", b"\x02\x0a\x00\x01", OPEN_ON + b"1234567", OPEN_WITH_PASS + b"x"):
         with pytest.raises(ValueError):
             parse_open_wifi_request(bad)
@@ -156,23 +156,107 @@ def make_peripheral(**kw) -> PlaudPeripheral:
 
 
 def test_open_wifi_reports_status_and_serial_derived_passphrase():
+    """Every mode byte (1, 0, header-only) is an open with the passphrase;
+    only opcode 13 drops the hotspot (R7-S14: the SDK never closes with
+    opcode 10, PlaudDeviceAgent.txt:1173-1199)."""
     p = make_peripheral()
     assert p.scan_fields.serial_number == "8810000001"
-    assert p._open_wifi(OPEN_ON) == [encode_open_wifi_response(0, "10000001")]
+    for req in (OPEN_ON, OPEN_OFF, OPEN_HEADER_ONLY):
+        assert p._open_wifi(req) == [encode_open_wifi_response(0, "10000001")]
+        assert p.wifi_hotspot_on is True
+        p._close_wifi(CLOSE)
+        assert p.wifi_hotspot_on is False
+    assert [e["status"] for e in p.wifi_log] == [0, 0, 0, 0, 0, 0]
+    assert [e.get("mode", "close") for e in p.wifi_log] == [1, "close", 0, "close", None, "close"]
+    assert p.transfer_streaming is False
+
+
+#: What the genuine SDK wrote for PlaudDeviceAgent.startWifiTransfer (R7-S14
+#: run 1b, r7/r7-s14-evidence/capture-run1b-transfer-shipped.json):
+#: WifiAgentImpl.openDeviceWifi -> t3.d(false, ...) -> i4(0, null).
+SDK_FAST_TRANSFER_OPEN = bytes.fromhex("010a0000")
+
+
+def test_r7_s14_sdk_fast_transfer_open_mode_zero_starts_the_wifi_device():
+    """R7-S14 regression: the shipped handler read mode 0 as "drop the
+    hotspot", so the SDK's own startWifiTransfer open got status 0, no
+    passphrase and NO Wi-Fi device. Mode 0 is an open."""
+    started: list[object] = []
+
+    class _Dev:
+        uri = "ws://stub"
+
+        async def run(self) -> None:
+            await asyncio.sleep(3600)
+
+        async def close(self, reason: str = "app") -> None:
+            return None
+
+    def factory(peripheral: PlaudPeripheral) -> object:
+        started.append(peripheral)
+        return _Dev()
+
+    async def main() -> None:
+        p = make_peripheral(wifi_device_factory=factory)
+        assert p._open_wifi(SDK_FAST_TRANSFER_OPEN) == [encode_open_wifi_response(0, "10000001")]
+        assert p.wifi_hotspot_on is True and len(started) == 1 and p.wifi_active
+        # a second mode-0 open while the hotspot is up is refused (CLAIM status 4), not a close
+        assert p._open_wifi(SDK_FAST_TRANSFER_OPEN) == [encode_open_wifi_response(WIFI_OPEN_STATUS_BUSY)]
+        assert p.wifi_hotspot_on is True and len(started) == 1 and p.wifi_active
+        assert [(e["mode"], e["status"], e["busy"]) for e in p.wifi_log] == [(0, 0, None), (0, 4, "already_open")]
+        p._wifi_task.cancel()
+
+    asyncio.run(main())
+
+
+@pytest.mark.parametrize("stream_in_task", [False, True], ids=["inline", "task"])
+def test_open_wifi_mid_stream_is_refused_with_busy_status(stream_in_task: bool):
+    """Review T1: y6 goes through the real write path and opcode 10 arrives
+    halfway through the DATA frames. TransferSession.frames() marks the
+    session done before the first frame leaves, so the busy check must look
+    at the emission, not at the frame list (CLAIM, SyncManager.kt:31-32)."""
+    p = make_peripheral(file_bytes=bytes(1024), stream_in_task=stream_in_task, response_pacing_s=0.002)
+    wire: list[bytes] = []
+    answers: dict[str, object] = {}
+
+    async def respond(_conn, frame: bytes) -> None:
+        wire.append(frame)
+        if len(wire) == 10 and "mid" not in answers:
+            n = len(wire)
+            answers["streaming"] = p.transfer_streaming
+            await p._on_command_write(None, OPEN_ON)
+            answers["mid"] = wire[n]
+        await asyncio.sleep(0)
+
+    p._respond = respond  # type: ignore[assignment]
+
+    async def main() -> None:
+        await p._on_command_write(None, pack_sync_start(7, 0, 0))
+        if p._stream_task is not None:
+            await p._stream_task
+        answers["after_streaming"] = p.transfer_streaming
+        await p._on_command_write(None, OPEN_ON)
+        answers["after"] = wire[-1]
+
+    asyncio.run(main())
+    assert answers["streaming"] is True and answers["after_streaming"] is False
+    assert answers["mid"] == encode_open_wifi_response(WIFI_OPEN_STATUS_BUSY)
+    assert answers["after"] == encode_open_wifi_response(0, "10000001")
+    assert [e.get("busy") for e in p.wifi_log] == ["streaming", None]
     assert p.wifi_hotspot_on is True
-    assert p._open_wifi(OPEN_OFF) == [encode_open_wifi_response(0)]
-    assert p.wifi_hotspot_on is False
-    assert p._open_wifi(OPEN_HEADER_ONLY) == [encode_open_wifi_response(0, "10000001")]
-    assert [e["status"] for e in p.wifi_log] == [0, 0, 0]
 
 
-def test_open_wifi_is_refused_with_busy_status_while_a_transfer_streams():
+def test_a_second_open_while_the_hotspot_is_up_is_refused_with_busy_status():
+    """Review T8: CLAIM, SyncManager.kt:142-148 -- a second openWiFi while a
+    Wi-Fi session is already opening or running is rejected with status 4
+    ("WiFi fast transfer already in progress")."""
     p = make_peripheral()
-    p.transfer = TransferSession(file_bytes=b"x" * 10)
-    p.transfer.start(1, 0, 0)          # active, not done
+    assert p._open_wifi(OPEN_ON) == [encode_open_wifi_response(0, "10000001")]
     assert p._open_wifi(OPEN_ON) == [encode_open_wifi_response(WIFI_OPEN_STATUS_BUSY)]
-    assert p.wifi_hotspot_on is False
-    p.transfer.frames()                # done
+    assert p._open_wifi(OPEN_HEADER_ONLY) == [encode_open_wifi_response(WIFI_OPEN_STATUS_BUSY)]
+    assert p.wifi_hotspot_on is True
+    assert [e.get("busy") for e in p.wifi_log] == [None, "already_open", "already_open"]
+    p._close_wifi(CLOSE)
     assert p._open_wifi(OPEN_ON) == [encode_open_wifi_response(0, "10000001")]
 
 
@@ -245,6 +329,31 @@ def test_all_three_opcodes_are_dispatched():
 
 
 # --- over a real Bumble link ------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_open_wifi_over_bumble_is_busy_mid_stream_and_accepted_after_stop_sync() -> None:
+    """Review T1 over GATT, in the order the template drives it
+    (SyncManager.kt:173-180: stopSyncFile, then openWiFi): opcode 10 while the
+    R7-S13 device is still streaming -> status 4; after stopSync -> status 0."""
+    from support import connect_like_the_sdk
+
+    devices, peripheral, peer, data, command = await connect_like_the_sdk(
+        lambda device: PlaudPeripheral.for_real_sdk(device, file_bytes=bytes(2048))
+    )
+    responses: list[bytes] = []
+    await peer.subscribe(data, responses.append, prefer_notify=True)
+    await peer.write_value(command, pack_sync_start(7, 0, 0), with_response=True)
+    await asyncio.sleep(0.03)
+    assert peripheral.transfer_streaming
+    await peer.write_value(command, OPEN_ON, with_response=True)
+    await peer.write_value(command, pack_stop_sync_request(), with_response=True)
+    await peer.write_value(command, OPEN_ON, with_response=True)
+    await asyncio.sleep(0.05)
+    j4 = [r for r in responses if r[:3] == b"\x01\x0a\x00"]
+    assert j4 == [encode_open_wifi_response(WIFI_OPEN_STATUS_BUSY), encode_open_wifi_response(0, "10000001")]
+    assert responses[-2:] == [b"\x01\x1e\x00", encode_open_wifi_response(0, "10000001")]
+    assert not peripheral.transfer_streaming and peripheral.wifi_hotspot_on
 
 
 @pytest.mark.asyncio

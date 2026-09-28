@@ -94,11 +94,21 @@ def test_same_seed_produces_identical_bytes(tmp_path: Path) -> None:
 def test_device_outputs_classify_as_intended(smoke) -> None:
     d, m = smoke
     details = m["audio"]["device_details"]
-    expected = {"ogg_opus": "plain_ogg", "ogg_opus_stereo": "plain_ogg", "raw_opus": "plain_raw_opus", "g4_raw_opus": "plain_raw_opus", "e2ee_ogg": "encrypted_unresolved"}
-    for key, shape in expected.items():
+    # (layout the generator vouches for, what AudioExporter's two tests see before decryption)
+    expected = {
+        "ogg_opus": ("plain_ogg", "plain_ogg"),
+        "ogg_opus_stereo": ("plain_ogg", "plain_ogg"),
+        "raw_opus": ("plain_raw_opus", "plain_raw_opus"),
+        "g4_raw_opus": ("g4_framed", "plain_raw_opus"),
+        "e2ee_ogg": ("encrypted_ogg", "encrypted_unresolved"),
+        "e2ee_raw_opus": ("encrypted_raw_opus", "encrypted_unresolved"),
+    }
+    assert set(details) == set(expected) == set(DEVICE_FILES)
+    for key, (shape, sniffed) in expected.items():
         data = (d / DEVICE_FILES[key]).read_bytes()
         info = A.classify_recording(data)
-        assert info["shape"] == shape == details[key]["shape"], key
+        assert info["shape"] == sniffed == details[key]["sniffed_shape"], key
+        assert details[key]["shape"] == shape, key
         assert details[key]["bytes"] == len(data)
     ogg = (d / DEVICE_FILES["ogg_opus"]).read_bytes()
     _, plain = open_recording((d / DEVICE_FILES["e2ee_ogg"]).read_bytes(), SYNTHETIC_KEY)
@@ -222,3 +232,118 @@ def test_meeting_json_records_policy_and_evidence_labels(smoke) -> None:
     assert m["generator"]["name"] == "plaud-harness-generator" and m["generator"]["timing_exact"] is True
     assert m["generator"]["scenario"]["export"]["opus_bitrate_per_channel"] == 32000
     assert m["turn_taking"]["grid_hz"] == 128
+
+
+# --- GEN-3: one primary device recording, named explicitly -------------------------
+
+
+def test_device_primary_names_an_emitted_recording_at_the_meeting_channel_count(smoke, tmp_path: Path) -> None:
+    from generator.contract import device_primary_path
+
+    d, m = smoke
+    audio = m["audio"]
+    assert audio["device_primary"] == "ogg_opus" and audio["device_primary"] in audio["device"]
+    assert device_primary_path(m) == "device/recording.ogg"
+    # write_json sorts keys, so dict order would pick the encrypted file; never rely on it
+    assert next(iter(audio["device"])) != audio["device_primary"]
+
+    sc = load_scenario("notepin_s_noisy", {"duration_s": 4.0, "export.include_g4": False, "export.include_e2ee": False, "export.include_raw_opus": False})
+    p = write_meeting(generate_meeting(sc), tmp_path / "stereo")
+    key = p["audio"]["device_primary"]
+    assert key == "ogg_opus_stereo" and key in p["audio"]["device"]
+    assert p["audio"]["device_details"][key]["channels"] == p["channels"] == 2
+    head = A.classify_ogg_pages(list(A.iter_ogg_pages((tmp_path / "stereo" / device_primary_path(p)).read_bytes())))["head"]
+    assert head["channels"] == 2
+
+    dangling = json.loads(json.dumps(m))
+    dangling["audio"]["device_primary"] = "ogg_opus_stereo"
+    del dangling["audio"]["device"]["ogg_opus_stereo"]
+    assert any("device_primary" in e for e in validate_meeting(dangling))
+
+
+# --- GEN-4: labels say what the bytes are; all four SDK shapes are emitted --------
+
+
+def test_every_device_file_carries_its_layout_and_the_sdk_sniff(smoke) -> None:
+    d, m = smoke
+    details = m["audio"]["device_details"]
+    for key, det in details.items():
+        data = (d / DEVICE_FILES[key]).read_bytes()
+        assert det["sniffed_shape"] == A.classify_recording(data)["shape"], key
+        assert det["sdk_exporter_layout"] == (det["shape"] in A.RECORDING_SHAPES), key
+    g4 = details["g4_raw_opus"]
+    assert g4["sniffed_shape"] == "plain_raw_opus", "AudioExporter's 4-byte sniff cannot tell g4 from raw"
+    assert g4["shape"] == "g4_framed" and g4["sdk_exporter_layout"] is False
+    raw = (d / DEVICE_FILES["raw_opus"]).read_bytes()
+    g4_bytes = (d / DEVICE_FILES["g4_raw_opus"]).read_bytes()
+    # the raw branch reads back-to-back 80-byte packets; in g4 the first 80 bytes are lead filler
+    assert g4_bytes[:80] == bytes(80) != raw[:80]
+
+
+def test_all_four_sdk_recording_shapes_are_emitted_and_decrypt_to_their_plain_twins(smoke) -> None:
+    d, m = smoke
+    details = m["audio"]["device_details"]
+    assert set(A.RECORDING_SHAPES) <= {det["shape"] for det in details.values()}
+    for enc_key, plain_key, container in (("e2ee_ogg", "ogg_opus", "ogg"), ("e2ee_raw_opus", "raw_opus", "raw_opus")):
+        sealed = (d / DEVICE_FILES[enc_key]).read_bytes()
+        assert A.classify_recording(sealed)["shape"] == "encrypted_unresolved" == details[enc_key]["sniffed_shape"]
+        _, plain = open_recording(sealed, SYNTHETIC_KEY)
+        assert plain == (d / DEVICE_FILES[plain_key]).read_bytes()
+        assert A.classify_container(plain) == container
+        assert details[enc_key]["shape"] == f"encrypted_{container}"
+
+
+# --- GEN-5: the bare packet shapes carry the encoder lookahead ---------------------
+
+
+def test_raw_packet_streams_record_the_codec_lookahead_they_carry(smoke) -> None:
+    """The Ogg's pre-skip (312 at 48 kHz) is trimmed by any Ogg demuxer; the bare
+    packet stream has no carrier for it. Decoding both with the same decoder, the
+    raw decode shifted by exactly pre_skip equals the Ogg decode bit for bit."""
+    import av
+
+    d, m = smoke
+    det = m["audio"]["device_details"]
+    raw = (d / DEVICE_FILES["raw_opus"]).read_bytes()
+    packets = [raw[i : i + 80] for i in range(0, len(raw), 80)]
+    ctx = av.CodecContext.create("opus", "r")
+    ctx.sample_rate = 48000
+    ctx.layout = "mono"
+    decoded = np.concatenate([f.to_ndarray().reshape(-1) for p in packets for f in ctx.decode(av.Packet(p))]).astype(np.float64)
+    ogg, rate = decode_ogg_opus((d / DEVICE_FILES["ogg_opus"]).read_bytes())
+    pre_skip = det["ogg_opus"]["ogg"]["pre_skip"]
+    assert rate == 48000 and pre_skip == 312
+    assert np.array_equal(decoded[pre_skip : pre_skip + ogg.shape[1]], ogg[0].astype(np.float64))
+    n = int(m["duration_s"] * SAMPLE_RATE)
+    for key in ("raw_opus", "g4_raw_opus", "e2ee_raw_opus"):
+        assert det[key]["codec_lookahead_samples_16k"] == pre_skip // 3 == 104, key
+    assert det["raw_opus"]["flush_packets"] == len(packets) - -(-n // A.FRAME_SAMPLES) == 1
+    assert det["raw_opus"]["decoded_samples_16k"] == len(decoded) // 3 == n + 104 + 216
+
+
+# --- GEN-8: regenerating never leaves another meeting's files behind ---------------
+
+
+def test_regenerating_into_a_meeting_directory_leaves_no_stale_files(tmp_path: Path) -> None:
+    out = tmp_path / "reuse"
+    first = load_scenario("smoke", {"duration_s": 3.0, "seed": 2, "n_speakers": 3, "device.preset": "note_pro_4mic"})
+    write_meeting(generate_meeting(first), out)
+    assert (out / "stems" / "spk2.wav").is_file() and (out / "mics.wav").is_file() and (out / "device" / "recording_stereo.ogg").is_file()
+    second = load_scenario("smoke", {"duration_s": 3.0, "seed": 3, "export.include_stereo_ogg": False, "export.write_mics_wav": False})
+    p = write_meeting(generate_meeting(second), out)
+    on_disk = {str(q.relative_to(out)) for q in out.rglob("*") if q.is_file()}
+    audio = p["audio"]
+    listed = {"meeting.json", "ref.rttm", "ref.stm", audio["mix_wav"], audio["activity"]["path"], *audio["stems"].values(), *audio["device"].values()}
+    assert audio["mics_wav"] is None
+    assert on_disk == listed
+
+
+def test_write_meeting_refuses_a_directory_it_does_not_own(tmp_path: Path) -> None:
+    foreign = tmp_path / "foreign"
+    foreign.mkdir()
+    (foreign / "notes.txt").write_text("mine")
+    meeting = generate_meeting(load_scenario("smoke", {"duration_s": 3.0, "seed": 2}))
+    with pytest.raises(FileExistsError, match="notes.txt"):
+        write_meeting(meeting, foreign)
+    assert (foreign / "notes.txt").read_text() == "mine"
+    assert sorted(q.name for q in foreign.iterdir()) == ["notes.txt"], "nothing is written when refusing"

@@ -124,3 +124,11 @@ def test_optional_backends_fail_closed_without_models(name: str) -> None:
         assert "download" in str(exc).lower() or "not installed" in str(exc).lower() or "weights" in str(exc).lower()
         return
     pytest.skip(f"{name} is installed locally with voices: {backend.voices()[:3]}")
+
+
+# --- the piper backend ---------------------------------------------------------------
+#
+# GEN-6's stub tests of the old estimate-only piper backend were replaced, with the
+# backend, by tests/test_generator_piper.py: stub tests of the alignment arithmetic
+# that run everywhere, and real-voice tests that run where piper-tts and
+# data/voices/piper are present.

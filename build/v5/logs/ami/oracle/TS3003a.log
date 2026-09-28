@@ -1,0 +1,25 @@
+# 2026-09-25T09:11:32Z ami oracle TS3003a pipeline=oracle hint=0 n_active=4
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/TS3003a/mix.wav
+# load average at start: { 2.93 4.00 3.60 }
+# swap at start: total = 8192.00M  used = 7053.81M  free = 1138.19M  (encrypted)
+oracle: 242 segments, 4 speakers, 0.02s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/ami/oracle/TS3003a.partial/hyp.json (+ .rttm, .stm)  [HARNESS SELF-TEST, not a system under test]
+        0.29 real         0.25 user         0.03 sys
+            75137024  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                7469  page reclaims
+                   0  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  23  involuntary context switches
+          2847994036  instructions retired
+           913189666  cycles elapsed
+            56526080  peak memory footprint
+# load average at end: { 2.93 4.00 3.60 }
+# exit 0

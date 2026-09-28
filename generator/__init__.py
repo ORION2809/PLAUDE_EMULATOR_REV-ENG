@@ -17,7 +17,7 @@ from generator.contract import (
 )
 from generator.scenario import PRESETS, Scenario, load_scenario
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
 def generate_meeting(*args, **kwargs):  # lazy: keeps `import generator` light

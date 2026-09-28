@@ -1,0 +1,27 @@
+# 2026-09-25T10:07:11Z piper-device whisper-sherpa-hint synth-piper-3spk-reverb-noise-s0103 pipeline=whisper-sherpa hint=1 n_active=3
+# audio /Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-3spk-reverb-noise-s0103/device/recording.ogg
+# load average at start: { 7.28 6.79 6.89 }
+# swap at start: total = 9216.00M  used = 7973.56M  free = 1242.44M  (encrypted)
+/Users/mivi/Desktop/plaud-harness/pipeline/adapters.py:368: RuntimeWarning: sherpa-onnx returned 2 speaker(s) for num_speakers=3 (135.00 s of audio); the hint was not honoured
+  turns = list(self.diarizer.diarize(audio.pcm, audio.sample_rate, num_speakers=num))
+whisper-sherpa: 53 segments, 2 speakers, 48.40s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper-device/whisper-sherpa-hint/synth-piper-3spk-reverb-noise-s0103.partial/hyp.json (+ .rttm, .stm)
+       50.15 real       190.31 user        17.17 sys
+          1134870528  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1460308  page reclaims
+                 821  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                1213  voluntary context switches
+             1410225  involuntary context switches
+       1088128763007  instructions retired
+        362040560934  cycles elapsed
+          1470518784  peak memory footprint
+# load average at end: { 9.69 7.32 7.07 }
+# exit 0

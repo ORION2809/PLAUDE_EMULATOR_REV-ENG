@@ -1,0 +1,192 @@
+{
+  "schema": "plaud-harness/hypothesis/1",
+  "meeting_id": "synth-piper-2spk-s0101",
+  "system": "whisper-sherpa:diarization-turns",
+  "segments": [
+    {
+      "speaker": "spk0",
+      "start": 0.4697187542915344,
+      "end": 5.397219181060791,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 6.055344104766846,
+      "end": 10.459718704223633,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 11.252843856811523,
+      "end": 16.29846954345703,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 17.040969848632812,
+      "end": 18.82971954345703,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 19.740968704223633,
+      "end": 26.507844924926758,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 27.030969619750977,
+      "end": 28.178470611572266,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 29.089719772338867,
+      "end": 39.68722152709961,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 36.58222198486328,
+      "end": 37.037845611572266,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 40.362220764160156,
+      "end": 43.70347213745117,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 44.54722213745117,
+      "end": 47.314720153808594,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 48.04034423828125,
+      "end": 54.72284698486328,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 55.58346939086914,
+      "end": 59.83597183227539,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 60.7303466796875,
+      "end": 63.63284683227539,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 64.51034545898438,
+      "end": 65.69159698486328,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 66.24847412109375,
+      "end": 67.85159301757812,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 68.62784576416016,
+      "end": 69.7416000366211,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 70.56847381591797,
+      "end": 74.09534454345703,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 74.9897232055664,
+      "end": 83.05596923828125,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 83.68034362792969,
+      "end": 85.84034729003906,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 86.73472595214844,
+      "end": 89.06346893310547,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 90.00846862792969,
+      "end": 92.23596954345703,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 92.84347534179688,
+      "end": 95.03722381591797,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 95.88097381591797,
+      "end": 101.06159973144531,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 101.70285034179688,
+      "end": 102.76597595214844,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 103.57597351074219,
+      "end": 111.9291000366211,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 112.92472076416016,
+      "end": 114.83159637451172,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 115.01721954345703,
+      "end": 117.80159759521484,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 116.4853515625,
+      "end": 116.97472381591797,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 118.62847137451172,
+      "end": 119.23597717285156,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 119.40472412109375,
+      "end": 119.97846984863281,
+      "text": ""
+    }
+  ],
+  "extra": {
+    "derived_from": "/Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper/whisper-sherpa-hint/synth-piper-2spk-s0101/hyp.json",
+    "derived_from_sha256": "edf4f6fd700cc0094e74fee134aa23b043062d47298fc9174e6631d63786516b",
+    "note": "raw sherpa-onnx turns from extra.diarization.turns; no text (DER/JER only)"
+  }
+}

@@ -16,6 +16,7 @@ touched.
 
 Usage:
     python r7/k3_capture_peripheral.py [transport-spec] [capture-json-path]
+    (defaults: android-netsim, <repo>/r7/k3-capture.json)
 """
 
 from __future__ import annotations
@@ -25,10 +26,14 @@ import json
 import logging
 import sys
 import time
+from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, "/Users/mivi/Desktop/plaud-harness/emulator")
-sys.path.insert(0, "/Users/mivi/Desktop/plaud-harness/reference/upstream/bumble")
+# The repository root is derived from this file's location (<root>/r7/<file>),
+# so the script runs from any checkout; nothing machine-specific is hard-coded.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "emulator"))
+sys.path.insert(0, str(ROOT / "reference" / "upstream" / "bumble"))
 
 from bumble import logging as bumble_logging
 
@@ -51,7 +56,7 @@ from plaudsim.profile import (
 )
 from plaudsim.handshake import parse_handshake_request
 
-CAPTURE_PATH = sys.argv[2] if len(sys.argv) > 2 else "/Users/mivi/Desktop/plaud-harness/r7/k3-capture.json"
+CAPTURE_PATH = sys.argv[2] if len(sys.argv) > 2 else str(ROOT / "r7" / "k3-capture.json")
 CAPTURES: list[dict[str, Any]] = []
 
 
@@ -91,7 +96,13 @@ async def main() -> None:
             name="PlaudNotePro", address=Address("F0:1A:2B:3C:4D:5E")
         )
         device = Device.from_config_with_hci(config, hci.source, hci.sink)
-        peripheral = CapturingPeripheral(
+        # for_real_sdk(): like every rig that faces the unmodified SDK
+        # (r4-s3/plaud_netsim_peripheral.py, r7/pull_capture_peripheral.py),
+        # take the R7-S13 transfer policy (task streaming, 4 ms pacing, abort
+        # on restart/stop). R7-S12 runs 1-4 predate R7-S13 and used the bare,
+        # inline/unpaced constructor; the policy only changes how a syncFile
+        # transfer is emitted, not the handshake writes this rig captures.
+        peripheral = CapturingPeripheral.for_real_sdk(
             device,
             state=PlaudDeviceState(
                 state=0x1001, privacy_enabled=True, key_state=1,

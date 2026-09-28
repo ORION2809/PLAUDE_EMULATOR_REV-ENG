@@ -4,7 +4,7 @@ the genuine SDK can pull it, and mirroring every host->device write (syncFile
 starts with their offsets, stopSync, deleteFile) to a JSON capture file.
 
 Environment knobs (all HARNESS_POLICY, documented in the run report):
-    PULLCAP_FILE         path of the file to serve (default tests/fixtures/r6s2_16k_mono.ogg)
+    PULLCAP_FILE         path of the file to serve (default <repo>/tests/fixtures/r6s2_16k_mono.ogg)
     PULLCAP_SESSION_ID   session id of the served file (default 0x6553F000 = 1700000000)
     PULLCAP_DROP_OFFSET  if set, the DATA frame starting at this offset is omitted
                          from the FIRST transfer only (the R3 gap experiment);
@@ -15,7 +15,7 @@ Environment knobs (all HARNESS_POLICY, documented in the run report):
     PULLCAP_EMPTY_POS    before_tail (default) | after_tail | only
     PULLCAP_ABORT_ON_RESTART  1 (default): stream from a cancellable task; a new syncFileStart/stopSync aborts the old stream
     PULLCAP_PACING_S     inter-frame pacing for the streamed path (default 0.004)
-    PULLCAP_CAPTURE      capture JSON path (default r7/pull-capture.json)
+    PULLCAP_CAPTURE      capture JSON path (default <repo>/r7/pull-capture.json)
     K3CAP_BUMBLE_LOG     bumble log level (default WARNING)
 
 NOTHING here is authentication: the token inside k3 is a synthetic identifier
@@ -32,10 +32,14 @@ import logging
 import os
 import sys
 import time
+from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, "/Users/mivi/Desktop/plaud-harness/emulator")
-sys.path.insert(0, "/Users/mivi/Desktop/plaud-harness/reference/upstream/bumble")
+# The repository root is derived from this file's location (<root>/r7/<file>),
+# so the script runs from any checkout; nothing machine-specific is hard-coded.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "emulator"))
+sys.path.insert(0, str(ROOT / "reference" / "upstream" / "bumble"))
 
 from bumble import logging as bumble_logging
 
@@ -60,12 +64,11 @@ from plaudsim.profile import (
 from plaudsim.transfer import parse_sync_start_request, parse_stop_sync_request
 from plaudsim.transfer import pack_empty_package_frame
 
-ROOT = "/Users/mivi/Desktop/plaud-harness"
-FILE_PATH = os.environ.get("PULLCAP_FILE", f"{ROOT}/tests/fixtures/r6s2_16k_mono.ogg")
+FILE_PATH = os.environ.get("PULLCAP_FILE", str(ROOT / "tests" / "fixtures" / "r6s2_16k_mono.ogg"))
 SESSION_ID = int(os.environ.get("PULLCAP_SESSION_ID", str(1700000000)))
 DROP_OFFSET = os.environ.get("PULLCAP_DROP_OFFSET")
 PAYLOAD = os.environ.get("PULLCAP_PAYLOAD")
-CAPTURE_PATH = os.environ.get("PULLCAP_CAPTURE", f"{ROOT}/r7/pull-capture.json")
+CAPTURE_PATH = os.environ.get("PULLCAP_CAPTURE", str(ROOT / "r7" / "pull-capture.json"))
 TAIL_CRC = int(os.environ.get("PULLCAP_TAIL_CRC", "0xBEEF"), 0)  # run 2 experiment: 0 vs 0xBEEF
 EMPTY_CODE = os.environ.get("PULLCAP_EMPTY_CODE")        # run 3: emit EMPTY_PACKAGE(code) ...
 EMPTY_POS = os.environ.get("PULLCAP_EMPTY_POS", "before_tail")  # ... before_tail | after_tail | only (no TAIL)
@@ -173,7 +176,12 @@ async def main() -> None:
             kwargs["empty_package_code"] = None   # rebuilt by _start_transfer for the negative controls
         if os.environ.get("PULLCAP_NO_EMPTY") == "1":
             kwargs["empty_package_code"] = None   # run-9 control: the pre-R7-S13 sequence
-        peripheral = PullCapturingPeripheral(
+        # for_real_sdk(): the R7-S13 policy these runs established (task
+        # streaming, 4 ms pacing), which profile.REAL_SDK_* now packages. The
+        # PULLCAP_ABORT_ON_RESTART / PULLCAP_PACING_S knobs below are passed
+        # explicitly and win; their defaults equal the for_real_sdk() values,
+        # and PULLCAP_ABORT_ON_RESTART=0 still gives the inline, unpaced path.
+        peripheral = PullCapturingPeripheral.for_real_sdk(
             device,
             state=PlaudDeviceState(state=0x1001, privacy_enabled=True, key_state=1, scene=4, session_id=SESSION_ID),
             storage=PlaudStorageState(free=8589934592, total=17179869184, duration=36000),

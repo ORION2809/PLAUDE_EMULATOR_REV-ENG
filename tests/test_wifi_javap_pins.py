@@ -320,7 +320,7 @@ def test_ble_open_wifi_request_and_response_layouts():
     i4 = all_class_block("com.plaud.sdk.proto.i4")
     assert literal_after(i4, "public int getBleRequestType();") == prof.OPCODE_OPEN_WIFI == 10
     assert "String OpenWiFiReq wifiPass must be 8 ASCII bytes, got" in i4
-    assert "TntBleCommUtils.c:(I)[B" in i4  # c(onOff) -> one byte
+    assert "TntBleCommUtils.c:(I)[B" in i4  # c(mode) -> one byte (not on/off: R7-S14)
     j4 = all_class_block("com.plaud.sdk.proto.j4")
     assert literal_after(j4, "public int a();") == 10
     assert re.search(r"bipush        12\n\s+\d+: if_icmplt", j4)          # wifiPass iff len >= 12
@@ -368,3 +368,30 @@ def test_wifi_name_and_password_derive_from_the_serial():
     assert re.search(r"iconst_4\n\s+\d+: invokestatic\s+#\d+\s+// Method kotlin/text/StringsKt.takeLast", text[i:i + 1500])
     j = text.index("access$calculateWifiPassword")
     assert re.search(r"bipush        8\n\s+\d+: invokestatic\s+#\d+\s+// Method kotlin/text/StringsKt.takeLast", text[j:j + 800])
+
+
+# --- citations that point at line numbers must point at the bytecode (review T9) ------------
+
+_EPSILON_CITE = re.compile(r"EpsilonDataStream\.txt:(\d+)-(\d+)")
+
+
+def test_file_sync_start_end_citations_point_at_the_constructor_call():
+    """`FileSyncRequest(session, scene, start=0, end=fileSize)` is built at
+    EpsilonDataStream.txt file lines 130-143 (`iconst_0 ... getFileSize; l2i
+    ... invokespecial FileSyncRequest.<init>(JIII)V`). An earlier citation
+    quoted the bytecode OFFSETS 205-235 as if they were file lines."""
+    sys.path.insert(0, str(ROOT / "tests"))
+    from wifi_support import PhoneWifiServer
+
+    text = _read("EpsilonDataStream.txt").split("\n")
+    docs = {
+        "wifi.FileSyncRequest": wifi.FileSyncRequest.__doc__ or "",
+        "PhoneWifiServer.download": PhoneWifiServer.download.__doc__ or "",
+    }
+    for where, doc in docs.items():
+        cites = _EPSILON_CITE.findall(doc)
+        assert cites, f"{where} cites no EpsilonDataStream.txt line range"
+        for lo, hi in cites:
+            block = "\n".join(text[int(lo) - 1 : int(hi)])
+            assert "iconst_0" in block and "getFileSize" in block and "l2i" in block, (where, lo, hi)
+            assert 'FileSyncRequest."<init>":(JIII)V' in block, (where, lo, hi)

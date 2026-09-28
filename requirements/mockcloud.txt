@@ -1,6 +1,25 @@
-# Layer 4 mock cloud -- no additions to .venv were needed.
-# Runtime: fastapi, uvicorn, pydantic, cryptography (all already installed).
-# Tests:   httpx (ASGITransport), pytest-asyncio, numpy + soundfile (Ogg/Opus fixture).
+# Layer 4 mock cloud (mockcloud/ and tests/test_mockcloud_*.py).
+# Pins match requirements/all.txt; tests/test_mockcloud_mock.py checks that they agree.
+#   .venv/bin/pip install -e reference/upstream/bumble   # tests/test_mockcloud_auth.py drives the emulator
+#   .venv/bin/pip install -r requirements/mockcloud.txt
+#
+# Runtime
+fastapi==0.141.1            # brings pydantic and starlette
+uvicorn[standard]==0.53.0   # python -m mockcloud
+cryptography                # gen-key / sn-sign RSA (unpinned, as in all.txt)
+#
+# Tests
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-timeout==2.4.0
+httpx==0.28.1               # ASGITransport: in-process, no socket
+numpy==2.4.6                # Ogg/Opus fixture
+soundfile==0.14.0           # Ogg/Opus fixture
+#
+# Optional: pipeline/ (numpy only for the oracle) lets the worker take the
+# pipeline.oracle path; without it the mock reads meeting.json itself and the
+# task's `source` says why (docs/mockcloud.md).
+#
 # Deliberately NOT used anywhere in mockcloud/: httpx, requests, aiohttp, urllib.request,
 # python-multipart (form bodies are parsed with urllib.parse), PyJWT (HS256 is hand-rolled
 # on hmac/hashlib so the payload encoding matches what the SDK's regex parser expects).

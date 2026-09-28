@@ -1064,10 +1064,10 @@ a plain alphanumeric filter instead; the two differ only for non-ASCII serials.
 
 ---
 
-## 7. Wi-Fi bulk transfer — SOURCE-DERIVED, NOT IMPLEMENTED
+## 7. Wi-Fi bulk transfer — SOURCE-DERIVED; emulated against a phone double only
 
-Recorded because it is fully recovered and is the obvious next transport, not
-because anything here runs. `emulator/` implements the BLE path only.
+Pen side now implemented in `emulator/plaudsim/wifi.py` + `wifi_device.py`, tested only against
+a bytecode-derived phone double (`docs/wifi-transport.md`), never against the real SDK or a phone.
 
 **The roles are inverted between the two layers, which is the thing to get
 right:** the **pen** raises a WPA2 SoftAP and the **phone** joins it as a
@@ -1115,19 +1115,49 @@ Two of them matter for a future audio milestone:
 * **13 FileSyncContent** — `{"session","offset","length","last"}` plus `length`
   raw bytes at `8+jsonSize`.
 
-Handshake (type 1) carries `{"token": <32 chars, right-padded with '0'>,
-"stamp": <unix seconds>}` — the same padding rule as BLE's `k3`.
+Handshake (type 1) carries `{"token": padEnd(token, 32, '0'), "stamp": <unix seconds>}` — identical
+to BLE `k3` (pv ≥ 9) up to 32 chars only: `padEnd` never truncates, `k3` does (`docs/wifi-transport.md`).
 
 The BLE side of the handoff:
 
 | Opcode | Message | Layout |
 |---|---|---|
-| 10 | OpenWiFi req/rsp | req `[01][0A 00][u8 onOff][8B ascii pass?]`; rsp `[..][u8 status][8B pass]` when len ≥ 12 |
-| 13 | CloseWiFi req/rsp | req header only; rsp `[u8 status]` |
+| 10 | OpenWiFi req/rsp | req `[01][0A 00][u8 mode][8B ascii pass?]` — **not on/off** (R7-S14): `startWifiTransfer` sends mode 0, `setDeviceWiFi(true)` mode 1, and both "off" paths use opcode 13; rsp `[..][u8 status][8B pass]` when len ≥ 12 |
+| 13 | CloseWiFi req/rsp | req header only; rsp `[u8 status]`. The SDK waits for the answer on opcode **10** (`q.P`, ALL.txt:46011-46026) while `l0` requires 13 (R7-S14) |
 | 16 | Get/SetWebsocket req | `[01][10 00][u8 op 1=get 2=set][u8 type]` then, on set, 64 NUL-padded bytes for type 1 (url) or 16 for types 2/3 (tokens) |
 | 17 | Get/SetWebsocket rsp | `[01][11 00][u8 type][value, width 64 for type 1 else 16, NUL-terminated]` |
 
 `WebsocketType {url, serToken, devToken}` = types 1, 2, 3. Type 0 throws.
+
+**R7-S14 (2026-09-25) — the genuine SDK's Wi-Fi path on the AVD, RUNTIME_PROVEN
+where marked** (`r7/r7-s14-wifi-real-sdk.md`, evidence `r7/r7-s14-evidence/`):
+
+* The phone JOINS the pen's SoftAP before it starts its server, and the join is
+  mandatory: `LambdaTaskRunner` runs CONNECTING → BLE prerequisite (1001) →
+  `saveEncryptionKeys` → `openDeviceWifi` (opcode 10, mode 0; 1002 on failure)
+  → `WifiConnectionManager.connectToDeviceWifi` (1003 on false) → CONNECTED,
+  HANDSHAKING → `startWebSocketAndHandshake` (server start + 30 s session wait;
+  1004) (`LambdaTaskRunner.txt:64-220`). On API ≥ 29 the join is
+  `ConnectivityManager.requestNetwork(NetworkRequest{WIFI, −INTERNET,
+  WifiNetworkSpecifier{ssid, wpa2}}, cb, 30000)` (`WifiConnectionManager.txt:40-162`);
+  nothing binds the process or the server socket to that network (no
+  `bindProcessToNetwork` in ALL.txt; server = `new InetSocketAddress(8081)`).
+  RUNTIME: request for `PLAUD0001` registered, the Settings
+  `NetworkRequestDialogActivity` opened, request released after 30.0 s,
+  `onError(1003)`; port 8081 never listened; zero Wi-Fi PDUs.
+* SSID is `BleDevice.getWiFiName()` (project-code/portVersion dependent,
+  ALL.txt:11094-11210) — for project 881 below portVersion 20 it is `PLAUD`+last 4
+  (RUNTIME: `PLAUD0001`); `WifiAgentImpl.calculateWifiName` (`Plaud`+last 4) is
+  only the fallback. The opcode-10 answer's passphrase is ignored.
+* Emulator fix: `PlaudPeripheral._open_wifi` treated mode 0 as "hotspot off", so
+  the SDK's own open never started the Wi-Fi device (RUNTIME, run 1b); now every
+  opcode 10 opens (tests `test_r7_s14_*` in `tests/test_wifi_ble_handoff.py`,
+  `tests/test_wifi_ble_crossover.py`).
+* The Wi-Fi handshake token is `resolveHandshakeToken("")`; on the recovery
+  path it differs from the BLE `k3` token (RUNTIME: len 21 vs `SYNTHHIST0001`).
+  A SayHello token mismatch is only logged ("Token mismatch! … 握手会被设备拒绝");
+  the phone still sends its HandshakeRequest; the pen decides
+  (`WifiAgentImpl.txt:1376-1417`).
 
 ---
 
@@ -1243,7 +1273,7 @@ bytes to `PKCS8EncodedKeySpec`, so a genuine PKCS#1 key silently fails.
 
 | # | Unknown | What would settle it |
 |---|---|---|
-| U1 | Manufacturer-data byte layout, incl. the portVersion offset | Walk `u4.a(ScanResult)` in bytecode (`ALL.txt:80850-81100`). **Gates R4.** |
+| U1 | Manufacturer-data byte layout, incl. the portVersion offset | The `u4.a(ScanResult)` bytecode walk is done (R1e, `ALL.txt:80850-81100`); which branch real hardware takes (U18, merged into U1 in `docs/final-uncertainty-matrix.json`) needs one scan capture. |
 | U2 | Units of `free`/`total`/`duration` in StorageRsp | A hardware capture, or a first-party app that formats them |
 | U3 | Semantics of the `attribute` byte in a file-list entry | `getAttribute()` has zero call sites in the shipped SDK |
 | U4 | Semantics of z2's bytes 16 and 17 | No toString name, no consumer found |
@@ -1260,7 +1290,7 @@ bytes to `PKCS8EncodedKeySpec`, so a genuine PKCS#1 key silently fails.
 | U15 | EMPTY_PACKAGE `code` values real firmware sends (U23 is a duplicate) | Client side known (§15): any code completes when no recovery is in flight, codes 0 and 1 completed live; code 1 is ignored during a recovery. The device's choice is unknown |
 | U16 | s6 `status` values beyond "non-zero is an error" | Request a non-existent session, an out-of-range start, and a busy device |
 | U17 | Whether real firmware sends a TAIL after the EMPTY_PACKAGE, or the EMPTY_PACKAGE alone | One clean end-to-end capture. **Corrected 2026-09-24**: the earlier note "both terminate a transfer … nothing orders them" was wrong for the client — only EMPTY_PACKAGE completes, and it must precede the TAIL (§15) |
-| U18 | Which branch of `u4.a` real hardware's advertisement takes | A single scan capture. Only two of the three branches assign portVersion at all |
+| U18 | Which branch of `u4.a` real hardware's advertisement takes (merged into U1 in the uncertainty matrix) | A single scan capture. Only two of the three branches assign portVersion at all |
 | U19 | Cloud-exported audio vs the local SDK writer: real cloud downloads carry OpusTags vendor `PALUD.AI` (riffado #160, CLOUD_OBSERVED) while `libjni_ogg.so` writes `TinnoTech123456789012` (§8) — does the cloud transcode or only re-tag? | One lawfully obtained download from an account the operator owns; `PALUD.AI` appears nowhere in the SDK, so cloud artifacts must not be treated as local-writer output |
 | U20 | Which of the four closed recording shapes ({plain, PLAUD.AI-encrypted} × {Ogg, raw Opus}) real firmware emits over BLE, and whether the 512-byte header is present on the BLE path | One authentic BLE file-transfer capture; the selection chain itself is closed (§8, R6/R7) |
 | U21 | The absolute host of the legacy TntAgent endpoints `/recorder/device/{checkSn,checkCustomer,saveOperation}` (`r3`/`q3`; the builder shows an empty host prefix) | Static: trace `r3.b(String)` callers; it must never be exercised (production, hard-coded query-signature secret) |
@@ -1543,8 +1573,17 @@ SDK API only, synthetic id); peripheral `r7/pull_capture_peripheral.py`.
   `tests/test_r7_s13_transfer_close.py`.
 * **Gap recovery observed live**: stopSync → a7 → syncFileStart(cursor) within
   35 ms (§5.8, corrected); converges when the device abandons the old stream
-  (`PlaudPeripheral(stream_in_task=True)`), otherwise a second restart and a
-  corrupted export (run 6).
+  (with `stream_in_task=True` a new syncFileStart/stopSync cancels the
+  streaming task), otherwise a second restart and a corrupted export (run 6).
+* **Configuration, not constructor defaults.** `PlaudPeripheral(...)` defaults
+  to `stream_in_task=False, response_pacing_s=0.0` (inline, unpaced: in-process
+  tests). Runs 6b–10 used an experimental subclass override (abort-on-restart
+  and 4 ms pacing); runs 11–13 ran the shipped code path configured by
+  `r7/pull_capture_peripheral.py`'s `PULLCAP_ABORT_ON_RESTART=1` /
+  `PULLCAP_PACING_S=0.004` defaults; `PlaudPeripheral.for_real_sdk(...)` now
+  packages exactly that (`REAL_SDK_STREAM_IN_TASK`,
+  `REAL_SDK_RESPONSE_PACING_S = 0.004`; pinned by
+  `test_real_sdk_preset_is_the_r7_s13_device_and_the_constructor_default_is_not`).
 * **Op-queue race (HARNESS_POLICY for emulators)**: zero-latency responses
   made `BluetoothLeOperation` register its `[28,29]` bean after the HEAD had
   passed (`-98` on cancel, `-99 "Failed to send the download request"` on

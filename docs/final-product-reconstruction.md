@@ -3,7 +3,10 @@
 **Verdict: PRODUCT RECONSTRUCTION COMPLETE WITH EXTERNAL-EVIDENCE BLOCKERS.**
 Every layer of the Plaud product that the assembled corpus can speak to has
 been mapped, each claim carries its evidence and class, and the remaining
-unknowns are listed with what would settle them. No Plaud endpoint was called,
+unknowns are listed with what would settle them. This reconstruction called no
+Plaud endpoint (but see the 25 Sep correction: the runtime rig's SDK sent
+automatic `gen-key` requests; 19 of the 22 logs that show them record a 401 and the
+other 3 never reached the server — `r7/r7-s14-wifi-real-sdk.md` D7),
 no Plaud device was touched, no credential was used, no file under
 `reference/**` was modified (33/33 pins verified before and after).
 

@@ -9,8 +9,13 @@ Registered names (``python -m pipeline list``):
 
   oracle, perturbed-oracle      harness self-tests (NOT systems under test)
   energy-vad-cluster            model-free diarizer, no ASR (runs here)
-  faster-whisper, pyannote-audio, faster-whisper+pyannote, whisperx
-                                optional adapters, UNTESTED here (no models)
+  whisper-sherpa                faster-whisper small.en + sherpa-onnx diarization,
+                                open ungated models on CPU (runs here once
+                                ``python -m pipeline fetch-models`` has run)
+  sherpa-onnx-diarization       the same diarizer alone (DER/JER only)
+  faster-whisper                faster-whisper + the model-free diarizer
+  pyannote-audio, faster-whisper+pyannote, whisperx, embedding-cluster
+                                optional adapters, UNTESTED here (packages absent)
 """
 
 from .base import (
@@ -22,6 +27,7 @@ from .base import (
     Diarizer,
     Hypothesis,
     LoadedAudio,
+    ParamError,
     Pipeline,
     PipelineConfig,
     PipelineError,
@@ -46,6 +52,7 @@ __all__ = [
     "Diarizer",
     "Hypothesis",
     "LoadedAudio",
+    "ParamError",
     "Pipeline",
     "PipelineConfig",
     "PipelineError",

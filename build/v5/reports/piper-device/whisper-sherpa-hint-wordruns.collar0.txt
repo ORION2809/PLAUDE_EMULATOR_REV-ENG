@@ -1,0 +1,7 @@
+synth-piper-2spk-overlap-s0102 [whisper-sherpa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.4260  JER 0.5789
+synth-piper-2spk-s0101 [whisper-sherpa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.7324  JER 0.7672
+synth-piper-3spk-reverb-noise-s0103 [whisper-sherpa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.6376  JER 0.7953
+synth-piper-4spk-s0104 [whisper-sherpa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.9047  JER 0.8643
+macro  n=4  cpWER 1.0000  tcpWER 1.0000  DER 0.6752  JER 0.7514
+micro  n=4  cpWER 1.0000  tcpWER 1.0000  DER 0.6612  JER 0.7760
+# exit 0

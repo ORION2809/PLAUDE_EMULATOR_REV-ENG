@@ -1,3 +1,8 @@
+> **Note (added 28 September 2026).** This is the raw research conversation that started the project, kept for
+> provenance. Several of its claims were later checked and refuted — for example that the recorder is ESP32-class,
+> that xiaozhi is its reference firmware, and that `live-agent` derives from livekit/agents. See
+> [`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md) §6 and [`docs/project-state.md`](docs/project-state.md).
+
 plaude.ai this is a product but i heard there are a bunch of opensource repos that are supposed to be there i forgot the names can u find me them
 
 

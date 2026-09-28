@@ -40,9 +40,14 @@ router = APIRouter(tags=["Authentication API"])
 
 PARTNER_PREFIX = "/developer/api"
 
-#: DOC-EXACT: `sub` is `client_user_<id>` (cloud.md 2.1; the bytecode strips
-#: exactly this prefix). What `<id>` is on the real cloud is UNKNOWN; the mock
-#: uses a UUID5 of (client_id, user_id) so re-minting is stable (HARNESS_POLICY).
+#: BYTECODE_PROVEN prefix + INFERRED `sub` format: the SDK strips exactly the
+#: prefix "client_user_" from `sub` (removePrefix, jadx NiceBuildSdk.java:151-155),
+#: so a `sub` of the form `client_user_<id>` is INFERRED. No official page in
+#: build/docs-plaud-ai states the claim format; they mention only a "raw
+#: client_user_id" (plaud-embedded_ios-sdk.md:379, plaud-embedded_android-sdk.md:444)
+#: and docs/architecture/cloud.md 2.1 is the harness's own synthesis. What
+#: `<id>` is on the real cloud is UNKNOWN; the mock uses a UUID5 of
+#: (client_id, user_id) so re-minting is stable (HARNESS_POLICY).
 SUB_PREFIX = "client_user_"
 _SUB_NAMESPACE = uuid.UUID("6f1c8f8e-5a0e-4a7d-9c3e-000000000000")  # fixed SYNTHETIC namespace
 

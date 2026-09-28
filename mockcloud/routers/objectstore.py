@@ -53,8 +53,10 @@ async def put_object(bucket: str, key: str, request: Request) -> Response:
         if not 1 <= n <= mp.part_count:
             return s3_error(400, "InvalidPart", f"partNumber {n} outside 1..{mp.part_count}")
         if len(data) > ctx.settings.chunk_size:
-            # DOC: "You must send < ChunkSize of data to each PresignedUrl"
-            # (plaud-embedded_file-api-overview.md); the code is HARNESS_POLICY.
+            # DOC: "You must send <ChunkSize of data to each PresignedUrl"
+            # (plaud-embedded_file-api-overview.md:22) but also "PUT up to the
+            # ChunkSize of raw bytes" (:80). The mock follows "up to": exactly
+            # ChunkSize is accepted, more is refused. Code HARNESS_POLICY.
             return s3_error(400, "EntityTooLarge", "part exceeds ChunkSize")
         mp.parts[n] = {"etag": etag, "size": len(data)}
     ctx.state.put_object(StoredObject(

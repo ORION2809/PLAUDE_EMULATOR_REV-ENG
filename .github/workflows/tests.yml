@@ -1,52 +1,133 @@
+# Full suite on a clean checkout.
+#
+# What CI has, and what it deliberately lacks (HARNESS_POLICY):
+#   * Bumble, the BLE stack under the emulator, at its pin in
+#     docs/reference-pins.txt. It is reference material (immutable evidence), so
+#     it is fetched into reference/upstream/bumble, never vendored, and installed
+#     editable, exactly as in local setup.
+#   * The Plaud SDK is proprietary (PROJECT.md section 2) and is NOT fetched, so
+#     build/evidence/** (the decompiled SDK) and the .aar are absent. Tests that
+#     need them skip, each with its reason; tests that read the committed
+#     docs/evidence-digest.json still run. tests/conftest.py prints every skip
+#     grouped by reason and, with PLAUD_STRICT_SKIPS=1, fails the run on a skip
+#     that no documented gate (ENV_GATES there) explains.
+#   * No apt packages: the soundfile wheel bundles libsndfile (with Opus) and the
+#     av wheel bundles FFmpeg. meeteval ships only an sdist; the runner's gcc
+#     builds it and the pip cache keeps the built wheel.
 name: tests
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash  # -eo pipefail
+    env:
+      # Nothing may write bytecode under reference/** (tests/conftest.py does the
+      # same inside pytest; this covers the scripts the job runs outside it).
+      PYTHONDONTWRITEBYTECODE: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements/ci.txt
+            requirements/all.txt
 
-      # Bumble is the BLE stack under the emulator. It is a reference
-      # repository (immutable evidence), fetched rather than vendored.
-      - name: Fetch Bumble
+      - name: Fetch Bumble at its pin
         run: |
-          mkdir -p reference/upstream
-          pin=$(awk '/bumble(\.git)?$/ {print $1; exit}' docs/reference-pins.txt)
-          git clone https://github.com/google/bumble.git reference/upstream/bumble
-          if [ -n "$pin" ]; then
-            git -C reference/upstream/bumble fetch --depth 1 origin "$pin" || true
-            git -C reference/upstream/bumble checkout "$pin"
+          pin=$(awk '$2 == "https://github.com/google/bumble.git" {print $1; exit}' docs/reference-pins.txt)
+          if ! [[ "$pin" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "no bumble pin in docs/reference-pins.txt" >&2; exit 1
           fi
-          git -C reference/upstream/bumble rev-parse HEAD
+          dest=reference/upstream/bumble
+          mkdir -p "$dest"
+          git -C "$dest" init -q
+          git -C "$dest" remote add origin https://github.com/google/bumble.git
+          git -C "$dest" fetch -q --depth 1 origin "$pin"
+          git -C "$dest" -c advice.detachedHead=false checkout -q FETCH_HEAD
+          test "$(git -C "$dest" rev-parse HEAD)" = "$pin"
+          echo "bumble at $pin"
 
+      # The local layout (requirements/all.txt header): a .venv at the repository
+      # root. scripts/local-up.sh and scripts/make-synthetic-set.sh run on
+      # .venv/bin/python, and tests/test_compose_runtime.py runs local-up.sh.
       - name: Install
         run: |
-          python -m pip install --upgrade pip
-          pip install -e reference/upstream/bumble pytest pytest-asyncio
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install -e reference/upstream/bumble
+          .venv/bin/python -m pip install -r requirements/ci.txt
+          .venv/bin/python -m pip freeze --exclude-editable
 
-      # The conformance suite asserts the emulator against
-      # docs/evidence-digest.json, which is committed. The SDK itself is
-      # proprietary and is NOT fetched here, so the tests that need the
-      # decompiled tree skip; the ones that read the digest still run.
+      # Every reference repository's state INCLUDING ignored files, taken after
+      # the editable install (which leaves bumble.egg-info/ and bumble/_version.py).
+      # bumble's own .gitignore hides __pycache__ from a plain `git status`, so
+      # only this before/after comparison would catch bytecode written there.
+      - name: Snapshot reference tree
+        id: snapshot
+        run: |
+          for d in reference/*/*/; do
+            [ -d "$d/.git" ] || continue
+            echo "== $d"
+            git -C "$d" status --porcelain --ignored
+          done > "$RUNNER_TEMP/reference-before.txt"
+          cat "$RUNNER_TEMP/reference-before.txt"
+
+      # One small generated meeting, so the emulator's PLAUD_MEETING_DIR path is
+      # exercised (tests/test_compose_runtime.py skips without it). Offline:
+      # the model-free formant backend, nothing downloaded.
+      - name: Generate a synthetic meeting
+        run: N=1 SCENARIO=smoke SEED=1 bash scripts/make-synthetic-set.sh
+
+      # --continue-on-collection-errors: one module that cannot import still
+      # fails the job, but no longer hides every other result.
       - name: Tests
-        run: python -m pytest tests/ -v
+        env:
+          PLAUD_STRICT_SKIPS: "1"
+        run: >-
+          .venv/bin/python -m pytest tests/
+          -rfE -p no:cacheprovider --timeout=120 --durations=15
+          --continue-on-collection-errors
 
       # reference/** is immutable evidence. Anything that writes into it is a
       # bug in the tooling, so fail loudly rather than let it drift.
       - name: Reference tree is pristine
+        if: ${{ always() && steps.snapshot.outcome == 'success' }}
         run: |
+          status=0
           for d in reference/*/*/; do
-            if [ -d "$d/.git" ]; then
-              out=$(git -C "$d" status --porcelain)
-              if [ -n "$out" ]; then echo "DIRTY: $d"; echo "$out"; exit 1; fi
-            fi
+            [ -d "$d/.git" ] || continue
+            out=$(git -C "$d" status --porcelain)
+            if [ -n "$out" ]; then echo "DIRTY: $d"; echo "$out"; status=1; fi
           done
-          echo "all reference repositories clean"
+          for d in reference/*/*/; do
+            [ -d "$d/.git" ] || continue
+            echo "== $d"
+            git -C "$d" status --porcelain --ignored
+          done > "$RUNNER_TEMP/reference-after.txt"
+          if ! diff -u "$RUNNER_TEMP/reference-before.txt" "$RUNNER_TEMP/reference-after.txt"; then
+            echo "reference/** gained or lost ignored files during the run (e.g. __pycache__)"
+            status=1
+          fi
+          [ "$status" -eq 0 ] && echo "all reference repositories clean"
+          exit "$status"

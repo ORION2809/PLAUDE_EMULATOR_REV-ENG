@@ -1,0 +1,25 @@
+# 2026-09-25T09:02:15Z piper energy-vad-cluster synth-piper-2spk-s0101 pipeline=energy-vad-cluster hint=0 n_active=2
+# audio /Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-2spk-s0101/mix.wav
+# load average at start: { 2.02 2.15 2.57 }
+# swap at start: total = 8192.00M  used = 6781.38M  free = 1410.62M  (encrypted)
+energy-vad-cluster: 47 segments, 2 speakers, 0.29s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper/energy-vad-cluster/synth-piper-2spk-s0101.partial/hyp.json (+ .rttm, .stm)
+        0.63 real         0.54 user         0.06 sys
+           140787712  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               11488  page reclaims
+                  45  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  18  voluntary context switches
+                 912  involuntary context switches
+          5989492743  instructions retired
+          1851841550  cycles elapsed
+           120620352  peak memory footprint
+# load average at end: { 2.02 2.15 2.57 }
+# exit 0

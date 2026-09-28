@@ -402,7 +402,8 @@ class PhoneWifiServer:
 
     async def download(self, session_id: int, size: int, scene: int = 1, start: int = 0) -> Download:
         """downloadFile: FileSyncRequest(session, scene, 0, fileSize) then append
-        FileSyncContent bytes until last==1 (EpsilonDataStream.txt:205-235)."""
+        FileSyncContent bytes until last==1 (EpsilonDataStream.txt:130-143 builds
+        the request; WifiAgentImpl.txt:1777-2080 appends)."""
         fut = await self.start_download(session_id, size, scene, start)
         try:
             return await asyncio.wait_for(fut, self.request_timeout)

@@ -1,0 +1,21 @@
+I0925 13:08:43.616663 3888476 fork_posix.cc:71] Other threads are currently calling into gRPC, skipping fork() handlers
+I0925 13:08:43.631159 3888476 fork_posix.cc:71] Other threads are currently calling into gRPC, skipping fork() handlers
+[32m13:08:43.669 I R7S14: [0mWIFICAP_PERIPHERAL_READY pv=7 sn=8810000001 file=/Users/mivi/Desktop/plaud-harness/tests/fixtures/r6s2_16k_mono.ogg len=11271 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d session=1700000000 wifi=ws://127.0.0.1:18081
+[32m13:08:54.077 I R7S14: [0mWIFICAP_BLE_WIFI_WRITE opcode=10 hex=010a0001
+[32m13:08:54.078 I R7S14: [0mWIFICAP_WIFI_DEVICE_STARTED uri=ws://127.0.0.1:18081
+[32m13:08:54.078 I R7S14: [0mWIFICAP_WIFI_STATE connecting
+[32m13:08:54.088 I R7S14: [0mWIFICAP_BLE_WIFI_NOTIFY opcode=10 hex=010a00003130303030303031
+[32m13:08:54.095 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 1}
+[32m13:08:55.102 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 2}
+[32m13:08:56.108 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 3}
+[32m13:08:57.114 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 4}
+[32m13:08:58.120 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 5}
+[32m13:08:59.128 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 6}
+[32m13:09:00.134 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 7}
+[32m13:09:01.141 I R7S14: [0mWIFICAP_WIFI_EVENT connect_retry {'error': "InvalidMessage('did not receive a valid HTTP response')", 'attempt': 8}
+[32m13:09:02.087 I R7S14: [0mWIFICAP_BLE_WIFI_WRITE opcode=13 hex=010d00
+[32m13:09:02.088 I R7S14: [0mWIFICAP_EXPERIMENT close response rewritten ['010d0000'] -> ['010a0000']
+[32m13:09:02.088 I R7S14: [0mWIFICAP_WIFI_STATE closing
+[32m13:09:02.089 I R7S14: [0mWIFICAP_WIFI_EVENT dial_cancelled {'reason': 'ble_close_wifi', 'attempt': 9}
+[32m13:09:02.089 I R7S14: [0mWIFICAP_WIFI_STATE closed
+[32m13:09:02.095 I R7S14: [0mWIFICAP_BLE_WIFI_NOTIFY opcode=10 hex=010a0000

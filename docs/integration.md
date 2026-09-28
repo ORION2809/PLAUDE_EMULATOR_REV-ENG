@@ -1,7 +1,8 @@
 # Cross-layer integration tests
 
-Status 2026-09-24: **implemented; 21 tests, all passing, ~4 s added to the
-suite.** These tests wire the six packages together across the shared data
+Status 2026-09-25: **implemented; 21 tests, all passing, ~4 s added to the
+suite.** The mock-cloud round trip now asserts the pipeline-oracle path (see
+"Findings"). These tests wire the six packages together across the shared data
 contract (`plaud-harness/meeting/1` in, `plaud-harness/hypothesis/1` out) and
 across the two transports the emulator speaks. Nothing here touches a real
 Plaud service or device: the "cloud" is `mockcloud/` in-process over
@@ -100,10 +101,11 @@ generator's own helper.
   source, 16 kHz output, duration within 20 ms of 12.0 s).
 * `energy-vad-cluster` on the pulled bytes (see the tolerance below): with
   `num_speakers=2` it finds exactly 2 speakers (speaker-count error 0), loses
-  no reference speech (miss rate 0.0), scores DER 0.294 (< 0.5) and, being a
-  clusterer and not an oracle, more than 0; without the hint it yields 1
-  speaker (|error| = 1 <= tolerance) with the same zero miss; the hypothesis
-  from the pulled bytes equals the one from the on-disk file segment for segment.
+  no reference speech (miss rate 0.0), scores DER 0.067 (< 0.5) and, being a
+  clusterer and not an oracle, more than 0; without the hint it also finds 2
+  speakers (|error| = 0, inside the tolerance of 1) with the same zero miss
+  and the same DER; the hypothesis from the pulled bytes equals the one from
+  the on-disk file segment for segment.
 
 ### `test_integration_wifi_serves_generator.py` -- Wi-Fi
 
@@ -138,7 +140,9 @@ generator's own helper.
   `GET DownloadUrl` is byte-exact with `audio/ogg`.
 * Transcription: `POST ai/transcriptions/` -> `PENDING`, `data {}`; polling
   the GET sees exactly **`["PENDING", "STARTED", "SUCCESS"]`**; the task's
-  `source` is `objectstore+meeting+meeting.json`; the `results[]` texts and
+  `source` is `objectstore+meeting+pipeline-oracle` (the upload was recognised
+  as the registered meeting, and `pipeline.oracle.OraclePipeline` produced the
+  answer, not the meeting.json fallback); the `results[]` texts and
   `(start, end)` pairs equal `meeting.json` segment for segment; one
   `Speaker N` label per reference speaker; `duration` is the rounded integer
   and `language` is `en`.
@@ -149,7 +153,7 @@ generator's own helper.
   `Speaker 1` where the reference says `spk0` -- the cpWER rationale observed
   across a layer boundary. `unbind` then returns `is_bind: false`.
 * The `file://` knob (`local_file_roots=(meeting dir,)`) reaches the same
-  ground truth with `source == "file+meeting+meeting.json"` and 256-dim
+  ground truth with `source == "file+meeting+pipeline-oracle"` and 256-dim
   embeddings for both speakers.
 * Falsifier: the same bytes uploaded to a mock **without** the registration
   are unknown audio: the placeholder transcript comes back
@@ -183,9 +187,9 @@ generator's own helper.
 | shared fixture | preset `smoke`, seed 3 (12 s, 2 speakers) | every file |
 | BLE DATA payload | 240 bytes (u8 length field; under the SDK's 255-byte MTU minus overheads) | emulator, identity |
 | BLE session id / TAIL CRC | `0x0655A1B0` / `0x0BEE` | emulator |
-| speaker-count tolerance without a hint | 1 | emulator |
+| speaker-count tolerance without a hint | 1 (measured error 0 on seed 3; kept at 1, see below) | emulator |
 | maximum miss rate for the VAD | 0.02 (measured 0.0) | emulator |
-| maximum DER with the hint | 0.5 (a two-speaker coin flip; measured 0.294) | emulator |
+| maximum DER with the hint | 0.5 (a two-speaker coin flip; measured 0.067) | emulator |
 | Wi-Fi chunk size / heartbeat / timers | 4096 B (emulator default) / 50 ms / idle and exit timers off | wifi |
 | Wi-Fi await bound | 10 s per await, `pytest.mark.timeout(120)` per file | wifi (and all async files) |
 | mock chunk size | 20 000 bytes (documented default 5 242 880) so the file is a real multipart upload | mockcloud |
@@ -195,17 +199,24 @@ generator's own helper.
 
 ## Model-free diarizer: the documented tolerance
 
-`energy-vad-cluster`'s `distance_threshold = 2.5` was tuned on the pipeline's
-pulse-train test voices (docs/pipeline.md §2). On the generator's formant
-voices the whole 12 s meeting is one VAD region (pauses 0.2-1.0 s are bridged
-by hangover/reverberation), and at the default threshold the 11 one-second
-chunks fall into **one** cluster (DER 0.373, all confusion; miss 0.0; false
-alarm 0.067). With the `num_speakers=2` hint the same chunks split into two
-clusters with three turns (DER 0.294: confusion 0.227, false alarm 0.067,
-miss 0.0). The test therefore asserts only what is provable today -- exact
-count with the hint, |error| <= 1 without, no missed reference speech, DER
-below 0.5 with the hint -- and does **not** claim the diarizer separates the
-synthetic voices unaided. Re-tuning on a dev split precedes any stronger claim.
+`energy-vad-cluster` was reworked on 2026-09-25 (docs/pipeline.md §2.1-2.2:
+an f0 term in the window features, spectral clustering whose unaided speaker
+count is the largest eigengap capped by average linkage at
+`distance_threshold = 2.0`). On this meeting (smoke, seed 3, device Ogg) the
+whole 12 s is still one VAD region, and its 22 half-second cells now split
+into **two** clusters with or without the `num_speakers=2` hint (unaided,
+eigengap and threshold both give k = 2): DER 0.067 either way (false alarm
+0.067, confusion 0.0, miss 0.0). Before the rework the unaided run found one
+speaker (DER 0.373, all confusion apart from the 0.067 false alarm) and the
+hinted run scored DER 0.294 (confusion 0.227).
+
+The test keeps its bounds -- exact count with the hint, |error| <= 1 without,
+no missed reference speech, DER below 0.5 with the hint -- rather than
+tightening the unaided tolerance to 0: the exact unaided count on this seed
+was measured on macOS only (CI runs the test on Linux, where the Opus
+encode/decode is not proven bit-identical), and on held-out smoke seeds 4 and
+5 the unaided count is still off by one (docs/pipeline.md §2.2). The synthetic
+voices differ mainly in f0, so none of this is a claim about real speech.
 
 ## xfails
 
@@ -213,25 +224,30 @@ None. Every planned integration ran; no test is marked xfail.
 
 ## Findings (not blockers)
 
-* `mockcloud.oracle.try_pipeline_oracle` probes `pipeline.oracle` for
-  `oracle_hypothesis`, `hypothesis_from_meeting_dir`, `oracle` or `run_oracle`;
-  the pipeline exposes `OraclePipeline` and a registry factory instead, so the
-  hook never fires and the mock reads `meeting.json` directly. The result is
-  the same ground truth (asserted: DER = cpWER = 0), and the task `source`
-  records `+meeting.json`. Wiring the duck-typed name is a one-line change in
-  either package; neither is owned by this track, so it is recorded here.
+* **Closed 2026-09-25.** `mockcloud.oracle.try_pipeline_oracle` used to probe
+  `pipeline.oracle` for `oracle_hypothesis`, `hypothesis_from_meeting_dir`,
+  `oracle` or `run_oracle`. The pipeline exposes none of these (it has
+  `OraclePipeline` and a registry factory), so the hook never fired and the
+  mock read `meeting.json` directly; the task `source` said `+meeting.json`.
+  The mock track now calls `OraclePipeline().run(audio, meeting_dir)`. When
+  that fails, `source` records the reason as `+meeting.json(<reason>)`. The two
+  positive tests here now pin `+pipeline-oracle`, so a silent fallback fails
+  them (review finding C10: they had pinned the gap itself).
 * The label-literal WER of a correct cloud result is 2.0 (labels `Speaker N`
   vs `spkN`). Anyone reading `wer_literal` from a cloud round-trip is reading
   the lie docs/evals.md warns about; cpWER is the headline for a reason.
 
 ## Not done
 
-* No real device, real SDK or real cloud is exercised; the composed stack
-  (docker/, emulator/serve.py, scripts/*-up.sh) belongs to another track and
-  is not driven from these tests.
+* No real device, real SDK or real cloud is exercised. The composed stack
+  (docker/, emulator/serve.py, scripts/local-up.sh) is not driven from these
+  tests. Its job now runs the same cloud flow over real HTTP against a spawned
+  mock (`docker/cloud_roundtrip.py`; docs/compose.md section 3, "The cloud
+  round trip"), covered by tests/test_compose_runtime.py.
 * The BLE and Wi-Fi tests serve the mono `plain_ogg` only; the stereo, raw
   packet, g4 and E2EE shapes the generator also writes are byte streams to the
   transports and would transfer identically, but only the shape the pipeline
   can decode was pushed through the whole chain.
-* `energy-vad-cluster` is exercised on one meeting; no threshold re-tuning was
-  attempted (not this track's package).
+* `energy-vad-cluster` is exercised on one meeting here; this track tuned
+  nothing (not its package). The pipeline track's 2026-09-25 rework is what
+  changed the numbers above; docs/pipeline.md §2.2 measures seeds 1-6.

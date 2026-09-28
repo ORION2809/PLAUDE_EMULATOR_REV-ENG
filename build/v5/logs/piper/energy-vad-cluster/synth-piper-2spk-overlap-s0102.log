@@ -1,0 +1,25 @@
+# 2026-09-25T09:02:14Z piper energy-vad-cluster synth-piper-2spk-overlap-s0102 pipeline=energy-vad-cluster hint=0 n_active=2
+# audio /Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-2spk-overlap-s0102/mix.wav
+# load average at start: { 2.11 2.17 2.58 }
+# swap at start: total = 8192.00M  used = 6781.38M  free = 1410.62M  (encrypted)
+energy-vad-cluster: 106 segments, 4 speakers, 0.34s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper/energy-vad-cluster/synth-piper-2spk-overlap-s0102.partial/hyp.json (+ .rttm, .stm)
+        0.65 real         0.56 user         0.06 sys
+           140328960  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               11677  page reclaims
+                 150  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  64  voluntary context switches
+                 905  involuntary context switches
+          6038554866  instructions retired
+          1866641272  cycles elapsed
+           122111296  peak memory footprint
+# load average at end: { 2.02 2.15 2.57 }
+# exit 0

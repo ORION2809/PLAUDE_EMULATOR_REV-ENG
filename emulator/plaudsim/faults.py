@@ -20,18 +20,19 @@ Layering, kept deliberately thin:
                        leaves open (MTU-fitted frames, per-session file
                        content, a device that does NOT abandon its stream)
 
-`profile.py`, `transfer.py` and `filesync.py` are NOT modified; every hook
-here is a subclass override of a method the base class already exposes
+Every hook here is a subclass override of a method the base class exposes
 (`_emit`, `_on_command_write`, `_start_transfer`, `_serve_file_list`,
-`_stop_transfer`, `_delete_file`, `_abort_stream`, `_stream`). Task-mode
-streaming and inter-frame pacing come from the base class's own R7-S13
-parameters (`stream_in_task`, `response_pacing_s`).
+`_delete_file`, `_abort_stream`, `_on_disconnection`, `file_bytes_for`,
+`transfer_streaming`). Task-mode streaming, inter-frame pacing, stream
+abort on disconnection and stream error logging come from the base class
+(`stream_in_task`, `response_pacing_s`, `PlaudPeripheral._stream`).
 """
 
 from __future__ import annotations
 
-import asyncio
+import contextvars
 import enum
+import weakref
 from dataclasses import dataclass, field
 from struct import pack, unpack_from
 from typing import Any
@@ -41,7 +42,6 @@ from plaudsim.filesync import (
     FILE_DATA_TYPE,
     OPCODE_FILE_LIST,
     OPCODE_SYNC_HEAD,
-    OPCODE_SYNC_START,
     OPCODE_SYNC_TAIL,
     PROTOCOL_TYPE,
 )
@@ -49,6 +49,7 @@ from plaudsim.profile import PlaudPeripheral
 from plaudsim.transfer import (
     MAX_DATA_PAYLOAD_SIZE,
     pack_empty_package_frame,
+    pack_sync_head,
     parse_delete_file_request,
     parse_sync_start_request,
 )
@@ -198,11 +199,30 @@ class Fault:
         self.fired.append((info.stream, info.index, key))
 
 
+@dataclass
+class _StreamState:
+    """Per-stream classification state: the stream's ordinal and kind, the
+    per-kind frame counts, and a frame held back by a REORDER."""
+
+    ordinal: int
+    kind: Stream
+    counts: dict[Kind, int] = field(default_factory=dict)
+    held: tuple[bytes, FrameInfo] | None = None
+
+
 class FaultInjector:
     """Pure stream transformer: frames in, (frames | link actions) out.
 
     `begin_stream()` must be called at the start of every burst the peripheral
     produces (a transfer, a file-list answer) so per-kind ordinals restart.
+
+    Streams can overlap (a device that does not abandon a stream keeps an
+    orphan emitting while the next one runs), so the per-stream state is
+    keyed: `begin_stream(kind, key=k)` opens a stream under key `k`, and
+    `process(frame, key=k)` classifies against THAT stream's ordinal and
+    counts. A key that never began a stream (a control answer) gets fresh
+    counts under the current stream ordinal. Without a key everything shares
+    one default stream, which is the pure, single-stream use.
     """
 
     def __init__(self, faults: tuple[Fault, ...] | list[Fault] = (), port_version: int = 7) -> None:
@@ -210,48 +230,66 @@ class FaultInjector:
         self.port_version = port_version
         self.stream = -1
         self.stream_kind = Stream.CONTROL
-        self._counts: dict[Kind, int] = {}
-        self._held: tuple[bytes, FrameInfo] | None = None
+        self._default = _StreamState(-1, Stream.CONTROL)
+        self._keyed: "weakref.WeakKeyDictionary[Any, _StreamState]" = weakref.WeakKeyDictionary()
         self.log: list[dict[str, Any]] = []
 
-    def begin_stream(self, stream_kind: Stream) -> None:
-        if self._held is not None:
+    def begin_stream(self, stream_kind: Stream, key: Any = None) -> int:
+        previous = self._default if key is None else self._keyed.get(key)
+        if previous is not None and previous.held is not None:
             # A reorder target that was the last frame of its stream has no
             # partner to swap with; it is dropped and that is recorded.
-            self.log.append({"event": "held_frame_discarded", "info": self._held[1]})
-            self._held = None
+            self.log.append({"event": "held_frame_discarded", "info": previous.held[1]})
         self.stream += 1
         self.stream_kind = stream_kind
-        self._counts = {}
+        state = _StreamState(self.stream, stream_kind)
+        if key is None:
+            self._default = state
+        else:
+            self._keyed[key] = state
+        return self.stream
 
-    def classify(self, frame: bytes) -> FrameInfo:
+    def _state(self, key: Any) -> _StreamState:
+        if key is None:
+            return self._default
+        state = self._keyed.get(key)
+        if state is None:
+            state = _StreamState(self.stream, Stream.CONTROL)
+            self._keyed[key] = state
+        return state
+
+    def classify(self, frame: bytes, key: Any = None) -> FrameInfo:
+        state = self._state(key)
         kind, opcode, sid, off = classify_frame(frame, self.port_version)
-        idx = self._counts.get(kind, 0)
-        self._counts[kind] = idx + 1
-        return FrameInfo(kind, opcode, sid, off, idx, self.stream, self.stream_kind)
+        idx = state.counts.get(kind, 0)
+        state.counts[kind] = idx + 1
+        return FrameInfo(kind, opcode, sid, off, idx, state.ordinal, state.kind)
 
-    def process(self, frame: bytes) -> list[bytes | LinkAction]:
-        info = self.classify(frame)
+    def process(self, frame: bytes, key: Any = None) -> list[bytes | LinkAction]:
+        state = self._state(key)
+        info = self.classify(frame, key)
         out: list[bytes | LinkAction] = [bytes(frame)]
-        held_before = self._held
+        held_before = state.held
         for fault in self.faults:
             if not fault.matches(info):
                 continue
             fault.note(info)
             self.log.append({"event": "fault", "kind": fault.kind.value, "label": fault.label, "info": info})
-            out = self._apply(fault, info, out)
+            out = self._apply(fault, info, out, state)
             if not out or any(isinstance(x, LinkAction) for x in out):
                 break
-        held_now = self._held is not None and self._held is not held_before
+        held_now = state.held is not None and state.held is not held_before
         if held_before is not None and not held_now:
             # The frame held back by a REORDER goes out right after its successor.
-            self._held = None
+            state.held = None
             frames = [x for x in out if not isinstance(x, LinkAction)]
             actions = [x for x in out if isinstance(x, LinkAction)]
             out = frames + [held_before[0]] + actions
         return out
 
-    def _apply(self, fault: Fault, info: FrameInfo, out: list[bytes | LinkAction]) -> list[bytes | LinkAction]:
+    def _apply(
+        self, fault: Fault, info: FrameInfo, out: list[bytes | LinkAction], state: _StreamState
+    ) -> list[bytes | LinkAction]:
         frames = [x for x in out if isinstance(x, (bytes, bytearray))]
         actions = [x for x in out if isinstance(x, LinkAction)]
         if not frames:
@@ -263,7 +301,7 @@ class FaultInjector:
         if k is FaultKind.DUPLICATE:
             return [head, head] + rest + actions
         if k is FaultKind.REORDER:
-            self._held = (head, info)
+            state.held = (head, info)
             return rest + actions
         if k is FaultKind.TRUNCATE:
             return [head[: int(fault.param)]] + rest + actions
@@ -303,6 +341,31 @@ class FaultInjector:
 # --- the peripheral ---------------------------------------------------------
 
 
+class _Scope:
+    """Identity of one emission context: a write's own answers, or one stream.
+
+    `FaultyPeripheral` keeps the current scope in a ContextVar. Every command
+    write starts a fresh one; a y6 or a file-list answer replaces it with a
+    stream scope. asyncio copies the context when it creates a task, so a
+    task-mode stream keeps ITS scope for its whole life, whatever the client
+    writes meanwhile. A CUT/DISCONNECT silences the scope it fired in, and the
+    injector keys its per-stream ordinals by scope.
+    """
+
+    __slots__ = ("label", "__weakref__")
+
+    def __init__(self, label: str) -> None:
+        self.label = label
+
+    def __repr__(self) -> str:
+        return f"<scope {self.label} {id(self):#x}>"
+
+
+#: Frames emitted outside any command write (unsolicited pushes) share this scope.
+_UNSCOPED = _Scope("unscoped")
+_EMIT_SCOPE: contextvars.ContextVar[_Scope] = contextvars.ContextVar("plaudsim_fault_scope", default=_UNSCOPED)
+
+
 class FaultyPeripheral(PlaudPeripheral):
     """PlaudPeripheral whose outbound frames pass through a FaultInjector.
 
@@ -321,6 +384,12 @@ class FaultyPeripheral(PlaudPeripheral):
                   on a new y6 or a z6 (`PlaudPeripheral._abort_stream`) --
                   the behaviour under which the genuine SDK's gap recovery
                   converged with exactly one restart (runs 6b/6c/6d).
+
+    Fault scope: a CUT or DISCONNECT silences the stream (or the write's own
+    answers) it fired in -- and only that one. Other writes are answered
+    normally, and they do NOT revive the silenced stream. Fault ordinals
+    (`Fault.indices`, `Fault.streams`) are counted per stream, so an orphan
+    stream keeps its own numbering while the next one runs.
 
     Extra device behaviours, all HARNESS_POLICY (real firmware: UNKNOWN):
 
@@ -342,7 +411,17 @@ class FaultyPeripheral(PlaudPeripheral):
                           "unsized" fault the matrix also exercises.
     files                 {session_id: bytes}: per-session content, so two
                           files can be synced back to back. The base serves
-                          one buffer for every session.
+                          one buffer for every session. With `files` (or
+                          `file_revisions`) given, a y6 for a session in
+                          neither is REFUSED: HEAD with status
+                          `unknown_session_head_status` (default 1) and
+                          nothing else, instead of serving some other file.
+    file_revisions        {session_id: [rev0, rev1, ...]}: the n-th y6 for the
+                          session serves revision n (the last one repeats) --
+                          the file changing under an active sync. A CONTENT
+                          fault: a restart then splices two revisions at the
+                          right offsets, which the SDK cannot detect (review
+                          T10; see docs/v2-fault-matrix.md).
     """
 
     def __init__(
@@ -353,6 +432,8 @@ class FaultyPeripheral(PlaudPeripheral):
         pace: float | None = None,
         fit_payload_to_mtu: bool = False,
         files: dict[int, bytes] | None = None,
+        file_revisions: dict[int, list[bytes]] | None = None,
+        unknown_session_head_status: int = 1,
         abandon_stream_on_restart: bool = True,
         cancel_stream_on_stop: bool = True,
         cancel_stream_on_delete: bool = True,
@@ -366,71 +447,103 @@ class FaultyPeripheral(PlaudPeripheral):
         self.pace = pace
         self.fit_payload_to_mtu = fit_payload_to_mtu
         self.files = dict(files or {})
+        self.file_revisions = {sid: [bytes(r) for r in revs] for sid, revs in (file_revisions or {}).items()}
+        if any(not revs for revs in self.file_revisions.values()):
+            raise ValueError("file_revisions needs at least one revision per session")
+        self.unknown_session_head_status = unknown_session_head_status
         self.abandon_stream_on_restart = abandon_stream_on_restart
         self.cancel_stream_on_stop = cancel_stream_on_stop
         self.cancel_stream_on_delete = cancel_stream_on_delete
-        self._suppressed = False
+        self._silenced: "weakref.WeakSet[_Scope]" = weakref.WeakSet()
         self._orphans: list[Any] = []                # streams deliberately left running
+        self._orphan_links: dict[Any, Any] = {}
+        self._sync_starts: dict[int, int] = {}
         self.emitted: list[dict[str, Any]] = []     # what actually left the device
 
     # --- request entry -----------------------------------------------------
 
     async def _on_command_write(self, connection: Any, value: bytes) -> None:
-        self._suppressed = False                     # a CUT silences one stream only
+        # A fresh scope for this write's own answers. A stream it starts gets
+        # its own scope in _start_transfer / _serve_file_list.
+        _EMIT_SCOPE.set(_Scope("write"))
+        self._silenced.discard(_UNSCOPED)            # a push-level CUT lasts until the next write
         return await super()._on_command_write(connection, value)
 
     # --- stream lifecycle (base hooks) ---------------------------------------
 
+    @property
+    def transfer_streaming(self) -> bool:
+        return super().transfer_streaming or any(not t.done() for t in self._orphans)
+
+    def _orphan(self, reason: str) -> None:
+        task = self._stream_task
+        if task is not None and not task.done():
+            self._orphans.append(task)
+            self._orphan_links[task] = self._stream_connection
+            self.stream_log.append({"event": "not_abandoned", "reason": reason})
+        self._stream_task = None
+        self._stream_connection = None
+
     def _abort_stream(self, reason: str) -> None:
-        """Base hook, called by PlaudPeripheral before y6 ("new_sync_start")
-        and z6 ("stop_sync") are handled, and by this class for w6."""
+        """Base hook, called by PlaudPeripheral after a y6 ("new_sync_start")
+        or z6 ("stop_sync") parsed and on disconnection, and by this class for w6."""
         if reason == "new_sync_start" and not self.abandon_stream_on_restart:
-            task = self._stream_task
-            if task is not None and not task.done():
-                self._orphans.append(task)
-                self.stream_log.append({"event": "not_abandoned", "reason": reason})
-            self._stream_task = None
-            return
+            return self._orphan(reason)
         if reason == "stop_sync" and not self.cancel_stream_on_stop:
-            task = self._stream_task
-            if task is not None and not task.done():
-                self._orphans.append(task)
-                self.stream_log.append({"event": "not_abandoned", "reason": reason})
-            self._stream_task = None
-            return
+            return self._orphan(reason)
         super()._abort_stream(reason)
 
-    async def _stream(self, connection: Any, frames: list[bytes]) -> None:
-        try:
-            await super()._stream(connection, frames)
-        except asyncio.CancelledError:
-            raise
-        except Exception as exc:  # a dead link mid-stream is an expected outcome
-            self.stream_log.append({"event": "error", "error": type(exc).__name__})
+    def _on_disconnection(self, connection: Any) -> None:
+        super()._on_disconnection(connection)
+        for task in list(self._orphans):
+            if self._orphan_links.get(task) is connection and not task.done():
+                task.cancel()
+                self.stream_log.append({"event": "aborted", "reason": "disconnected", "orphan": True})
 
     # --- handlers with policy hooks -------------------------------------------
 
+    def _knows_session(self, session_id: int) -> bool:
+        if session_id in self.file_revisions or session_id in self.files:
+            return True
+        return not self.files and not self.file_revisions
+
+    def file_bytes_for(self, session_id: int) -> bytes:
+        revisions = self.file_revisions.get(session_id)
+        if revisions:
+            n = max(self._sync_starts.get(session_id, 0), 1) - 1
+            return revisions[min(n, len(revisions) - 1)]
+        if session_id in self.files:
+            return self.files[session_id]
+        if self.files or self.file_revisions:
+            raise KeyError(f"session {session_id} is not on this device")
+        return self.file_bytes
+
     def _start_transfer(self, request: bytes) -> list[bytes]:
         params = parse_sync_start_request(request)
-        if params["session_id"] in self.files:
-            self.file_bytes = self.files[params["session_id"]]
+        sid = params["session_id"]
+        scope = _Scope(f"transfer:{sid}")
+        _EMIT_SCOPE.set(scope)
+        self.injector.begin_stream(Stream.TRANSFER, key=scope)
+        if not self._knows_session(sid):
+            # HARNESS_POLICY: refuse, visibly. R8: a HEAD status > 0 is a
+            # failed head for the SDK; what real firmware answers is UNKNOWN.
+            self.transfer = None
+            self.stream_log.append({"event": "unknown_session", "session_id": sid})
+            return [pack_sync_head(sid, self.unknown_session_head_status)]
+        self._sync_starts[sid] = self._sync_starts.get(sid, 0) + 1
         if self.fit_payload_to_mtu:
             conn = self._live_connection()
             mtu = int(getattr(conn, "att_mtu", 23))
             # HARNESS_POLICY: fit one notification. ATT_HANDLE_VALUE_NTF has a
             # 3-byte header, so att_mtu - 3 bytes of value fit in one PDU.
             self.data_payload_size = max(1, min(MAX_DATA_PAYLOAD_SIZE, mtu - 3 - data_header_len(self.port_version)))
-        self.injector.begin_stream(Stream.TRANSFER)
         return super()._start_transfer(request)
 
     def _serve_file_list(self, request: bytes) -> list[bytes]:
-        self.injector.begin_stream(Stream.FILE_LIST)
+        scope = _Scope("file_list")
+        _EMIT_SCOPE.set(scope)
+        self.injector.begin_stream(Stream.FILE_LIST, key=scope)
         return super()._serve_file_list(request)
-
-    def _stop_transfer(self, request: bytes) -> list[bytes]:
-        # The base already aborted the stream (or this class kept it, see
-        # _abort_stream) before dispatching here.
-        return super()._stop_transfer(request)
 
     def _delete_file(self, request: bytes) -> list[bytes]:
         params = parse_delete_file_request(request)
@@ -446,23 +559,27 @@ class FaultyPeripheral(PlaudPeripheral):
 
     # --- transport ---------------------------------------------------------
 
-    async def _emit(self, connection: Any, payload: bytes) -> None:
-        if self._suppressed:
+    async def _emit(self, connection: Any, payload: bytes) -> bool:
+        scope = _EMIT_SCOPE.get()
+        if scope in self._silenced:
             self.emitted.append({"suppressed": True, "bytes": bytes(payload).hex()})
-            return
-        for item in self.injector.process(bytes(payload)):
+            return False
+        for item in self.injector.process(bytes(payload), key=scope):
             if item is LinkAction.DISCONNECT:
-                self._suppressed = True
+                self._silenced.add(scope)
                 self.stream_log.append({"event": "link_dropped_by_device"})
                 await connection.disconnect()
-                return
+                return False
             if item is LinkAction.CUT:
-                self._suppressed = True
+                self._silenced.add(scope)
                 self.stream_log.append({"event": "device_went_silent"})
-                return
+                return False
             kind, opcode, sid, off = classify_frame(item, self.port_version)
-            self.emitted.append({"kind": kind.value, "opcode": opcode, "offset": off, "len": len(item)})
-            await super()._emit(connection, item)
+            delivered = await super()._emit(connection, item)
+            self.emitted.append(
+                {"kind": kind.value, "opcode": opcode, "offset": off, "len": len(item), "delivered": delivered}
+            )
+        return True
 
     def stream_events(self, event: str) -> list[dict[str, Any]]:
         return [e for e in self.stream_log if e.get("event") == event]

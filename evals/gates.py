@@ -5,9 +5,13 @@ A suite is a list of checks on the dotted metric paths that
 ``cpwer.error_rate``, ...).  A check passes when the metric satisfies every
 bound it declares (``max``, ``min``, ``eq`` with optional ``tol``).
 
-HARNESS_POLICY (fail closed): a metric that is missing or ``None`` (for
-example tcpWER on an empty reference) fails its check — a gate can never pass
-because a number was not produced.
+HARNESS_POLICY (fail closed): a metric that is missing, ``None`` (for
+example DER/JER on a meeting with no scorable reference speech) or non-finite
+fails its check — a gate can never pass because a number was not produced.
+The gate file itself cannot open a gate either: bounds and ``tol`` must be
+finite (``max: .nan`` or ``tol: .inf`` would pass any value).  A check with
+``min`` > ``max``, or whose ``eq`` lies outside its ``min``/``max`` even
+after ``tol``, is refused as a mistake in the file.
 """
 
 from __future__ import annotations
@@ -42,11 +46,12 @@ class Check:
     tol: float = 0.0
 
     def describe(self) -> str:
+        """The constraint as evaluated, including the tolerance on every bound it widens."""
         parts = []
         if self.max is not None:
-            parts.append(f"<= {self.max}")
+            parts.append(f"<= {self.max}" + (f" (+{self.tol} tol)" if self.tol else ""))
         if self.min is not None:
-            parts.append(f">= {self.min}")
+            parts.append(f">= {self.min}" + (f" (-{self.tol} tol)" if self.tol else ""))
         if self.eq is not None:
             parts.append(f"== {self.eq}" + (f" ±{self.tol}" if self.tol else ""))
         return f"{self.metric} " + " and ".join(parts)
@@ -121,6 +126,10 @@ class GateResult:
 def _number(v: Any, where: str) -> float:
     if isinstance(v, bool) or not isinstance(v, (int, float)):
         raise GateConfigError(f"{where}: expected a number, got {v!r}")
+    if not math.isfinite(v):
+        # YAML's .nan/.inf: `value > nan` is always False and `max + inf` is
+        # infinite, so either would make the check pass anything.
+        raise GateConfigError(f"{where}: expected a finite number, got {v!r}")
     return float(v)
 
 
@@ -139,7 +148,14 @@ def parse_check(raw: Any, where: str) -> Check:
     tol = _number(raw.get("tol", 0.0), f"{where}.tol")
     if tol < 0:
         raise GateConfigError(f"{where}: 'tol' must be >= 0")
-    return Check(metric=metric, max=bounds.get("max"), min=bounds.get("min"), eq=bounds.get("eq"), tol=tol)
+    lo, hi, eq = bounds.get("min"), bounds.get("max"), bounds.get("eq")
+    if lo is not None and hi is not None and lo > hi:
+        # Refused even when tol would leave a sliver [min - tol, max + tol] open:
+        # an inverted range is a mistake in the file, not a threshold.
+        raise GateConfigError(f"{where}: check on {metric!r} has contradictory bounds: min {lo} is above max {hi}")
+    if eq is not None and ((lo is not None and eq + tol < lo - tol) or (hi is not None and eq - tol > hi + tol)):
+        raise GateConfigError(f"{where}: check on {metric!r} can never pass: eq {eq} lies outside [min, max] = [{lo}, {hi}]")
+    return Check(metric=metric, max=hi, min=lo, eq=eq, tol=tol)
 
 
 def suites_from_dict(data: Any, *, where: str = "gates.yaml") -> dict[str, Suite]:
@@ -169,6 +185,10 @@ def load_gates(path: str | Path = DEFAULT_GATES_PATH) -> dict[str, Suite]:
         text = p.read_text(encoding="utf-8")
     except FileNotFoundError:
         raise GateConfigError(f"{p}: file not found") from None
+    except UnicodeDecodeError as exc:
+        raise GateConfigError(f"{p}: not valid UTF-8 ({exc.reason} at byte {exc.start})") from None
+    except OSError as exc:
+        raise GateConfigError(f"{p}: cannot read file ({exc.strerror or exc})") from None
     try:
         data = yaml.safe_load(text)
     except yaml.YAMLError as exc:

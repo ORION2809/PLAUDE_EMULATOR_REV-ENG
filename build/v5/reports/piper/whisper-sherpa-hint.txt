@@ -1,0 +1,7 @@
+synth-piper-2spk-overlap-s0102 [whisper-sherpa]  cpWER 0.9389  tcpWER 0.9389  DER 0.4477  JER 0.6582
+synth-piper-2spk-s0101 [whisper-sherpa]  cpWER 0.9317  tcpWER 0.9390  DER 0.6398  JER 0.7503
+synth-piper-3spk-reverb-noise-s0103 [whisper-sherpa]  cpWER 1.3401  tcpWER 1.3401  DER 0.6120  JER 0.8269
+synth-piper-4spk-s0104 [whisper-sherpa]  cpWER 1.1863  tcpWER 1.2749  DER 0.7603  JER 0.8443
+macro  n=4  cpWER 1.0993  tcpWER 1.1233  DER 0.6149  JER 0.7699
+micro  n=4  cpWER 1.0912  tcpWER 1.1141  DER 0.6185  JER 0.7887
+# exit 0

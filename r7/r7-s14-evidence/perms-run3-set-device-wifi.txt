@@ -1,0 +1,5 @@
+      android.permission.NEARBY_WIFI_DEVICES
+      android.permission.CHANGE_NETWORK_STATE
+      android.permission.CHANGE_NETWORK_STATE: granted=true
+        android.permission.ACCESS_FINE_LOCATION: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.NEARBY_WIFI_DEVICES: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]

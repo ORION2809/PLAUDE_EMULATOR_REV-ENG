@@ -2,10 +2,12 @@
 
 Every signal here is built in the test (pipeline.synthetic) so the true
 speech regions and speaker identities are known by construction.  The
-tests pin the VAD edge behaviour (hangover, min-speech, min-silence),
-the MFCC front end's shape and stability, the clustering's ability to
-recover TWO distinct synthetic voices (and to NOT split ONE), the
-smoothing rule, and an end-to-end DER against a synthetic meeting dir.
+tests pin the VAD edge behaviour (hangover, min-speech, min-silence, the
+no-contrast rule), the MFCC and f0 front end (shape, stability, block
+independence, memory), the speaker-count estimate on two and three
+synthetic voices without a hint (and NOT splitting one), the clustering
+guards, the smoothing rule, and end-to-end DER against a synthetic meeting
+dir and against generator meetings (formant voices) on three seeds.
 """
 
 from __future__ import annotations
@@ -18,20 +20,25 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
-from pipeline import PipelineConfig, get_pipeline
+from pipeline import ParamError, PipelineConfig, get_pipeline
 from pipeline.energy_vad import (
     ClusterParams,
     EnergyVadClusterDiarizer,
     EnergyVadClusterPipeline,
     MfccParams,
+    PitchParams,
     VadParams,
     chunk_regions,
+    cluster_embeddings,
     energy_vad,
+    frame_energies_db,
     frame_signal,
     mask_to_regions,
     mel_filterbank,
     mfcc,
+    pitch_track,
     smooth_turns,
+    window_features,
 )
 from pipeline.synthetic import render_layout, synthetic_meeting
 
@@ -108,11 +115,74 @@ def test_silence_and_faint_noise_yield_no_speech():
 
 def test_threshold_is_relative_to_floor():
     """The same bursts over a -35 dB floor are still found (floor-relative), while
-    a burst only 6 dB above the floor is not with the 12 dB default."""
+    a burst only 6 dB above the floor is not with the 12 dB default -- in a file
+    that has a real floor (silence) and real speech to contrast it with."""
     loud_floor = tone_bursts([(0.5, 1.5)], floor=10 ** (-35 / 20))
     assert len(mask_to_regions(*energy_vad(loud_floor, SR))) == 1
-    weak = tone_bursts([(0.5, 1.5)], floor=0.3 / 10 ** (6 / 20) / np.sqrt(2))  # burst RMS 6 dB over floor
-    assert mask_to_regions(*energy_vad(weak, SR)) == []
+    floor = 10 ** (-40 / 20)
+    x = tone_bursts([(0.5, 1.5)], floor=floor, total=4.0)  # strong burst, 0.3 peak
+    t = np.arange(len(x)) / SR
+    weak = (floor * 10 ** (6 / 20) * np.sqrt(2)) * np.sin(2 * np.pi * 1000.0 * t)  # RMS 6 dB over the floor
+    x[int(2.5 * SR) : int(3.5 * SR)] += weak[int(2.5 * SR) : int(3.5 * SR)].astype(np.float32)
+    info = {}
+    regions = mask_to_regions(*energy_vad(x, SR, info=info))
+    assert info["mode"] == "contrast"
+    assert len(regions) == 1 and regions[0][0] < 0.6 and regions[0][1] < 2.0, regions
+
+
+# --- PIPE-02: no silence at all --------------------------------------------------------------------
+
+
+def test_back_to_back_voices_with_no_silence_are_speech_not_silence():
+    """Regression for review finding PIPE-02: with ~0 % non-speech the 10th-
+    percentile "floor" was itself a speech frame, the VAD found nothing and the
+    diarizer returned [] even with num_speakers=2."""
+    x = render_layout([(0.0, 5.0, "A"), (5.0, 10.0, "B")], tail_s=0.0)
+    info = {}
+    regions = mask_to_regions(*energy_vad(x, SR, info=info))
+    assert info["mode"] == "dense" and info["voiced_fraction"] > 0.9
+    assert sum(e - s for s, e in regions) > 9.5
+    cell = ClusterParams().chunk_s  # a change inside one speech region resolves to a cell
+    for hint in (2, None):
+        turns = EnergyVadClusterDiarizer().diarize(x, SR, num_speakers=hint)
+        assert [t[2] for t in turns] == ["spk0", "spk1"], (hint, turns)
+        assert abs(turns[0][1] - 5.0) <= cell + 0.01 and abs(turns[1][0] - 5.0) <= cell + 0.01
+
+
+def test_five_percent_silence_is_also_found():
+    x = render_layout([(0.0, 4.75, "A"), (5.0, 9.75, "B")], tail_s=0.0)
+    regions = mask_to_regions(*energy_vad(x, SR))
+    assert sum(e - s for s, e in regions) > 9.0
+
+
+@pytest.mark.parametrize("noise_db", [-30.0, -25.0])
+def test_low_snr_file_splits_noise_from_speech(noise_db):
+    """Spread under 12 dB but with real pauses (voices ~10 dB over white noise):
+    the quieter energy class is aperiodic, so it is noise -- the pauses must not
+    become speech (and a third 'speaker'), and the speech must not be missed."""
+    x = render_layout(LAYOUT, noise_db=noise_db, seed=4)
+    info = {}
+    regions = mask_to_regions(*energy_vad(x, SR, info=info))
+    assert info["mode"] == "split"
+    assert len(regions) == 4
+    hang = VadParams().hangover_ms / 1000.0
+    for (s, e), (ts, te, _) in zip(regions, LAYOUT):
+        assert abs(s - ts) <= 0.05 and -0.05 <= e - te <= hang + 0.05
+    _check_two_speakers(EnergyVadClusterDiarizer().diarize(x, SR))
+
+
+@pytest.mark.parametrize(
+    "signal, why",
+    [
+        (lambda: (10 ** (-30 / 20) * np.random.default_rng(1).standard_normal(4 * SR)).astype(np.float32), "aperiodic"),
+        (lambda: (10 ** (-50 / 20) * np.sqrt(2) * np.sin(2 * np.pi * 150 * np.arange(4 * SR) / SR)).astype(np.float32), "quiet"),
+    ],
+)
+def test_no_contrast_rule_needs_a_loud_periodic_file(signal, why):
+    """The no-contrast rule is narrow: stationary loud NOISE and a quiet tone stay silence."""
+    info = {}
+    assert mask_to_regions(*energy_vad(signal(), SR, info=info)) == [], why
+    assert info["mode"] == "flat"
 
 
 # --- MFCC front end ------------------------------------------------------------------------
@@ -232,9 +302,31 @@ def test_a_too_loose_threshold_collapses_to_one_cluster():
     assert {t[2] for t in turns} == {"spk0"}
 
 
-def test_from_params_applies_flat_overrides_and_ignores_unknown_keys():
-    d = EnergyVadClusterDiarizer.from_params({"hangover_ms": 0, "distance_threshold": 9.5, "n_mfcc": 20, "bogus": 1})
+def test_from_params_applies_flat_overrides():
+    d = EnergyVadClusterDiarizer.from_params(
+        {"hangover_ms": 0, "distance_threshold": 9.5, "n_mfcc": 20, "f0_weight": 0, "num_speakers": 2}
+    )
     assert d.vad.hangover_ms == 0.0 and d.cluster.distance_threshold == 9.5 and d.mfcc.n_mfcc == 20
+    assert d.cluster.f0_weight == 0.0 and isinstance(d.cluster.f0_weight, float)
+    both = EnergyVadClusterDiarizer.from_params({"hop_ms": 20})
+    assert both.vad.hop_ms == both.mfcc.hop_ms == 20.0
+
+
+@pytest.mark.parametrize(
+    "params, match",
+    [
+        ({"distance_treshold": 0.1}, "distance_treshold"),  # typo (review finding PIPE-11)
+        ({"num_speaker": 5}, "num_speaker"),
+        ({"bogus": 1}, "bogus"),
+        ({"hangover_ms": "long"}, "hangover_ms"),
+        ({"n_mfcc": 12.5}, "n_mfcc"),
+        ({"drop_c0": "false"}, "drop_c0"),
+        ({"chunk_s": 0}, "chunk_s"),
+    ],
+)
+def test_from_params_rejects_unknown_keys_and_bad_values(params, match):
+    with pytest.raises(ParamError, match=match):
+        EnergyVadClusterDiarizer.from_params(params)
 
 
 # --- end to end against a meeting dir ----------------------------------------------------------------
@@ -274,3 +366,201 @@ def test_pipeline_result_is_deterministic(tmp_path):
     b = get_pipeline("energy-vad-cluster").run(d / "mix.wav", d).to_dict()
     a["extra"].pop("audio"); b["extra"].pop("audio")
     assert a == b
+
+
+# --- PIPE-13: blockwise front end ---------------------------------------------------------------
+
+
+def _reference_mfcc(x, sr=SR, p=MfccParams()):
+    """The textbook whole-signal computation (float64 throughout), for comparison."""
+    x = np.asarray(x, dtype=np.float64)
+    x = np.concatenate([[x[0]], x[1:] - p.preemphasis * x[:-1]])
+    fl, hop = int(sr * p.frame_ms / 1000), int(sr * p.hop_ms / 1000)
+    n = 1 + int(np.ceil((len(x) - fl) / hop))
+    x = np.concatenate([x, np.zeros((n - 1) * hop + fl - len(x))])
+    frames = x[np.arange(fl)[None, :] + hop * np.arange(n)[:, None]]
+    n_fft = 1 << int(np.ceil(np.log2(fl)))
+    spec = np.abs(np.fft.rfft(frames * np.hamming(fl), n=n_fft, axis=1)) ** 2
+    mel = np.log(spec @ mel_filterbank(sr, n_fft, p.n_mels, p.fmin_hz, p.fmax_hz).T + 1e-10)
+    from scipy.fft import dct
+
+    return dct(mel, type=2, norm="ortho", axis=1)[:, 1 : p.n_mfcc]
+
+
+def test_front_end_results_do_not_depend_on_the_block_size():
+    x = render_layout(LAYOUT, noise_db=-35.0, seed=2)
+    for block in (1, 7, 333):
+        assert np.array_equal(mfcc(x, SR, block=block)[0], mfcc(x, SR)[0])
+        assert np.array_equal(frame_energies_db(x, 400, 160, block=block), frame_energies_db(x, 400, 160))
+        f_a, s_a = pitch_track(x, SR, 160, block=block)
+        f_b, s_b = pitch_track(x, SR, 160)
+        assert np.array_equal(f_a, f_b) and np.array_equal(s_a, s_b)
+    # and the blockwise MFCC is the whole-signal formula (to float rounding)
+    x32 = x.astype(np.float32)
+    assert np.allclose(mfcc(x32, SR)[0], _reference_mfcc(x32), rtol=1e-9, atol=1e-9)
+
+
+def _alternating(minutes):
+    layout, t, k = [], 0.5, 0
+    while t < minutes * 60 - 3:
+        layout.append((t, t + 2.0, "AB"[k % 2]))
+        t, k = t + 2.5, k + 1
+    return render_layout(layout, tail_s=0.5)
+
+
+def _peak_mib(x):
+    import tracemalloc
+
+    tracemalloc.start()
+    try:
+        EnergyVadClusterDiarizer().diarize(x, SR, num_speakers=2)
+        return tracemalloc.get_traced_memory()[1] / 2**20
+    finally:
+        tracemalloc.stop()
+
+
+def test_diarizer_peak_memory_is_bounded_and_grows_slowly_with_length():
+    """Review finding PIPE-13: whole-file frame matrices cost ~91 MiB of peak
+    allocation per audio minute (tracemalloc), ~5 GiB for a 60-minute meeting.
+    Blockwise, the peak is a constant working set plus a few MiB per minute."""
+    one, four = _peak_mib(_alternating(1.0)), _peak_mib(_alternating(4.0))
+    assert four < 80.0, f"peak {four:.1f} MiB for 4 minutes"
+    assert (four - one) / 3.0 < 6.0, f"{(four - one) / 3.0:.1f} MiB per extra audio minute"
+
+
+# --- f0 tracker -------------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("key, f0", [("A", 100.0), ("B", 230.0), ("C", 160.0)])
+def test_pitch_track_finds_the_pulse_train_f0(key, f0):
+    x = render_layout([(0.0, 2.0, key)], tail_s=0.0)
+    hz, strength = pitch_track(x, SR, 160)
+    voiced = strength > PitchParams().voicing_threshold
+    assert voiced.mean() > 0.9
+    assert abs(np.median(hz[voiced]) / f0 - 1.0) < 0.02
+
+
+def test_window_f0_prefers_the_lower_octave_when_a_quarter_of_frames_sit_there():
+    """Octave-up picks (a formant near 2*f0) are the tracker's typical gross error."""
+    n = 100
+    feats = np.zeros((n, 2))
+    strength = np.ones(n)
+    f0 = np.full(n, 175.0)
+    f0[:60] = 350.0  # 60 % octave-up errors: the plain median would say 350 Hz
+    params = ClusterParams()
+    _, semis = window_features(feats, f0, strength, 0.01, [(0.0, 1.0)], params, PitchParams())
+    assert semis[0] == pytest.approx(12 * np.log2(175.0))
+    params.octave_fix_frac = 0.0
+    _, plain = window_features(feats, f0, strength, 0.01, [(0.0, 1.0)], params, PitchParams())
+    assert plain[0] == pytest.approx(12 * np.log2(350.0))
+
+
+# --- the speaker-count estimate ---------------------------------------------------------------------
+
+
+def _blobs(centres, n=30, sd=0.3, seed=0):
+    rng = np.random.default_rng(seed)
+    return np.concatenate([np.asarray(c, float) + sd * rng.standard_normal((n, len(c))) for c in centres])
+
+
+def test_cluster_embeddings_counts_separated_blobs_and_does_not_split_one():
+    info = {}
+    lab = cluster_embeddings(_blobs([[0, 0], [6, 0], [0, 6]]), num_speakers=None, info=info)
+    assert len(set(lab.tolist())) == 3 and info["k_eigengap"] == 3
+    assert all(len(set(lab[i * 30 : (i + 1) * 30].tolist())) == 1 for i in range(3))
+    one = cluster_embeddings(_blobs([[0, 0]], n=60), num_speakers=None, info=(i1 := {}))
+    assert set(one.tolist()) == {0} and i1["k"] == 1
+
+
+def test_cluster_embeddings_absorbs_an_outlier_island():
+    """A few far-away rows (e.g. octave-error windows) are not a speaker, with or
+    without the hint: the hint must not spend one of its slots on them."""
+    x = np.concatenate([_blobs([[0, 0], [6, 0]], n=40), np.array([[30.0, 30.0], [30.2, 30.1]])])
+    for hint in (None, 2):
+        lab = cluster_embeddings(x, num_speakers=hint)
+        assert len(set(lab.tolist())) == 2, hint
+        assert len(set(lab[:40].tolist())) == 1 and len(set(lab[40:80].tolist())) == 1 and lab[0] != lab[40]
+
+
+def test_three_voices_counted_without_hint():
+    layout = [(0.5, 2.0, "A"), (2.5, 4.0, "B"), (4.5, 6.0, "C"), (6.5, 8.0, "A"), (8.5, 10.0, "C")]
+    d = EnergyVadClusterDiarizer()
+    turns = d.diarize(render_layout(layout), SR)
+    labels = [t[2] for t in turns]
+    assert len(labels) == 5 and len(set(labels)) == 3
+    assert labels[0] == labels[3] and labels[2] == labels[4]
+    assert d.last_trace.count["k"] == 3 and d.last_trace.count["k_threshold"] >= 3
+
+
+def test_one_long_voice_is_one_speaker():
+    d = EnergyVadClusterDiarizer()
+    turns = d.diarize(render_layout([(0.5, 9.5, "B")]), SR)
+    assert {t[2] for t in turns} == {"spk0"} and turns[0][0] < 0.6 and turns[-1][1] > 9.4
+
+
+# --- generator meetings (formant voices): the known gap --------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def generator_meetings(tmp_path_factory):
+    from generator.testing import fixture_meeting
+
+    base = tmp_path_factory.mktemp("gen")
+    out = {}
+    for preset, seeds in (("smoke", (1, 2, 3)), ("default", (1,)), ("single_speaker", (2,))):
+        for seed in seeds:
+            out[(preset, seed)] = fixture_meeting(base, preset=preset, seed=seed)
+    return out
+
+
+def _score(d, hyp):
+    from evals import load_meeting, score_meeting
+    from evals.io import hypothesis_from_dict
+
+    return score_meeting(load_meeting(d), hypothesis_from_dict(hyp.to_dict()))
+
+
+@pytest.mark.parametrize("seed", [1, 2, 3])
+def test_generator_smoke_meeting_two_voices_without_hint(generator_meetings, seed):
+    """The model-free diarizer used to merge the generator's two formant voices
+    unless told the count (review finding PIPE-01: unaided n=2/1/1, DER
+    0.507/0.585/0.373 on seeds 1/2/3 of the device Ogg).  With the f0 feature
+    and the eigengap count it separates them unaided on all three seeds."""
+    d, m = generator_meetings[("smoke", seed)]
+    for audio in (d / "device" / "recording.ogg", d / m["audio"]["mix_wav"]):
+        hyp = get_pipeline("energy-vad-cluster").run(audio, d)
+        report = _score(d, hyp)
+        assert len(hyp.speakers) == 2, (seed, audio.name, len(hyp.speakers), hyp.extra["diarization"].get("count"))
+        assert report.der.der < 0.25, (seed, audio.name, report.der.der)
+        assert report.der.miss / report.der.total <= 0.02
+        hinted = get_pipeline("energy-vad-cluster", PipelineConfig(params={"num_speakers": 2})).run(audio, d)
+        assert _score(d, hinted).der.der < 0.25
+
+
+def test_generator_default_meeting_three_voices_without_hint(generator_meetings):
+    """Finding PIPE-01's failure scenario: default preset seed 1 gave 1 speaker (DER 0.633)."""
+    d, m = generator_meetings[("default", 1)]
+    hyp = get_pipeline("energy-vad-cluster").run(d / "device" / "recording.ogg", d)
+    assert len(hyp.speakers) == 3, (len(hyp.speakers), hyp.extra["diarization"].get("count"))
+    assert _score(d, hyp).der.der < 0.25
+
+
+def test_generator_noisy_preset_speech_is_not_missed(tmp_path_factory):
+    """At 10 dB SNR (notepin_s_noisy) speech sits ~10-14 dB over the noise, so a
+    fixed 12 dB margin missed most of it (mix.wav: miss 0.70, DER 0.71 for seed
+    1); the Otsu-lowered margin recovers it."""
+    from generator.testing import fixture_meeting
+
+    d, m = fixture_meeting(tmp_path_factory.mktemp("noisy"), preset="notepin_s_noisy", seed=1)
+    hyp = get_pipeline("energy-vad-cluster").run(d / m["audio"]["mix_wav"], d)
+    report = _score(d, hyp)
+    assert report.der.miss / report.der.total < 0.1, report.der
+    assert report.der.der < 0.15 and len(hyp.speakers) == 2
+
+
+def test_generator_single_speaker_is_not_split(generator_meetings):
+    """Finding PIPE-01's other failure scenario: single_speaker seed 2 on mix.wav gave 3 speakers."""
+    d, m = generator_meetings[("single_speaker", 2)]
+    for audio in (d / "device" / "recording.ogg", d / m["audio"]["mix_wav"]):
+        hyp = get_pipeline("energy-vad-cluster").run(audio, d)
+        assert len(hyp.speakers) == 1, (audio.name, len(hyp.speakers), hyp.extra["diarization"].get("count"))

@@ -7,7 +7,6 @@ store (routers/objectstore.py) instead of plaud-bucket.s3.amazonaws.com.
 from __future__ import annotations
 
 import hashlib
-import math
 from typing import Any
 
 from fastapi import APIRouter, Request
@@ -27,6 +26,13 @@ PREFIX = "/developer/api/open/partner/files/upload"
 ALLOWED_FILETYPES = ("mp3", "opus")
 
 CONTENT_TYPES = {"mp3": "audio/mpeg", "opus": "audio/ogg", "wav": "audio/wav"}
+
+#: INFERRED from public Amazon S3 behaviour (a multipart upload has at most
+#: 10,000 parts); the Plaud corpus states no size or part limit. The mock
+#: refuses a presign that would need more parts with 400 FILE_TOO_LARGE
+#: (HARNESS_POLICY code) instead of building an unbounded response on the event
+#: loop (review finding MC-8).
+MAX_PARTS = 10_000
 
 
 class GeneratePresignedUrlsRequest(BaseModel):
@@ -59,10 +65,12 @@ def object_key(file_id: str, filetype: str) -> str:
 async def generate_presigned_urls(request: Request, body: GeneratePresignedUrlsRequest) -> dict[str, Any]:
     """{FileId, UploadId, ChunkSize, Parts[{PartNumber, PresignedUrl}]} --
     DOC-EXACT keys. Part count = ceil(filesize / ChunkSize) ("Determines how
-    many parts are returned" -- INFERRED arithmetic). filesize <= 0 -> 400 and
-    a filetype outside mp3|opus -> 400 FILE_TYPE_INVALID (HARNESS_POLICY codes;
-    the demo backend validates the same two things, embedded-capacitor
-    nextjs-demo/app/api/transcription/presign/route.ts:30-35)."""
+    many parts are returned" -- INFERRED arithmetic), computed on integers so
+    no filesize can overflow a float. filesize <= 0 -> 400 and a filetype
+    outside mp3|opus -> 400 FILE_TYPE_INVALID (HARNESS_POLICY codes; the demo
+    backend validates the same two things, embedded-capacitor
+    nextjs-demo/app/api/transcription/presign/route.ts:28-33); more than
+    MAX_PARTS parts -> 400 FILE_TOO_LARGE."""
     ctx = ctx_of(request)
     claims = require_user_token(request)
     if body.filesize <= 0:
@@ -70,7 +78,9 @@ async def generate_presigned_urls(request: Request, body: GeneratePresignedUrlsR
     if body.filetype not in ALLOWED_FILETYPES:
         raise MockHTTPError(400, "FILE_TYPE_INVALID")
     chunk = ctx.settings.chunk_size
-    count = max(1, math.ceil(body.filesize / chunk))
+    count = max(1, -(-body.filesize // chunk))
+    if count > MAX_PARTS:
+        raise MockHTTPError(400, f"FILE_TOO_LARGE: {count} parts of {chunk} bytes exceed the {MAX_PARTS}-part limit")
     file_id = new_id("file_")
     upload_id = new_id("upload_")
     now = ctx.now()
@@ -100,9 +110,11 @@ async def complete_upload(request: Request, body: CompleteUploadRequest) -> dict
     valid 24 h (DOC-EXACT). Parts are concatenated in ascending PartNumber
     regardless of the order in part_list (S3 CompleteMultipartUpload semantics,
     INFERRED). ETags are compared with surrounding quotes stripped because both
-    templates strip them (TranscriptionManager.kt:161, PlaudAPIService.swift:105).
+    templates strip them (TranscriptionManager.kt:158, PlaudAPIService.swift:118).
     Unknown upload -> 404, unknown/unuploaded part or ETag mismatch -> 400,
-    file_md5 mismatch -> 400 FILE_MD5_MISMATCH (all HARNESS_POLICY codes)."""
+    file_md5 mismatch -> 400 FILE_MD5_MISMATCH (all HARNESS_POLICY codes).
+    Once merged, the part objects are deleted (S3 discards the parts of a
+    completed multipart upload -- INFERRED; review finding MC-9)."""
     ctx = ctx_of(request)
     claims = require_user_token(request)
     mp = ctx.state.multipart.get(body.upload_id)
@@ -145,6 +157,8 @@ async def complete_upload(request: Request, body: CompleteUploadRequest) -> dict
     download_url = f"{ctx.base_url(request)}s3/{MOCK_BUCKET}/{key}?X-Mock-Expires={exp}&X-Mock-Signature={sig}"
     result = {"FileId": mp.file_id, "FileType": mp.filetype, "DownloadUrl": download_url, "FileMd5": md5}
     mp.completed = result
+    for n in list(mp.parts):
+        ctx.state.delete_object(MOCK_BUCKET, part_key(mp.file_id, n))
     ctx.state.files[mp.file_id] = {
         "key": key, "filetype": mp.filetype, "md5": md5, "download_url": download_url,
         "expires_at": float(exp), "size": len(data), "sub": mp.sub,

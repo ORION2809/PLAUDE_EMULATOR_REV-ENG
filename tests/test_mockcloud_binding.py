@@ -10,13 +10,14 @@ from __future__ import annotations
 
 import pytest
 
-from test_mockcloud_helpers import (
+from test_mockcloud_helpers import (  # noqa: F401 - no_outbound_network is an autouse fixture
     PARTNER,
     SN_NOTEPINS,
     SN_NOTEPRO,
     bearer,
     client,
     make_app,
+    no_outbound_network,
     user_token,
 )
 

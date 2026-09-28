@@ -1,0 +1,25 @@
+# 2026-09-25T09:02:14Z piper oracle synth-piper-4spk-s0104 pipeline=oracle hint=0 n_active=4
+# audio /Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-4spk-s0104/mix.wav
+# load average at start: { 2.11 2.17 2.58 }
+# swap at start: total = 8192.00M  used = 6781.38M  free = 1410.62M  (encrypted)
+oracle: 53 segments, 4 speakers, 0.01s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper/oracle/synth-piper-4spk-s0104.partial/hyp.json (+ .rttm, .stm)  [HARNESS SELF-TEST, not a system under test]
+        0.28 real         0.23 user         0.03 sys
+            72204288  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                7218  page reclaims
+                   0  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   3  voluntary context switches
+                  74  involuntary context switches
+          2656019258  instructions retired
+           880917483  cycles elapsed
+            53462272  peak memory footprint
+# load average at end: { 2.11 2.17 2.58 }
+# exit 0

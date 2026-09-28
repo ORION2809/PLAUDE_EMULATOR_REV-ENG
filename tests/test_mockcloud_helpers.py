@@ -2,17 +2,32 @@
 
 Every test drives the FastAPI app in-process through httpx's ASGITransport:
 no socket is opened, no port is bound, and nothing leaves the process.
+
+Each test module imports `no_outbound_network` from here; it is an autouse
+fixture, so importing it into a module applies it to every test there: any
+outbound socket connect or name lookup fails the test.
+
+The third-party imports are importorskip'd: in an environment without the
+mockcloud requirements (requirements/mockcloud.txt) these modules skip instead
+of aborting the whole pytest session at collection. CI sets
+PLAUD_STRICT_SKIPS=1, under which such a skip still fails the run
+(tests/conftest.py).
 """
 
 from __future__ import annotations
 
 import base64
 import json
+import socket
 import sys
 from pathlib import Path
 from typing import Any
 
-import httpx
+import pytest
+
+httpx = pytest.importorskip("httpx")
+pytest.importorskip("fastapi")
+pytest.importorskip("cryptography")
 
 ROOT = Path(__file__).parents[1]
 sys.path.insert(0, str(ROOT))
@@ -52,6 +67,30 @@ def make_app(**overrides: Any):
 
 def client(app) -> httpx.AsyncClient:
     return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://mock")
+
+
+def raw_client(app) -> httpx.AsyncClient:
+    """Like client(), but an exception escaping the app is returned as the 500
+    a real server would send instead of being raised into the test."""
+    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app, raise_app_exceptions=False),
+                             base_url="http://mock")
+
+
+def _refuse_network(*_a: Any, **_k: Any) -> Any:
+    raise AssertionError("mockcloud test attempted an outbound network connection")
+
+
+@pytest.fixture(autouse=True)
+def no_outbound_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Block outbound connects and name lookups for the whole test (HARNESS_POLICY).
+
+    asyncio's open_connection / sock_connect end in socket.socket.connect (or
+    connect_ex), http.client and urllib in socket.create_connection, and every
+    host name in getaddrinfo, so these cover every stdlib route out."""
+    monkeypatch.setattr(socket.socket, "connect", _refuse_network)
+    monkeypatch.setattr(socket.socket, "connect_ex", _refuse_network)
+    monkeypatch.setattr(socket, "create_connection", _refuse_network)
+    monkeypatch.setattr(socket, "getaddrinfo", _refuse_network)
 
 
 async def partner_token(c: httpx.AsyncClient) -> dict[str, Any]:

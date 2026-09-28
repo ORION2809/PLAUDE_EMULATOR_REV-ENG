@@ -1,5 +1,5 @@
 {
- "_comment": "R7 closure uncertainty matrix. Every item genuinely unresolved as of 2026-09-23, each with the exact experiment that would resolve it and whether that experiment is legitimately available here. status vocabulary: UNKNOWN (no evidence), EXTERNAL_DATA_REQUIRED (needs a real capture/recording), CREDENTIAL_REQUIRED (needs a real Plaud account/partner credential), DEVICE_REQUIRED (needs real Plaud hardware), CLOUD_REQUIRED (needs a live authorized cloud call). can_emulator_assume=false everywhere: none of these may be promoted to a device fact; the emulator either models them as explicitly-labelled HARNESS_POLICY or leaves them out. Items RESOLVED this session are listed under resolved_this_session for provenance. Updated 2026-09-24 after R7-S13: U19 refined; U15 and U17 updated with runtime facts (U17's Phase-1 rationale corrected); U23 is a duplicate of U15.",
+ "_comment": "R7 closure uncertainty matrix. Every item genuinely unresolved as of 2026-09-23, each with the exact experiment that would resolve it and whether that experiment is legitimately available here. status vocabulary: UNKNOWN (no evidence), EXTERNAL_DATA_REQUIRED (needs a real capture/recording), CREDENTIAL_REQUIRED (needs a real Plaud account/partner credential), DEVICE_REQUIRED (needs real Plaud hardware), CLOUD_REQUIRED (needs a live authorized cloud call). can_emulator_assume=false except where noted (U15, U17 and the duplicate U23 carry true after R7-S13): none of these may be promoted to a device fact; the emulator either models them as explicitly-labelled HARNESS_POLICY or leaves them out. Items RESOLVED this session are listed under resolved_this_session for provenance. Updated 2026-09-24 after R7-S13: U19 refined; U15 and U17 updated with runtime facts (U17's Phase-1 rationale corrected); U23 is a duplicate of U15.",
  "generated": "2026-09-23",
  "aar_sha256": "041a6f8814d350dbc8bcd4a515487136529bb8bb4368fc88c9b36c9a386aedce",
  "closure_totals": {
@@ -340,7 +340,7 @@
   {
    "id": "R3-resend",
    "was": "loss-triggered resend evidence class open",
-   "now": "BYTECODE_PROVEN client behaviour: gap → restart-from-cursor; stopSync only via 5 s stall timeout; no ACK, no NAK; device performs neither",
+   "now": "BYTECODE_PROVEN client behaviour: gap → restart-from-cursor; stopSync sent at once on a gap, then restart from the cursor (corrected 25 Sep from the R7-S13 runtime runs; the 5 s timer is the stall path); no ACK, no NAK; device performs neither",
    "evidence": "ledger §5.8/§5.9 corrected"
   },
   {

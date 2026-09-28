@@ -20,6 +20,7 @@ from pipeline import (
     ComposedPipeline,
     Diarizer,
     Hypothesis,
+    ParamError,
     PipelineConfig,
     PipelineError,
     PipelineUnavailable,
@@ -40,7 +41,7 @@ from pipeline.formats import (
     segments_to_stm_lines,
     write_hypothesis_files,
 )
-from pipeline.meeting import MeetingFormatError, meeting_from_stm, validate_meeting
+from pipeline.meeting import MeetingFormatError, meeting_from_stm, resolve_audio, validate_meeting
 
 SEGS = [
     make_segment("spk0", 0.0, 1.5, "hello world", [{"w": "hello", "start": 0.0, "end": 0.7}, {"w": "world", "start": 0.8, "end": 1.5}]),
@@ -172,6 +173,77 @@ def test_validate_meeting_failure_modes():
         validate_meeting(_meeting(speakers=[{"id": "a"}, {"id": "a"}]))
 
 
+@pytest.mark.parametrize("bad", ["../escaped", "a/b", "..", ".hidden", "-x", "a\\b", "", "x" * 201, 7, "a b", "a\tb"])
+def test_meeting_id_must_be_one_safe_path_component(bad):
+    """Review finding PIPE-04: batch writes <out>/<meeting_id>/, so the id is a path."""
+    with pytest.raises(MeetingFormatError):
+        validate_meeting(_meeting(meeting_id=bad))
+
+
+@pytest.mark.parametrize("good", ["m1", "ES2002a", "synth-smoke-s0003", "ami_ES2002a", "m-0001", "a.b", "synth-café-s0001"])
+def test_meeting_id_accepts_corpus_and_generator_ids(good):
+    validate_meeting(_meeting(meeting_id=good))
+
+
+def test_resolve_audio_keeps_meeting_json_paths_inside_the_meeting_dir(tmp_path):
+    md = tmp_path / "m"
+    (md / "device").mkdir(parents=True)
+    (md / "mix.wav").write_bytes(b"x")
+    (md / "device" / "r.ogg").write_bytes(b"x")
+    (tmp_path / "outside.wav").write_bytes(b"x")
+    m = _meeting(audio={"mix_wav": "mix.wav", "stems": {"spk0": "../outside.wav"},
+                        "device": {"ogg_opus": "device/r.ogg", "abs": str(tmp_path / "outside.wav")}})
+    assert resolve_audio(md, m, "mix") == md / "mix.wav"
+    assert resolve_audio(md, m, "device.ogg_opus") == md / "device" / "r.ogg"
+    with pytest.raises(MeetingFormatError, match="outside"):
+        resolve_audio(md, m, "stem:spk0")
+    with pytest.raises(MeetingFormatError, match="relative"):
+        resolve_audio(md, m, "device.abs")
+    (md / "link.wav").symlink_to(tmp_path / "outside.wav")
+    with pytest.raises(MeetingFormatError, match="outside"):
+        resolve_audio(md, _meeting(audio={"mix_wav": "link.wav"}), "mix")
+    # a literal key is the operator's own path
+    assert resolve_audio(md, m, "../outside.wav") == md / "../outside.wav"
+
+
+def test_resolve_audio_device_is_the_primary_recording_not_the_first_entry(tmp_path):
+    """Review follow-up R3: generator 0.2.0 writes meeting.json with sorted keys, so
+    audio.device lists e2ee_ogg (device/recording_e2ee.bin, ciphertext) first; the
+    "device" key must follow audio.device_primary like
+    generator.contract.device_primary_path, then "ogg_opus", then the first entry."""
+    import json
+
+    from generator.contract import device_primary_path
+    from pipeline.meeting import read_meeting
+
+    md = tmp_path / "m"
+    (md / "device").mkdir(parents=True)
+    for name in ("recording_e2ee.bin", "recording.ogg", "recording_raw.opus", "legacy.ogg"):
+        (md / "device" / name).write_bytes(b"x")
+    device = {"e2ee_ogg": "device/recording_e2ee.bin", "g4_raw_opus": "device/recording_raw.opus",
+              "ogg_opus": "device/recording.ogg"}
+    m = _meeting(audio={"mix_wav": "mix.wav", "stems": {}, "device": device, "device_primary": "ogg_opus"})
+    # the on-disk shape: generator.contract.write_json uses sort_keys=True, and json.loads keeps file order
+    (md / "meeting.json").write_text(json.dumps(m, indent=2, sort_keys=True) + "\n")
+    m = read_meeting(md)
+    assert next(iter(m["audio"]["device"])) == "e2ee_ogg"
+    assert resolve_audio(md, m, "device") == md / "device" / "recording.ogg"
+    assert resolve_audio(md, m, "device") == md / device_primary_path(m)
+    # device_primary names another entry: that one wins
+    m2 = _meeting(audio={"mix_wav": "mix.wav", "device": device, "device_primary": "g4_raw_opus"})
+    assert resolve_audio(md, m2, "device") == md / "device" / "recording_raw.opus"
+    # no device_primary (pre-0.2.0 meeting): "ogg_opus", still not the first entry
+    m3 = _meeting(audio={"mix_wav": "mix.wav", "device": device})
+    assert resolve_audio(md, m3, "device") == md / "device" / "recording.ogg"
+    # neither: the old behaviour, the first entry
+    m4 = _meeting(audio={"mix_wav": "mix.wav", "device": {"legacy": "device/legacy.ogg"}})
+    assert resolve_audio(md, m4, "device") == md / "device" / "legacy.ogg"
+    # a device_primary naming no entry is a contract violation, never a silent fallback
+    m5 = _meeting(audio={"mix_wav": "mix.wav", "device": device, "device_primary": "missing"})
+    with pytest.raises(MeetingFormatError, match="device_primary"):
+        resolve_audio(md, m5, "device")
+
+
 def test_meeting_from_stm_interpolates_words():
     m = meeting_from_stm("m1 1 spkA 0.0 2.0 one two three four\nm1 1 spkB 2.0 3.0 five\n")
     validate_meeting(m)
@@ -182,6 +254,45 @@ def test_meeting_from_stm_interpolates_words():
     assert m["duration_s"] == 3.0 and "interpolated" in m["generator"]["scenario"]["word_times"]
     with pytest.raises(MeetingFormatError, match="several meetings"):
         meeting_from_stm("a 1 s 0 1 x\nb 1 s 0 1 y\n")
+
+
+def test_meeting_from_stm_never_builds_an_empty_meeting():
+    """Review finding PIPE-06: a non-matching meeting_id silently produced
+    speakers=[] and segments=[]."""
+    with pytest.raises(MeetingFormatError, match="matches no STM rows"):
+        meeting_from_stm("a 1 s 0 1 x\nb 1 s 0 1 y\n", "c")
+    renamed = meeting_from_stm("ES2002a 1 s 0 1 x\n", "ami_ES2002a")
+    assert renamed["meeting_id"] == "ami_ES2002a" and len(renamed["segments"]) == 1
+    assert renamed["generator"]["scenario"]["stm_file_id"] == "ES2002a"
+    assert meeting_from_stm("a 1 s 0 1 x\nb 1 s 0 1 y\n", "b")["segments"][0]["text"] == "y"
+    with pytest.raises(MeetingFormatError, match="no speaker rows"):
+        meeting_from_stm("a 1 inter_segment_gap 0 1\n")
+    with pytest.raises(MeetingFormatError, match="meeting_id"):
+        meeting_from_stm("a 1 s 0 1 x\n", "../up")
+
+
+def test_parse_stm_separates_the_nist_label_field():
+    """Review finding PIPE-08: '<o,f0,female>' was parsed as transcript and
+    became a reference word."""
+    rows = parse_stm(
+        "ES2002a 1 alice 0.50 2.00 <o,f0,female> one two three\n"
+        "ES2002a 1 bob 2.00 3.00 <O,F2,M>\n"
+        "ES2002a 1 carol 3.00 4.00 <unk> stays text\n"
+    )
+    assert [(r["label"], r["text"]) for r in rows] == [
+        ("<o,f0,female>", "one two three"),
+        ("<O,F2,M>", ""),
+        (None, "<unk> stays text"),
+    ]
+    m = meeting_from_stm(
+        "ES2002a 1 alice 0.50 2.00 <o,f0,female> one two three\n"
+        "ES2002a 1 excluded_region 2.00 2.50\n"
+        "ES2002a 1 inter_segment_gap 2.50 3.00\n"
+    )
+    assert [w["w"] for w in m["segments"][0]["words"]] == ["one", "two", "three"]
+    assert [s["id"] for s in m["speakers"]] == ["alice"]
+    sc = m["generator"]["scenario"]
+    assert sc["stm_pseudo_speaker_rows"] == 2 and sc["stm_excluded_regions"] == [[2.0, 2.5]] and sc["stm_label_fields"] == 1
 
 
 # --- registry ----------------------------------------------------------------------------------------
@@ -198,16 +309,61 @@ def test_registry_lists_expected_names_with_availability():
             assert "not importable" in rows[name]["reason"]
 
 
-def test_unknown_and_unavailable_pipelines_raise():
+def test_unknown_pipeline_raises():
     with pytest.raises(UnknownPipeline):
         get_pipeline("no-such-pipeline")
     assert issubclass(UnknownPipeline, KeyError)
-    for name in ("faster-whisper", "pyannote-audio", "whisperx"):
-        if not registered()[name].available():
-            with pytest.raises(PipelineUnavailable, match="unavailable"):
-                get_pipeline(name)
-        else:  # pragma: no cover - only when the optional package is installed
-            pytest.skip(f"{name} is importable here; adapter construction needs model files")
+
+
+@pytest.mark.parametrize(
+    "name", ["faster-whisper", "faster-whisper+pyannote", "pyannote-audio", "whisperx", "embedding-cluster"]
+)
+def test_unavailable_adapter_raises(name):
+    """Parametrised per adapter (review finding PIPE-10): installing one optional
+    package must not silently skip the checks for the others."""
+    entry = registered()[name]
+    if entry.available():  # pragma: no cover - only when that optional package is installed
+        pytest.skip(f"{name} is importable here; its construction is tested in test_pipeline_adapters.py")
+    with pytest.raises(PipelineUnavailable, match="unavailable"):
+        get_pipeline(name)
+    assert "not importable" in entry.reason()
+
+
+def test_get_pipeline_rejects_unknown_params_and_bad_values():
+    """Review finding PIPE-11: every registered pipeline declares its keys."""
+    for name, entry in registered().items():
+        assert entry.params is not None, f"{name} does not declare its params"
+    with pytest.raises(ParamError, match="does not accept parameter"):
+        get_pipeline("energy-vad-cluster", PipelineConfig(params={"num_speaker": 4}))
+    with pytest.raises(ParamError, match="does not accept"):
+        get_pipeline("oracle", PipelineConfig(params={"num_speakers": 2}))
+    with pytest.raises(ParamError, match="word_sub_rat"):
+        get_pipeline("perturbed-oracle", PipelineConfig(params={"word_sub_rat": 0.2}))
+    for bad in ("two", 0, -1, 2.5, True):
+        with pytest.raises(ParamError, match="num_speakers"):
+            get_pipeline("energy-vad-cluster", PipelineConfig(params={"num_speakers": bad}))
+    with pytest.raises(ParamError, match="audio_check"):
+        get_pipeline("energy-vad-cluster", PipelineConfig(params={"audio_check": "lenient"}))
+    with pytest.raises(ParamError):
+        get_pipeline("perturbed-oracle", PipelineConfig(params={"word_del_rate": "lots"}))
+    assert get_pipeline("energy-vad-cluster", PipelineConfig(params={"num_speakers": 2, "chunk_s": 1.0}))
+    assert issubclass(ParamError, ValueError)
+
+
+def test_composed_pipeline_validates_num_speakers_at_run_time(tmp_path):
+    with pytest.raises(ParamError):
+        ComposedPipeline(None, StubDiarizer(), PipelineConfig(name="c", params={"num_speakers": "3"})).run(_wav(tmp_path))
+
+
+def test_resolve_meeting_id_does_not_swallow_a_malformed_meeting_json(tmp_path):
+    p = _wav(tmp_path)
+    pipe = ComposedPipeline(None, StubDiarizer(), name="d")
+    assert pipe.resolve_meeting_id(p, None) == "x"  # no meeting.json: the stem, by policy
+    (tmp_path / "meeting.json").write_text('{"schema": "wrong"}')
+    with pytest.raises(MeetingFormatError, match="schema"):
+        pipe.resolve_meeting_id(p, None)
+    with pytest.raises(MeetingFormatError):
+        pipe.run(p)
 
 
 def test_duplicate_registration_is_an_error():

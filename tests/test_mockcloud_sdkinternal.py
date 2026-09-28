@@ -16,7 +16,17 @@ import pytest
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-from test_mockcloud_helpers import APP, BASIC, PARTNER, SN_NOTEPRO, bearer, client, make_app, user_token
+from test_mockcloud_helpers import (  # noqa: F401 - no_outbound_network is an autouse fixture
+    APP,
+    BASIC,
+    PARTNER,
+    SN_NOTEPRO,
+    bearer,
+    client,
+    make_app,
+    no_outbound_network,
+    user_token,
+)
 
 SDK = f"{PARTNER}/open/partner/sdk"
 REF = {"type": "notepro", "sn": SN_NOTEPRO}
@@ -56,9 +66,11 @@ async def test_sn_sign_signature_verifies_under_the_mock_signing_key() -> None:
         raw = base64.b64decode(sig, validate=True)
         key = serialization.load_pem_public_key((await c.get("/_mock/signing-key")).json()["public_key"].encode())
         from mockcloud.jwt import peek_claims
-        from mockcloud.routers.sdkinternal import sn_sign_payload
+        from mockcloud.routers.sdkinternal import NO_KEY_FINGERPRINT, sn_sign_payload
         sub = peek_claims(tok)["sub"]
-        key.verify(raw, sn_sign_payload("notepro", SN_NOTEPRO, sub), padding.PKCS1v15(), hashes.SHA256())
+        # no gen-key yet: bound to the explicit "no key" fingerprint (a documented deviation)
+        key.verify(raw, sn_sign_payload("notepro", SN_NOTEPRO, sub, NO_KEY_FINGERPRINT),
+                   padding.PKCS1v15(), hashes.SHA256())
         # sn-verify agrees, and refuses the same signature for another SN
         r = await c.post(f"{SDK}/sn-verify", headers=bearer(tok), json={**REF, "signature": sig})
         assert r.json() == {"is_valid": True}
@@ -162,3 +174,47 @@ async def test_aar_internal_token_chain_and_surface_a_aliases() -> None:
         bad = base64.b64encode(f"{APP.client_id}:{APP.api_key}".encode()).decode()
         r = await c.post("/api/oauth/sdk-token", headers={"Authorization": f"Bearer {bad}"})
         assert r.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_a_new_key_pair_invalidates_earlier_sn_sign_signatures() -> None:
+    """advanced-ios-sdk.md:514: "A new key pair invalidates every cached sn-sign
+    signature, since signatures are bound to the key pair that produced them"
+    (review finding MC-7). What the real server does with a stale signature is
+    UNKNOWN; the mock refuses it."""
+    from mockcloud.jwt import peek_claims
+    from mockcloud.routers.sdkinternal import key_fingerprint, sn_sign_payload
+
+    app, ctx, _ = make_app()
+    async with client(app) as c:
+        tok = await user_token(c)
+        other = await user_token(c, "other-user-000002")
+        k1 = (await c.post(f"{SDK}/gen-key", headers=bearer(tok))).json()
+        s1 = (await c.post(f"{SDK}/sn-sign", headers=bearer(tok), json=REF)).json()["signature"]
+        s_other = (await c.post(f"{SDK}/sn-sign", headers=bearer(other), json=REF)).json()["signature"]
+        # the signature covers the fingerprint of the caller's current pair
+        pub = serialization.load_pem_public_key((await c.get("/_mock/signing-key")).json()["public_key"].encode())
+        sub = peek_claims(tok)["sub"]
+        pub.verify(base64.b64decode(s1), sn_sign_payload("notepro", SN_NOTEPRO, sub, key_fingerprint(k1["public_key"])),
+                   padding.PKCS1v15(), hashes.SHA256())
+        assert (await c.post(f"{SDK}/sn-verify", headers=bearer(tok), json={**REF, "signature": s1})).json() == {"is_valid": True}
+        assert (await c.get(f"{SDK}/version/latest", headers={"X-Device-Signature": s1}, params=REF)).status_code == 200
+
+        k2 = (await c.post(f"{SDK}/gen-key", headers=bearer(tok))).json()
+        assert k2["public_key"] != k1["public_key"]
+        # the old signature is dead everywhere
+        assert (await c.post(f"{SDK}/sn-verify", headers=bearer(tok), json={**REF, "signature": s1})).json() == {"is_valid": False}
+        r = await c.get(f"{SDK}/version/latest", headers={"X-Device-Signature": s1}, params=REF)
+        assert r.status_code == 403 and "revoked" in r.json()["message"]
+        meta = {**REF, "metadata": {"version": "V0001", "config": {"battery": 50}}}
+        assert (await c.post(f"{SDK}/metadata", headers={"X-Device-Signature": s1}, json=meta)).status_code == 403
+        # re-signing under the new pair works again
+        s2 = (await c.post(f"{SDK}/sn-sign", headers=bearer(tok), json=REF)).json()["signature"]
+        assert s2 != s1
+        assert (await c.post(f"{SDK}/sn-verify", headers=bearer(tok), json={**REF, "signature": s2})).json() == {"is_valid": True}
+        assert (await c.post(f"{SDK}/metadata", headers={"X-Device-Signature": s2}, json=meta)).status_code == 200
+        # another user's gen-key does not touch this user's signatures, and vice versa
+        assert (await c.get(f"{SDK}/version/latest", headers={"X-Device-Signature": s_other}, params=REF)).status_code == 200
+        await c.post(f"{SDK}/gen-key", headers=bearer(other))
+        assert (await c.get(f"{SDK}/version/latest", headers={"X-Device-Signature": s2}, params=REF)).status_code == 200
+        assert (await c.get(f"{SDK}/version/latest", headers={"X-Device-Signature": s_other}, params=REF)).status_code == 403

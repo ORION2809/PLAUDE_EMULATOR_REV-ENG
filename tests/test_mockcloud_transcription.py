@@ -9,14 +9,26 @@ Contract: build/docs-plaud-ai/openapi_transcription.json (+ -model.json).
 from __future__ import annotations
 
 import asyncio
+import json
+import sys
 from pathlib import Path
 
-import numpy as np
 import pytest
-import soundfile as sf
 
-from test_mockcloud_helpers import CLIENT_KEYS, PARTNER, client, make_app, upload_bytes, user_token, write_meeting_dir
-from mockcloud.oracle import (
+np = pytest.importorskip("numpy")
+sf = pytest.importorskip("soundfile")
+
+from test_mockcloud_helpers import (  # noqa: E402,F401 - no_outbound_network is an autouse fixture
+    CLIENT_KEYS,
+    PARTNER,
+    client,
+    make_app,
+    no_outbound_network,
+    upload_bytes,
+    user_token,
+    write_meeting_dir,
+)
+from mockcloud.oracle import (  # noqa: E402
     EMBEDDING_DIM,
     PLACEHOLDER_TEXT,
     ogg_opus_duration_s,
@@ -152,7 +164,8 @@ async def test_meeting_dir_file_url_returns_ground_truth(tmp_path: Path) -> None
         assert [r["speaker_id"] for r in j["data"]["results"]] == ["Speaker 1", "Speaker 2", "Speaker 1"]
         for seg in j["data"]["results"]:
             assert RESULT_KEYS | {"speaker_id"} == set(seg)
-        assert ctx.state.tasks[tid].source.startswith("file+meeting")
+        # the pipeline's own oracle ran (MC-1): the source says so exactly
+        assert ctx.state.tasks[tid].source == "file+meeting+pipeline-oracle"
 
 
 @pytest.mark.asyncio
@@ -176,7 +189,7 @@ async def test_uploaded_meeting_audio_is_recognised_by_md5_and_answered_with_gro
         assert j["data"]["duration"] == 5
         assert [r["text"] for r in j["data"]["results"]] == [s["text"] for s in meeting["segments"]]
         assert len(j["data"]["embeddings"]["Speaker 2"]) == EMBEDDING_DIM
-        assert ctx.state.tasks[tid].source.startswith("objectstore+meeting")
+        assert ctx.state.tasks[tid].source == "objectstore+meeting+pipeline-oracle"
         # the same bytes re-uploaded under a different filetype still match
         comp2 = await upload_bytes(c, tok, audio, "mp3")
         r = await c.post(f"{AI}/", headers=CLIENT_KEYS, json={"file_url": comp2["DownloadUrl"]})
@@ -220,3 +233,115 @@ async def test_tasks_are_scoped_to_the_client_id_that_created_them(tmp_path: Pat
         r = await c.get(f"{AI}/{tid}", headers={"X-Client-Id": other.client_id, "X-Client-Api-Key": other.api_key})
         assert r.status_code == 404
         assert (await c.get(f"{AI}/{tid}", headers=CLIENT_KEYS)).status_code == 200
+
+
+# --- review fixes: the pipeline oracle hook (MC-1) ------------------------------
+
+async def _transcribe_file(tmp_path: Path, mdir: Path, **settings) -> tuple[dict, str]:
+    app, ctx, _ = make_app(local_file_roots=(tmp_path,), **settings)
+    async with client(app) as c:
+        r = await c.post(f"{AI}/", headers=CLIENT_KEYS, json={
+            "file_url": (mdir / "device" / "recording.ogg").as_uri(),
+            "params": {"diarization": {"enabled": True}}})
+        tid = r.json()["transcription_id"]
+        j = await poll(c, tid, ctx)
+        return j, str(ctx.state.tasks[tid].source)
+
+
+@pytest.mark.asyncio
+async def test_the_pipeline_oracle_is_called_and_its_segments_are_served(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The hook calls pipeline.oracle.OraclePipeline.run (pipeline/oracle.py:64)
+    with the meeting dir, and the result carries exactly its segments."""
+    from pipeline.meeting import reference_segments
+    from pipeline.oracle import OraclePipeline
+
+    calls: list[tuple] = []
+    real_run = OraclePipeline.run
+
+    def spy(self, audio_path, meeting_dir=None):  # noqa: ANN001
+        calls.append((Path(audio_path).resolve(), Path(meeting_dir).resolve()))
+        return real_run(self, audio_path, meeting_dir)
+
+    monkeypatch.setattr(OraclePipeline, "run", spy)
+    audio = make_ogg_opus(tmp_path / "rec.ogg", 5.25)
+    mdir, meeting = write_meeting_dir(tmp_path, device_audio=audio)
+    j, source = await _transcribe_file(tmp_path, mdir)
+    assert j["status"] == "SUCCESS"
+    assert source == "file+meeting+pipeline-oracle"
+    assert calls == [((mdir / "device" / "recording.ogg").resolve(), mdir.resolve())], "run(audio, meeting_dir) once"
+    ref = reference_segments(meeting)
+    assert [(r["start"], r["end"], r["text"]) for r in j["data"]["results"]] == [
+        (s["start"], s["end"], s["text"]) for s in ref]
+
+
+@pytest.mark.asyncio
+async def test_without_the_pipeline_package_meeting_json_is_read_and_the_reason_recorded(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setitem(sys.modules, "pipeline.oracle", None)  # import of pipeline.oracle now fails
+    audio = make_ogg_opus(tmp_path / "rec.ogg", 5.25)
+    mdir, meeting = write_meeting_dir(tmp_path, device_audio=audio)
+    j, source = await _transcribe_file(tmp_path, mdir)
+    assert j["status"] == "SUCCESS"
+    assert source == "file+meeting+meeting.json(pipeline-unavailable:ModuleNotFoundError)", source
+    assert [r["text"] for r in j["data"]["results"]] == [s["text"] for s in meeting["segments"]]
+
+
+@pytest.mark.asyncio
+async def test_a_meeting_the_pipeline_refuses_falls_back_with_the_error_type(tmp_path: Path) -> None:
+    """pipeline.meeting.read_meeting validates more strictly than the mock
+    (e.g. it requires `channels`); the refusal is recorded, not swallowed."""
+    audio = make_ogg_opus(tmp_path / "rec.ogg", 5.25)
+    mdir, meeting = write_meeting_dir(tmp_path, device_audio=audio)
+    del meeting["channels"]
+    (mdir / "meeting.json").write_text(json.dumps(meeting))
+    j, source = await _transcribe_file(tmp_path, mdir)
+    assert j["status"] == "SUCCESS"
+    assert source == "file+meeting+meeting.json(pipeline-error:MeetingFormatError)", source
+    assert [r["text"] for r in j["data"]["results"]] == [s["text"] for s in meeting["segments"]]
+
+
+# --- review fixes: file:// ground truth stays inside the allowed roots (MC-5) ---
+
+@pytest.mark.asyncio
+async def test_meeting_json_above_the_allowed_root_is_not_read(tmp_path: Path) -> None:
+    audio = make_ogg_opus(tmp_path / "rec.ogg", 2.0)
+    mdir, _ = write_meeting_dir(tmp_path, device_audio=audio)
+    # the operator exposes only <meeting>/device -- meeting.json is one level up
+    app, ctx, _ = make_app(local_file_roots=(mdir / "device",))
+    async with client(app) as c:
+        r = await c.post(f"{AI}/", headers=CLIENT_KEYS,
+                         json={"file_url": (mdir / "device" / "recording.ogg").as_uri()})
+        tid = r.json()["transcription_id"]
+        j = await poll(c, tid, ctx)
+        assert j["status"] == "SUCCESS"
+        assert j["data"]["text"] == PLACEHOLDER_TEXT, "no ground truth from outside the root"
+        assert ctx.state.tasks[tid].source == "file"
+        # with the meeting dir itself as the root, the ground truth is served
+        app2, ctx2, _ = make_app(local_file_roots=(mdir,))
+        async with client(app2) as c2:
+            r = await c2.post(f"{AI}/", headers=CLIENT_KEYS,
+                              json={"file_url": (mdir / "device" / "recording.ogg").as_uri()})
+            j = await poll(c2, r.json()["transcription_id"], ctx2)
+            assert j["data"]["text"] == "hello there hi how are you fine thanks"
+
+
+# --- review fixes: parameter types are checked at submit (MC-11) ----------------
+
+@pytest.mark.asyncio
+async def test_wrongly_typed_params_are_refused_at_submit_and_extras_are_kept() -> None:
+    app, ctx, _ = make_app()
+    async with client(app) as c:
+        url = "https://example.invalid/a.mp3"
+        for bad in ({"diarization": True}, {"transcribe": "auto"}, {"transcribe": {"language": 5}},
+                    {"vad": {"decode_silence": "maybe"}}, {"diarization": {"enabled": [1]}},
+                    {"hotwords": ["plaud", "gpt"]}, {"diarization": {"enabled": "yes"}},
+                    {"diarization": {"enabled": 1}}, {"transcribe": {"language": None, "model": 3}}):
+            r = await c.post(f"{AI}/", headers=CLIENT_KEYS, json={"file_url": url, "params": bad})
+            assert r.status_code == 422, (bad, r.status_code, r.text)
+        assert ctx.state.tasks == {}, "nothing was queued"
+        good = {"transcribe": {"language": "auto", "model": "plaud-omni-3", "future_knob": 1},
+                "diarization": {"enabled": True}, "hotwords": "plaud,gpt", "extra_top": {"x": 1}}
+        r = await c.post(f"{AI}/", headers=CLIENT_KEYS, json={"file_url": url, "params": good})
+        assert r.status_code == 200
+        assert ctx.state.tasks[r.json()["transcription_id"]].params == good, "sent params kept verbatim"

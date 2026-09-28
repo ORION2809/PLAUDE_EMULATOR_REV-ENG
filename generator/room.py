@@ -11,11 +11,21 @@ tail up to the image order. It does NOT model the device's DSP, the VPU,
 directional capsules or any firmware processing (all UNKNOWN; see devices.py).
 
 Noise (HARNESS_POLICY):
-* "white": independent Gaussian noise per channel, i.e. sensor noise, scaled
-  so that the SNR over the speech-active samples equals `snr_db`;
+* "white": independent Gaussian noise per capsule, i.e. sensor noise;
 * "musan": a noise recording from a MUSAN-style directory of WAV files,
   placed as a room source at `noise.position_m` (default: a corner) and
-  convolved through the same RIR model; SNR measured on channel 0.
+  convolved through the same RIR model.
+
+SNR reference point (HARNESS_POLICY): `noise.snr_db` is the SNR of the
+RECORDED mix, i.e. mix.wav = device_mix(capsules, preset, device.channels):
+mean speech power over the speech-active samples (any dry stem non-zero)
+divided by mean noise power over all samples, both after the device mix.
+Averaging k capsules lowers independent noise by ~10*log10(k) while the
+correlated speech stays, so a per-capsule SNR would leave mix.wav and every
+device/* file 3-6 dB cleaner than requested. The realised SNR of the mono
+mix, the stereo mix and the raw capsules is reported next to it
+(`noise.snr_db_realised`), because device/recording.ogg, the raw/g4/E2EE
+shapes (always mono) and recording_stereo.ogg can differ from mix.wav.
 """
 
 from __future__ import annotations
@@ -29,7 +39,7 @@ from scipy.signal import fftconvolve, resample_poly
 from generator._evidence import ROOT
 from generator.contract import SAMPLE_RATE
 from generator.devices import PRESETS as DEVICE_PRESETS
-from generator.devices import mic_positions
+from generator.devices import device_mix, mic_positions
 from generator.scenario import DEFAULT_MAX_ORDER_CAP, Scenario
 
 SPEED_OF_SOUND = 343.0
@@ -182,16 +192,25 @@ def load_noise_clip(directory: Path, n_samples: int, rng: np.random.Generator) -
     return clip, str(chosen.relative_to(directory))
 
 
+def _snr_db(speech: np.ndarray, noise: np.ndarray, active: np.ndarray) -> float:
+    """10*log10(mean speech power over active samples / mean noise power)."""
+    return float(10.0 * np.log10(float(np.mean(speech[:, active] ** 2)) / (float(np.mean(noise ** 2)) + 1e-30)))
+
+
 def make_noise(scenario: Scenario, result: RoomResult, active: np.ndarray, rng: np.random.Generator) -> tuple[np.ndarray, dict[str, object]]:
+    """Noise for every capsule, scaled so the SNR of the recorded device mix
+    (mix.wav, scenario.device.channels) is exactly `noise.snr_db`."""
     mix = result.mic_signals
     n_mics, n = mix.shape
     if not np.any(active):
         raise ValueError("cannot set an SNR on a meeting with no speech")
-    speech_power = float(np.mean(mix[:, active] ** 2))
+    preset = DEVICE_PRESETS[scenario.device.preset]
+    channels = scenario.device.channels
+    speech_power = float(np.mean(device_mix(mix, preset, channels)[:, active] ** 2))
     target_noise_power = speech_power / (10.0 ** (scenario.noise.snr_db / 10.0))
     kind = scenario.noise.kind
     if kind == "white":
-        noise = rng.standard_normal((n_mics, n)) * np.sqrt(target_noise_power)
+        unit = rng.standard_normal((n_mics, n))
         meta = {"kind": "white", "snr_db": scenario.noise.snr_db, "per_channel_independent": True}
     elif kind == "musan":
         directory = _noise_dir(scenario)
@@ -204,14 +223,25 @@ def make_noise(scenario: Scenario, result: RoomResult, active: np.ndarray, rng: 
 
         room.add_microphone_array(pra.MicrophoneArray(result.mic_positions_m, SAMPLE_RATE))
         room.compute_rir()
-        wet = np.stack([fftconvolve(clip, _strip_fdl_padding(room.rir[m][0]))[:n] for m in range(n_mics)])
-        wet_power = float(np.mean(wet[0] ** 2)) + 1e-30
-        noise = wet * np.sqrt(target_noise_power / wet_power)
+        unit = np.stack([fftconvolve(clip, _strip_fdl_padding(room.rir[m][0]))[:n] for m in range(n_mics)])
         meta = {"kind": "musan", "snr_db": scenario.noise.snr_db, "file": name, "position_m": list(pos), "directory": str(directory)}
     else:
         raise ValueError(f"unknown noise kind {kind!r}")
-    realised = 10.0 * np.log10(speech_power / (float(np.mean(noise[0] ** 2)) + 1e-30))
-    meta["snr_db_realised_ch0"] = round(float(realised), 3)
+    unit_power = float(np.mean(device_mix(unit, preset, channels) ** 2)) + 1e-30
+    noise = unit * np.sqrt(target_noise_power / unit_power)
+    meta["snr_reference"] = "mix"
+    meta["snr_reference_note"] = (
+        f"snr_db is the SNR of mix.wav (device mix, {channels} ch): speech power over speech-active "
+        "samples / noise power, both after the device mix. device/recording.ogg and the raw, g4 and "
+        "E2EE shapes are encoded from mono_mix, device/recording_stereo.ogg from stereo_mix."
+    )
+    meta["snr_db_realised"] = {
+        "mix": round(_snr_db(device_mix(mix, preset, channels), device_mix(noise, preset, channels), active), 3),
+        "mono_mix": round(_snr_db(device_mix(mix, preset, 1), device_mix(noise, preset, 1), active), 3),
+        "stereo_mix": round(_snr_db(device_mix(mix, preset, 2), device_mix(noise, preset, 2), active), 3),
+        "capsules": round(_snr_db(mix, noise, active), 3),
+    }
+    meta["snr_db_realised_ch0"] = round(_snr_db(mix[:1], noise[:1], active), 3)  # capsule 0 alone
     return noise, meta
 
 

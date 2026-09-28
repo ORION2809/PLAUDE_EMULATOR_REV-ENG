@@ -1,0 +1,12 @@
+$ python -m evals batch --refs build/synthetic/piper --hyps build/v5/hyp/piper/oracle --gates evals/gates.yaml --suite oracle --gate-on each --report build/v5/gates/oracle.piper.json
+synth-piper-2spk-overlap-s0102 [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+synth-piper-2spk-s0101 [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+synth-piper-3spk-reverb-noise-s0103 [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+synth-piper-4spk-s0104 [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+macro  n=4  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+micro  n=4  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+[PASS] suite 'oracle' on synth-piper-2spk-overlap-s0102 (6 checks)
+[PASS] suite 'oracle' on synth-piper-2spk-s0101 (6 checks)
+[PASS] suite 'oracle' on synth-piper-3spk-reverb-noise-s0103 (6 checks)
+[PASS] suite 'oracle' on synth-piper-4spk-s0104 (6 checks)
+exit 0

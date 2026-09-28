@@ -1,0 +1,17 @@
+error: /Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/EN2002a: unexpected RuntimeError: Are you sure?
+Found a total of 83 speakers in the input (Reference: 4, Hypothesis: 83).
+This indicates a mistake in the input, or does your use-case really require scoring with that many speakers?
+See https://github.com/fgnt/meeteval/blob/main/doc/num_speaker_limits.md for details.
+error: /Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/ES2004a: unexpected RuntimeError: Are you sure?
+Found a total of 31 speakers in the input (Reference: 4, Hypothesis: 31).
+This indicates a mistake in the input, or does your use-case really require scoring with that many speakers?
+See https://github.com/fgnt/meeteval/blob/main/doc/num_speaker_limits.md for details.
+error: /Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/IS1009a: unexpected RuntimeError: Are you sure?
+Found a total of 34 speakers in the input (Reference: 4, Hypothesis: 34).
+This indicates a mistake in the input, or does your use-case really require scoring with that many speakers?
+See https://github.com/fgnt/meeteval/blob/main/doc/num_speaker_limits.md for details.
+error: /Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/TS3003a: unexpected RuntimeError: Are you sure?
+Found a total of 41 speakers in the input (Reference: 4, Hypothesis: 41).
+This indicates a mistake in the input, or does your use-case really require scoring with that many speakers?
+See https://github.com/fgnt/meeteval/blob/main/doc/num_speaker_limits.md for details.
+# exit 2

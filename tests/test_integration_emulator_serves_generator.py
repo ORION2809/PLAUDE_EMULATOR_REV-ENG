@@ -17,15 +17,20 @@ tests/test_r7_s13_transfer_close.py).
 
 HARNESS_POLICY, stated here and in docs/integration.md:
   * DATA payload 240 bytes (u8 length field; under the SDK's 255-byte MTU).
-  * Speaker-count tolerance for the model-free diarizer.  Its clustering
-    threshold (2.5) was tuned on pulse-train voices, not on the generator's
-    formant voices; on this meeting it merges both speakers into one cluster
-    when no speaker count is given.  With the count hint the pipeline supports
-    (``num_speakers``) it recovers exactly two.  The test therefore asserts:
-    exact count WITH the hint, |error| <= 1 WITHOUT it, no missed reference
-    speech (miss rate <= 0.02; measured 0.0), and DER below the 0.5 that a
-    two-speaker coin flip would score (measured 0.294).  These are the
-    properties provable today; a real-speech claim needs re-tuning (docs/pipeline.md).
+  * Speaker-count tolerance for the model-free diarizer.  Since the
+    2026-09-25 rework (docs/pipeline.md sections 2.1-2.2: an f0 term in the
+    window features, spectral clustering, an average-linkage cap at
+    ``distance_threshold`` 2.0) it finds exactly two speakers on this meeting
+    (smoke, seed 3, device Ogg) with or without the ``num_speakers`` hint:
+    DER 0.067 either way (false alarm 0.067, confusion 0.0, miss 0.0),
+    measured on macOS.  Before the rework (threshold 2.5, tuned on pulse-train
+    voices) it merged both speakers into one cluster without the hint, and the
+    hinted DER was 0.294.  The test keeps its bounds: exact count WITH the
+    hint, |error| <= 1 WITHOUT it (the exact unaided count is shown only on
+    macOS, and held-out smoke seeds 4 and 5 are still off by one), no missed
+    reference speech (miss rate <= 0.02; measured 0.0), and DER below the 0.5
+    that a two-speaker coin flip would score.  The f0 feature suits synthetic
+    voices; it is not a claim about real speech (docs/pipeline.md, docs/integration.md).
 """
 
 from __future__ import annotations
@@ -186,7 +191,8 @@ async def test_pulled_bytes_decode_identically_and_diarize_within_tolerance(meet
     assert report.der.der < MAX_DER_WITH_HINT, f"DER {report.der.der:.3f}"
     assert report.der.der > 0.0, "a model-free clusterer is not an oracle; the zero would be suspicious"
 
-    # 3. WITHOUT the hint: the documented threshold merges the formant voices
+    # 3. WITHOUT the hint: since the 2026-09-25 diarizer rework seed 3 yields exactly 2 speakers
+    #    (DER 0.067, measured on macOS); the tolerance stays 1, see docs/integration.md.
     auto = get_pipeline("energy-vad-cluster").run(pulled, d)
     assert abs(len(auto.speakers) - n_ref) <= SPEAKER_COUNT_TOLERANCE_WITHOUT_HINT, auto.speakers
     auto_report = score_meeting(load_meeting(d), hypothesis_from_dict(auto.to_dict()))

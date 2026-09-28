@@ -401,7 +401,7 @@ tracked evidence file modified (checked by `git status` inside each repo).
 
 **What was done.** Extended the R7-S12 rig with a pull driver (public
 `getFileList`/`syncFile`/`exportAudio`) and a peripheral serving a real
-Ogg/Opus fixture; 14 runs (`r7/r7-s13-evidence/`).
+Ogg/Opus fixture; 17 runs with archived logs (`r7/r7-s13-evidence/`).
 
 **What earlier work got wrong.**
 * §5.8 documented HEAD·DATA·TAIL. The genuine client never completed on it.

@@ -21,7 +21,12 @@ from generator.tts import TTSBackend, get_backend
 from generator.turns import Turn, activity_mask, build_dry_stems, overlap_ratio, plan_turns
 
 GENERATOR_NAME = "plaud-harness-generator"
-GENERATOR_VERSION = "0.1.0"
+#: 0.2.0: overlap placement quantises the overlap, not the start (no stacking,
+#: no self-overlap); noise.snr_db is the SNR of mix.wav; device_primary,
+#: g4_framed label, encrypted_raw_opus output, codec lookahead metadata.
+#: Same scenario and seed give different bytes than 0.1.0 when overlap > 0
+#: or noise is on.
+GENERATOR_VERSION = "0.2.0"
 
 #: HARNESS_POLICY: peak-normalise the mic array and the device mix together
 #: to this full-scale fraction before int16 conversion.
@@ -72,11 +77,32 @@ def meeting_id_for(scenario: Scenario) -> str:
 
 
 def assign_voices(available: list[str], n_speakers: int, seed: int) -> list[str]:
-    """Round-robin over the backend's voices, rotated by the seed (HARNESS_POLICY)."""
+    """Round-robin over the backend's voices, rotated by the seed (HARNESS_POLICY).
+
+    Refuses to give two speakers the same voice: they would be one speaker
+    acoustically but two in the ground truth. An explicit `speakers.voices`
+    list may repeat a voice deliberately."""
     if not available:
         raise ValueError("backend offers no voices")
+    if n_speakers > len(available):
+        raise ValueError(
+            f"the backend offers {len(available)} voices, fewer than n_speakers={n_speakers}; auto-assignment "
+            "would give two speakers the same voice. Set speakers.voices explicitly to allow that"
+        )
     offset = seed % len(available)
     return [available[(offset + i) % len(available)] for i in range(n_speakers)]
+
+
+def pick_voices(backend: TTSBackend, n_speakers: int, seed: int) -> list[str]:
+    """Auto-assign voices: the backend's own `assign_voices(n, seed)` when it
+    has one (piper: a pitch-interleaved palette spread over its 904 speakers,
+    HARNESS_POLICY in generator/tts/piper.py), else `assign_voices` over
+    `backend.voices()`. Either way deterministic in the seed and distinct."""
+    own = getattr(backend, "assign_voices", None)
+    voices = list(own(n_speakers, seed)) if callable(own) else assign_voices(backend.voices(), n_speakers, seed)
+    if len(voices) != n_speakers or len(set(voices)) != n_speakers:
+        raise ValueError(f"backend {backend.name!r} assigned {voices!r} for {n_speakers} speakers")
+    return voices
 
 
 def to_int16(x: np.ndarray) -> np.ndarray:
@@ -86,9 +112,10 @@ def to_int16(x: np.ndarray) -> np.ndarray:
 def generate_meeting(scenario: Scenario | str | dict, tts: TTSBackend | None = None) -> Meeting:
     scenario = load_scenario(scenario)
     backend = tts or get_backend(scenario.tts_backend)
-    voices = scenario.speakers.voices or assign_voices(backend.voices(), scenario.n_speakers, scenario.seed)
+    voices = scenario.speakers.voices or pick_voices(backend, scenario.n_speakers, scenario.seed)
+    offered = set(backend.voices())
     for v in voices:
-        if v not in backend.voices():
+        if v not in offered:
             raise KeyError(f"voice {v!r} is not offered by backend {backend.name!r}")
     text = TextSource(scenario.seed, scenario.text_corpus)
     turns = plan_turns(scenario, text, backend, voices)
@@ -122,4 +149,4 @@ def generate_meeting(scenario: Scenario | str | dict, tts: TTSBackend | None = N
     )
 
 
-__all__ = ["GENERATOR_NAME", "GENERATOR_VERSION", "Meeting", "assign_voices", "generate_meeting", "meeting_id_for", "to_int16"]
+__all__ = ["GENERATOR_NAME", "GENERATOR_VERSION", "Meeting", "assign_voices", "generate_meeting", "meeting_id_for", "pick_voices", "to_int16"]

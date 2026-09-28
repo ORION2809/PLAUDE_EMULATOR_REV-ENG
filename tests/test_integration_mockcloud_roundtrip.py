@@ -20,12 +20,12 @@ The "oracle path" knob (docs/mockcloud.md, "Transcription results"): either
 register the meeting directory with ``POST /_mock/meetings {"dir"}`` so an
 ordinary presign -> PUT -> complete -> transcribe of the device file resolves
 to it by MD5 (first test), or point a ``file://`` URL inside a
-``local_file_roots`` directory (second test).  Finding recorded in
-docs/integration.md: ``mockcloud.oracle.try_pipeline_oracle`` probes
-``pipeline.oracle`` for ``oracle_hypothesis`` / ``hypothesis_from_meeting_dir``
-/ ``oracle`` / ``run_oracle`` and none exists (the pipeline exposes
-``OraclePipeline``), so the mock reads meeting.json directly -- the same ground
-truth -- and the task's ``source`` says so.
+``local_file_roots`` directory (second test).  Either way the mock answers
+through the pipeline's own oracle (``mockcloud.oracle.try_pipeline_oracle`` ->
+``pipeline.oracle.OraclePipeline``) and the task's ``source`` ends in
+``+pipeline-oracle``; a fallback to reading meeting.json directly would end in
+``+meeting.json(<reason>)`` and fail these assertions (docs/integration.md,
+"Findings": the hook used to probe names the pipeline never exported).
 
 HARNESS_POLICY: the mock's chunk size shrunk to 20 000 bytes so the ~49 KB
 file is a genuine multipart upload; task_step_s 0.02; the synthetic app
@@ -184,7 +184,9 @@ async def test_identity_bind_upload_transcribe_and_score_zero(meeting, ogg, tmp_
         final, seen = await poll_to_terminal(c, tid)
         assert seen == ["PENDING", "STARTED", "SUCCESS"], seen
         data = final["data"]
-        assert ctx.state.tasks[tid].source == "objectstore+meeting+meeting.json", ctx.state.tasks[tid].source
+        # the upload was recognised as the registered meeting, and the pipeline's own
+        # oracle (not the meeting.json fallback) produced the ground truth
+        assert ctx.state.tasks[tid].source == "objectstore+meeting+pipeline-oracle", ctx.state.tasks[tid].source
 
         # --- the result IS the ground truth ------------------------------------------------
         assert [s["text"] for s in data["results"]] == [s["text"] for s in m["segments"]]
@@ -228,7 +230,7 @@ async def test_file_url_inside_local_file_roots_takes_the_same_oracle_path(meeti
         tid = r.json()["transcription_id"]
         final, _ = await poll_to_terminal(c, tid)
         assert final["status"] == "SUCCESS"
-        assert ctx.state.tasks[tid].source == "file+meeting+meeting.json"
+        assert ctx.state.tasks[tid].source == "file+meeting+pipeline-oracle", ctx.state.tasks[tid].source
         assert set(final["data"]["embeddings"]) == {"Speaker 1", "Speaker 2"}
         report = score_result(d, m["meeting_id"], final["data"], tmp_path / "hyp")
         assert report.der.der == 0.0 and report.cpwer.error_rate == 0.0

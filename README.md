@@ -1,94 +1,141 @@
 # plaud-harness
 
-A hardware-free harness for reverse-engineering the Plaud Note Pro / NotePin BLE
-recorder: reconstruct the device protocol from shipped artifacts, emulate the
-device in software, and prove the reconstruction is correct.
+A hardware-free test harness for Plaud voice recorders (Note Pro / NotePin
+class, Bluetooth LE). It rebuilds the device protocol from artifacts Plaud
+published, emulates the recorder in software so Plaud's own app SDK will talk
+to it, and adds synthetic meetings with exact ground truth, an evaluation
+harness and a mock of the partner cloud.
 
-**Status: protocol reconstruction, audited 2026-09-22.** Start with
-[`PROJECT.md`](PROJECT.md) for context, then:
+It is research code. No real Plaud device and no Plaud account or credential has
+been used, so nothing here proves how real hardware behaves. One correction: in
+the R7 runtime runs (R7-S13 and R7-S14 logged it; R7-S12 very likely did too) the
+official SDK, initialised with a synthetic token,
+sent an automatic key-generation request to Plaud's partner server once per app
+start; every response in the logs was a rejection (HTTP 401). The drivers now
+pass a blank token. In one offline re-run of the recording-pull driver this
+stopped the request; the other two drivers have not been re-run (`r7/r7-s14-wifi-real-sdk.md`, finding D7;
+[progress report §8.6](docs/progress-report.md#8-25-september--review-fixes-and-first-measurements)).
+It is not affiliated with Plaud (see [Notice](#notice)).
 
-| Document | What it is |
-|---|---|
-| [`docs/protocol-ledger.md`](docs/protocol-ledger.md) | **The authoritative protocol record.** Every message, every offset, every unknown, each with its evidence and confidence. Where anything else disagrees, this wins. |
-| [`docs/reconstruction-log.md`](docs/reconstruction-log.md) | What was learned when, and what earlier work got wrong. |
-| [`docs/evidence-digest.json`](docs/evidence-digest.json) | Protocol facts extracted *mechanically* from SDK bytecode. Not hand-written. |
+**Start here: [`docs/project-state.md`](docs/project-state.md)**, the one document
+that says where the project stands: what works, what does not, what is unknown,
+the measured numbers, and how each was proven. [`docs/progress-report.md`](docs/progress-report.md)
+is the dated account of the work, and [`PROJECT.md`](PROJECT.md) is the long-running plan and history.
 
-## What the emulator does today
+## Status (as of 25 September 2026)
+
+The strongest result: on an Android emulator, Plaud's unmodified Android SDK
+(`plaud-sdk.aar`) bound to the emulated recorder, listed a served recording
+and downloaded it through both public download paths. The bytes it handed the
+app hash identically to the served file
+([`r7/r7-s13-recording-pull.md`](r7/r7-s13-recording-pull.md)). That run also
+showed the project's own protocol model was wrong about how a transfer ends,
+which is now corrected.
+
+| Rung | Claim | Status | What it does not show |
+|---|---|---|---|
+| V1 | Emulator is discovered and completes a session | Done | The central is our own Python code. |
+| V2 | Survives fault injection without corrupting a transfer | Done: 60 counted cells plus 2 content-fault rows ([`docs/v2-fault-matrix.md`](docs/v2-fault-matrix.md)) | The receiver is a Python model of the SDK derived from bytecode; six of its behaviours were cross-checked against the real-SDK runs (docs/v2-fault-matrix.md). "No silent corruption" holds by construction in the counted cells, so the matrix tests completion, not content integrity. One cell is a documented corruption risk; payload bit-flips are undetectable by design. |
+| V3 | Plaud's own SDK connects and pulls a recording | Done (Android, Bluetooth, legacy protocol) | Nothing about real devices. Not iOS, not the encrypted protocol. Not Wi-Fi: the SDK's Wi-Fi transfer stopped at the hotspot join ([`r7/r7-s14-wifi-real-sdk.md`](r7/r7-s14-wifi-real-sdk.md)). |
+| V4 | Synthetic ground truth round-trips at DER 0 | Done | Plumbing and metric direction only. The oracle returns the ground truth by construction. |
+| V5 | A full pipeline hits target cpWER/DER on AMI | Not done (a subset was measured) | `whisper-sherpa` (Whisper small.en plus sherpa-onnx) ran on 4 of the 16 AMI test-split meetings at full length. With the reference speaker count as a hint: macro DER 0.6557, cpWER 0.8533. These numbers are poor, and the hint is an oracle value; without it the standard scoring path could score none of the AMI meetings. The V5 target needs all 16 meetings and is unmeasured ([`docs/v5-results.md`](docs/v5-results.md)). |
+| V6 | `docker compose up` is live in under 60 s | Done (one run) | One run on 25 September on an Apple Silicon Mac in a Linux arm64 VM: services healthy in 6.58 s, job exit 0; image build (121.38 s) excluded from the window by design ([`docs/compose.md`](docs/compose.md)). Not run on x86_64 or on a GitHub runner. |
+
+Full suite on 25 September 2026:
+`1365 passed, 4 skipped, 11 warnings in 339.00s (0:05:38)`. The count
+includes parametrised cases; 978 passed on 24 September. The 4 skips are
+tests that apply only when faster-whisper or piper is absent. On GitHub, the
+`tests` workflow failed on the pushed commit `70249ba`. The fix is uncommitted
+and has passed only in local clean-clone simulations.
+
+### What does not work, or is not established
+
+- V5 is not met. The only real system measured, on 4 AMI test meetings and 4
+  synthetic Piper meetings, scores poorly; its diarizer over-clusters without
+  a speaker-count hint, and its ASR was not reproducible on one long meeting
+  ([`docs/v5-results.md`](docs/v5-results.md)).
+- The encrypted protocol used at `portVersion` 20 and above is modelled as
+  structure and exercised only with synthetic keys, never with the real SDK.
+- The iOS SDK has never been executed; this machine has no Xcode. The real
+  SDK's Wi-Fi transfer never reached our Wi-Fi emulator: it stopped at the
+  hotspot join, and no Wi-Fi message was exchanged. With a
+  `wifi_device_factory`, opening Wi-Fi over Bluetooth (opcode 10) now starts
+  the Wi-Fi device emulator, over loopback. The whole hand-over has run only
+  against our phone-side test double; in R7-S14, after the emulator's
+  mode-0 fix, the real SDK's opcode 10 started the device (runs 2 and 5), but no
+  Wi-Fi session followed
+  ([`docs/wifi-transport.md`](docs/wifi-transport.md) §8).
+- No bind of *our* client to *real* hardware is possible offline: the RSA key
+  pair, serial-number signature and handshake token come from Plaud's cloud,
+  and this repository holds no credentials. Separately, the emulator refuses
+  to advertise `portVersion >= 20`, because at that level the SDK seals every
+  frame with ChaCha20-Poly1305 and a cleartext emulator would misstate what it
+  speaks.
+- 24 protocol questions stay open, most of which need a real device
+  ([`docs/final-uncertainty-matrix.json`](docs/final-uncertainty-matrix.json)).
+- Most code was written by delegated agents. An independent review of the
+  phase-3 layers on 25 September found 71 problems (69 confirmed, 2
+  plausible); each was fixed or narrowed. The phase-1 protocol code
+  was not part of that review
+  ([progress report §10](docs/progress-report.md#10-how-the-work-was-checked-and-what-was-not)).
+
+## What the emulator does
 
 Over a Bumble virtual link, with no radio and no Plaud hardware, a central can:
 
-* **scan and discover it** — the advertisement carries manufacturer-specific
-  data that the SDK's own parse rules accept, including the `portVersion` that
-  declares whether the link is encrypted
-* exchange MTU, discover services, subscribe to `2BB0` by notify *or* indicate
-* run the control protocol: `getState` (3), `syncTime` (4), `getStorage` (6),
-  `battStatus` (9), and receive unsolicited battery pushes
+* scan and discover it: the advertisement carries manufacturer data that the
+  SDK's own parse rules accept, including the `portVersion` that declares
+  whether the link is encrypted
+* exchange MTU, discover services, subscribe to `2BB0` by notify or indicate
+* run `getState` (3), `syncTime` (4), `getStorage` (6), `battStatus` (9) and
+  receive unsolicited battery pushes
 * list recordings with multi-frame paging, `resumeRecord`, `deleteFile`
-* pull a file: `syncFile` → HEAD → type-2 data frames → EMPTY_PACKAGE sentinel
-  → TAIL (the sentinel is what the real SDK completes on, R7-S13), including
-  resume-from-offset, abortable paced streaming, and an injectable DATA gap so
-  the SDK's own stopSync-and-restart recovery path can be exercised
-* the same recording over the **Wi-Fi bulk-transfer** path: the device dials the
-  phone's WebSocket server, handshakes, lists, syncs in chunks, deletes, closes;
-  sealed sessions for both AEADs (`docs/wifi-transport.md`)
+* pull a file: `syncFile` → HEAD → data frames → EMPTY_PACKAGE → TAIL (the
+  real SDK completes only on the EMPTY_PACKAGE frame before the TAIL, R7-S13),
+  with resume-from-offset, paced and abortable streaming, and an injectable
+  gap that exercises the SDK's own stop-and-restart recovery
+* the same recording over the Wi-Fi bulk-transfer path, sealed with either
+  AEAD, against our own bytecode-derived phone-side test double
+  ([`docs/wifi-transport.md`](docs/wifi-transport.md))
 
-What it deliberately does **not** do: complete a bind. Plaud's cloud issues the
-RSA key pair, the SN signature and the handshake token, so no offline bind is
-possible. The emulator refuses to advertise `portVersion >= 20`, because above
-that the SDK seals every frame with ChaCha20-Poly1305 and a cleartext
-peripheral would be lying about what it speaks.
+On the legacy path the emulator reaches `BOUND` by accepting any handshake
+token. That is a labelled harness policy, not a device fact.
 
-## Evidence, and why the tests are not circular
+## Why the tests are not only circular
 
-Most protocol tests compare an emulator against fixtures written from the same
-reading of the protocol — which passes just as happily when the reading is
-wrong. Three real bugs survived that way here (a big-endian version field, a
-fabricated framing byte, a file-list offset off by two).
+Tests that compare an emulator against fixtures written from the same reading
+of the protocol pass just as happily when the reading is wrong. Three real bugs
+survived that way here. So `scripts/extract_evidence_digest.py` walks the
+`javap` disassembly of the shipped AAR and emits
+[`docs/evidence-digest.json`](docs/evidence-digest.json) with no human in the
+path, and `tests/test_evidence_conformance.py` asserts the emulator against
+that. The digest is pinned to the AAR's SHA-256.
 
-`scripts/extract_evidence_digest.py` walks the `javap` disassembly of the
-shipped AAR and emits `docs/evidence-digest.json` with no human in the path:
-per class, the opcode constants, every codec read as (width, literal offset),
-the length-guard chain, and the `toString` format literal.
-`tests/test_evidence_conformance.py` asserts the emulator against *that*. The
-digest is pinned to the AAR's sha256 and is regenerated and diffed whenever the
-decompiled tree is present, so a stale digest fails too.
+That still leaves most tests checking our components against each other or
+against bytecode-derived models. Only the R7 runtime runs involve Plaud's real
+code, and they cover Android, Bluetooth and the legacy protocol only.
 
-## Validation rungs
+## Layout
 
-| | Claim | Status |
-|---|---|---|
-| V1 | Emulator advertises; a central discovers it and completes a full session | ✅ |
-| V2 | Emulator survives a fault-injection suite without corrupting a transfer | ✅ 61-cell matrix, bytecode-derived receiver model (`docs/v2-fault-matrix.md`) |
-| V3 | **Plaud's own SDK connects to the emulator and pulls a recording** | ✅ real AAR on an AVD over `android-netsim`: bind, file list, raw and `exportAudio` pulls byte-exact, gap recovery converges (R7-S13) |
-| V4 | Synthetic ground truth round-trips through `pyannote.metrics` at DER 0 | ✅ unit and end-to-end (generator → oracle pipeline → evals: DER/JER/cpWER/tcpWER 0.0) |
-| V5 | Full pipeline hits target cpWER / DER on held-out AMI | ◻ procedure and tooling in place; no AMI data or ASR model here |
-| V6 | `docker compose up` brings the system live in under 60 s | ◻ written; rehearsed on the venv (live in 0.94 s); Docker not installed here |
-
-No Plaud hardware is required for any rung. V3 runs the real SDK inside an Android
-emulator and reaches the peripheral over Bumble's `android-netsim` transport, so it
-needs no radio at all (see `r7/r7-s12-k3-runtime-capture.md`).
-
-## The other layers
-
-* `generator/` — synthetic meetings with ground truth by construction, exported in
-  the device's own Ogg/Opus shapes (`docs/generator.md`)
-* `evals/` — DER, JER, WER, cpWER, tcpWER and CI gates (`docs/evals.md`)
-* `pipeline/` — the ASR/diarization stack under test, with an oracle and a
-  model-free baseline (`docs/pipeline.md`)
-* `mockcloud/` — a FastAPI mock of the partner cloud contract, identity chain
-  compatible with the emulator's handshake (`docs/mockcloud.md`)
-* `docker/` + `scripts/local-up.sh` — the whole topology, with or without Docker
-  (`docs/compose.md`); cross-layer proofs in `docs/integration.md`
-
-## Reading the reconstruction
-
-* [`docs/protocol-ledger.md`](docs/protocol-ledger.md) — the BLE/device protocol (Phase 1, frozen).
-* [`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md) — everything above the radio:
-  mobile, cloud, lifecycle, AI, memory, search, web, firmware-as-observable, with
-  [`docs/product-ledger.md`](docs/product-ledger.md), [`docs/architecture/`](docs/architecture/),
-  [`docs/source-map.md`](docs/source-map.md) and [`docs/evidence-graph.json`](docs/evidence-graph.json) behind it.
+| Path | What it is |
+|---|---|
+| `emulator/plaudsim/` | The emulated recorder: advertising, handshake, file sync, transfer, Bumble GATT profile, Wi-Fi device, fault injection |
+| `generator/` | Synthetic meetings with ground truth by construction, exported in the device's Ogg/Opus shapes; optional Piper TTS voices ([`docs/generator.md`](docs/generator.md)) |
+| `evals/` | DER, JER, WER, cpWER, tcpWER and gates ([`docs/evals.md`](docs/evals.md)) |
+| `pipeline/` | The ASR/diarization stack under test: an oracle, a model-free baseline, `whisper-sherpa` with sha256-pinned weights, guarded model adapters ([`docs/pipeline.md`](docs/pipeline.md)) |
+| `mockcloud/` | A FastAPI mock of the partner cloud contract ([`docs/mockcloud.md`](docs/mockcloud.md)) |
+| `docker/`, `docker-compose.yml`, `scripts/local-up.sh` | The whole topology, with or without Docker ([`docs/compose.md`](docs/compose.md)) |
+| `r4-*` … `r7/` | Milestone spikes and the real-SDK runtime runs, with their logs and captures |
+| `reference/` | Fetched source corpus. Git-ignored and treated as immutable evidence |
+| `build/` | Everything derived (decompiled SDK, archived docs, generated audio). Git-ignored, except the published V5 and V6 evidence in `build/v5/` and `build/v6/` |
 
 ## Quick start
+
+Needs Python 3.11 and git. The first script fetches each repository of the
+reference corpus at its pinned commit (about 2.5 GB). The second uses the JDK
+17 at `$JAVA_HOME` when set; otherwise it downloads a Temurin JDK 17 for macOS
+or Linux (x86_64 or arm64), and it downloads jadx into `/tmp/plaud-tools`
+(override with `PLAUD_TOOLS`).
 
 ```bash
 ./scripts/fetch-references.sh    # clones the SDK + reference corpus into reference/ (gitignored)
@@ -97,9 +144,72 @@ needs no radio at all (see `r7/r7-s12-k3-runtime-capture.md`).
 python3.11 -m venv .venv
 .venv/bin/pip install -e reference/upstream/bumble
 .venv/bin/pip install -r requirements/all.txt   # all layers: emulator, generator, evals, pipeline, mock cloud
-.venv/bin/python -m pytest tests/ -v
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ -q -p no:cacheprovider --timeout=120
+bash scripts/local-up.sh         # the whole topology without Docker
+./scripts/compose-smoke.sh       # the same under Docker, where a daemon exists
 ```
 
-The SDK binaries are proprietary under a licence separate from this repo's.
-They are fetched on demand and never committed, and `reference/` is treated as
-immutable evidence — every derived artifact goes to `build/`.
+`PYTHONDONTWRITEBYTECODE=1` keeps bytecode caches out of `reference/`.
+`requirements/models.txt` is optional: it pins faster-whisper, sherpa-onnx and
+piper-tts (GPL-3.0-or-later) for `whisper-sherpa` and the Piper voices. CI does
+not install it; the weights are fetched separately with
+`python -m pipeline fetch-models` ([`docs/pipeline.md`](docs/pipeline.md) §11).
+
+The real-SDK runs additionally need the Android SDK, an API-34 emulator image
+with Bluetooth, JDK 17 and Gradle 8.2. The runtime scripts under `r4-s2/`,
+`r4-s3/` and `r7/` find the repository from their own location; `r4-s2/run.sh`
+reads `ANDROID_HOME`, `JAVA_HOME`, `ADB`, `EMU`, `AVD` and `PY` from the
+environment. The runbooks
+([`r7/r7-s12-k3-runtime-capture.md`](r7/r7-s12-k3-runtime-capture.md),
+[`r7/r7-s13-recording-pull.md`](r7/r7-s13-recording-pull.md)) record the
+toolchain of the machine they ran on; substitute your own paths.
+
+## Documentation
+
+| Document | What it is |
+|---|---|
+| [`docs/progress-report.md`](docs/progress-report.md) | **Where things stand**: rungs, what was wrong, how it was checked, open items |
+| [`PROJECT.md`](PROJECT.md) | Goals, legal posture, decision log, status (§8) and next steps |
+| [`docs/protocol-ledger.md`](docs/protocol-ledger.md) | The authoritative protocol record: every message and offset, with evidence and confidence |
+| [`docs/reconstruction-log.md`](docs/reconstruction-log.md) | What was learned when, and what earlier work got wrong |
+| [`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md) | The product above the radio: mobile, cloud, lifecycle, AI, web ([`docs/product-ledger.md`](docs/product-ledger.md), [`docs/architecture/`](docs/architecture/), [`docs/source-map.md`](docs/source-map.md)) |
+| [`r7/r7-s13-recording-pull.md`](r7/r7-s13-recording-pull.md) | The real SDK pulling a recording, and what it corrected |
+| [`r7/r7-s14-wifi-real-sdk.md`](r7/r7-s14-wifi-real-sdk.md) | The real SDK's Wi-Fi transfer, blocked at the hotspot join; the cloud-contact finding (D7) |
+| [`docs/v5-results.md`](docs/v5-results.md) | The first real-model numbers (4 AMI test meetings, 4 Piper meetings), and why they are not V5 |
+| [`docs/integration.md`](docs/integration.md) | Cross-layer proofs |
+
+The project convention is that device, SDK and cloud claims cite their
+evidence (bytecode, a file and line in `reference/`, Plaud's public docs, or a
+runtime log), and that harness choices are labelled `HARNESS_POLICY` rather than
+presented as device facts.
+
+## Notice
+
+This project is independent. It is not affiliated with, endorsed by or
+supported by Plaud; the name is used only to identify what the harness
+interoperates with.
+
+The Plaud SDK binaries are proprietary, under a licence separate from this
+repository's. They are **not included here**. `scripts/fetch-references.sh`
+fetches them into the git-ignored `reference/` directory for local
+interoperability analysis only; do not redistribute them. Every repository
+fetched into `reference/` keeps its own licence (see
+[`docs/SOURCES.md`](docs/SOURCES.md)).
+
+Apart from the standard Gradle wrapper files (Apache-2.0) in the two Android
+projects, one directory is third-party code. `r7/android-app/` is a modified
+copy of the Android template app in Plaud's `plaud-sdk-public` repository,
+which is Apache-2.0 licensed apart from its `sdk/` binaries. The copy adds the
+`debug/` drivers and changes the manifest. It stays under Apache-2.0, and the
+SDK archive it builds against is not committed (`*.aar` is git-ignored).
+
+No Plaud credential or device was used in this work, and every identifier and
+token in the repository is synthetic. We never called a Plaud endpoint
+ourselves; the SDK's automatic `gen-key` requests during the runtime runs are
+described above and have been stopped.
+
+## Licence
+
+Except for `r7/android-app/` (Apache-2.0, see [Notice](#notice)), the code
+and documents in this repository are licensed under the GNU Affero General
+Public License, version 3. See [`LICENSE`](LICENSE).

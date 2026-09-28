@@ -4,11 +4,19 @@ Every cell is a real Bumble TwoDevices session through the GATT path: the
 emulator (`plaudsim.faults.FaultyPeripheral`) serves a file while the
 injector damages its outbound stream, and the reconstructed SDK receiver
 (`tests/fault_support.py`, rules R1-R13) drives the transfer the way the
-Android SDK would. The invariant asserted for EVERY cell is `outcome_of`:
-the reassembled bytes equal the served file byte-for-byte, or the client
-model reports a detected failure -- never a silently corrupted file. Where
-the answer is analytically known (number of restarts, stop-syncs, frames)
-it is asserted too.
+Android SDK would. The invariant asserted for every counted cell is
+`outcome_of`: the reassembled bytes equal the served file byte-for-byte, or
+the client model reports a detected failure -- never a silently corrupted
+file. Where the answer is analytically known (number of restarts,
+stop-syncs, frames) it is asserted too.
+
+What the invariant can catch (review T10): the receiver accepts DATA only at
+its cursor (R3), so frame-level faults change whether a transfer completes,
+never which bytes land at an offset -- for those cells the no-corruption
+half holds by construction and the completion label is the real assertion.
+Two cells outside the count feed wrong content at the right offsets (a
+payload bit-flip; a restart that serves another revision of the file) and
+expect `SilentCorruption`, showing the check is not vacuous.
 
 What "complete" means here (R7-S13, r7/r7-s13-recording-pull.md): the
 genuine SDK completes a transfer ONLY on the EMPTY_PACKAGE sentinel sent
@@ -58,6 +66,8 @@ from fault_support import (
     DETECTED,
     RECOVERED,
     RECOVERED_BY_APP_RESUME,
+    SILENT_CORRUPTION,
+    SilentCorruption,
     Link,
     SdkTransferDriver,
     TransferResult,
@@ -844,6 +854,51 @@ async def test_second_central_competing_sync_takes_the_single_transfer_slot() ->
 
 
 @pytest.mark.asyncio
+async def test_restart_that_serves_another_revision_trips_the_invariant() -> None:
+    """NOT a counted cell (review T10): the only faults in the matrix change
+    WHICH frames arrive, never what a frame at a given offset carries, so the
+    'never silently corrupt' half could not fail. Here the device serves
+    revision 0 of the file, a gap forces the SDK's restart (R6/R11), and the
+    restarted stream serves revision 1 (the file changed under the sync --
+    HARNESS_POLICY, `FaultyPeripheral(file_revisions=...)`). Every frame is
+    well-formed and at its true offset, so q$a accepts the splice and
+    finishes; `outcome_of` must raise."""
+    rev1 = bytes(random.Random(0x0DD).getrandbits(8) for _ in range(len(FILE)))
+
+    def factory(device: Any) -> FaultyPeripheral:
+        return FaultyPeripheral(
+            device,
+            faults=[Fault(FaultKind.DROP, Kind.DATA, offsets=(MID,))],
+            pace=PACE,
+            file_revisions={SID: [FILE, rev1]},
+            tail_crc=CRC,
+            file_table=[dict(e) for e in TABLE],
+        )
+
+    link = await bring_up(factory)
+    driver = await driver_for(link, **TIMING)
+    result = await driver.sync_file(SID, 0, 0, expected_size=len(FILE))
+    assert result.complete and result.failure is None and result.restarts == 1 and result.finish_codes == [0]
+    assert result.data == FILE[:MID] + rev1[MID:]
+    for served in (FILE, rev1):
+        with pytest.raises(SilentCorruption, match="SILENT CORRUPTION"):
+            outcome_of(result, served)
+    RECORDS.append(
+        {
+            "cell": "restart_serves_other_revision[paced]",
+            "outcome": SILENT_CORRUPTION,
+            "expected": SILENT_CORRUPTION,
+            "evidence": "BYTECODE_PROVEN (R3 accepts any payload at the cursor; R6/R11 restart from the cursor; no content check) + HARNESS_POLICY (file changes between stream and restart)",
+            "notes": "outside the count by design: shows outcome_of trips on wrong bytes at the right offsets; the SDK receiver completes normally.",
+            "bytes": "corrupted",
+            "mode": "paced+stream_in_task",
+            "restarts": result.restarts,
+            "complete": result.complete,
+        }
+    )
+
+
+@pytest.mark.asyncio
 async def test_payload_bitflip_is_invisible_to_the_sdk_receiver() -> None:
     """NOT a matrix cell: a flipped payload byte is accepted because the SDK has
     no integrity check (R13: the TAIL crc is never verified, and DATA carries
@@ -854,6 +909,8 @@ async def test_payload_bitflip_is_invisible_to_the_sdk_receiver() -> None:
     assert result.complete and result.failure is None and result.restarts == 0
     assert result.data != FILE and len(result.data) == len(FILE)
     assert bytes([result.data[MID] ^ 0x80]) == FILE[MID : MID + 1] and result.data[MID + 1 :] == FILE[MID + 1 :]
+    with pytest.raises(SilentCorruption, match="SILENT CORRUPTION"):
+        outcome_of(result, FILE)
     RECORDS.append(
         {
             "cell": "data_payload_bitflip[atomic]",

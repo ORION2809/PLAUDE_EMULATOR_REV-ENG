@@ -163,15 +163,16 @@ class PullCaptureActivity : Activity() {
             }
         }
 
-        // SYNTHETIC init token — a well-formed but fake JWT; not used to build k3
-        // on the recovery path, only to satisfy initSDK. No cloud call succeeds
-        // and none is required.
-        val synthToken =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
-            "eyJzdWIiOiJTWU5USEVUSUMtSElTVE9SSUNBTC1JRCIsImlzcyI6InN5bnRoZXRpYyJ9." +
-            "SYNTHETIC_NOT_A_REAL_SIGNATURE"
+        // BLANK ON PURPOSE (R7-S14 D7). PlaudDeviceAgent.initSDK -> NiceBuildSdk.initSdk
+        // stores a non-blank token and then immediately POSTs partner/sdk/gen-key to
+        // Plaud's server ("Partner API: Token 可用，正在获取 RSA 密钥对...",
+        // build/evidence/javap/sdk/NiceBuildSdk.txt initSdk, isBlank branch). Earlier
+        // runs passed a synthetic JWT here and so sent that request once per app start;
+        // every one was rejected with 401. A blank token takes the clearPartnerData()
+        // branch instead, and nothing on the legacy recovery path needs a token.
+        val initToken = ""
         try {
-            PlaudDeviceAgent.initSDK(applicationContext, synthToken, "api.plaud.ai")
+            PlaudDeviceAgent.initSDK(applicationContext, initToken, "api.plaud.ai")
             PlaudDeviceAgent.setBleLogLevel(Log.INFO)
         } catch (e: Exception) {
             Log.e(tag, "PULLCAP_INIT_THREW", e)

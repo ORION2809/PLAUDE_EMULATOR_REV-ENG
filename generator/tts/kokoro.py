@@ -18,7 +18,7 @@ import os
 import numpy as np
 
 from generator.contract import SAMPLE_RATE
-from generator.tts.base import BackendUnavailable, SynthResult, WordTiming
+from generator.tts.base import BackendUnavailable, SynthResult, WordTiming, proportional_words
 
 
 class KokoroBackend:
@@ -75,9 +75,7 @@ class KokoroBackend:
         if [w.word for w in words] != tokens:
             # Fall back to proportional estimates when the model's token list
             # does not line up with the input tokens.
-            from generator.tts.piper import _proportional_words
-
-            words = _proportional_words(tokens, len(pcm))
+            words = proportional_words(tokens, len(pcm))
         return SynthResult(pcm=pcm, words=words, backend=self.name, voice=voice, timing_exact=False)
 
 

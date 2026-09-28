@@ -1,34 +1,51 @@
 # Wi-Fi bulk transfer — emulator track (`emulator/plaudsim/wifi.py`, `wifi_device.py`)
 
-Status 2026-09-24: **implemented and tested against a phone-side test double;
-never run against a real phone or pen.** This document records what the code
-does, which facts it rests on (with `build/evidence` line numbers), which
+Status 2026-09-25: **implemented and tested against a phone-side test double;
+never run against a real phone or pen.** Since 2026-09-25 a BLE session can
+hand over to Wi-Fi: with a `wifi_device_factory`, an accepted opcode 10
+starts the Wi-Fi device and opcode 13 closes it (section 8). That hand-over is
+harness policy over loopback, not a SoftAP. R7-S14 (2026-09-25,
+`r7/r7-s14-wifi-real-sdk.md`, section 11 below) ran the GENUINE SDK's
+`startWifiTransfer` against this track on the AVD: it blocks on the SoftAP join
+before its server exists, so no Wi-Fi PDU was ever exchanged with the real
+SDK; one emulator bug it exposed (opcode 10 mode 0) is fixed. This document records what the
+code does, which facts it rests on (with `build/evidence` line numbers), which
 choices are the harness's own (`HARNESS_POLICY`) and what remains `UNKNOWN`.
 The recovered design it implements is `docs/protocol-ledger.md` §7; where this
 document and §7 disagree, this document is the more recent reading of the same
-bytecode and says so inline.
+bytecode and says so inline. (Update, 25 September 2026: this paragraph used to
+say that two §7 statements were out of date, its "NOT IMPLEMENTED" title and its
+"same padding rule as BLE's `k3`" wording. Both are now corrected in the
+ledger. §7 is titled "SOURCE-DERIVED; emulated against a phone double only",
+and it says the Wi-Fi handshake token matches `k3` only up to 32 characters,
+because `padEnd` never truncates and `k3` does
+(`test_pad_matches_k3_below_32_and_diverges_above`).)
 
 | item | where |
 |---|---|
 | pure codecs: PDU envelope, 17 message types (both phone stacks' JSON spellings), 10-byte file records, token padding, `>200` classifier, `WifiSealer` (AES-GCM and ChaCha20-Poly1305) | `emulator/plaudsim/wifi.py` |
 | device side: asyncio WebSocket **client** with the pen's state machine, handlers, heartbeat / exit timers, chunked `FileSyncContent` streaming, stop / replace, `WifiClose` | `emulator/plaudsim/wifi_device.py` |
 | phone side (TEST DOUBLE ONLY): WebSocket **server** behaving as `sdk.ble.wifi.WifiAgentImpl` + `WebSocketOperation` | `tests/wifi_support.py` |
-| BLE handoff opcodes 10 / 13 / 16 / 17 (already in `profile.py`, not touched by this track) | `tests/test_wifi_ble_handoff.py` (14) |
-| codec tests, hand-computed bytes and KATs | `tests/test_wifi_codec.py` (28) |
-| javap pins: every type number, JSON key, guard string, port, timeout read from the dumps | `tests/test_wifi_javap_pins.py` (74) |
-| loopback sessions device ↔ phone double | `tests/test_wifi_session.py` (19, about 4.5 s) |
+| BLE handoff opcodes 10 / 13 / 16 / 17 in `profile.py`, incl. status 4 while streaming / already open | `tests/test_wifi_ble_handoff.py` (18) |
+| one session across both transports: BLE (Bumble) opcode 10 → `WifiDevice` → phone double → opcode 13 | `tests/test_wifi_ble_crossover.py` (7) |
+| codec tests, hand-computed bytes and KATs | `tests/test_wifi_codec.py` (29) |
+| javap pins: every type number, JSON key, guard string, port, timeout read from the dumps | `tests/test_wifi_javap_pins.py` (75) |
+| loopback sessions device ↔ phone double | `tests/test_wifi_session.py` (27, about 5.5 s) |
 | dependencies (nothing new was installed) | `requirements/wifi.txt` |
 
 Run:
 
 ```
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/test_wifi_codec.py tests/test_wifi_javap_pins.py \
-    tests/test_wifi_ble_handoff.py tests/test_wifi_session.py -q -p no:cacheprovider --timeout=60
+    tests/test_wifi_ble_handoff.py tests/test_wifi_session.py tests/test_wifi_ble_crossover.py \
+    -q -p no:cacheprovider --timeout=60
 ```
 
 There is no CLI. A session is `await WifiDevice(host, port, store=WifiFileStore.from_files({...})).run()`
 against any WebSocket server that speaks the phone's protocol; the device dials
-out, so the server must already be listening (as the phone's does).
+out, so the server must already be listening (as the phone's does). From a BLE
+session: `PlaudPeripheral.for_real_sdk(device, ..., wifi_device_factory=phone_dialer(host, port))`
+(section 8).
 
 ## 1. Roles and scope
 
@@ -73,7 +90,7 @@ own choice; **UNKNOWN** = the evidence is silent.
 | Type numbers 0,1,2,3,4,5,11,12,13,14,15,16,20,21,22,100,101 and every JSON key, on both stacks | BYTECODE_PROVEN | `tests/test_wifi_javap_pins.py` (`KOTLIN_TYPES`, `KOTLIN_KEYS`, `PROTO_TABLE`); per-type ranges in `wifi.MESSAGE_EVIDENCE` |
 | Types 5, 15, 16, 20-22, 100, 101 exist only on the proto (`com.plaud.sdk.proto`) stack; the Kotlin stack merely names 15 | BYTECODE_PROVEN | `WebSocketOperation.txt:353-367`; `wifi.MESSAGE_EVIDENCE` |
 | Handshake token = `padEnd(token, 32, '0')` (no truncation) | BYTECODE_PROVEN | `WifiMessageProcessor$HandshakeRequest.txt:13-25` |
-| The token is the BLE handshake token (`NiceBuildSdk.resolveHandshakeToken`) | BYTECODE_PROVEN | `WifiAgentImpl.txt:2278-2307` |
+| The token is `NiceBuildSdk.resolveHandshakeToken("")` (JWT `sub` of the partner user-access token, else empty). R7-S14: this equals the BLE `k3` token only on the `connectBleDevice` path; on `recoveryConnectBleDevice` the BLE token is the historical id, so the two DIFFER (RUNTIME_PROVEN: Wi-Fi token len 21 vs BLE `SYNTHHIST0001`) | BYTECODE_PROVEN | `WifiAgentImpl.txt:2278-2307`; `ALL.txt:2620-2631` (connectBleDevice) vs `:2653-2761` (recovery) |
 | SayHello (type 2) is the only trigger of the phone's HandshakeRequest, and only while `currentSessionId` is empty | BYTECODE_PROVEN | `WifiAgentImpl.txt:1353` (SayHelloResponse), `:1417` (EtaConfiguratorNode); `EtaConfiguratorNode.txt:23-56`; log "Device says hello" `:808`; proto `x7.a(p5)` builds `m3` (`test_phone_sends_handshake_only_from_the_say_hello_handler`) |
 | HandshakeResponse status 0 → `sessionId = session or token`, state READY, `onHandshakeCompleted` | BYTECODE_PROVEN | `WifiAgentImpl.txt:1428-1485` (READY :1460, callback :1485) |
 | Any other handshake status → `onError(1006, "Handshake failed with status: N")` | BYTECODE_PROVEN | `WifiAgentImpl.txt:800-802` (string), `:1505` (`sipush 1006`) |
@@ -97,9 +114,12 @@ own choice; **UNKNOWN** = the evidence is silent.
 | Kotlin receive path stores the sequence **without** a replay check | BYTECODE_PROVEN | `WifiAgentImpl.txt:2084-2196` (`"WiFi received seq="` :2084, `", expected >"` :2179; `test_kotlin_receive_stores_sequence_without_replay_check`) |
 | Proto receive path drops a frame when `rx >= seq` | BYTECODE_PROVEN | `build/evidence/javap/com/plaud/sdk/proto/w7.txt:562-1476` (receive path `c(byte[])`: `q5.a(...,boolean)` :663, serial-prefix `"881"` counter split :639) |
 | Phone connection states NONE, CONNECTING, CONNECTED, HANDSHAKING, READY, DISCONNECTED, ERROR | DIRECT | `IWifiTransferAgent$WifiConnectionState.txt:49-98` |
-| SoftAP SSID `"Plaud"` + last 4 of SN, passphrase = last 8 of SN | BYTECODE_PROVEN | `WifiAgentImpl.txt:1676-1703` |
+| SoftAP SSID = `BleDevice.getWiFiName()` (project 881: `"PLAUD"`+last 4 when portVersion < 20, `"Plaud"`+last 4 when >= 20; 880/888 `"PLAUD"`, 882 `"Plaud"`, 712 IzyRec/iZYREC, else the name); `WifiAgentImpl.calculateWifiName` (`"Plaud"`+last 4) is only the null fallback. Passphrase = `getWiFiPwd()` = last 8 of SN. R7-S14: the SDK asked Android for `PLAUD0001` (RUNTIME_PROVEN) | BYTECODE_PROVEN | `IotaStateTracker.txt:43-68`; `ALL.txt:11094-11226`; fallback `WifiAgentImpl.txt:1676-1703` |
 | With a constant nonce the classifier misfires on exactly 201 of 65 536 low-16-bit `totalSize` values (0.31 %) | DERIVED | from the `>200` rule + nonce reuse; demonstrated by `test_sealed_frame_that_defeats_the_size_heuristic_*` |
 | After READY the app must call `getFileList()` or the device "just heartbeats and closes" | CLAIM | `docs/product-evidence/agent-findings-2026-09-23.json` (Wi-Fi fast-transfer flow entry) |
+| The pen refuses to open its hotspot while still streaming a BLE transfer: openWiFi status 4 (or Wi-Fi connect 1003) | CLAIM | `reference/plaud-org/plaud-sdk-public/android/app/src/main/java/com/plaud/template/managers/SyncManager.kt:31-32`, `:173-176` |
+| A second openWiFi while a Wi-Fi session is already opening or running is rejected with status 4 ("WiFi fast transfer already in progress") | CLAIM | same file `:142-148` |
+| During Wi-Fi fast transfer the pen drops BLE; a second closeWiFi can answer an error status | CLAIM | same file `:184-187`, `:531-532` (neither is modelled, section 8) |
 | The device self-closes after ~3 heartbeats and otherwise times out in ~2-2.5 min | CLAIM | same file, entries "device self-disconnects the WiFi session after 3 heartbeats..." and "Wi-Fi teardown is device-led" |
 
 ## 3. The phone-server sequence (reconstructed from `WebSocketOperation` / `WifiAgentImpl`)
@@ -157,6 +177,13 @@ None of these is a device claim. Each is labelled at its definition.
 | P17 | The pen's TX sequence starts wherever the given `SealedSession` is (2 for a fresh one); `replay_check=True` by default (proto-phone semantics) | `wifi.WifiSealer` |
 | P18 | `ws.close()` after WifiClose is the pen's own; `ping_interval=None` mirrors the phone's `setConnectionLostTimeout(0)` | `WifiDevice.run/close` |
 | P19 | (phone double) request timeout 5 s, ephemeral port, `auto_handshake`/`auto_pong` switches | `PhoneWifiServer.__init__` |
+| P20 | A `WifiDevice` is single-use: a second `run()` raises; one device per session | `WifiDevice.run` |
+| P21 | `close()` works in every state: before `run()` → CLOSED at once and `run()` returns immediately; while dialling → the dial is cancelled, nothing is sent; connected → WifiClose, then the socket closes. Nothing moves the state back out of CLOSING | `WifiDevice.close`, `_dial`, `_set_state` |
+| P22 | A request handler that raises is logged `handler_error` and the session keeps serving (the phone's request times out); a failing transfer task is logged `transfer_failed` | `WifiDevice._on_frame`, `_on_transfer_done` |
+| P23 | Non-finite JSON numbers (`1e400`, `NaN`) read as the field's default, like a missing key | `wifi._opt_int` |
+| P24 | Inputs the wire cannot carry are refused up front: session id / file size outside u32, scene outside u16 (`WifiFileStore`), `chunk_size` above `MAX_CHUNK_SIZE` = 0xFFFFFF − 8 − 256 (u24 `totalSize`) | `WifiFileStore._check`, `WifiDevice.__init__` |
+| P25 | Dial attempts (`connect_attempts`, default 1) and the retry interval; a close() during the retry wait ends the dial | `WifiDevice._dial` |
+| P26 | The BLE hook: see section 8 | `PlaudPeripheral._start_wifi_device`, `wifi_device.phone_dialer` |
 
 ## 5. Sealed sessions (portVersion ≥ 20)
 
@@ -222,13 +249,107 @@ not care).
   socket close with a WifiClose frame.
 * Whether real firmware ever emits a frame size that defeats the classifier (§5).
 
-## 8. What is NOT done
+## 8. One session across BLE and Wi-Fi (the opcode-10 hook)
 
-* No SoftAP / DHCP emulation; no integration with `profile.py`'s opcode-10 flow
-  (OpenWiFi does not spawn a `WifiDevice`; a driver must do that).
+`PlaudPeripheral(wifi_device_factory=f)` connects the two transports. The BLE
+side is recovered: opcode 10 `i4`/`j4` and opcode 13 `k0`/`l0` layouts are
+BYTECODE_PROVEN (ledger §7; `ALL.txt` ranges at the constants in
+`plaudsim/profile.py`), and `NiceBuildSdk.stopWifiTransfer` sends opcode 13
+over BLE when BLE is up (`build/evidence/javap/sdk/NiceBuildSdk.txt:3315-3364`,
+the "BLE unavailable" branch string at :3346). **Everything that
+connects the two is HARNESS_POLICY:**
+
+| policy | behaviour |
+|---|---|
+| when the device starts | on any opcode 10 answered with status 0, whatever its mode byte (R7-S14 fix: the SDK's own fast-transfer open sends mode **0**); `f(peripheral)` must return a NEW `WifiDevice`, which runs as a task |
+| where it dials | wherever the factory says. `phone_dialer(host, port, ...)` dials `ws://host:port`; the real pen dials the phone that joined its SoftAP. IP connectivity is assumed and the phone's server is expected to be listening (`connect_attempts` allows a retry window) |
+| what it serves | `store_from_peripheral`: one Wi-Fi record per BLE file-table entry, with the bytes the BLE y6 would stream (`file_bytes_for`) and the entry's scene |
+| who it says it is | SayHello `sn` = the advertised serial, `version` = versionType + 4-digit versionCode, `pVer` = the BLE portVersion (that `pVer` is the portVersion is UNKNOWN) |
+| busy | opcode 10 answers `wifi_busy_status` (4) while a y6 transfer is still being emitted (CLAIM `SyncManager.kt:31-32`) or while the hotspot is already up (CLAIM `:142-148`); no second device is started |
+| stop | opcode 13 closes the device (`close("ble_close_wifi")`): WifiClose if connected, a cancelled dial if not. Opcode 10 never closes (before R7-S14, mode 0 did: `"ble_open_wifi_off"`, removed) |
+| end of session | when the device's session ends for any reason (closed over BLE, idle heartbeats, exit timeout, failed dial) the pen drops its hotspot flag, so the next opcode 10 is accepted and gets a new device. `wifi_session_log` records `started`/`ended` |
+| BLE during Wi-Fi | stays up; a BLE disconnect does not stop Wi-Fi. The template claims the pen drops BLE while its hotspot is up (`SyncManager.kt:184`) -- not modelled, so that opcode 13 can reach it |
+
+`tests/test_wifi_ble_crossover.py` drives the whole flow over a Bumble link
+brought up the way the Android SDK does it: file list over BLE → a paced BLE
+transfer → opcode 10 refused with 4 → stopSync → opcode 10 accepted → the pen
+dials the phone double → handshake → Wi-Fi file list equals the BLE one →
+byte-exact Wi-Fi pull → opcode 13 → the pen announces WifiClose. Other tests
+cover a second open (no second device), opcode 13 during the dial, a failed
+dial followed by a successful re-open, and opcode 13 immediately followed by
+opcode 10 (the new open gets its own device while the old one winds down).
+
+## 9. Review fixes (2026-09-25)
+
+An independent review found these in the Wi-Fi track and its BLE handoff.
+Each fix has a test that failed before it (T11: a test that fails against a
+deliberately broken implementation the old assertion accepted).
+
+| finding | what was wrong | fix | test |
+|---|---|---|---|
+| T1 | opcode 10's busy check read `transfer.done`, which `TransferSession.frames()` sets before the first frame leaves, so status 4 could never be answered | `PlaudPeripheral.transfer_streaming` (inline emission counter, live stream task) | `test_open_wifi_mid_stream_is_refused_with_busy_status[inline/task]`, `test_open_wifi_over_bumble_is_busy_mid_stream_and_accepted_after_stop_sync` |
+| T3 | `close()` before the socket was open raised AttributeError and did not stop the dial; `run()` then went on to CONNECTED/HANDSHAKED | P21; `send()` raises `WifiNotConnected` without a socket | `test_close_before_run_is_a_clean_no_op_session`, `test_close_while_dialling_cancels_the_session`, `test_close_wifi_while_the_pen_is_still_dialling` |
+| T4 | a second `run()` reused set Events (`wait_handshaked()` returned on a phone that never handshook) | P20 | `test_device_is_single_use` |
+| T5 | a handler exception ended the session unlogged; a stream exception vanished; `{"start": 1e400}` raised OverflowError; invalid store entries failed inside GetFileList | P22, P23, P24 | `test_a_failing_handler_is_logged_and_the_session_keeps_serving`, `test_non_finite_json_numbers_do_not_crash_the_session`, `test_a_failing_stream_is_logged_as_transfer_failed`, `test_store_and_chunk_size_are_validated_against_the_wire_fields`, `test_opt_int_treats_non_finite_numbers_as_absent` |
+| T8 | a second opcode 10 was accepted although the cited template line describes status 4 for exactly that case; the citation mixed the two status-4 claims | busy "already_open"; the constant cites `:31-32`/`:173-176` and `:142-148` separately | `test_a_second_open_while_the_hotspot_is_up_is_refused_with_busy_status`, `test_second_open_does_not_start_a_second_wifi_device` |
+| T9 | `EpsilonDataStream.txt:205-235` quoted bytecode offsets as file lines | `:130-143` in `wifi.FileSyncRequest` and `PhoneWifiServer.download` | `test_file_sync_start_end_citations_point_at_the_constructor_call` |
+| T11 | three assertions could not fail: the mute-phone test did not check that the pen speaks first; `looks_encrypted(x) or not looks_encrypted(x)`; `all(...)` over a possibly empty drop list | the pen's SayHello must be the first frame on the wire of a phone that never answers (`auto_pong=False`); the sealed bytes are recomputed with the AEAD primitive and the classifier verdict pinned; a stale stream-1 chunk is forced and must be dropped | `test_pen_speaks_first_and_waits_for_the_phones_handshake`, `test_seal_frames_seq_then_pdu_and_opens_across_endpoints`, `test_stale_chunks_of_a_replaced_stream_are_dropped_by_session` |
+
+Also changed: `send()` seals under the send lock, so the logged `seq` is the
+frame's own. BLE-side stream fixes (T6/T7) are listed in
+`docs/v2-fault-matrix.md` section 6; `PlaudPeripheral.for_real_sdk()` (T2)
+is the R7-S13 configuration by name.
+
+## 10. What is NOT done
+
+* No SoftAP / DHCP emulation. The opcode-10 hook dials a configured address
+  over loopback; the pen does not drop BLE while Wi-Fi is up.
 * No OTA behaviour (types 20-22), no Tips/UniversalErr emission, no paged file
   list, no resume verification beyond `start > 0` slicing.
+* The pen does not tell the phone when a transfer task fails
+  (`transfer_failed` is logged only); the phone's request times out.
+* A second closeWiFi is answered with status 0; the template claims real
+  firmware may answer an error status (`SyncManager.kt:531-532`).
 * Not validated against a real phone or pen; every phone-side behaviour comes
   from bytecode, every pen-side behaviour is policy constrained by that bytecode.
 * The Kotlin phone's permissive receive (`replay_check=False`) is implemented in
   the sealer and covered by the codec tests, not by a session test.
+
+## 11. R7-S14: the genuine SDK against this track (2026-09-25)
+
+Report and evidence: `r7/r7-s14-wifi-real-sdk.md`, `r7/r7-s14-evidence/`
+(runs 1-5 on the API-34 AVD; driver `WifiCaptureActivity.kt`, device
+`r7/wifi_capture_device.py`). Summary of what changes here:
+
+* **How far the real SDK gets.** `startWifiTransfer` → CONNECTING → BLE
+  opcode 10 (`01 0a 00 00`) answered → `WifiConnectionManager.connectToDeviceWifi`
+  → `ConnectivityManager.requestNetwork(WifiNetworkSpecifier{SSID PLAUD0001,
+  WPA2 10000001}, cb, 30000)` → the AVD has no such network → `onUnavailable`
+  after 30.0 s → `onError(1003, "Failed to connect to device WiFi")`. The
+  WebSocket server is started only AFTER a successful join
+  (`LambdaTaskRunner.txt:138-169`), so port 8081 never listened and the pen
+  (dialling through `adb forward`) never connected: **zero Wi-Fi PDUs** with the
+  real SDK. Everything in sections 2-5 about the phone's server remains
+  BYTECODE_PROVEN only.
+* **Fix (emulator bug the real SDK exposed).** `profile._open_wifi` read the
+  opcode-10 byte as on/off and treated 0 as "drop the hotspot"; the SDK's
+  fast-transfer open sends 0 (`KappaValueObject.txt:57`, `:64`; runtime write
+  `010a0000`), so the pen never started. Every opcode 10 now opens; the byte is
+  logged as `mode` (meaning UNKNOWN; iOS `operateWiFi(open:isOTA:…)` hints
+  `isOTA`). Regression tests:
+  `test_r7_s14_sdk_fast_transfer_open_mode_zero_starts_the_wifi_device`,
+  `test_r7_s14_the_sdks_recorded_ble_sequence_opens_a_pullable_wifi_session`
+  (plus the updated `test_open_wifi_request_layouts`,
+  `test_open_wifi_reports_status_and_serial_derived_passphrase`,
+  `test_second_open_does_not_start_a_second_wifi_device`); all four
+  changed/new ones fail against the pre-fix handler.
+* **Close path (SDK side, not changed here).** `q.P` registers the CloseWiFi
+  bean on opcode `{10}` (`ALL.txt:46011-46026`) while `l0.a()` is 13
+  (`ALL.txt:55388-55410`): an opcode-13 answer never reaches the callback
+  (runs 1b-3, 5); an opcode-10 answer reaches it and `l0` throws "l0 Mismatch"
+  → status -1 (run 4, experiment). The emulator keeps answering 13; what real
+  firmware sends is UNKNOWN.
+* The `startWifiTransfer` String argument (facade name `sn`, SDK name
+  `userId`) is dead: it reaches `connectToDeviceWifi`'s third parameter and is
+  overwritten (`WifiConnectionManager.txt:47`).
+

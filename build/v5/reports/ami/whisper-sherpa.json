@@ -1,0 +1,40 @@
+{
+  "schema": "plaud-harness/eval-report/1",
+  "kind": "batch",
+  "libraries": {
+    "evals": "0.1.0",
+    "pyannote.metrics": "4.1",
+    "pyannote.core": "6.0.1",
+    "jiwer": "4.0.0",
+    "meeteval": "0.4.3",
+    "numpy": "2.4.6"
+  },
+  "n_meetings": 0,
+  "meetings": [],
+  "missing": [],
+  "errors": [
+    {
+      "meeting_dir": "/Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/EN2002a",
+      "error": "unexpected RuntimeError: Are you sure?\nFound a total of 83 speakers in the input (Reference: 4, Hypothesis: 83).\nThis indicates a mistake in the input, or does your use-case really require scoring with that many speakers?\nSee https://github.com/fgnt/meeteval/blob/main/doc/num_speaker_limits.md for details."
+    },
+    {
+      "meeting_dir": "/Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/ES2004a",
+      "error": "unexpected RuntimeError: Are you sure?\nFound a total of 31 speakers in the input (Reference: 4, Hypothesis: 31).\nThis indicates a mistake in the input, or does your use-case really require scoring with that many speakers?\nSee https://github.com/fgnt/meeteval/blob/main/doc/num_speaker_limits.md for details."
+    },
+    {
+      "meeting_dir": "/Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/IS1009a",
+      "error": "unexpected RuntimeError: Are you sure?\nFound a total of 34 speakers in the input (Reference: 4, Hypothesis: 34).\nThis indicates a mistake in the input, or does your use-case really require scoring with that many speakers?\nSee https://github.com/fgnt/meeteval/blob/main/doc/num_speaker_limits.md for details."
+    },
+    {
+      "meeting_dir": "/Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/TS3003a",
+      "error": "unexpected RuntimeError: Are you sure?\nFound a total of 41 speakers in the input (Reference: 4, Hypothesis: 41).\nThis indicates a mistake in the input, or does your use-case really require scoring with that many speakers?\nSee https://github.com/fgnt/meeteval/blob/main/doc/num_speaker_limits.md for details."
+    }
+  ],
+  "macro": {
+    "n": 0
+  },
+  "micro": {
+    "n": 0
+  },
+  "gates": null
+}

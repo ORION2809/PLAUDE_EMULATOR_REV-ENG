@@ -118,7 +118,7 @@ def _mutate(fn):
         (lambda d: d.pop("segments"), "missing required key 'segments'"),
         (lambda d: d.update(meeting_id="has space"), "must not contain whitespace"),
         (lambda d: d.update(sample_rate=0), "'sample_rate' must be a positive integer"),
-        (lambda d: d.update(duration_s=-1), "'duration_s' must be a positive number"),
+        (lambda d: d.update(duration_s=-1), "'duration_s' must be a positive finite number"),
         (lambda d: d.update(speakers=[]), "'speakers' must be a non-empty list"),
         (lambda d: d["speakers"].append({"id": "spk0"}), "duplicate speaker id 'spk0'"),
         (lambda d: d["speakers"][0].update(position_m=[1, 2]), "'position_m' must be [x, y, z]"),
@@ -417,3 +417,143 @@ def test_meeting_and_hypothesis_dataclasses_report_speakers() -> None:
     assert m.speaker_ids == ["a", "b", "c"] and m.active_speakers == ["a", "c"]
     h = Hypothesis("m", "s", [Segment("q", 0, 1, "x"), Segment("p", 1, 2, "y"), Segment("q", 2, 3, "z")])
     assert h.speaker_ids == ["q", "p"]
+
+
+# --------------------------------------------------------------------------- #
+# Review fixes (2026-09-25): non-finite numbers, unreadable files, labels that
+# cannot be one RTTM/STM field
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.parametrize(
+    "text, needle",
+    [
+        ('"end": Infinity', "segments[0]: segment 'start'/'end' must be finite numbers"),
+        ('"end": NaN', "segments[0]: segment 'start'/'end' must be finite numbers"),
+        ('"end": -Infinity', "segments[0]: segment 'start'/'end' must be finite numbers"),
+    ],
+)
+def test_hypothesis_rejects_non_finite_times_from_json(tmp_path: Path, text: str, needle: str) -> None:
+    """EV-8.  json.loads accepts NaN/Infinity; an infinite end used to load and
+    turn tcpWER into 2.0 through NaN pseudo-timings."""
+    raw = json.dumps(hyp_dict()).replace('"end": 5.0', text, 1)
+    assert text in raw
+    (tmp_path / "hyp.json").write_text(raw)
+    with pytest.raises(ContractError) as exc:
+        load_hypothesis(tmp_path / "hyp.json")
+    assert needle in str(exc.value), str(exc.value)
+
+
+@pytest.mark.parametrize(
+    "mutation, needle",
+    [
+        (lambda d: d.update(duration_s=float("inf")), "'duration_s' must be a positive finite number"),
+        (lambda d: d["segments"][2].update(end=float("nan")), "must be finite numbers"),
+        (lambda d: d["segments"][0]["words"][0].update(start=float("-inf")), "word 'start'/'end' must be finite numbers"),
+        (lambda d: d["speakers"][0].update(position_m=[0.0, float("inf"), 1.0]), "'position_m' must be [x, y, z] finite numbers"),
+        (lambda d: d.update(meeting_id=";;m"), "starts with ';;'"),
+        (lambda d: (d["speakers"][0].update(id="<NA>"), [s.update(speaker="<NA>") for s in d["segments"] if s["speaker"] == "spk0"]), "'<NA>'"),
+    ],
+)
+def test_meeting_rejects_non_finite_numbers_and_unwritable_fields(mutation, needle) -> None:
+    with pytest.raises(ContractError) as exc:
+        meeting_from_dict(_mutate(mutation), where="meeting.json")
+    assert needle in str(exc.value), str(exc.value)
+
+
+@pytest.mark.parametrize(
+    "mutation, needle",
+    [
+        (lambda d: d.update(meeting_id="m 0001"), "'meeting_id' 'm 0001' must not contain whitespace"),
+        (lambda d: d.update(meeting_id=";;m-0001"), "starts with ';;'"),
+        (lambda d: d["segments"][0].update(speaker="   "), "'speaker' must be a non-empty string"),
+    ],
+)
+def test_hypothesis_meeting_id_follows_the_reference_rules(mutation, needle) -> None:
+    """EV-7.  The hypothesis meeting_id must equal the reference's, so it obeys
+    the same single-field rule; a whitespace-only label is no label."""
+    d = hyp_dict()
+    mutation(d)
+    with pytest.raises(ContractError) as exc:
+        hypothesis_from_dict(d)
+    assert needle in str(exc.value), str(exc.value)
+
+
+def spaced_hypothesis() -> Hypothesis:
+    """The mock cloud's documented labels are 'Speaker 1', 'Speaker 2' (mockcloud/oracle.py)."""
+    return hypothesis_from_dict(
+        {
+            "schema": "plaud-harness/hypothesis/1",
+            "meeting_id": "m-0001",
+            "system": "cloud",
+            "segments": [
+                {"speaker": "Speaker 1", "start": 0.0, "end": 2.0, "text": "hello\nthere"},
+                {"speaker": "Speaker_1", "start": 2.0, "end": 3.0, "text": "a\tb"},
+                {"speaker": "Speaker 2", "start": 3.0, "end": 4.0, "text": "bye"},
+                {"speaker": "<NA>", "start": 4.0, "end": 5.0, "text": "x"},
+                {"speaker": ";;odd", "start": 5.0, "end": 6.0, "text": "y"},
+            ],
+        }
+    )
+
+
+def test_hypothesis_files_with_unwritable_labels_stay_parseable_and_distinct(tmp_path: Path) -> None:
+    """EV-7.  hyp.json keeps any label; hyp.rttm/hyp.stm replace what one
+    RTTM/STM field cannot hold, injectively, and write text on one line."""
+    h = spaced_hypothesis()
+    j, r, s = write_hypothesis_files(h, tmp_path)
+    assert load_hypothesis(j).speaker_ids == ["Speaker 1", "Speaker_1", "Speaker 2", "<NA>", ";;odd"]
+    rttm, stm = load_rttm(r, meeting_id="m-0001"), load_stm(s, meeting_id="m-0001")
+    assert len(rttm) == len(stm) == 5
+    labels = [x.speaker for x in rttm]
+    assert labels == [x.speaker for x in stm]
+    assert labels == ["Speaker_1#2", "Speaker_1", "Speaker_2", "_NA_", "_;;odd"]
+    assert len(set(labels)) == 5  # five speakers in, five speakers out
+    assert [(x.start, x.end) for x in stm] == [(x.start, x.end) for x in h.segments]
+    assert [x.text for x in stm] == ["hello there", "a b", "bye", "x", "y"]
+
+
+def test_written_hypothesis_rttm_and_stm_parse_with_meeteval_independently(tmp_path: Path) -> None:
+    import meeteval.io
+
+    _, r, s = write_hypothesis_files(spaced_hypothesis(), tmp_path)
+    stm = meeteval.io.STM.load(s)
+    rttm = meeteval.io.RTTM.load(r)
+    assert [l.speaker_id for l in stm.lines] == [l.speaker_id for l in rttm.lines] == [x.speaker for x in load_stm(s)]
+    assert [l.transcript for l in stm.lines] == ["hello there", "a b", "bye", "x", "y"]
+    assert [(float(l.begin_time), float(l.duration)) for l in rttm.lines] == [(x.start, x.end - x.start) for x in load_rttm(r)]
+
+
+def test_writers_refuse_a_meeting_id_that_is_not_one_field() -> None:
+    with pytest.raises(ContractError, match="whitespace"):
+        rttm_lines([Segment("a", 0.0, 1.0)], "m 1")
+    with pytest.raises(ContractError, match="starts with ';;'"):
+        stm_lines([Segment("a", 0.0, 1.0)], ";;m")
+
+
+def test_loaders_turn_unreadable_files_into_contract_errors(tmp_path: Path) -> None:
+    """EV-5(b).  A non-UTF-8 or unreadable file is an input error, not a traceback."""
+    latin1 = tmp_path / "latin1.json"
+    latin1.write_bytes(json.dumps(hyp_dict()).replace("unit-test", "caf\u00e9").encode("latin-1"))  # one 0xE9 byte
+    assert b"caf\xe9" in latin1.read_bytes()
+    with pytest.raises(ContractError, match="not valid UTF-8"):
+        load_hypothesis(latin1)
+    (tmp_path / "meeting.json").write_bytes(b'{"schema": "caf\xe9"}')
+    with pytest.raises(ContractError, match="not valid UTF-8"):
+        load_meeting(tmp_path)
+    bad_rttm = tmp_path / "x.rttm"
+    bad_rttm.write_bytes(b"SPEAKER m 1 0 1 <NA> <NA> caf\xe9 <NA> <NA>\n")
+    with pytest.raises(ContractError, match="not valid UTF-8"):
+        load_rttm(bad_rttm)
+    with pytest.raises(ContractError, match="not valid UTF-8"):
+        load_stm(bad_rttm)
+    a_dir = tmp_path / "adir.rttm"
+    a_dir.mkdir()
+    with pytest.raises(ContractError, match="cannot read"):
+        load_rttm(a_dir)
+    with pytest.raises(ContractError, match="cannot read"):
+        load_stm(a_dir)
+    (tmp_path / "h").mkdir()
+    (tmp_path / "h" / "hyp.json").mkdir()  # a directory where the file should be
+    with pytest.raises(ContractError, match="cannot read"):
+        load_hypothesis(tmp_path / "h")  # directory form -> h/hyp.json, which is not a file

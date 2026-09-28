@@ -25,7 +25,9 @@ from dataclasses import dataclass, field
 from typing import Any, Hashable, Sequence
 
 from pyannote.core import Annotation, Segment as PSegment, Timeline
+from pyannote.core.utils.generators import int_generator, string_generator
 from pyannote.metrics.diarization import DiarizationErrorRate, JaccardErrorRate
+from pyannote.metrics.identification import IdentificationErrorRate
 
 from evals.io import (
     DEFAULT_NORMALIZER,
@@ -40,9 +42,12 @@ from evals.io import (
 #: HARNESS_POLICY: default DER/JER collar (pyannote semantics: total width,
 #: i.e. ±0.125 s around each reference boundary).
 DEFAULT_DER_COLLAR = 0.25
-#: HARNESS_POLICY: default tcpWER collar.  meeteval's own CLI default and the
-#: value its preprocess warning recommends ("You may want to set the collar
-#: to 5 seconds").
+#: HARNESS_POLICY: default tcpWER collar, 5 s -- the value meeteval's
+#: preprocess warning recommends ("You may want to set the collar to 5
+#: seconds", meeteval/wer/preprocess.py:398).  meeteval itself has no default:
+#: its CLI declares ``--collar`` required (meeteval/wer/__main__.py:612-616)
+#: and ``tcp_word_error_rate`` takes ``collar`` as a required keyword
+#: (meeteval/wer/wer/time_constrained.py:665-669).
 DEFAULT_TCP_COLLAR = 5.0
 
 # meeteval logs a warning when tcpWER runs with collar 0; that is a deliberate
@@ -55,11 +60,43 @@ logging.getLogger("preprocess").setLevel(logging.ERROR)
 # --------------------------------------------------------------------------- #
 
 
+def _check_collar(name: str, value: Any) -> None:
+    """Collars must be finite and >= 0.
+
+    pyannote extrudes nothing for a collar <= 0 (``if collar > 0.``,
+    pyannote/metrics/utils.py:74) while the report would record the negative
+    value; meeteval's CLI refuses x < 0 (meeteval/wer/__main__.py:544-553).
+    """
+    if not is_finite_number(value) or value < 0:
+        raise ValueError(f"{name} must be a finite number >= 0, got {value!r}")
+
+
 def to_annotation(segments: Sequence[Segment], uri: str) -> Annotation:
-    """Contract segments -> pyannote Annotation (one track per segment)."""
+    """Contract segments -> pyannote Annotation for DER/JER.
+
+    HARNESS_POLICY: one track per *speaker activity interval*.  Segments of the
+    same speaker that strictly overlap are merged first, so a speaker is never
+    counted as talking twice at once (pyannote counts tracks, not speakers;
+    two overlapping ``s`` segments would otherwise be scored as false alarm,
+    or as double reference time).  Touching segments (end == next start) are
+    kept apart, so a reference turn boundary keeps its collar.  Overlap between
+    *different* speakers is untouched: two speakers talking for 2 s is 4 s.
+    JER already used the per-speaker union (``label_timeline``), so DER and JER
+    now read the same speaker activity.
+    """
+    by_speaker: dict[str, list[list[float]]] = {}
+    for s in sorted_segments(segments):
+        intervals = by_speaker.setdefault(s.speaker, [])
+        if intervals and s.start < intervals[-1][1]:
+            intervals[-1][1] = max(intervals[-1][1], s.end)
+        else:
+            intervals.append([s.start, s.end])
     ann = Annotation(uri=uri)
-    for i, s in enumerate(sorted_segments(segments)):
-        ann[PSegment(s.start, s.end), i] = s.speaker
+    track = 0
+    for speaker, intervals in by_speaker.items():
+        for start, end in intervals:
+            ann[PSegment(start, end), track] = speaker
+            track += 1
     return ann
 
 
@@ -68,8 +105,9 @@ def to_uem(duration_s: float | None, uri: str, *annotations: Annotation) -> Time
 
     HARNESS_POLICY: when the meeting duration is known the UEM is
     ``[0, duration_s]`` — hypothesis speech outside the audio is not scored.
-    Without a duration, the union of reference and hypothesis extents is used
-    (what pyannote would do silently, made explicit here).
+    Without a duration, the union of reference and hypothesis extents is used:
+    what pyannote would fall back to *with a warning*
+    (pyannote/metrics/utils.py:200-202), made explicit here.
     """
     if duration_s is not None:
         return Timeline([PSegment(0.0, float(duration_s))], uri=uri)
@@ -179,7 +217,12 @@ class SpeakerBreakdown:
 
 @dataclass
 class OverlapResult:
-    """DER restricted to the reference's overlap regions (collar still applied)."""
+    """DER components restricted to the reference's overlap regions.
+
+    Scored under the meeting's *global* optimal mapping (the one DER and the
+    per-speaker breakdown use) with the same collar, so every second counted
+    here is counted identically in the global components.
+    """
 
     overlap_time: float
     total: float
@@ -489,41 +532,86 @@ def _overlap_regions(reference: Annotation) -> Timeline:
     return Timeline(regions).support()
 
 
+def _pyannote_mapping(metric: Any, R: Annotation, H: Annotation, *, ref_to_hyp: bool = False) -> dict[Hashable, Hashable]:
+    """The Hungarian mapping exactly as pyannote computes it inside
+    ``compute_components``: the uemified reference renamed 'A', 'B', ... and
+    the hypothesis 0, 1, ... in ``labels()`` order, then mapped
+    (pyannote/metrics/diarization.py:161-173 for DER, :409-416 for JER).
+    Renaming changes the order of the co-occurrence matrix once there are more
+    than 26 reference or 10 hypothesis labels, which decides ties; mirroring it
+    makes the reported mapping the one pyannote scored with.
+
+    Returns ``{hyp: ref}`` (DER) or, with ``ref_to_hyp``, ``{ref: hyp}`` (JER),
+    in the original labels.
+    """
+    r_new = dict(zip(R.labels(), string_generator()))
+    h_new = dict(zip(H.labels(), int_generator()))
+    r_old = {v: k for k, v in r_new.items()}
+    h_old = {v: k for k, v in h_new.items()}
+    Rr, Hr = R.rename_labels(mapping=r_new), H.rename_labels(mapping=h_new)
+    if ref_to_hyp:
+        return {r_old[r]: h_old[h] for r, h in metric.optimal_mapping(Hr, Rr).items()}
+    return {h_old[h]: r_old[r] for h, r in metric.optimal_mapping(Rr, Hr).items()}
+
+
+#: Namespaces that keep reference and hypothesis labels apart once the
+#: hypothesis is renamed with the optimal mapping.  pyannote renames both sides
+#: into disjoint alphabets for the same reason (pyannote/metrics/diarization.py:161-165);
+#: without it an *unmapped* hypothesis label equal to a reference label (the
+#: generator and energy_vad both emit spk<N>) would be scored as correct.
+_REF_NS = "R:"
+_HYP_NS = "H:"
+
+
+def _namespaced(
+    reference: Annotation, hypothesis: Annotation, mapping: dict[Hashable, Hashable]
+) -> tuple[Annotation, Annotation]:
+    """Reference labels -> ``R:<ref>``; a hypothesis label -> ``R:<its mapped ref>``
+    when mapped, else ``H:<hyp>``.  Scoring these with pyannote's
+    ``IdentificationErrorRate`` reproduces ``DiarizationErrorRate`` exactly."""
+    ref_ns = reference.rename_labels(mapping={r: _REF_NS + str(r) for r in reference.labels()})
+    hyp_ns = hypothesis.rename_labels(
+        mapping={h: (_REF_NS + str(mapping[h])) if h in mapping else (_HYP_NS + str(h)) for h in hypothesis.labels()}
+    )
+    return ref_ns, hyp_ns
+
+
 def _speaker_breakdown(
     metric: DiarizationErrorRate,
     reference: Annotation,
     hypothesis: Annotation,
+    ref_ns: Annotation,
+    hyp_ns: Annotation,
     uem: Timeline,
     mapping: dict[Hashable, Hashable],
 ) -> dict[str, SpeakerBreakdown]:
-    """Exact per-speaker split of pyannote's DER components (see SpeakerBreakdown)."""
+    """Exact per-speaker split of pyannote's DER components (see SpeakerBreakdown).
+
+    Works on the namespaced annotations, so an unmapped hypothesis label can
+    never match (or be charged as) a reference speaker of the same name.
+    """
     R, H, common = metric.uemify(
-        reference,
-        hypothesis,
+        ref_ns,
+        hyp_ns,
         uem=uem,
         collar=metric.collar,
         skip_overlap=metric.skip_overlap,
         returns_timeline=True,
     )
-    H = H.rename_labels(mapping=mapping)
     inverse = {ref_label: hyp_label for hyp_label, ref_label in mapping.items()}
-    out: dict[str, SpeakerBreakdown] = {}
+    buckets: dict[str, SpeakerBreakdown] = {}
     for label in reference.labels():
-        out[str(label)] = SpeakerBreakdown(mapped_to=str(inverse[label]) if label in inverse else None)
+        buckets[_REF_NS + str(label)] = SpeakerBreakdown(mapped_to=str(inverse[label]) if label in inverse else None)
     for label in hypothesis.labels():
         if label not in mapping:
-            out[f"hyp:{label}"] = SpeakerBreakdown(mapped_to=None)
-
-    def bucket(label: Hashable, *, is_ref: bool) -> SpeakerBreakdown:
-        key = str(label) if is_ref or label in inverse else f"hyp:{label}"
-        return out.setdefault(key, SpeakerBreakdown())
+            buckets[_HYP_NS + str(label)] = SpeakerBreakdown(mapped_to=None)
 
     for seg in common:
         d = seg.duration
         r = Counter(R.get_labels(seg, unique=False))
         h = Counter(H.get_labels(seg, unique=False))
         n_ref, n_hyp = sum(r.values()), sum(h.values())
-        matched = r & h  # multiset intersection
+        matched = r & h  # multiset intersection; only R:<x> labels can match
         n_correct = sum(matched.values())
         miss_count = max(0, n_ref - n_hyp)
         fa_count = max(0, n_hyp - n_ref)
@@ -532,15 +620,32 @@ def _speaker_breakdown(
         unmatched_hyp = h - matched
         u_r, u_h = sum(unmatched_ref.values()), sum(unmatched_hyp.values())
         for label, n in r.items():
-            bucket(label, is_ref=True).total += d * n
+            buckets[label].total += d * n
         for label, n in matched.items():
-            bucket(label, is_ref=True).correct += d * n
+            buckets[label].correct += d * n
         for label, n in unmatched_ref.items():
-            b = bucket(label, is_ref=True)
+            b = buckets[label]
             b.miss += d * n * miss_count / u_r
             b.confusion += d * n * conf_count / u_r
         for label, n in unmatched_hyp.items():
-            bucket(label, is_ref=False).false_alarm += d * n * fa_count / u_h
+            # R:<x> = a mapped hypothesis speaker, charged to the reference speaker it maps to
+            buckets.setdefault(label, SpeakerBreakdown()).false_alarm += d * n * fa_count / u_h
+
+    # Display keys: the reference speaker's own name, or hyp:<label> for an
+    # unmapped hypothesis speaker (made unique if a reference speaker is
+    # literally called "hyp:<label>").
+    out: dict[str, SpeakerBreakdown] = {}
+    for key, b in buckets.items():
+        if key.startswith(_REF_NS):
+            out[key[len(_REF_NS):]] = b
+    for key, b in buckets.items():
+        if key.startswith(_HYP_NS):
+            base = name = "hyp:" + key[len(_HYP_NS):]
+            n = 2
+            while name in out:
+                name = f"{base}#{n}"
+                n += 1
+            out[name] = b
     return out
 
 
@@ -557,27 +662,34 @@ def diarization_error_rate(
     """DER via ``pyannote.metrics.diarization.DiarizationErrorRate``.
 
     ``der = (miss + false_alarm + confusion) / total`` where ``total`` is the
-    reference speech time inside the scoring region after collar extrusion.
+    reference speech time inside the scoring region after collar extrusion
+    (``None`` when that is 0: no scorable reference speech).
     """
+    _check_collar("collar", collar)
     reference = to_annotation(ref_segments, uri)
     hypothesis = to_annotation(hyp_segments, uri)
     uem = to_uem(duration_s, uri, reference, hypothesis)
     metric = DiarizationErrorRate(collar=collar, skip_overlap=skip_overlap)
     detail = metric(reference, hypothesis, uem=uem, detailed=True)
 
-    # Recompute the mapping on the uemified annotations exactly as pyannote
-    # does internally (uemify may change the optimal assignment).
+    # The mapping pyannote used, on the uemified annotations (uemify may
+    # change the optimal assignment), reproduced step for step.
     R, H = metric.uemify(reference, hypothesis, uem=uem, collar=collar, skip_overlap=skip_overlap)
-    mapping = metric.optimal_mapping(R, H)
-    per_speaker = _speaker_breakdown(metric, reference, hypothesis, uem, mapping)
+    mapping = _pyannote_mapping(metric, R, H)
+    ref_ns, hyp_ns = _namespaced(reference, hypothesis, mapping)
+    per_speaker = _speaker_breakdown(metric, reference, hypothesis, ref_ns, hyp_ns, uem, mapping)
 
     overlap: OverlapResult | None = None
     if with_overlap and not skip_overlap:
         regions = _overlap_regions(reference)
         overlap_uem = regions.crop(uem, mode="intersection")
         if overlap_uem.duration() > 0:
-            ov_metric = DiarizationErrorRate(collar=collar, skip_overlap=False)
-            ov = ov_metric(reference, hypothesis, uem=overlap_uem, detailed=True)
+            # Under the GLOBAL mapping: identification error of the namespaced
+            # annotations over the overlap regions.  A fresh DiarizationErrorRate
+            # here would re-optimise the mapping on the overlap alone and could
+            # report 0 where the global score charges confusion.
+            ov_metric = IdentificationErrorRate(collar=collar, skip_overlap=False)
+            ov = ov_metric(ref_ns, hyp_ns, uem=overlap_uem, detailed=True)
             overlap = OverlapResult(
                 overlap_time=float(overlap_uem.duration()),
                 total=ov["total"],
@@ -617,17 +729,23 @@ def jaccard_error_rate(
     """JER via ``pyannote.metrics.diarization.JaccardErrorRate``.
 
     Per reference speaker, ``1 - |R ∩ H| / |R ∪ H|`` against its optimally
-    mapped hypothesis speaker (1.0 when unmapped); JER is the mean.
+    mapped hypothesis speaker (1.0 when unmapped); JER is the mean.  With no
+    reference speaker left after the UEM, collar and overlap removal, JER is
+    undefined: ``jer`` is ``None`` (pyannote itself would divide by zero,
+    pyannote/metrics/diarization.py:459).
     """
+    _check_collar("collar", collar)
     reference = to_annotation(ref_segments, uri)
     hypothesis = to_annotation(hyp_segments, uri)
     uem = to_uem(duration_s, uri, reference, hypothesis)
     metric = JaccardErrorRate(collar=collar, skip_overlap=skip_overlap)
+    R, H = metric.uemify(reference, hypothesis, uem=uem, collar=collar, skip_overlap=skip_overlap)
+    if not R.labels():
+        return JerResult(jer=None, speaker_count=0, speaker_error=0.0, per_speaker={}, collar=collar, skip_overlap=skip_overlap)
     detail = metric(reference, hypothesis, uem=uem, detailed=True)
 
-    # Per-speaker mirror of pyannote's compute_components loop.
-    R, H = metric.uemify(reference, hypothesis, uem=uem, collar=collar, skip_overlap=skip_overlap)
-    mapping = metric.optimal_mapping(H, R)  # ref label -> hyp label
+    # Per-speaker mirror of pyannote's compute_components loop, same mapping.
+    mapping = _pyannote_mapping(metric, R, H, ref_to_hyp=True)  # ref label -> hyp label
     per_speaker: dict[str, float] = {}
     for ref_speaker in R.labels():
         hyp_speaker = mapping.get(ref_speaker)
@@ -795,6 +913,7 @@ def tcp_wer(
     """
     from meeteval.wer.wer.time_constrained import tcp_word_error_rate
 
+    _check_collar("collar", collar)
     ref, ref_wl = to_seglst(ref_segments, session_id, normalizer, word_level=True)
     hyp, hyp_wl = to_seglst(hyp_segments, session_id, normalizer, word_level=True)
     res = tcp_word_error_rate(
@@ -836,6 +955,8 @@ def score_meeting(
     check_meeting_id: bool = True,
 ) -> MeetingReport:
     """Score one hypothesis against one meeting with every metric."""
+    _check_collar("der_collar", der_collar)
+    _check_collar("tcp_collar", tcp_collar)
     if check_meeting_id and hyp.meeting_id != meeting.meeting_id:
         raise ValueError(
             f"hypothesis meeting_id {hyp.meeting_id!r} does not match reference {meeting.meeting_id!r}"

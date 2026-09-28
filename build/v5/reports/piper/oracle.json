@@ -1,0 +1,882 @@
+{
+  "schema": "plaud-harness/eval-report/1",
+  "kind": "batch",
+  "libraries": {
+    "evals": "0.1.0",
+    "pyannote.metrics": "4.1",
+    "pyannote.core": "6.0.1",
+    "jiwer": "4.0.0",
+    "meeteval": "0.4.3",
+    "numpy": "2.4.6"
+  },
+  "n_meetings": 4,
+  "meetings": [
+    {
+      "meeting_id": "synth-piper-2spk-overlap-s0102",
+      "system": "oracle",
+      "der": {
+        "der": 0.0,
+        "total": 91.71875,
+        "correct": 91.71875,
+        "miss": 0.0,
+        "false_alarm": 0.0,
+        "confusion": 0.0,
+        "collar": 0.25,
+        "skip_overlap": false,
+        "mapping": {
+          "spk0": "spk0",
+          "spk1": "spk1"
+        },
+        "per_speaker": {
+          "spk0": {
+            "total": 46.8828125,
+            "correct": 46.8828125,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk0"
+          },
+          "spk1": {
+            "total": 44.8359375,
+            "correct": 44.8359375,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk1"
+          }
+        },
+        "overlap": {
+          "overlap_time": 17.921875,
+          "total": 6.921875,
+          "miss": 0.0,
+          "false_alarm": 0.0,
+          "confusion": 0.0,
+          "correct": 6.921875,
+          "der": 0.0
+        }
+      },
+      "jer": {
+        "jer": 0.0,
+        "speaker_count": 2,
+        "speaker_error": 0.0,
+        "per_speaker": {
+          "spk0": 0.0,
+          "spk1": 0.0
+        },
+        "collar": 0.25,
+        "skip_overlap": false
+      },
+      "wer_literal": {
+        "mode": "literal",
+        "wer": 0.0,
+        "errors": 0,
+        "hits": 573,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_words": 573,
+        "hypothesis_words": 573,
+        "per_speaker": {
+          "spk0": {
+            "hits": 290,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 290,
+            "hypothesis_words": 290
+          },
+          "spk1": {
+            "hits": 283,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 283,
+            "hypothesis_words": 283
+          }
+        }
+      },
+      "wer_concat": {
+        "mode": "concat",
+        "wer": 0.0,
+        "errors": 0,
+        "hits": 573,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_words": 573,
+        "hypothesis_words": 573,
+        "per_speaker": {}
+      },
+      "cpwer": {
+        "error_rate": 0.0,
+        "errors": 0,
+        "length": 573,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "missed_speaker": 0,
+        "falarm_speaker": 0,
+        "scored_speaker": 2,
+        "assignment": [
+          [
+            "spk0",
+            "spk0"
+          ],
+          [
+            "spk1",
+            "spk1"
+          ]
+        ],
+        "collar": null,
+        "word_level_timing": null
+      },
+      "tcpwer": {
+        "error_rate": 0.0,
+        "errors": 0,
+        "length": 573,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "missed_speaker": 0,
+        "falarm_speaker": 0,
+        "scored_speaker": 2,
+        "assignment": [
+          [
+            "spk0",
+            "spk0"
+          ],
+          [
+            "spk1",
+            "spk1"
+          ]
+        ],
+        "collar": 5.0,
+        "word_level_timing": true
+      },
+      "speaker_count": {
+        "reference_declared": 2,
+        "reference_active": 2,
+        "hypothesis": 2,
+        "error": 0,
+        "abs_error": 0
+      },
+      "settings": {
+        "der_collar": 0.25,
+        "der_collar_semantics": "pyannote: total width centred on each reference boundary",
+        "skip_overlap": false,
+        "tcp_collar": 5.0,
+        "uem": [
+          0.0,
+          120.0
+        ],
+        "normalizer": {
+          "lowercase": true,
+          "strip_punctuation": true,
+          "collapse_whitespace": true,
+          "expand_contractions": false,
+          "numbers_to_words": false
+        }
+      }
+    },
+    {
+      "meeting_id": "synth-piper-2spk-s0101",
+      "system": "oracle",
+      "der": {
+        "der": 0.0,
+        "total": 79.765625,
+        "correct": 79.765625,
+        "miss": 0.0,
+        "false_alarm": 0.0,
+        "confusion": 0.0,
+        "collar": 0.25,
+        "skip_overlap": false,
+        "mapping": {
+          "spk0": "spk0",
+          "spk1": "spk1"
+        },
+        "per_speaker": {
+          "spk0": {
+            "total": 45.71875,
+            "correct": 45.71875,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk0"
+          },
+          "spk1": {
+            "total": 34.046875,
+            "correct": 34.046875,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk1"
+          }
+        },
+        "overlap": {
+          "overlap_time": 0.0,
+          "total": 0.0,
+          "miss": 0.0,
+          "false_alarm": 0.0,
+          "confusion": 0.0,
+          "correct": 0.0,
+          "der": null
+        }
+      },
+      "jer": {
+        "jer": 0.0,
+        "speaker_count": 2,
+        "speaker_error": 0.0,
+        "per_speaker": {
+          "spk0": 0.0,
+          "spk1": 0.0
+        },
+        "collar": 0.25,
+        "skip_overlap": false
+      },
+      "wer_literal": {
+        "mode": "literal",
+        "wer": 0.0,
+        "errors": 0,
+        "hits": 410,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_words": 410,
+        "hypothesis_words": 410,
+        "per_speaker": {
+          "spk0": {
+            "hits": 216,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 216,
+            "hypothesis_words": 216
+          },
+          "spk1": {
+            "hits": 194,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 194,
+            "hypothesis_words": 194
+          }
+        }
+      },
+      "wer_concat": {
+        "mode": "concat",
+        "wer": 0.0,
+        "errors": 0,
+        "hits": 410,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_words": 410,
+        "hypothesis_words": 410,
+        "per_speaker": {}
+      },
+      "cpwer": {
+        "error_rate": 0.0,
+        "errors": 0,
+        "length": 410,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "missed_speaker": 0,
+        "falarm_speaker": 0,
+        "scored_speaker": 2,
+        "assignment": [
+          [
+            "spk0",
+            "spk0"
+          ],
+          [
+            "spk1",
+            "spk1"
+          ]
+        ],
+        "collar": null,
+        "word_level_timing": null
+      },
+      "tcpwer": {
+        "error_rate": 0.0,
+        "errors": 0,
+        "length": 410,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "missed_speaker": 0,
+        "falarm_speaker": 0,
+        "scored_speaker": 2,
+        "assignment": [
+          [
+            "spk0",
+            "spk0"
+          ],
+          [
+            "spk1",
+            "spk1"
+          ]
+        ],
+        "collar": 5.0,
+        "word_level_timing": true
+      },
+      "speaker_count": {
+        "reference_declared": 2,
+        "reference_active": 2,
+        "hypothesis": 2,
+        "error": 0,
+        "abs_error": 0
+      },
+      "settings": {
+        "der_collar": 0.25,
+        "der_collar_semantics": "pyannote: total width centred on each reference boundary",
+        "skip_overlap": false,
+        "tcp_collar": 5.0,
+        "uem": [
+          0.0,
+          120.0
+        ],
+        "normalizer": {
+          "lowercase": true,
+          "strip_punctuation": true,
+          "collapse_whitespace": true,
+          "expand_contractions": false,
+          "numbers_to_words": false
+        }
+      }
+    },
+    {
+      "meeting_id": "synth-piper-3spk-reverb-noise-s0103",
+      "system": "oracle",
+      "der": {
+        "der": 0.0,
+        "total": 92.3671875,
+        "correct": 92.3671875,
+        "miss": 0.0,
+        "false_alarm": 0.0,
+        "confusion": 0.0,
+        "collar": 0.25,
+        "skip_overlap": false,
+        "mapping": {
+          "spk0": "spk0",
+          "spk1": "spk1",
+          "spk2": "spk2"
+        },
+        "per_speaker": {
+          "spk0": {
+            "total": 33.9375,
+            "correct": 33.9375,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk0"
+          },
+          "spk1": {
+            "total": 33.171875,
+            "correct": 33.171875,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk1"
+          },
+          "spk2": {
+            "total": 25.2578125,
+            "correct": 25.2578125,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk2"
+          }
+        },
+        "overlap": {
+          "overlap_time": 0.0,
+          "total": 0.0,
+          "miss": 0.0,
+          "false_alarm": 0.0,
+          "confusion": 0.0,
+          "correct": 0.0,
+          "der": null
+        }
+      },
+      "jer": {
+        "jer": 0.0,
+        "speaker_count": 3,
+        "speaker_error": 0.0,
+        "per_speaker": {
+          "spk0": 0.0,
+          "spk1": 0.0,
+          "spk2": 0.0
+        },
+        "collar": 0.25,
+        "skip_overlap": false
+      },
+      "wer_literal": {
+        "mode": "literal",
+        "wer": 0.0,
+        "errors": 0,
+        "hits": 441,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_words": 441,
+        "hypothesis_words": 441,
+        "per_speaker": {
+          "spk0": {
+            "hits": 153,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 153,
+            "hypothesis_words": 153
+          },
+          "spk1": {
+            "hits": 162,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 162,
+            "hypothesis_words": 162
+          },
+          "spk2": {
+            "hits": 126,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 126,
+            "hypothesis_words": 126
+          }
+        }
+      },
+      "wer_concat": {
+        "mode": "concat",
+        "wer": 0.0,
+        "errors": 0,
+        "hits": 441,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_words": 441,
+        "hypothesis_words": 441,
+        "per_speaker": {}
+      },
+      "cpwer": {
+        "error_rate": 0.0,
+        "errors": 0,
+        "length": 441,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "missed_speaker": 0,
+        "falarm_speaker": 0,
+        "scored_speaker": 3,
+        "assignment": [
+          [
+            "spk0",
+            "spk0"
+          ],
+          [
+            "spk1",
+            "spk1"
+          ],
+          [
+            "spk2",
+            "spk2"
+          ]
+        ],
+        "collar": null,
+        "word_level_timing": null
+      },
+      "tcpwer": {
+        "error_rate": 0.0,
+        "errors": 0,
+        "length": 441,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "missed_speaker": 0,
+        "falarm_speaker": 0,
+        "scored_speaker": 3,
+        "assignment": [
+          [
+            "spk0",
+            "spk0"
+          ],
+          [
+            "spk1",
+            "spk1"
+          ],
+          [
+            "spk2",
+            "spk2"
+          ]
+        ],
+        "collar": 5.0,
+        "word_level_timing": true
+      },
+      "speaker_count": {
+        "reference_declared": 3,
+        "reference_active": 3,
+        "hypothesis": 3,
+        "error": 0,
+        "abs_error": 0
+      },
+      "settings": {
+        "der_collar": 0.25,
+        "der_collar_semantics": "pyannote: total width centred on each reference boundary",
+        "skip_overlap": false,
+        "tcp_collar": 5.0,
+        "uem": [
+          0.0,
+          135.0
+        ],
+        "normalizer": {
+          "lowercase": true,
+          "strip_punctuation": true,
+          "collapse_whitespace": true,
+          "expand_contractions": false,
+          "numbers_to_words": false
+        }
+      }
+    },
+    {
+      "meeting_id": "synth-piper-4spk-s0104",
+      "system": "oracle",
+      "der": {
+        "der": 0.0,
+        "total": 102.890625,
+        "correct": 102.890625,
+        "miss": 0.0,
+        "false_alarm": 0.0,
+        "confusion": 0.0,
+        "collar": 0.25,
+        "skip_overlap": false,
+        "mapping": {
+          "spk0": "spk0",
+          "spk1": "spk1",
+          "spk2": "spk2",
+          "spk3": "spk3"
+        },
+        "per_speaker": {
+          "spk0": {
+            "total": 12.9921875,
+            "correct": 12.9921875,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk0"
+          },
+          "spk1": {
+            "total": 31.5859375,
+            "correct": 31.5859375,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk1"
+          },
+          "spk2": {
+            "total": 32.0625,
+            "correct": 32.0625,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk2"
+          },
+          "spk3": {
+            "total": 26.25,
+            "correct": 26.25,
+            "miss": 0.0,
+            "confusion": 0.0,
+            "false_alarm": 0.0,
+            "error_rate": 0.0,
+            "mapped_to": "spk3"
+          }
+        },
+        "overlap": {
+          "overlap_time": 0.0,
+          "total": 0.0,
+          "miss": 0.0,
+          "false_alarm": 0.0,
+          "confusion": 0.0,
+          "correct": 0.0,
+          "der": null
+        }
+      },
+      "jer": {
+        "jer": 0.0,
+        "speaker_count": 4,
+        "speaker_error": 0.0,
+        "per_speaker": {
+          "spk0": 0.0,
+          "spk1": 0.0,
+          "spk2": 0.0,
+          "spk3": 0.0
+        },
+        "collar": 0.25,
+        "skip_overlap": false
+      },
+      "wer_literal": {
+        "mode": "literal",
+        "wer": 0.0,
+        "errors": 0,
+        "hits": 451,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_words": 451,
+        "hypothesis_words": 451,
+        "per_speaker": {
+          "spk1": {
+            "hits": 118,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 118,
+            "hypothesis_words": 118
+          },
+          "spk3": {
+            "hits": 116,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 116,
+            "hypothesis_words": 116
+          },
+          "spk2": {
+            "hits": 158,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 158,
+            "hypothesis_words": 158
+          },
+          "spk0": {
+            "hits": 59,
+            "substitutions": 0,
+            "deletions": 0,
+            "insertions": 0,
+            "reference_words": 59,
+            "hypothesis_words": 59
+          }
+        }
+      },
+      "wer_concat": {
+        "mode": "concat",
+        "wer": 0.0,
+        "errors": 0,
+        "hits": 451,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_words": 451,
+        "hypothesis_words": 451,
+        "per_speaker": {}
+      },
+      "cpwer": {
+        "error_rate": 0.0,
+        "errors": 0,
+        "length": 451,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "missed_speaker": 0,
+        "falarm_speaker": 0,
+        "scored_speaker": 4,
+        "assignment": [
+          [
+            "spk1",
+            "spk1"
+          ],
+          [
+            "spk3",
+            "spk3"
+          ],
+          [
+            "spk2",
+            "spk2"
+          ],
+          [
+            "spk0",
+            "spk0"
+          ]
+        ],
+        "collar": null,
+        "word_level_timing": null
+      },
+      "tcpwer": {
+        "error_rate": 0.0,
+        "errors": 0,
+        "length": 451,
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "missed_speaker": 0,
+        "falarm_speaker": 0,
+        "scored_speaker": 4,
+        "assignment": [
+          [
+            "spk1",
+            "spk1"
+          ],
+          [
+            "spk3",
+            "spk3"
+          ],
+          [
+            "spk2",
+            "spk2"
+          ],
+          [
+            "spk0",
+            "spk0"
+          ]
+        ],
+        "collar": 5.0,
+        "word_level_timing": true
+      },
+      "speaker_count": {
+        "reference_declared": 4,
+        "reference_active": 4,
+        "hypothesis": 4,
+        "error": 0,
+        "abs_error": 0
+      },
+      "settings": {
+        "der_collar": 0.25,
+        "der_collar_semantics": "pyannote: total width centred on each reference boundary",
+        "skip_overlap": false,
+        "tcp_collar": 5.0,
+        "uem": [
+          0.0,
+          150.0
+        ],
+        "normalizer": {
+          "lowercase": true,
+          "strip_punctuation": true,
+          "collapse_whitespace": true,
+          "expand_contractions": false,
+          "numbers_to_words": false
+        }
+      }
+    }
+  ],
+  "missing": [],
+  "errors": [],
+  "macro": {
+    "n": 4,
+    "der.der": 0.0,
+    "der.total": 91.685546875,
+    "der.miss": 0.0,
+    "der.false_alarm": 0.0,
+    "der.confusion": 0.0,
+    "der.correct": 91.685546875,
+    "der.miss_rate": 0.0,
+    "der.false_alarm_rate": 0.0,
+    "der.confusion_rate": 0.0,
+    "der.overlap.der": 0.0,
+    "der.overlap.total": 1.73046875,
+    "der.overlap.overlap_time": 4.48046875,
+    "jer.jer": 0.0,
+    "jer.speaker_count": 2.75,
+    "jer.speaker_error": 0.0,
+    "wer_literal.wer": 0.0,
+    "wer_literal.errors": 0.0,
+    "wer_literal.reference_words": 468.75,
+    "wer_concat.wer": 0.0,
+    "wer_concat.errors": 0.0,
+    "wer_concat.reference_words": 468.75,
+    "cpwer.error_rate": 0.0,
+    "cpwer.errors": 0.0,
+    "cpwer.length": 468.75,
+    "cpwer.missed_speaker": 0.0,
+    "cpwer.falarm_speaker": 0.0,
+    "tcpwer.error_rate": 0.0,
+    "tcpwer.errors": 0.0,
+    "tcpwer.length": 468.75,
+    "speaker_count.error": 0.0,
+    "speaker_count.abs_error": 0.0,
+    "speaker_count.reference_active": 2.75,
+    "speaker_count.hypothesis": 2.75,
+    "counts": {
+      "der.der": 4,
+      "der.total": 4,
+      "der.miss": 4,
+      "der.false_alarm": 4,
+      "der.confusion": 4,
+      "der.correct": 4,
+      "der.miss_rate": 4,
+      "der.false_alarm_rate": 4,
+      "der.confusion_rate": 4,
+      "der.overlap.der": 1,
+      "der.overlap.total": 4,
+      "der.overlap.overlap_time": 4,
+      "jer.jer": 4,
+      "jer.speaker_count": 4,
+      "jer.speaker_error": 4,
+      "wer_literal.wer": 4,
+      "wer_literal.errors": 4,
+      "wer_literal.reference_words": 4,
+      "wer_concat.wer": 4,
+      "wer_concat.errors": 4,
+      "wer_concat.reference_words": 4,
+      "cpwer.error_rate": 4,
+      "cpwer.errors": 4,
+      "cpwer.length": 4,
+      "cpwer.missed_speaker": 4,
+      "cpwer.falarm_speaker": 4,
+      "tcpwer.error_rate": 4,
+      "tcpwer.errors": 4,
+      "tcpwer.length": 4,
+      "speaker_count.error": 4,
+      "speaker_count.abs_error": 4,
+      "speaker_count.reference_active": 4,
+      "speaker_count.hypothesis": 4
+    }
+  },
+  "micro": {
+    "n": 4,
+    "der.der": 0.0,
+    "der.total": 366.7421875,
+    "der.correct": 366.7421875,
+    "der.miss": 0.0,
+    "der.false_alarm": 0.0,
+    "der.confusion": 0.0,
+    "der.miss_rate": 0.0,
+    "der.false_alarm_rate": 0.0,
+    "der.confusion_rate": 0.0,
+    "der.overlap.der": 0.0,
+    "der.overlap.total": 6.921875,
+    "der.overlap.overlap_time": 17.921875,
+    "jer.jer": 0.0,
+    "jer.speaker_count": 11,
+    "jer.speaker_error": 0.0,
+    "wer_literal.wer": 0.0,
+    "wer_literal.errors": 0,
+    "wer_literal.reference_words": 1875,
+    "wer_concat.wer": 0.0,
+    "wer_concat.errors": 0,
+    "wer_concat.reference_words": 1875,
+    "cpwer.error_rate": 0.0,
+    "cpwer.errors": 0,
+    "cpwer.length": 1875,
+    "cpwer.missed_speaker": 0,
+    "cpwer.falarm_speaker": 0,
+    "tcpwer.error_rate": 0.0,
+    "tcpwer.errors": 0,
+    "tcpwer.length": 1875,
+    "speaker_count.error": 0.0,
+    "speaker_count.abs_error": 0.0,
+    "speaker_count.error_sum": 0,
+    "speaker_count.abs_error_sum": 0
+  },
+  "gates": null
+}

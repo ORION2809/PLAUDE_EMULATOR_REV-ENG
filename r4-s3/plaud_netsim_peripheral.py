@@ -5,8 +5,9 @@ virtual-link tests drive, attached to a netsim-backed Bumble controller
 instead of a virtual link. Advertises the Plaud service/characteristics so
 the real Android SDK can discover it.
 
-Usage:
-    /tmp/r4s2-venv/bin/python plaud_netsim_peripheral.py [transport-spec]
+Usage (from the repository root, any venv with bumble + grpcio):
+    .venv/bin/python r4-s3/plaud_netsim_peripheral.py [transport-spec]
+(R4-S3 itself ran it from a throwaway venv at /tmp/r4s2-venv.)
 Logs with R4S3_ prefix for evidence correlation with logcat.
 """
 
@@ -15,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import sys
+from pathlib import Path
 
 from bumble import logging as bumble_logging
 
@@ -23,7 +25,9 @@ bumble_logging.setup_basic_logging("DEBUG")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 logger = logging.getLogger("R4S3")
 
-sys.path.insert(0, "/Users/mivi/Desktop/plaud-harness/emulator")
+# Repository root derived from this file's location (<root>/r4-s3/<file>);
+# nothing machine-specific is hard-coded.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "emulator"))
 
 from bumble.device import Device, DeviceConfiguration
 from bumble.hci import Address
@@ -52,7 +56,14 @@ async def main() -> None:
         device = Device.from_config_with_hci(
             config, hci_transport.source, hci_transport.sink
         )
-        peripheral = PlaudPeripheral(
+        # for_real_sdk(): this rig faces the unmodified SDK, so it takes the
+        # R7-S13 transfer policy (stream from a cancellable task, 4 ms pacing,
+        # abort on restart/stop; profile.REAL_SDK_RESPONSE_PACING_S). The bare
+        # constructor is inline and unpaced (in-process tests), the
+        # configuration R7-S13 showed racing the SDK's op-queue. The original
+        # R4-S3 run predates R7-S13 and used the bare constructor; the policy
+        # only changes how a syncFile transfer is emitted.
+        peripheral = PlaudPeripheral.for_real_sdk(
             device,
             state=PlaudDeviceState(
                 state=0x1001,

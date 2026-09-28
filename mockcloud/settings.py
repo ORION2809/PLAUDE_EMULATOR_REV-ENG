@@ -90,8 +90,9 @@ class MockSettings:
     #: HARNESS_POLICY: when True an unknown SN is registered on first bind /
     #: sn-sign instead of answering the documented bare 404.
     auto_register_unknown_sn: bool = False
-    #: HARNESS_POLICY: SNs pre-registered at startup. The two values are the
-    #: openapi_binding.json examples (notepro 881..., and a notepins 882...).
+    #: HARNESS_POLICY: SNs pre-registered at startup. 8810000000000001 is the
+    #: openapi_binding.json example SN; 8820000000000001 is the mock's notepins
+    #: analogue (882 prefix per the same spec's prefix table), not a doc value.
     seed_devices: tuple[tuple[str, str], ...] = (
         ("notepro", "8810000000000001"),
         ("notepins", "8820000000000001"),

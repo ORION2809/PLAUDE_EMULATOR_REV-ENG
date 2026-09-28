@@ -15,6 +15,16 @@ pyannote.metrics report a DER of exactly 0.0 between the RTTM and an
 annotation rebuilt from the sample-level activity mask, independent of any
 tolerance inside pyannote. Word timings are NOT on this grid; they are
 sample-exact and only appear in meeting.json.
+
+The device recording (HARNESS_POLICY): `audio.device` maps a key to each
+device-shaped file written; `audio.device_primary`, when present, names the
+key of THE device recording, i.e. the plain Ogg/Opus at the meeting's channel
+count. `write_json` sorts keys, so dict order is alphabetical (the encrypted
+file comes first) and means nothing: consumers that want "the device file"
+must call `device_primary_path`, which reads `device_primary` and falls back
+to `ogg_opus` for producers that do not set it, never to dict order.
+`validate_meeting` rejects a `device_primary` that is not a key of
+`audio.device`.
 """
 
 from __future__ import annotations
@@ -172,11 +182,25 @@ def validate_meeting(meeting: dict[str, Any]) -> list[str]:
     for key in ("mix_wav", "stems", "device"):
         if key not in audio:
             errors.append(f"audio entry missing {key!r}")
+    primary = audio.get("device_primary")
+    if primary is not None and (not isinstance(primary, str) or primary not in (audio.get("device") or {})):
+        errors.append(f"audio.device_primary {primary!r} is not a key of audio.device")
     gen = meeting["generator"]
     for key in ("name", "version", "seed", "scenario"):
         if key not in gen:
             errors.append(f"generator entry missing {key!r}")
     return errors
+
+
+def device_primary_path(meeting: dict[str, Any]) -> str | None:
+    """Relative path of the meeting's primary device recording, or None.
+
+    Reads `audio.device_primary`; without it, `audio.device["ogg_opus"]`.
+    Never the first dict entry (write_json sorts keys)."""
+    audio = meeting.get("audio") or {}
+    device = audio.get("device") or {}
+    key = audio.get("device_primary") or "ogg_opus"
+    return device.get(key)
 
 
 def load_meeting(directory: str | Path) -> dict[str, Any]:
@@ -200,6 +224,7 @@ __all__ = [
     "SCHEMA_HYPOTHESIS",
     "SCHEMA_MEETING",
     "TIME_GRID_HZ",
+    "device_primary_path",
     "fmt_time",
     "format_rttm",
     "format_stm",

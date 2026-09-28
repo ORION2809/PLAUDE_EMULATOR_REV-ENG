@@ -1,14 +1,29 @@
-"""Optional adapters for real ASR/diarization systems -- UNTESTED HERE.
+"""Optional adapters for real ASR/diarization systems.
 
-Status (docs/pipeline.md): no model weights are present in this
-environment and none may be downloaded, so nothing in this module has been
-executed against a model.  Each adapter is written against the package's
-*documented public API* (cited per class), imports lazily, and the registry
-reports it as unavailable with a reason instead of failing at import time.
-When the package IS present, ``get_pipeline(name)`` will construct the
-adapter; the first ``run`` then needs the model files and (for pyannote)
-a Hugging Face token that the adapter reads from an environment variable
-you choose -- it never embeds one.
+Status (docs/pipeline.md §2, §8, §11), 2026-09-25:
+
+* ``FasterWhisperTranscriber`` HAS run against the installed faster-whisper
+  1.2.1 with the pinned ``small.en`` CTranslate2 weights
+  (pipeline/model_store.py); its API use was checked against that release
+  (review finding PIPE-05) and tests/test_pipeline_models.py runs it on AMI
+  audio when the weights are present.  It is used by the ``faster-whisper``
+  and ``faster-whisper+pyannote`` entries here and by ``whisper-sherpa``
+  (pipeline/whisper_sherpa.py).  Every model name is resolved to a LOCAL
+  directory before ``WhisperModel`` sees it (``resolve_fw_model``), so the
+  library never downloads on its own: a pinned name needs
+  ``python -m pipeline fetch-models``, any other name needs the Hugging Face
+  cache or an explicit ``allow_download=true``.  The files loaded are hashed
+  and recorded in ``hyp.extra["models"]``.
+* The pyannote.audio, whisperx and SpeechBrain adapters are still UNTESTED
+  against a model: those packages are not installed and their default
+  pyannote pipelines are gated.  Each is written against the package's
+  documented public API (cited per class, from the READMEs as remembered
+  offline), imports lazily, and the registry reports it as unavailable with a
+  reason instead of failing at import time.  Their own logic (output
+  normalisation across library versions, word timing repair, parameter
+  plumbing) IS tested against stand-in modules in
+  tests/test_pipeline_adapters.py.  For gated models they read a Hugging
+  Face token from an environment variable you choose; they never embed one.
 
 All parameter defaults below are HARNESS_POLICY.
 """
@@ -17,15 +32,20 @@ from __future__ import annotations
 
 import importlib
 import os
+import time
+from dataclasses import fields
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 
 from .base import (
+    ASSIGNMENT_RULE,
+    COMMON_AUDIO_PARAMS,
     ComposedPipeline,
     Diarizer,
     Hypothesis,
+    ParamError,
     Pipeline,
     PipelineConfig,
     PipelineUnavailable,
@@ -33,12 +53,27 @@ from .base import (
     Transcriber,
     Turn,
     assign_speakers,
+    audio_provenance,
     make_segment,
     normalize_text,
+    num_speakers_param,
     register,
     sort_segments,
 )
-from .energy_vad import EnergyVadClusterDiarizer
+from .energy_vad import (
+    DIARIZER_PARAMS,
+    ClusterParams,
+    EnergyVadClusterDiarizer,
+    VadParams,
+    _coerce,
+    _relabel_by_first_appearance,
+    cell_windows,
+    chunk_regions,
+    cluster_embeddings,
+    energy_vad,
+    mask_to_regions,
+    smooth_turns,
+)
 
 
 def _missing(module: str) -> str | None:
@@ -55,60 +90,212 @@ def _missing_any(*modules: str) -> str | None:
     return "; ".join(reasons) if reasons else None
 
 
+def _major_version(dist: str) -> int | None:
+    """Installed distribution's major version, or None when unknown."""
+    try:
+        from importlib.metadata import version
+
+        return int(version(dist).split(".")[0])
+    except Exception:
+        return None
+
+
 # --- faster-whisper -----------------------------------------------------------
+
+#: ``--param`` keys read by the faster-whisper transcriber factories.
+FASTER_WHISPER_PARAMS = frozenset(
+    {"model", "device", "compute_type", "language", "beam_size", "vad_filter", "cpu_threads"}
+)
+
+#: Extra ``--param`` of the entries that accept library model names
+#: (``faster-whisper``, ``faster-whisper+pyannote``; not ``whisper-sherpa``).
+FW_DOWNLOAD_PARAM = "allow_download"
+
+#: HARNESS_POLICY: the default ASR model, an English-only CTranslate2 Whisper
+#: small enough for an 8 GB machine; ``model=`` may also name a pinned asset
+#: key, a local CTranslate2 directory, or (legacy entries only) a size/repo
+#: name faster-whisper knows, taken from the Hugging Face cache.
+DEFAULT_FW_MODEL = "small.en"
+
+#: model names that resolve to a pinned asset in pipeline.model_store.
+FW_MODEL_ALIASES = {"small.en": "faster-whisper-small.en"}
+
+
+def resolve_fw_model(
+    name: str, *, allow_library_names: bool = True, allow_download: bool = False
+) -> tuple[str, dict[str, Any]]:
+    """``(local directory WhisperModel is given, provenance of its bytes)``.
+
+    Every accepted name becomes a local directory BEFORE ``WhisperModel``
+    sees it, so faster-whisper never downloads on its own (HARNESS_POLICY):
+
+    * a pinned asset key or alias (``small.en``): its fetched copy, every
+      file sha256-checked against the pin (``model_store.require``).
+      Unfetched or mismatched is ``PipelineUnavailable`` naming
+      ``python -m pipeline fetch-models``; a pinned name is never handed to
+      the library's own downloader, with or without ``allow_download``.
+    * an existing directory: used as is; its files are hashed
+      (``model_store.describe_local``) and recorded as unpinned.
+    * any other string (``tiny``, ``base.en``, ``org/repo``), only when
+      ``allow_library_names`` (the legacy entries; ``whisper-sherpa`` refuses
+      it with ParamError): ``faster_whisper.utils.download_model`` resolves
+      it with ``local_files_only=not allow_download`` and
+      ``use_auth_token=False`` (huggingface_hub then sends no stored token).
+      Without ``allow_download`` only a copy already in the Hugging Face
+      cache is used; otherwise PipelineUnavailable.  With it, the download
+      is UNPINNED (the repo's default branch).  The snapshot's files are
+      hashed and recorded as unpinned.
+    """
+    from . import model_store
+
+    key = FW_MODEL_ALIASES.get(name, name)
+    if key in model_store.ASSETS and model_store.ASSETS[key].kind == "asr":
+        path, prov = model_store.require(key)
+        return str(path), prov
+    p = Path(name).expanduser()
+    if p.is_dir():
+        return str(p), model_store.describe_local(p)
+    if not allow_library_names:
+        raise ParamError(
+            f"model {name!r} is neither a pinned asset ({', '.join(sorted(FW_MODEL_ALIASES))} or "
+            f"{', '.join(k for k, a in sorted(model_store.ASSETS.items()) if a.kind == 'asr')}) "
+            "nor a local CTranslate2 directory"
+        )
+    try:
+        from faster_whisper.utils import available_models, download_model  # type: ignore[import-not-found]
+    except Exception as exc:
+        raise PipelineUnavailable(f"cannot resolve model name {name!r}: faster_whisper.utils not importable ({exc})") from exc
+    if "/" not in name and name not in available_models():
+        raise ParamError(
+            f"model {name!r} is not a pinned asset, a local CTranslate2 directory, a faster-whisper size "
+            f"({', '.join(available_models())}) or an org/repo id"
+        )
+    try:
+        local = download_model(name, local_files_only=not allow_download, use_auth_token=False)
+    except Exception as exc:  # huggingface_hub: not cached (local_files_only), network, HTTP
+        if allow_download:
+            raise PipelineUnavailable(f"model {name!r} could not be downloaded ({type(exc).__name__}: {exc})") from exc
+        raise PipelineUnavailable(
+            f"model {name!r} is not in the local Hugging Face cache ({type(exc).__name__}); nothing is downloaded "
+            f"implicitly: pass a local CTranslate2 directory, the pinned {DEFAULT_FW_MODEL!r} "
+            f"(python -m pipeline fetch-models), or {FW_DOWNLOAD_PARAM}=true to let faster-whisper fetch it "
+            "(unpinned, no token)"
+        ) from exc
+    prov = model_store.describe_local(local)
+    prov.update({"name": name, "source": "faster_whisper.utils.download_model (Hugging Face cache, unpinned)",
+                 FW_DOWNLOAD_PARAM: bool(allow_download)})
+    return str(local), prov
+
+
+def whisper_words(raw_words: Any, duration_s: float | None = None) -> list[dict[str, Any]]:
+    """faster-whisper ``Word`` objects -> contract words (HARNESS_POLICY).
+
+    * text: ``normalize_text``; a word that normalises to nothing (pure
+      punctuation) is dropped; one that normalises to several tokens has its
+      interval split equally between them (the evals layer's rule);
+    * times: clipped to ``[0, duration_s]`` and ``end >= start``.
+    """
+    out: list[dict[str, Any]] = []
+    for w in raw_words or []:
+        toks = normalize_text(str(w.word)).split()
+        if not toks:
+            continue
+        start, end = float(w.start), float(w.end)
+        if duration_s is not None:
+            start = min(max(0.0, start), duration_s)
+            end = min(max(0.0, end), duration_s)
+        start = max(0.0, start)
+        end = max(start, end)
+        step = (end - start) / len(toks)
+        for i, t in enumerate(toks):
+            out.append({"w": t, "start": start + i * step, "end": start + (i + 1) * step if i + 1 < len(toks) else end})
+    return out
 
 
 class FasterWhisperTranscriber(Transcriber):
-    """faster-whisper (SYSTRAN) transcriber.  UNTESTED here.
+    """faster-whisper (SYSTRAN) transcriber.
 
-    Documented API (faster-whisper README, "Usage"):
-        model = WhisperModel(model_size_or_path, device="cpu", compute_type="int8")
-        segments, info = model.transcribe(audio, beam_size=5, word_timestamps=True,
-                                          language=None, vad_filter=False)
-    ``audio`` may be a float32 numpy array at 16 kHz.  Each segment has
-    ``.start .end .text`` and ``.words`` -> ``Word(start, end, word, probability)``.
+    Checked against the installed faster-whisper 1.2.1 (docs/pipeline.md
+    §11; requirements/models.txt):
+        model = WhisperModel(model_size_or_path, device="cpu", compute_type="int8",
+                             cpu_threads=0, download_root=None, local_files_only=False, ...)
+        segments, info = model.transcribe(audio, language=None, beam_size=5,
+                                          word_timestamps=True, vad_filter=False, ...)
+    ``audio`` is a float32 numpy array at 16 kHz.  ``segments`` is a lazy
+    generator (decoding happens while it is consumed); each segment has
+    ``.start .end .text .words`` and each word is ``Word(start, end, word,
+    probability)`` with the word's leading space and punctuation attached.
+    ``info`` is a ``TranscriptionInfo`` (``language``,
+    ``language_probability``, ``duration``, ``duration_after_vad``, ...);
+    the fields used are copied to ``last_info``.
     """
 
     name = "faster-whisper"
 
     def __init__(
         self,
-        model: str = "base",
+        model: str = DEFAULT_FW_MODEL,
         device: str = "cpu",
         compute_type: str = "int8",
         language: str | None = None,
         beam_size: int = 5,
         vad_filter: bool = False,
+        cpu_threads: int | None = None,
+        *,
+        allow_library_names: bool = True,
+        allow_download: bool = False,
     ) -> None:
         reason = _missing("faster_whisper")
         if reason:
             raise PipelineUnavailable(reason)
         from faster_whisper import WhisperModel  # type: ignore[import-not-found]
 
-        self.model = WhisperModel(model, device=device, compute_type=compute_type)
+        # Always a local directory (resolve_fw_model), so WhisperModel never downloads.
+        path, provenance = resolve_fw_model(
+            str(model), allow_library_names=allow_library_names, allow_download=allow_download
+        )
+        kwargs: dict[str, Any] = {"device": device, "compute_type": compute_type}
+        if cpu_threads is not None:  # 0 = the library's default (4 threads)
+            kwargs["cpu_threads"] = int(cpu_threads)
+        self.model = WhisperModel(path, **kwargs)
+        self.model_name = str(model)
+        self.model_provenance = provenance
         self.language = language
         self.beam_size = beam_size
         self.vad_filter = vad_filter
+        self.settings = {"model": str(model), "device": device, "compute_type": compute_type, "language": language,
+                         "beam_size": beam_size, "vad_filter": vad_filter, "cpu_threads": cpu_threads,
+                         "word_timestamps": True}
+        self.last_info: dict[str, Any] = {}
 
     def transcribe(self, pcm: np.ndarray, sample_rate: int) -> list[Segment]:
         if sample_rate != 16000:
             raise PipelineUnavailable("faster-whisper expects 16 kHz input; load with sample_rate=16000")
-        segments, _info = self.model.transcribe(
-            np.asarray(pcm, dtype=np.float32),
+        x = np.asarray(pcm, dtype=np.float32)
+        duration = len(x) / float(sample_rate)
+        segments, info = self.model.transcribe(
+            x,
             beam_size=self.beam_size,
             word_timestamps=True,
             language=self.language,
             vad_filter=self.vad_filter,
         )
         out: list[Segment] = []
-        for s in segments:
-            words = [
-                {"w": normalize_text(w.word), "start": float(w.start), "end": float(w.end)}
-                for w in (s.words or [])
-                if normalize_text(w.word)
-            ]
+        for s in segments:  # consuming the generator is what runs the decoder
+            words = whisper_words(getattr(s, "words", None), duration)
             text = " ".join(w["w"] for w in words) if words else normalize_text(s.text)
-            out.append(make_segment_no_speaker(float(s.start), float(s.end), text, words))
+            if not text:
+                continue
+            start = min(max(0.0, float(s.start)), duration)
+            end = min(max(start, float(s.end)), duration)
+            out.append(make_segment_no_speaker(start, end, text, words))
+        self.last_info = {
+            k: (float(v) if isinstance(v, (int, float, np.floating)) and not isinstance(v, bool) else v)
+            for k, v in ((k, getattr(info, k, None)) for k in ("language", "language_probability", "duration", "duration_after_vad"))
+            if v is not None
+        }
+        self.last_info["n_segments"] = len(out)
+        self.last_info["n_words"] = sum(len(s["words"]) for s in out)
         return out
 
 
@@ -116,47 +303,197 @@ def make_segment_no_speaker(start: float, end: float, text: str, words: list[dic
     return {"start": float(start), "end": float(end), "text": text, "words": words}
 
 
+def _faster_whisper_from_params(p: dict[str, Any], **defaults: Any) -> FasterWhisperTranscriber:
+    """Build the transcriber from ``--param`` values; ``defaults`` override
+    the class defaults for one registry entry (HARNESS_POLICY per entry)."""
+    allow = bool(defaults.pop("allow_library_names", True))
+    d = {"model": DEFAULT_FW_MODEL, "device": "cpu", "compute_type": "int8", "language": None,
+         "beam_size": 5, "vad_filter": False, "cpu_threads": None, **defaults}
+    download = p.get(FW_DOWNLOAD_PARAM, False)
+    if not isinstance(download, bool):
+        raise ParamError(f"{FW_DOWNLOAD_PARAM} must be true or false, got {download!r}")
+    beam = p.get("beam_size", d["beam_size"])
+    if isinstance(beam, bool) or not isinstance(beam, int) or beam < 1:
+        raise ParamError(f"beam_size must be a positive integer, got {beam!r}")
+    threads = p.get("cpu_threads", d["cpu_threads"])
+    if threads is not None and (isinstance(threads, bool) or not isinstance(threads, int) or threads < 0):
+        raise ParamError(f"cpu_threads must be an integer >= 0, got {threads!r}")
+    vad = p.get("vad_filter", d["vad_filter"])
+    if not isinstance(vad, bool):
+        raise ParamError(f"vad_filter must be true or false, got {vad!r}")
+    lang = p.get("language", d["language"])
+    return FasterWhisperTranscriber(
+        model=str(p.get("model", d["model"])),
+        device=str(p.get("device", d["device"])),
+        compute_type=str(p.get("compute_type", d["compute_type"])),
+        language=None if lang is None else str(lang),
+        beam_size=beam,
+        vad_filter=vad,
+        cpu_threads=threads,
+        allow_library_names=allow,
+        allow_download=download,
+    )
+
+
+class ModelComposedPipeline(ComposedPipeline):
+    """ComposedPipeline that also records model provenance (the sha256 of the
+    files actually loaded, ``model_store.require``/``describe_local``),
+    component settings, the raw diarization turns, assignment counts and
+    wall-clock timing in ``hyp.extra``, so a hypothesis says which weights
+    made it and how fast.  Timing makes hyp.json differ between runs; the
+    segments do not depend on it.  ``model_load_s`` (set by the factory)
+    includes hashing the weights."""
+
+    def __init__(
+        self,
+        transcriber: Transcriber | None,
+        diarizer: Diarizer | None,
+        config: PipelineConfig | None = None,
+        name: str | None = None,
+        load_s: float = 0.0,
+    ) -> None:
+        super().__init__(transcriber, diarizer, config, name=name)
+        self.load_s = float(load_s)
+
+    def run(self, audio_path: str | Path, meeting_dir: str | Path | None = None) -> Hypothesis:
+        num = num_speakers_param(self.config.param("num_speakers"))
+        audio = self.load(audio_path)
+        meeting = self.find_meeting(audio_path, meeting_dir)
+        meeting_id = str(meeting["meeting_id"]) if meeting is not None else Path(audio_path).stem
+        problems = self.check_audio(audio, meeting)
+        timing: dict[str, float] = {"model_load_s": self.load_s}
+        turns: list[Turn] = []
+        if self.diarizer is not None:
+            t0 = time.perf_counter()
+            turns = list(self.diarizer.diarize(audio.pcm, audio.sample_rate, num_speakers=num))
+            timing["diarization_s"] = time.perf_counter() - t0
+        stats: dict[str, Any] = {}
+        if self.transcriber is None:
+            segments = sort_segments([make_segment(spk, t0, t1, "") for t0, t1, spk in turns])
+        else:
+            t0 = time.perf_counter()
+            asr = self.transcriber.transcribe(audio.pcm, audio.sample_rate)
+            timing["asr_s"] = time.perf_counter() - t0
+            t0 = time.perf_counter()
+            segments = assign_speakers(asr, turns, stats=stats)
+            timing["assign_s"] = time.perf_counter() - t0
+        timing["audio_s"] = audio.duration_s
+        compute = sum(v for k, v in timing.items() if k.endswith("_s") and k not in ("audio_s", "model_load_s"))
+        timing["rtf"] = compute / audio.duration_s if audio.duration_s > 0 else float("nan")
+        extra: dict[str, Any] = {
+            "audio": audio_provenance(audio, problems),
+            "components": {
+                "transcriber": getattr(self.transcriber, "name", None),
+                "diarizer": getattr(self.diarizer, "name", None),
+            },
+            "models": {},
+            "timing": timing,
+        }
+        if self.transcriber is not None:
+            extra["models"]["asr"] = getattr(self.transcriber, "model_provenance", None)
+            extra["asr"] = {"settings": getattr(self.transcriber, "settings", {}), **getattr(self.transcriber, "last_info", {})}
+            extra["assignment"] = {"rule": ASSIGNMENT_RULE, **stats}
+        if self.diarizer is not None:
+            models = getattr(self.diarizer, "models", None)
+            if isinstance(models, dict):
+                extra["models"].update(models)
+            extra["diarization"] = {
+                "settings": getattr(self.diarizer, "settings", {}),
+                **getattr(self.diarizer, "last_info", {}),
+                "turns": [[t0, t1, spk] for t0, t1, spk in turns],
+            }
+        return Hypothesis(meeting_id=meeting_id, system=self.config.name or self.name, segments=segments, extra=extra).validate()
+
+
+def _timed(build: Callable[[], Any]) -> tuple[Any, float]:
+    t0 = time.perf_counter()
+    obj = build()
+    return obj, time.perf_counter() - t0
+
+
 # --- pyannote.audio -----------------------------------------------------------
+
+#: ``--param`` keys read by the pyannote diarizer factories.
+PYANNOTE_PARAMS = frozenset({"diarization_model", "token_env", "device"})
+
+#: HARNESS_POLICY default pipelines per pyannote.audio major version: 4.x's
+#: README points at the open "community-1" pipeline, 3.x's at "3.1".
+PYANNOTE_DEFAULT_MODELS = {3: "pyannote/speaker-diarization-3.1", 4: "pyannote/speaker-diarization-community-1"}
+
+
+def default_pyannote_model() -> str:
+    major = _major_version("pyannote.audio")
+    if major is not None and major >= 4:
+        return PYANNOTE_DEFAULT_MODELS[4]
+    return PYANNOTE_DEFAULT_MODELS[3]
+
+
+def pyannote_annotation(output: Any, *, exclusive: bool = False) -> Any:
+    """The ``pyannote.core.Annotation`` inside a pipeline's output.
+
+    pyannote.audio 3.x returns the Annotation itself.  4.x returns an output
+    object whose ``.speaker_diarization`` (overlap-aware) and
+    ``.exclusive_speaker_diarization`` (one speaker at a time -- what word
+    attribution wants) are Annotations.  ``exclusive`` picks the latter
+    when present.
+    """
+    if exclusive and getattr(output, "exclusive_speaker_diarization", None) is not None:
+        return output.exclusive_speaker_diarization
+    if getattr(output, "speaker_diarization", None) is not None:
+        return output.speaker_diarization
+    if hasattr(output, "itertracks"):
+        return output
+    raise PipelineUnavailable(
+        f"pyannote pipeline returned {type(output).__name__}, which has neither .itertracks nor "
+        ".speaker_diarization; unsupported pyannote.audio version"
+    )
 
 
 class PyannoteDiarizer(Diarizer):
-    """pyannote.audio speaker-diarization pipeline.  UNTESTED here.
+    """pyannote.audio speaker-diarization pipeline.  UNTESTED here against a model.
 
-    Documented API (pyannote.audio README / pipeline docs, 3.x):
-        from pyannote.audio import Pipeline
-        pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1",
-                                            use_auth_token=HF_TOKEN)
-        diarization = pipeline({"waveform": torch.Tensor[1, n], "sample_rate": sr},
-                               num_speakers=None | int)
-        for turn, _, speaker in diarization.itertracks(yield_label=True): ...
-    The token is read from the env var named by ``token_env`` (default
-    ``HF_TOKEN``); it is never stored in this repo.
+    Documented API (pyannote.audio README):
+      4.x: pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-community-1", token=HF_TOKEN)
+           output = pipeline(file_or_{"waveform", "sample_rate"}, num_speakers=None | int)
+           for turn, speaker in output.speaker_diarization: ...
+      3.x: pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=HF_TOKEN)
+           diarization = pipeline({"waveform": torch.Tensor[1, n], "sample_rate": sr}, num_speakers=...)
+           for turn, _, speaker in diarization.itertracks(yield_label=True): ...
+    ``from_pretrained`` is tried with ``token=`` first and ``use_auth_token=``
+    on TypeError; the output is normalised by ``pyannote_annotation``.  The
+    token is read from the env var named by ``token_env`` (default
+    ``HF_TOKEN``); it is never stored in this repo.  Both default models are
+    gated on Hugging Face (accept their terms first).
     """
 
     name = "pyannote-audio"
 
     def __init__(
         self,
-        model: str = "pyannote/speaker-diarization-3.1",
+        model: str | None = None,
         token_env: str = "HF_TOKEN",
         device: str | None = None,
+        exclusive: bool = False,
     ) -> None:
         reason = _missing_any("pyannote.audio", "torch")
         if reason:
             raise PipelineUnavailable(reason)
         from pyannote.audio import Pipeline as PAPipeline  # type: ignore[import-not-found]
 
+        model = model or default_pyannote_model()
         token = os.environ.get(token_env) or None
         try:
-            self.pipeline = PAPipeline.from_pretrained(model, use_auth_token=token)
-        except TypeError:  # newer releases renamed the kwarg
             self.pipeline = PAPipeline.from_pretrained(model, token=token)
+        except TypeError:  # pyannote.audio < 4 names the kwarg use_auth_token
+            self.pipeline = PAPipeline.from_pretrained(model, use_auth_token=token)
         if self.pipeline is None:
             raise PipelineUnavailable(f"pyannote could not load {model!r} (token in ${token_env}?)")
         if device:
             import torch  # type: ignore[import-not-found]
 
             self.pipeline.to(torch.device(device))
+        self.model_name = model
+        self.exclusive = exclusive
 
     def diarize(self, pcm: np.ndarray, sample_rate: int, num_speakers: int | None = None) -> list[Turn]:
         import torch  # type: ignore[import-not-found]
@@ -165,18 +502,105 @@ class PyannoteDiarizer(Diarizer):
         kwargs: dict[str, Any] = {}
         if num_speakers is not None:
             kwargs["num_speakers"] = int(num_speakers)
-        ann = self.pipeline({"waveform": waveform, "sample_rate": int(sample_rate)}, **kwargs)
+        out = self.pipeline({"waveform": waveform, "sample_rate": int(sample_rate)}, **kwargs)
+        ann = pyannote_annotation(out, exclusive=self.exclusive)
         turns: list[Turn] = []
         for turn, _, speaker in ann.itertracks(yield_label=True):
             turns.append((float(turn.start), float(turn.end), str(speaker)))
         return sorted(turns)
 
 
+def _pyannote_from_params(p: dict[str, Any], *, exclusive: bool) -> PyannoteDiarizer:
+    return PyannoteDiarizer(
+        model=p.get("diarization_model"),
+        token_env=str(p.get("token_env", "HF_TOKEN")),
+        device=p.get("device"),
+        exclusive=exclusive,
+    )
+
+
 # --- whisperx -----------------------------------------------------------------
+
+#: ``--param`` keys read by the whisperx pipeline.
+WHISPERX_PARAMS = frozenset({"device", "model", "compute_type", "batch_size", "token_env"})
+
+
+def repair_word_times(
+    words: list[dict[str, Any]], seg_start: float, seg_end: float, default_speaker: str | None
+) -> tuple[list[dict[str, Any]], int]:
+    """Give every word a time and a speaker; return (words, n_interpolated).
+
+    whisperx's aligner leaves tokens with no characters in the alignment
+    model's dictionary (typically numerals like ``2024``) without
+    ``start``/``end`` (whisperx README, "Limitations").  Dropping them would
+    charge the system a deletion the ASR did not make.  HARNESS_POLICY: a run
+    of unaligned words is spread uniformly between the previous aligned
+    word's end (or the segment start) and the next aligned word's start (or
+    the segment end), and takes the previous aligned word's speaker (else the
+    next's, else the segment's).
+    """
+    out = [dict(w) for w in words]
+    timed = {i for i, w in enumerate(out) if "start" in w and "end" in w}
+    n_interp = 0
+    i = 0
+    while i < len(out):
+        if i in timed:
+            i += 1
+            continue
+        j = i
+        while j < len(out) and j not in timed:
+            j += 1
+        prev = out[i - 1] if i > 0 else None
+        nxt = out[j] if j < len(out) else None
+        t0 = float(prev["end"]) if prev is not None else float(seg_start)
+        t1 = float(nxt["start"]) if nxt is not None else float(seg_end)
+        t1 = max(t0, t1)
+        step = (t1 - t0) / (j - i)
+        spk = (prev or {}).get("speaker") or (nxt or {}).get("speaker") or default_speaker
+        for k in range(i, j):
+            out[k]["start"] = round(t0 + (k - i) * step, 6)
+            out[k]["end"] = round(t0 + (k - i + 1) * step, 6)
+            if spk is not None and not out[k].get("speaker"):
+                out[k]["speaker"] = spk
+            n_interp += 1
+        i = j
+    return out, n_interp
+
+
+def whisperx_segments(result: dict[str, Any], fallback_speaker: str = "spk0") -> tuple[list[Segment], int]:
+    """whisperx ``assign_word_speakers`` output -> contract segments; returns
+    (segments, number of interpolated words)."""
+    segments: list[Segment] = []
+    n_interp = 0
+    for s in result.get("segments", []):
+        spk_default = str(s.get("speaker") or fallback_speaker)
+        raw = [w for w in s.get("words", []) or [] if normalize_text(str(w.get("word", "")))]
+        raw, n = repair_word_times(raw, float(s["start"]), float(s["end"]), spk_default)
+        n_interp += n
+        words = [
+            {"w": normalize_text(str(w["word"])), "start": float(w["start"]), "end": float(w["end"]),
+             "speaker": str(w.get("speaker") or spk_default)}
+            for w in raw
+        ]
+        if not words:
+            text = normalize_text(s.get("text", ""))
+            if text:
+                segments.append(make_segment(spk_default, s["start"], s["end"], text))
+            continue
+        runs: list[tuple[str, list[dict[str, Any]]]] = []
+        for w in words:
+            if runs and runs[-1][0] == w["speaker"]:
+                runs[-1][1].append(w)
+            else:
+                runs.append((w["speaker"], [w]))
+        for spk, ws in runs:
+            clean = [{"w": w["w"], "start": w["start"], "end": w["end"]} for w in ws]
+            segments.append(make_segment(spk, clean[0]["start"], clean[-1]["end"], " ".join(w["w"] for w in clean), clean))
+    return sort_segments(segments), n_interp
 
 
 class WhisperXPipeline(Pipeline):
-    """whisperx end-to-end (ASR + alignment + diarization).  UNTESTED here.
+    """whisperx end-to-end (ASR + alignment + diarization).  UNTESTED here against a model.
 
     Documented API (whisperx README, "Python usage"):
         model = whisperx.load_model("large-v2", device, compute_type="float16")
@@ -185,11 +609,13 @@ class WhisperXPipeline(Pipeline):
         result = whisperx.align(result["segments"], model_a, metadata, audio, device,
                                 return_char_alignments=False)
         diarize_model = whisperx.DiarizationPipeline(use_auth_token=HF_TOKEN, device=device)
-          (>= 3.3: whisperx.diarize.DiarizationPipeline)
+          (>= 3.3: whisperx.diarize.DiarizationPipeline; the kwarg is tried as
+          ``use_auth_token`` then ``token``)
         diarize_segments = diarize_model(audio, min_speakers=..., max_speakers=...)
         result = whisperx.assign_word_speakers(diarize_segments, result)
         result["segments"][i] -> {"start","end","text","speaker","words":[{"word","start","end","speaker"}]}
     ``audio`` is a float32 numpy array at 16 kHz (whisperx.load_audio's shape).
+    Words the aligner could not time are kept (``repair_word_times``).
     """
 
     name = "whisperx"
@@ -211,53 +637,161 @@ class WhisperXPipeline(Pipeline):
         self.token = os.environ.get(str(p.get("token_env", "HF_TOKEN"))) or None
         self.model = whisperx.load_model(self.model_name, self.device, compute_type=self.compute_type)
 
+    def _diarization_pipeline(self) -> Any:
+        wx = self.whisperx
+        cls = getattr(wx, "DiarizationPipeline", None)
+        if cls is None:
+            cls = importlib.import_module("whisperx.diarize").DiarizationPipeline
+        try:
+            return cls(use_auth_token=self.token, device=self.device)
+        except TypeError:  # a release that follows pyannote.audio 4's token= rename
+            return cls(token=self.token, device=self.device)
+
     def run(self, audio_path: str | Path, meeting_dir: str | Path | None = None) -> Hypothesis:
         wx = self.whisperx
+        num = num_speakers_param(self.config.param("num_speakers"))
         audio = self.load(audio_path)
         if audio.sample_rate != 16000:
             raise PipelineUnavailable("whisperx expects 16 kHz input; load with sample_rate=16000")
-        meeting_id = self.resolve_meeting_id(audio_path, meeting_dir)
+        meeting = self.find_meeting(audio_path, meeting_dir)
+        meeting_id = str(meeting["meeting_id"]) if meeting is not None else Path(audio_path).stem
+        problems = self.check_audio(audio, meeting)
         pcm = np.asarray(audio.pcm, dtype=np.float32)
         result = self.model.transcribe(pcm, batch_size=self.batch_size)
         model_a, metadata = wx.load_align_model(language_code=result["language"], device=self.device)
         result = wx.align(result["segments"], model_a, metadata, pcm, self.device, return_char_alignments=False)
-        diarize_cls = getattr(wx, "DiarizationPipeline", None)
-        if diarize_cls is None:
-            diarize_cls = importlib.import_module("whisperx.diarize").DiarizationPipeline
-        diarize_model = diarize_cls(use_auth_token=self.token, device=self.device)
-        num = self.config.param("num_speakers")
+        diarize_model = self._diarization_pipeline()
         kwargs = {"min_speakers": num, "max_speakers": num} if num is not None else {}
         diarize_segments = diarize_model(pcm, **kwargs)
         result = wx.assign_word_speakers(diarize_segments, result)
-        segments: list[Segment] = []
-        for s in result["segments"]:
-            words = [
-                {"w": normalize_text(w["word"]), "start": float(w["start"]), "end": float(w["end"]),
-                 "speaker": w.get("speaker")}
-                for w in s.get("words", [])
-                if "start" in w and normalize_text(w.get("word", ""))
-            ]
-            spk_default = str(s.get("speaker") or "spk0")
-            # group consecutive words by speaker, exactly like assign_speakers does
-            runs: list[tuple[str, list[dict[str, Any]]]] = []
-            for w in words:
-                spk = str(w.get("speaker") or spk_default)
-                if runs and runs[-1][0] == spk:
-                    runs[-1][1].append(w)
-                else:
-                    runs.append((spk, [w]))
-            if not runs:
-                segments.append(make_segment(spk_default, s["start"], s["end"], normalize_text(s.get("text", ""))))
-                continue
-            for spk, ws in runs:
-                clean = [{"w": w["w"], "start": w["start"], "end": w["end"]} for w in ws]
-                segments.append(make_segment(spk, clean[0]["start"], clean[-1]["end"], " ".join(w["w"] for w in clean), clean))
+        segments, n_interp = whisperx_segments(result)
         return Hypothesis(
             meeting_id=meeting_id,
             system=self.config.name or self.name,
-            segments=sort_segments(segments),
-            extra={"components": {"whisperx_model": self.model_name}},
+            segments=segments,
+            extra={
+                "audio": audio_provenance(audio, problems),
+                "components": {"whisperx_model": self.model_name},
+                "whisperx": {"interpolated_words": n_interp},
+            },
         ).validate()
+
+
+# --- embedding-cluster: a pretrained speaker-embedding model + our clustering ----------
+
+#: ``--param`` keys of the embedding-cluster diarizer: the energy VAD, the cell
+#: and clustering keys that apply to any embedding, and the backend's own.
+EMBEDDING_CLUSTER_PARAMS = frozenset(
+    {f.name for f in fields(VadParams)}
+    | ({f.name for f in fields(ClusterParams)} - {"f0_weight", "min_voiced_frames", "octave_fix_frac"})
+    | {"embedding_model", "embedding_savedir", "device", "batch_windows"}
+)
+
+#: HARNESS_POLICY, UNCALIBRATED: the distance guard in COSINE distance for
+#: neural embeddings.  Tune on a dev split once a model is installed.
+EMBEDDING_DISTANCE_THRESHOLD = 0.5
+
+Embedder = Callable[[list[np.ndarray], int], np.ndarray]
+
+
+class EmbeddingClusterDiarizer(Diarizer):
+    """Energy VAD + cells/windows + ``cluster_embeddings`` over the vectors of
+    any speaker-embedding function ``embed(list_of_pcm_windows, sr) -> (n, d)``.
+
+    This is the seam for an UNGATED pretrained speaker-embedding model, so
+    diarization works without Hugging Face gating: it reuses exactly the VAD,
+    cell/window layout, speaker-count estimate (cosine distance) and
+    smoothing of ``energy-vad-cluster``.  Tested here with a stand-in
+    embedder; no model has been run.
+    """
+
+    name = "embedding-cluster"
+
+    def __init__(self, embed: Embedder, vad: VadParams | None = None, cluster: ClusterParams | None = None) -> None:
+        self.embed = embed
+        self.vad = vad or VadParams()
+        self.cluster = cluster or ClusterParams(distance_threshold=EMBEDDING_DISTANCE_THRESHOLD, f0_weight=0.0)
+        self.last_info: dict[str, Any] = {}
+
+    def diarize(self, pcm: np.ndarray, sample_rate: int, num_speakers: int | None = None) -> list[Turn]:
+        c = self.cluster
+        vad_info: dict[str, Any] = {}
+        mask, hop_s = energy_vad(pcm, sample_rate, self.vad, info=vad_info)
+        regions = mask_to_regions(mask, hop_s)
+        cells = chunk_regions(regions, c.chunk_s, c.min_chunk_s)
+        windows = cell_windows(regions, cells, max(c.window_s, c.chunk_s))
+        count: dict[str, Any] = {}
+        labels = np.zeros(len(cells), dtype=int)
+        if cells:
+            x = np.asarray(pcm, dtype=np.float32)
+            clips = [x[int(round(a * sample_rate)) : max(int(round(b * sample_rate)), int(round(a * sample_rate)) + 1)] for a, b in windows]
+            emb = np.asarray(self.embed(clips, sample_rate), dtype=np.float64)
+            if emb.shape[0] != len(clips):
+                raise PipelineUnavailable(f"embedder returned {emb.shape[0]} vectors for {len(clips)} windows")
+            labels = cluster_embeddings(emb, num_speakers=num_speakers, params=c, metric="cosine", info=count)
+        raw: list[Turn] = [(a, b, f"c{int(l)}") for (a, b), l in zip(cells, labels)]
+        turns = smooth_turns(raw, min_segment_s=c.min_segment_s, merge_gap_s=c.merge_gap_s)
+        self.last_info = {"vad": vad_info, "count": count, "n_chunks": len(cells), "chunk_s": c.chunk_s}
+        return _relabel_by_first_appearance(turns)
+
+    @staticmethod
+    def params_from(p: dict[str, Any]) -> tuple[VadParams, ClusterParams]:
+        v = VadParams()
+        c = ClusterParams(distance_threshold=EMBEDDING_DISTANCE_THRESHOLD, f0_weight=0.0)
+        for obj in (v, c):
+            for f in fields(obj):
+                if f.name in p and f.name in EMBEDDING_CLUSTER_PARAMS:
+                    setattr(obj, f.name, _coerce(f.name, getattr(obj, f.name), p[f.name]))
+        return v, c
+
+
+def speechbrain_ecapa_embedder(
+    source: str = "speechbrain/spkrec-ecapa-voxceleb",
+    savedir: str | None = None,
+    device: str = "cpu",
+    batch_windows: int = 32,
+) -> Embedder:
+    """SpeechBrain ECAPA-TDNN speaker embeddings.  UNTESTED here (no model).
+
+    Documented API (SpeechBrain >= 1.0; ``speechbrain.pretrained`` before 1.0):
+        from speechbrain.inference.speaker import EncoderClassifier
+        classifier = EncoderClassifier.from_hparams(source=..., savedir=..., run_opts={"device": ...})
+        emb = classifier.encode_batch(wavs, wav_lens)   # wavs [batch, time] @ 16 kHz -> [batch, 1, 192]
+    ``wav_lens`` are relative lengths in (0, 1].  The default model is
+    published ungated on Hugging Face (licence per its model card; check it
+    before use).
+    """
+    reason = _missing_any("speechbrain", "torch")
+    if reason:
+        raise PipelineUnavailable(reason)
+    import torch  # type: ignore[import-not-found]
+
+    try:
+        from speechbrain.inference.speaker import EncoderClassifier  # type: ignore[import-not-found]
+    except ImportError:  # SpeechBrain < 1.0
+        from speechbrain.pretrained import EncoderClassifier  # type: ignore[import-not-found]
+    kw: dict[str, Any] = {"source": source, "run_opts": {"device": device}}
+    if savedir:
+        kw["savedir"] = savedir
+    classifier = EncoderClassifier.from_hparams(**kw)
+
+    def embed(clips: list[np.ndarray], sample_rate: int) -> np.ndarray:
+        if sample_rate != 16000:
+            raise PipelineUnavailable("the ECAPA embedder expects 16 kHz input")
+        out: list[np.ndarray] = []
+        for i in range(0, len(clips), max(1, batch_windows)):
+            group = clips[i : i + batch_windows]
+            longest = max(len(g) for g in group)
+            batch = np.zeros((len(group), longest), dtype=np.float32)
+            for j, g in enumerate(group):
+                batch[j, : len(g)] = g
+            lens = torch.tensor([len(g) / float(longest) for g in group])
+            with torch.no_grad():
+                e = classifier.encode_batch(torch.from_numpy(batch), lens)
+            out.append(np.asarray(e.squeeze(1).cpu().numpy(), dtype=np.float64))
+        return np.concatenate(out, axis=0)
+
+    return embed
 
 
 # --- registrations ------------------------------------------------------------
@@ -265,66 +799,83 @@ class WhisperXPipeline(Pipeline):
 
 @register(
     "faster-whisper",
-    description="faster-whisper ASR + energy-vad-cluster diarization (UNTESTED here: no models)",
+    description=(
+        "faster-whisper ASR + energy-vad-cluster diarization (model-free diarizer; for real speech use "
+        "whisper-sherpa); the default small.en needs `python -m pipeline fetch-models`, other names the "
+        "HF cache or allow_download=true"
+    ),
     availability=lambda: _missing("faster_whisper"),
+    params=FASTER_WHISPER_PARAMS | {FW_DOWNLOAD_PARAM} | DIARIZER_PARAMS | COMMON_AUDIO_PARAMS,
 )
 def _make_faster_whisper(config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name="faster-whisper")
     p = cfg.params
-    tr = FasterWhisperTranscriber(
-        model=str(p.get("model", "base")),
-        device=str(p.get("device", "cpu")),
-        compute_type=str(p.get("compute_type", "int8")),
-        language=p.get("language"),
-        beam_size=int(p.get("beam_size", 5)),
-        vad_filter=bool(p.get("vad_filter", False)),
-    )
-    return ComposedPipeline(tr, EnergyVadClusterDiarizer.from_params(p), cfg, name="faster-whisper")
+
+    def build() -> tuple[FasterWhisperTranscriber, EnergyVadClusterDiarizer]:
+        diarizer = EnergyVadClusterDiarizer.from_params(
+            p, allow=FASTER_WHISPER_PARAMS | {FW_DOWNLOAD_PARAM} | COMMON_AUDIO_PARAMS
+        )
+        return _faster_whisper_from_params(p), diarizer
+
+    (asr, diarizer), load_s = _timed(build)
+    return ModelComposedPipeline(asr, diarizer, cfg, name="faster-whisper", load_s=load_s)
 
 
 @register(
     "faster-whisper+pyannote",
     description="faster-whisper ASR + pyannote.audio diarization (UNTESTED here: no models)",
     availability=lambda: _missing_any("faster_whisper", "pyannote.audio", "torch"),
+    params=FASTER_WHISPER_PARAMS | {FW_DOWNLOAD_PARAM} | PYANNOTE_PARAMS | COMMON_AUDIO_PARAMS,
 )
 def _make_faster_whisper_pyannote(config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name="faster-whisper+pyannote")
     p = cfg.params
-    tr = FasterWhisperTranscriber(
-        model=str(p.get("model", "base")),
-        device=str(p.get("device", "cpu")),
-        compute_type=str(p.get("compute_type", "int8")),
-        language=p.get("language"),
-        beam_size=int(p.get("beam_size", 5)),
-    )
-    di = PyannoteDiarizer(
-        model=str(p.get("diarization_model", "pyannote/speaker-diarization-3.1")),
-        token_env=str(p.get("token_env", "HF_TOKEN")),
-        device=p.get("device"),
-    )
-    return ComposedPipeline(tr, di, cfg, name="faster-whisper+pyannote")
+    # words are attributed to speakers: use the exclusive (one-at-a-time) timeline
+    (di, asr), load_s = _timed(lambda: (_pyannote_from_params(p, exclusive=True), _faster_whisper_from_params(p)))
+    return ModelComposedPipeline(asr, di, cfg, name="faster-whisper+pyannote", load_s=load_s)
 
 
 @register(
     "pyannote-audio",
     description="pyannote.audio diarization only, no ASR (UNTESTED here: no models)",
     availability=lambda: _missing_any("pyannote.audio", "torch"),
+    params=PYANNOTE_PARAMS | COMMON_AUDIO_PARAMS,
 )
 def _make_pyannote(config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name="pyannote-audio")
-    p = cfg.params
-    di = PyannoteDiarizer(
-        model=str(p.get("diarization_model", "pyannote/speaker-diarization-3.1")),
-        token_env=str(p.get("token_env", "HF_TOKEN")),
-        device=p.get("device"),
-    )
-    return ComposedPipeline(None, di, cfg, name="pyannote-audio")
+    return ComposedPipeline(None, _pyannote_from_params(cfg.params, exclusive=False), cfg, name="pyannote-audio")
 
 
 @register(
     "whisperx",
     description=WhisperXPipeline.description,
     availability=lambda: _missing_any("whisperx", "torch"),
+    params=WHISPERX_PARAMS | COMMON_AUDIO_PARAMS,
 )
 def _make_whisperx(config: PipelineConfig | None = None) -> Pipeline:
     return WhisperXPipeline(config)
+
+
+@register(
+    "embedding-cluster",
+    description=(
+        "energy VAD + SpeechBrain ECAPA speaker embeddings (ungated model) + the model-free "
+        "clustering; no ASR (UNTESTED here: no models)"
+    ),
+    availability=lambda: _missing_any("speechbrain", "torch"),
+    params=EMBEDDING_CLUSTER_PARAMS | COMMON_AUDIO_PARAMS,
+)
+def _make_embedding_cluster(config: PipelineConfig | None = None) -> Pipeline:
+    cfg = config or PipelineConfig(name="embedding-cluster")
+    p = cfg.params
+    v, c = EmbeddingClusterDiarizer.params_from(p)
+    batch = p.get("batch_windows", 32)
+    if isinstance(batch, bool) or not isinstance(batch, int) or batch < 1:
+        raise ParamError(f"batch_windows must be a positive integer, got {batch!r}")
+    embed = speechbrain_ecapa_embedder(
+        source=str(p.get("embedding_model", "speechbrain/spkrec-ecapa-voxceleb")),
+        savedir=p.get("embedding_savedir"),
+        device=str(p.get("device", "cpu")),
+        batch_windows=batch,
+    )
+    return ComposedPipeline(None, EmbeddingClusterDiarizer(embed, v, c), cfg, name="embedding-cluster")

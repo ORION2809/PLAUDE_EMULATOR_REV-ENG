@@ -12,19 +12,28 @@ Two doc-internal inconsistencies are resolved here and recorded:
     `language_probability` -> the mock emits `language_probability`;
   * the prose page (transcription-api-overview.md) shows `segments[].speaker`
     while the OpenAPI shows `results[].speaker_id` -> the mock emits `results`
-    / `speaker_id` (what both templates read: TranscriptionManager.kt:294,
-    PlaudAPIService.swift TranscriptionResult.speakerId).
+    / `speaker_id` (what both templates read: Android reads `data.results` at
+    TranscriptionManager.kt:225 and `speaker_id` at FileDetailActivity.kt:238-239;
+    iOS decodes `speaker_id` into TranscriptionResult.speakerId,
+    PlaudAPIService.swift:444,452).
+
+A third, recorded contradiction is left as documented: the OpenAPI example
+labels speakers "Speaker 1" (DOC-EXACT, openapi_transcription.json GET
+example), while a template comment expects "SPEAKER_00" and rewrites
+"SPEAKER_" to "Speaker " for display (FileDetailActivity.kt:235-239,
+FileDetailViewController.swift:570; OFFICIAL_SOURCE). Both label forms render
+as "Speaker N" in the templates.
 
 Input: a "meeting directory" per the shared Layer 2->3 data contract
-(meeting.json schema "plaud-harness/meeting/1"). If pipeline/ ships an oracle
-it is preferred (see try_pipeline_oracle); otherwise meeting.json IS the ground
-truth and is read directly.
+(meeting.json schema "plaud-harness/meeting/1"). The pipeline's own oracle
+(pipeline.oracle.OraclePipeline) is preferred when it imports and accepts the
+meeting (see try_pipeline_oracle); otherwise meeting.json IS the ground truth
+and is read directly. The task's `source` records which path ran.
 """
 
 from __future__ import annotations
 
 import hashlib
-import importlib
 import json
 import math
 import struct
@@ -44,12 +53,20 @@ OPUS_RATE = 48000
 
 
 # ------------------------------------------------------------------ params
+def _obj(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
 def normalise_params(params: dict[str, Any] | None) -> dict[str, Any]:
-    """Defaults are DOC-EXACT (openapi_transcription.json TranscriptionRequest)."""
-    p = params or {}
-    tr = p.get("transcribe") or {}
-    di = p.get("diarization") or {}
-    vad = p.get("vad") or {}
+    """Defaults are DOC-EXACT (openapi_transcription.json TranscriptionRequest).
+
+    Types are enforced at submit (routers/transcription.py answers 422); this
+    function still treats a non-object sub-parameter as absent so a task
+    restored from an older state file cannot crash the worker."""
+    p = _obj(params)
+    tr = _obj(p.get("transcribe"))
+    di = _obj(p.get("diarization"))
+    vad = _obj(p.get("vad"))
     return {
         "language": str(tr.get("language") or "auto"),
         "model": str(tr.get("model") or "plaud-fast-whisper"),
@@ -93,30 +110,36 @@ def load_meeting(meeting_dir: Path) -> dict[str, Any]:
     return meeting
 
 
-def try_pipeline_oracle(meeting_dir: Path) -> list[dict[str, Any]] | None:
-    """Prefer the pipeline's own oracle when pipeline/ is importable.
+def try_pipeline_oracle(
+    meeting_dir: Path, audio_path: Path | None = None
+) -> tuple[list[dict[str, Any]] | None, str]:
+    """Run the pipeline's oracle on a meeting dir: (segments, how).
 
-    The pipeline package is owned by another track; the function name is not
-    fixed at the time of writing, so a few plausible names are tried and any
-    failure falls back to reading meeting.json directly. The oracle must return
-    the shared hypothesis shape ({"segments": [...]}) or a bare segment list.
+    The real API (pipeline/oracle.py:47-71, pipeline/base.py:381-400) is
+    ``OraclePipeline().run(audio_path, meeting_dir) -> Hypothesis`` whose
+    ``.segments`` are contract-shaped ({speaker, start, end, text, words}).
+    With ``meeting_dir`` given, pipeline.meeting.find_meeting_json looks only
+    there, so ``audio_path`` is informational (the meeting.json path is used
+    when there is no local audio file).
+
+    Returns ``(segments, "pipeline-oracle")`` on success, or ``(None, reason)``
+    with reason ``pipeline-unavailable:<ExcType>`` (the package does not
+    import) or ``pipeline-error:<ExcType>`` (it imported but refused the
+    meeting -- pipeline.meeting.read_meeting validates more strictly than
+    load_meeting here). The caller then reads meeting.json itself and records
+    the reason in the task's ``source``; nothing is swallowed silently.
     """
     try:
-        mod = importlib.import_module("pipeline.oracle")
-    except Exception:  # noqa: BLE001 - absent or broken pipeline is fine
-        return None
-    for name in ("oracle_hypothesis", "hypothesis_from_meeting_dir", "oracle", "run_oracle"):
-        fn = getattr(mod, name, None)
-        if not callable(fn):
-            continue
-        try:
-            out = fn(Path(meeting_dir))
-        except Exception:  # noqa: BLE001
-            continue
-        segs = out.get("segments") if isinstance(out, dict) else out
-        if isinstance(segs, list) and all(isinstance(s, dict) for s in segs):
-            return segs
-    return None
+        from pipeline.oracle import OraclePipeline
+    except Exception as exc:  # noqa: BLE001 - absent or broken pipeline: fall back, with the reason
+        return None, f"pipeline-unavailable:{type(exc).__name__}"
+    mdir = Path(meeting_dir)
+    try:
+        hyp = OraclePipeline().run(audio_path or mdir / "meeting.json", mdir)
+        segs = [dict(s) for s in hyp.segments]
+    except Exception as exc:  # noqa: BLE001 - recorded by the caller in task.source
+        return None, f"pipeline-error:{type(exc).__name__}"
+    return segs, "pipeline-oracle"
 
 
 def speaker_embedding(meeting_id: str, label: str) -> list[float]:

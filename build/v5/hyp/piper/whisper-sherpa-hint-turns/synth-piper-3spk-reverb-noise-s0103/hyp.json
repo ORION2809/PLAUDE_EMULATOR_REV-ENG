@@ -1,0 +1,108 @@
+{
+  "schema": "plaud-harness/hypothesis/1",
+  "meeting_id": "synth-piper-3spk-reverb-noise-s0103",
+  "system": "whisper-sherpa:diarization-turns",
+  "segments": [
+    {
+      "speaker": "spk0",
+      "start": 0.5034687519073486,
+      "end": 3.254093885421753,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 4.165343761444092,
+      "end": 9.22784423828125,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 9.953469276428223,
+      "end": 12.771594047546387,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 13.345344543457031,
+      "end": 38.7928466796875,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 39.41722106933594,
+      "end": 45.55971908569336,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 45.55971908569336,
+      "end": 46.97722244262695,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 46.97722244262695,
+      "end": 53.45722198486328,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 54.098472595214844,
+      "end": 60.57847213745117,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 61.43909454345703,
+      "end": 63.44721984863281,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 62.70471954345703,
+      "end": 71.31097412109375,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 71.8509750366211,
+      "end": 107.84534454345703,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 108.41909790039062,
+      "end": 111.82785034179688,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 112.36785125732422,
+      "end": 116.77222442626953,
+      "text": ""
+    },
+    {
+      "speaker": "spk1",
+      "start": 117.63285064697266,
+      "end": 119.50597381591797,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 119.7084732055664,
+      "end": 133.02284240722656,
+      "text": ""
+    },
+    {
+      "speaker": "spk0",
+      "start": 133.9003448486328,
+      "end": 134.82847595214844,
+      "text": ""
+    }
+  ],
+  "extra": {
+    "derived_from": "/Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper/whisper-sherpa-hint/synth-piper-3spk-reverb-noise-s0103/hyp.json",
+    "derived_from_sha256": "d577760ec4aceb456decc7f7281375d90d070626fceb292bcaf22772e3119436",
+    "note": "raw sherpa-onnx turns from extra.diarization.turns; no text (DER/JER only)"
+  }
+}

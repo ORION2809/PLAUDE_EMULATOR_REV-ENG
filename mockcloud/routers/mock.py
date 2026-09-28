@@ -40,8 +40,12 @@ async def get_log(request: Request, format: str = Query("json")) -> Any:
     return {"count": len(ctx.state.request_log), "entries": ctx.state.request_log}
 
 
-@router.api_route("/_mock/reset", methods=["GET", "POST"])
+@router.post("/_mock/reset")
 async def reset(request: Request) -> dict[str, Any]:
+    """Wipe all state (and the persistence files on the next save), then
+    re-seed the devices. POST only (HARNESS_POLICY, review finding MC-5): a GET
+    could be triggered by any web page open in the operator's browser, e.g. an
+    <img src="http://127.0.0.1:8787/_mock/reset">."""
     ctx = ctx_of(request)
     await ctx.drain()
     ctx.state.reset()
@@ -98,7 +102,12 @@ class RegisterMeeting(BaseModel):
 async def register_meeting(request: Request, body: RegisterMeeting) -> dict[str, Any]:
     """Register a meeting directory: every audio file it lists (device files,
     mix, stems) is fingerprinted by MD5 so that an upload of those exact bytes
-    through presign/complete is recognised and answered with ground truth."""
+    through presign/complete is recognised and answered with ground truth.
+
+    HARNESS_POLICY (review finding MC-5): only files that resolve INSIDE the
+    meeting directory are read. An entry that escapes it ("../..", an absolute
+    path, a symlink out) is listed under `skipped` and never opened, so this
+    endpoint cannot be used to confirm the existence or MD5 of other files."""
     ctx = ctx_of(request)
     mdir = Path(body.dir).resolve()
     try:
@@ -106,21 +115,29 @@ async def register_meeting(request: Request, body: RegisterMeeting) -> dict[str,
     except Exception as exc:  # noqa: BLE001
         raise MockHTTPError(422, f"not a {MEETING_SCHEMA} directory: {exc}") from exc
     audio = meeting.get("audio") or {}
+    if not isinstance(audio, dict):
+        audio = {}
     candidates: list[str] = []
     if audio.get("mix_wav"):
         candidates.append(str(audio["mix_wav"]))
-    candidates += [str(v) for v in (audio.get("stems") or {}).values()]
-    candidates += [str(v) for v in (audio.get("device") or {}).values()]
+    for group in ("stems", "device"):
+        entries = audio.get(group) or {}
+        if isinstance(entries, dict):
+            candidates += [str(v) for v in entries.values()]
     registered = []
+    skipped = []
     for rel in candidates:
         f = (mdir / rel).resolve()
+        if mdir not in f.parents:
+            skipped.append({"file": rel, "reason": "outside the meeting directory"})
+            continue
         if not f.is_file():
             continue
         md5 = hashlib.md5(f.read_bytes()).hexdigest()
         ctx.state.meetings[md5] = {"dir": str(mdir), "file": str(f), "meeting_id": meeting.get("meeting_id")}
         registered.append({"file": rel, "md5": md5})
     ctx.commit()
-    return {"meeting_id": meeting.get("meeting_id"), "dir": str(mdir), "registered": registered}
+    return {"meeting_id": meeting.get("meeting_id"), "dir": str(mdir), "registered": registered, "skipped": skipped}
 
 
 @router.get("/_mock/signing-key")

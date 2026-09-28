@@ -1,7 +1,8 @@
 """Device-shaped Opus outputs: Ogg/Opus, bare packet stream, g4 framing.
 
 EVIDENCE (device/SDK facts, re-cited from emulator/plaudsim/audio.py and
-docs/protocol-ledger.md section 8, lines 1100-1176):
+docs/protocol-ledger.md §8 "Recorded audio" (BleFile geometry), §8 "Codec
+parameters" and §8 "Quirks"):
 * 16 kHz, 20 ms (320-sample) frames                 audio.SAMPLE_RATE_HZ / FRAME_SAMPLES (DIRECT)
 * exactly 80 bytes per frame per channel            audio.OPUS_FRAME_BYTES; BleFile.calculateOpusDuration
                                                     (ALL.txt:10467) / calculateOpusOffset (ALL.txt:10429);
@@ -27,7 +28,12 @@ HARNESS_POLICY (harness choices, not device claims):
   "Lavf..."); the SDK's own writer uses vendor "TinnoTech123456789012" with
   the ledger's non-conformant quirks, which are NOT reproduced;
 * the bare packet stream is the Ogg's audio packets concatenated, so the two
-  plain shapes carry identical Opus payloads;
+  plain shapes carry identical Opus payloads. It has no pre-skip carrier: the
+  Ogg's OpusHead pre-skip (312 at 48 kHz = 104 samples at 16 kHz, libopus's
+  lookahead) is trimmed by any Ogg demuxer, whereas a decoder of the bare
+  stream (or of g4) outputs those samples first, plus the encoder's flush
+  packet at the end. export.py records both per file
+  (`codec_lookahead_samples_16k`, `flush_packets`);
 * trailing packets that do not fill a whole g4 page are dropped (g4's drain
   loop only consumes whole strides; the remainder path is not modelled).
 """

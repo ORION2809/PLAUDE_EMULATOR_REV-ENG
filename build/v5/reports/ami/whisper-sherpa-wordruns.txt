@@ -1,0 +1,7 @@
+EN2002a [whisper-sherpa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.8206  JER 0.8433
+ES2004a [whisper-sherpa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.7231  JER 0.7278
+IS1009a [whisper-sherpa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.7550  JER 0.8107
+TS3003a [whisper-sherpa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.8498  JER 0.8675
+macro  n=4  cpWER 1.0000  tcpWER 1.0000  DER 0.7871  JER 0.8123
+micro  n=4  cpWER 1.0000  tcpWER 1.0000  DER 0.8005  JER 0.8123
+# exit 0

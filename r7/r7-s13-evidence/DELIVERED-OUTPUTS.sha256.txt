@@ -1,0 +1,20 @@
+# SDK-delivered outputs recorded during the R7-S13 runs (25 Sep 2026 correction).
+# These hashes were computed on the Mac right after each run, on files pulled from the
+# emulated phone with `adb run-as`. The files themselves were not archived here because
+# each is byte-identical to the served fixture tests/fixtures/r6s2_16k_mono.ogg
+# (sha256 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d).
+# Independent record: the driver printed the sha256 of the same file on the device, in
+# the PULLCAP_RAW_DONE / PULLCAP_EXPORT_DONE lines of the matching logcat-*.filtered.log.
+# The two outputs that were NOT byte-exact are archived here and listed in SHA256SUMS.
+
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-raw-run1b.bin   #  device-side sha256 in logcat-run1b.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-raw-run5-raw-stop.bin   #  device-side sha256 in logcat-run5-raw-stop.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-export-run4b-export-clean.opus   #  device-side sha256 in logcat-run4b-export-clean.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-export-run8-code1.opus   #  device-side sha256 in logcat-run8-code1.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-export-run6b-gap-export-abort.opus   #  device-side sha256 in logcat-run6b-gap-export-abort.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-raw-run6c-gap-raw-abort.bin   #  device-side sha256 in logcat-run6c-gap-raw-abort.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-export-run6d-gap8000-export-abort.opus   #  device-side sha256 in logcat-run6d-gap8000-export-abort.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-export-run10-clean-export-abort.opus   #  device-side sha256 in logcat-run10-clean-export-abort.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-export-run11-shipped-default-export.opus   #  device-side sha256 in logcat-run11-shipped-default-export.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-raw-run12-shipped-default-raw.bin   #  device-side sha256 in logcat-run12-shipped-default-raw.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d
+0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d  pullcap-export-run13-shipped-default-gap-export.opus   #  device-side sha256 in logcat-run13-shipped-default-gap-export.filtered.log: 0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d

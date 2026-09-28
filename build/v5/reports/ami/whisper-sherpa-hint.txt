@@ -1,0 +1,7 @@
+EN2002a [whisper-sherpa]  cpWER 0.9608  tcpWER 1.0366  DER 0.7289  JER 0.8384
+ES2004a [whisper-sherpa]  cpWER 0.9239  tcpWER 1.0241  DER 0.6649  JER 0.7793
+IS1009a [whisper-sherpa]  cpWER 0.6640  tcpWER 0.7953  DER 0.5444  JER 0.7680
+TS3003a [whisper-sherpa]  cpWER 0.8646  tcpWER 1.0276  DER 0.6846  JER 0.8741
+macro  n=4  cpWER 0.8533  tcpWER 0.9709  DER 0.6557  JER 0.8150
+micro  n=4  cpWER 0.8974  tcpWER 1.0000  DER 0.6830  JER 0.8150
+# exit 0

@@ -1,0 +1,268 @@
+{
+ "stats": {
+  "file": "/Users/mivi/Desktop/plaud-harness/tests/fixtures/r6s2_16k_mono.ogg",
+  "file_len": 11271,
+  "file_sha256": "0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d",
+  "session_id": 1700000000,
+  "host_port": 18081,
+  "connect_attempts": 90,
+  "retry_s": 1.0,
+  "t0": 1790321923.5328262
+ },
+ "ble": [
+  {
+   "t": 9.468,
+   "dir": "write",
+   "len": 22,
+   "hex": "01010002000053594e54484849535430303031303030",
+   "opcode": 1
+  },
+  {
+   "t": 9.479,
+   "dir": "notify",
+   "len": 16,
+   "hex": "01010000070005000100000056010000",
+   "delivered": true,
+   "opcode": 1
+  },
+  {
+   "t": 9.499,
+   "dir": "write",
+   "len": 9,
+   "hex": "0104000d25b66a051e",
+   "opcode": 4
+  },
+  {
+   "t": 9.509,
+   "dir": "notify",
+   "len": 9,
+   "hex": "01040000f153650000",
+   "delivered": true,
+   "opcode": 4
+  },
+  {
+   "t": 9.534,
+   "dir": "write",
+   "len": 3,
+   "hex": "010900",
+   "opcode": 9
+  },
+  {
+   "t": 9.544,
+   "dir": "notify",
+   "len": 5,
+   "hex": "0109000057",
+   "delivered": true,
+   "opcode": 9
+  },
+  {
+   "t": 9.563,
+   "dir": "write",
+   "len": 3,
+   "hex": "010300",
+   "opcode": 3
+  },
+  {
+   "t": 9.573,
+   "dir": "notify",
+   "len": 18,
+   "hex": "010300011000000101000400f15365000000",
+   "delivered": true,
+   "opcode": 3
+  },
+  {
+   "t": 9.598,
+   "dir": "write",
+   "len": 6,
+   "hex": "010800010f00",
+   "opcode": 8
+  },
+  {
+   "t": 9.609,
+   "dir": "notify",
+   "len": 9,
+   "hex": "0108000f0001000000",
+   "delivered": true,
+   "opcode": 8
+  },
+  {
+   "t": 9.633,
+   "dir": "write",
+   "len": 6,
+   "hex": "010800011100",
+   "opcode": 8
+  },
+  {
+   "t": 9.643,
+   "dir": "notify",
+   "len": 9,
+   "hex": "010800110001000000",
+   "delivered": true,
+   "opcode": 8
+  },
+  {
+   "t": 10.545,
+   "dir": "write",
+   "len": 4,
+   "hex": "010a0001",
+   "opcode": 10
+  },
+  {
+   "t": 10.555,
+   "dir": "notify",
+   "len": 12,
+   "hex": "010a00003130303030303031",
+   "delivered": true,
+   "opcode": 10
+  },
+  {
+   "t": 18.555,
+   "dir": "write",
+   "len": 3,
+   "hex": "010d00",
+   "opcode": 13
+  },
+  {
+   "t": 18.563,
+   "dir": "notify",
+   "len": 4,
+   "hex": "010a0000",
+   "delivered": true,
+   "opcode": 10
+  }
+ ],
+ "wifi": [
+  {
+   "t": 10.545,
+   "dir": "event",
+   "kind": "device_started",
+   "uri": "ws://127.0.0.1:18081",
+   "records": [
+    [
+     1700000000,
+     11271,
+     2
+    ]
+   ]
+  },
+  {
+   "t": 10.546,
+   "dir": "state",
+   "state": "connecting"
+  },
+  {
+   "t": 10.563,
+   "dir": "event",
+   "kind": "connect_retry",
+   "error": "InvalidMessage('did not receive a valid HTTP response')",
+   "attempt": 1
+  },
+  {
+   "t": 11.57,
+   "dir": "event",
+   "kind": "connect_retry",
+   "error": "InvalidMessage('did not receive a valid HTTP response')",
+   "attempt": 2
+  },
+  {
+   "t": 12.576,
+   "dir": "event",
+   "kind": "connect_retry",
+   "error": "InvalidMessage('did not receive a valid HTTP response')",
+   "attempt": 3
+  },
+  {
+   "t": 13.582,
+   "dir": "event",
+   "kind": "connect_retry",
+   "error": "InvalidMessage('did not receive a valid HTTP response')",
+   "attempt": 4
+  },
+  {
+   "t": 14.588,
+   "dir": "event",
+   "kind": "connect_retry",
+   "error": "InvalidMessage('did not receive a valid HTTP response')",
+   "attempt": 5
+  },
+  {
+   "t": 15.595,
+   "dir": "event",
+   "kind": "connect_retry",
+   "error": "InvalidMessage('did not receive a valid HTTP response')",
+   "attempt": 6
+  },
+  {
+   "t": 16.602,
+   "dir": "event",
+   "kind": "connect_retry",
+   "error": "InvalidMessage('did not receive a valid HTTP response')",
+   "attempt": 7
+  },
+  {
+   "t": 17.609,
+   "dir": "event",
+   "kind": "connect_retry",
+   "error": "InvalidMessage('did not receive a valid HTTP response')",
+   "attempt": 8
+  },
+  {
+   "t": 18.556,
+   "dir": "state",
+   "state": "closing"
+  },
+  {
+   "t": 18.557,
+   "dir": "event",
+   "kind": "dial_cancelled",
+   "reason": "ble_close_wifi",
+   "attempt": 9
+  },
+  {
+   "t": 18.557,
+   "dir": "state",
+   "state": "closed"
+  }
+ ],
+ "wifi_devices": [
+  {
+   "uri": "ws://127.0.0.1:18081",
+   "state": "closed",
+   "state_log": [
+    "idle",
+    "connecting",
+    "closing",
+    "closed"
+   ],
+   "close_reason": "ble_close_wifi"
+  }
+ ],
+ "peripheral_wifi_log": [
+  {
+   "opcode": 10,
+   "mode": 1,
+   "wifi_pass": null,
+   "status": 0,
+   "busy": null,
+   "hotspot_on": true
+  },
+  {
+   "opcode": 13,
+   "status": 0,
+   "hotspot_on": false
+  }
+ ],
+ "peripheral_wifi_session_log": [
+  {
+   "event": "started",
+   "uri": "ws://127.0.0.1:18081"
+  },
+  {
+   "event": "ended",
+   "state": "closed",
+   "reason": "ble_close_wifi",
+   "error": null
+  }
+ ],
+ "hotspot_on": false
+}

@@ -4,7 +4,14 @@ reference/
 
 # Derived analysis artifacts. Everything the audit produces lands here.
 # Rebuild with ./scripts/build-evidence.sh (verifies the AAR's sha256 first).
-build/
+/build/*
+# ...except the published V5 and V6 evidence (scores, hypotheses, logs; no audio, no models).
+# The documents cite these paths; see build/v5/README.md for attribution.
+!/build/v5/
+!/build/v6/
+# Any NESTED build directory stays ignored: Gradle/Android outputs (e.g. r7/android-app/app/build)
+# contain a dexed copy of the proprietary Plaud SDK and must never be committed.
+*/**/build/
 
 # Corpora and generated media
 data/corpora/
@@ -12,7 +19,12 @@ data/samples/
 data/generated/
 *.wav
 *.ogg
+# ...except the synthetic R6-S2 test fixtures, sha256-pinned in tests/fixtures/r6s2_manifest.json
+!tests/fixtures/*.ogg
 *.opus
+# ...except the R7-S13 report's cited export evidence (export-run3-both-concatenated-14311.opus,
+# export-run6-gap-corrupted-12871.opus): synthetic-fixture-derived, ~27 KB total, see r7/r7-s13-evidence/SHA256SUMS
+!r7/r7-s13-evidence/*.opus
 *.mp3
 
 # Python
@@ -38,4 +50,7 @@ dist/
 .gradle/
 r7/android-app/local.properties
 r7/k3-capture.json
+r7/pull-capture.json
 **/local.properties
+data/voices/
+data/models/

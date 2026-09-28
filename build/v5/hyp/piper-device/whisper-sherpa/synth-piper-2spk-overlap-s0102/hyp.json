@@ -1,0 +1,3729 @@
+{
+  "schema": "plaud-harness/hypothesis/1",
+  "meeting_id": "synth-piper-2spk-overlap-s0102",
+  "system": "whisper-sherpa",
+  "segments": [
+    {
+      "speaker": "spk0",
+      "start": 0.0,
+      "end": 1.42,
+      "text": "pick minute about for me that",
+      "words": [
+        {
+          "w": "pick",
+          "start": 0.0,
+          "end": 0.62
+        },
+        {
+          "w": "minute",
+          "start": 0.62,
+          "end": 0.82
+        },
+        {
+          "w": "about",
+          "start": 0.82,
+          "end": 1.04
+        },
+        {
+          "w": "for",
+          "start": 1.04,
+          "end": 1.2
+        },
+        {
+          "w": "me",
+          "start": 1.2,
+          "end": 1.3
+        },
+        {
+          "w": "that",
+          "start": 1.3,
+          "end": 1.42
+        }
+      ]
+    },
+    {
+      "speaker": "spk0",
+      "start": 1.42,
+      "end": 1.76,
+      "text": "better",
+      "words": [
+        {
+          "w": "better",
+          "start": 1.42,
+          "end": 1.76
+        }
+      ]
+    },
+    {
+      "speaker": "spk1",
+      "start": 1.76,
+      "end": 4.3,
+      "text": "not today that meeting agree device we release network you release",
+      "words": [
+        {
+          "w": "not",
+          "start": 1.76,
+          "end": 2.08
+        },
+        {
+          "w": "today",
+          "start": 2.08,
+          "end": 2.26
+        },
+        {
+          "w": "that",
+          "start": 2.26,
+          "end": 2.4
+        },
+        {
+          "w": "meeting",
+          "start": 2.4,
+          "end": 2.56
+        },
+        {
+          "w": "agree",
+          "start": 2.56,
+          "end": 2.84
+        },
+        {
+          "w": "device",
+          "start": 2.84,
+          "end": 3.18
+        },
+        {
+          "w": "we",
+          "start": 3.18,
+          "end": 3.34
+        },
+        {
+          "w": "release",
+          "start": 3.34,
+          "end": 3.54
+        },
+        {
+          "w": "network",
+          "start": 3.54,
+          "end": 3.84
+        },
+        {
+          "w": "you",
+          "start": 3.84,
+          "end": 4.0
+        },
+        {
+          "w": "release",
+          "start": 4.0,
+          "end": 4.3
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 4.3,
+      "end": 5.0,
+      "text": "level and agenda",
+      "words": [
+        {
+          "w": "level",
+          "start": 4.3,
+          "end": 4.62
+        },
+        {
+          "w": "and",
+          "start": 4.62,
+          "end": 4.8
+        },
+        {
+          "w": "agenda",
+          "start": 4.8,
+          "end": 5.0
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 5.0,
+      "end": 7.34,
+      "text": "answer memory moment this channel target and the early",
+      "words": [
+        {
+          "w": "answer",
+          "start": 5.0,
+          "end": 5.36
+        },
+        {
+          "w": "memory",
+          "start": 5.36,
+          "end": 5.64
+        },
+        {
+          "w": "moment",
+          "start": 5.64,
+          "end": 5.86
+        },
+        {
+          "w": "this",
+          "start": 5.86,
+          "end": 6.06
+        },
+        {
+          "w": "channel",
+          "start": 6.06,
+          "end": 6.32
+        },
+        {
+          "w": "target",
+          "start": 6.32,
+          "end": 6.7
+        },
+        {
+          "w": "and",
+          "start": 6.7,
+          "end": 6.86
+        },
+        {
+          "w": "the",
+          "start": 6.86,
+          "end": 7.14
+        },
+        {
+          "w": "early",
+          "start": 7.14,
+          "end": 7.34
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 7.34,
+      "end": 9.16,
+      "text": "meeting in between today and report cuts with this",
+      "words": [
+        {
+          "w": "meeting",
+          "start": 7.34,
+          "end": 7.68
+        },
+        {
+          "w": "in",
+          "start": 7.68,
+          "end": 7.8
+        },
+        {
+          "w": "between",
+          "start": 7.8,
+          "end": 8.0
+        },
+        {
+          "w": "today",
+          "start": 8.0,
+          "end": 8.28
+        },
+        {
+          "w": "and",
+          "start": 8.28,
+          "end": 8.38
+        },
+        {
+          "w": "report",
+          "start": 8.38,
+          "end": 8.62
+        },
+        {
+          "w": "cuts",
+          "start": 8.62,
+          "end": 8.84
+        },
+        {
+          "w": "with",
+          "start": 8.84,
+          "end": 9.02
+        },
+        {
+          "w": "this",
+          "start": 9.02,
+          "end": 9.16
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 9.16,
+      "end": 9.96,
+      "text": "for feature very though we",
+      "words": [
+        {
+          "w": "for",
+          "start": 9.16,
+          "end": 9.28
+        },
+        {
+          "w": "feature",
+          "start": 9.28,
+          "end": 9.54
+        },
+        {
+          "w": "very",
+          "start": 9.54,
+          "end": 9.74
+        },
+        {
+          "w": "though",
+          "start": 9.74,
+          "end": 9.88
+        },
+        {
+          "w": "we",
+          "start": 9.88,
+          "end": 9.96
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 9.96,
+      "end": 11.0,
+      "text": "level to that quick problems",
+      "words": [
+        {
+          "w": "level",
+          "start": 9.96,
+          "end": 10.14
+        },
+        {
+          "w": "to",
+          "start": 10.14,
+          "end": 10.28
+        },
+        {
+          "w": "that",
+          "start": 10.28,
+          "end": 10.44
+        },
+        {
+          "w": "quick",
+          "start": 10.44,
+          "end": 10.64
+        },
+        {
+          "w": "problems",
+          "start": 10.64,
+          "end": 11.0
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 11.0,
+      "end": 12.86,
+      "text": "verify record the status goal we record",
+      "words": [
+        {
+          "w": "verify",
+          "start": 11.0,
+          "end": 11.24
+        },
+        {
+          "w": "record",
+          "start": 11.24,
+          "end": 11.68
+        },
+        {
+          "w": "the",
+          "start": 11.68,
+          "end": 11.84
+        },
+        {
+          "w": "status",
+          "start": 11.84,
+          "end": 12.1
+        },
+        {
+          "w": "goal",
+          "start": 12.1,
+          "end": 12.44
+        },
+        {
+          "w": "we",
+          "start": 12.44,
+          "end": 12.62
+        },
+        {
+          "w": "record",
+          "start": 12.62,
+          "end": 12.86
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 12.86,
+      "end": 13.08,
+      "text": "really",
+      "words": [
+        {
+          "w": "really",
+          "start": 12.86,
+          "end": 13.08
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 13.08,
+      "end": 14.12,
+      "text": "storage time on standard",
+      "words": [
+        {
+          "w": "storage",
+          "start": 13.08,
+          "end": 13.42
+        },
+        {
+          "w": "time",
+          "start": 13.42,
+          "end": 13.66
+        },
+        {
+          "w": "on",
+          "start": 13.66,
+          "end": 13.82
+        },
+        {
+          "w": "standard",
+          "start": 13.82,
+          "end": 14.12
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 14.12,
+      "end": 15.32,
+      "text": "title slow budget design",
+      "words": [
+        {
+          "w": "title",
+          "start": 14.12,
+          "end": 14.5
+        },
+        {
+          "w": "slow",
+          "start": 14.5,
+          "end": 14.76
+        },
+        {
+          "w": "budget",
+          "start": 14.76,
+          "end": 15.08
+        },
+        {
+          "w": "design",
+          "start": 15.08,
+          "end": 15.32
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 15.32,
+      "end": 16.14,
+      "text": "the sample think",
+      "words": [
+        {
+          "w": "the",
+          "start": 15.32,
+          "end": 15.58
+        },
+        {
+          "w": "sample",
+          "start": 15.58,
+          "end": 15.92
+        },
+        {
+          "w": "think",
+          "start": 15.92,
+          "end": 16.14
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 16.14,
+      "end": 18.9,
+      "text": "release the noise me this you update stream up to the network issue really",
+      "words": [
+        {
+          "w": "release",
+          "start": 16.14,
+          "end": 16.4
+        },
+        {
+          "w": "the",
+          "start": 16.4,
+          "end": 16.54
+        },
+        {
+          "w": "noise",
+          "start": 16.54,
+          "end": 16.78
+        },
+        {
+          "w": "me",
+          "start": 16.78,
+          "end": 16.94
+        },
+        {
+          "w": "this",
+          "start": 16.94,
+          "end": 17.08
+        },
+        {
+          "w": "you",
+          "start": 17.08,
+          "end": 17.16
+        },
+        {
+          "w": "update",
+          "start": 17.16,
+          "end": 17.44
+        },
+        {
+          "w": "stream",
+          "start": 17.44,
+          "end": 17.7
+        },
+        {
+          "w": "up",
+          "start": 17.7,
+          "end": 17.88
+        },
+        {
+          "w": "to",
+          "start": 17.88,
+          "end": 18.0
+        },
+        {
+          "w": "the",
+          "start": 18.0,
+          "end": 18.08
+        },
+        {
+          "w": "network",
+          "start": 18.08,
+          "end": 18.36
+        },
+        {
+          "w": "issue",
+          "start": 18.36,
+          "end": 18.58
+        },
+        {
+          "w": "really",
+          "start": 18.58,
+          "end": 18.9
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 18.9,
+      "end": 19.18,
+      "text": "metric",
+      "words": [
+        {
+          "w": "metric",
+          "start": 18.9,
+          "end": 19.18
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 19.18,
+      "end": 21.34,
+      "text": "and action speaker report week really in close that end",
+      "words": [
+        {
+          "w": "and",
+          "start": 19.18,
+          "end": 19.32
+        },
+        {
+          "w": "action",
+          "start": 19.32,
+          "end": 19.54
+        },
+        {
+          "w": "speaker",
+          "start": 19.54,
+          "end": 19.86
+        },
+        {
+          "w": "report",
+          "start": 19.86,
+          "end": 20.2
+        },
+        {
+          "w": "week",
+          "start": 20.2,
+          "end": 20.36
+        },
+        {
+          "w": "really",
+          "start": 20.36,
+          "end": 20.62
+        },
+        {
+          "w": "in",
+          "start": 20.62,
+          "end": 20.74
+        },
+        {
+          "w": "close",
+          "start": 20.74,
+          "end": 20.92
+        },
+        {
+          "w": "that",
+          "start": 20.92,
+          "end": 21.18
+        },
+        {
+          "w": "end",
+          "start": 21.18,
+          "end": 21.34
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 21.34,
+      "end": 21.68,
+      "text": "really an",
+      "words": [
+        {
+          "w": "really",
+          "start": 21.34,
+          "end": 21.56
+        },
+        {
+          "w": "an",
+          "start": 21.56,
+          "end": 21.68
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 21.68,
+      "end": 22.4,
+      "text": "update network title",
+      "words": [
+        {
+          "w": "update",
+          "start": 21.68,
+          "end": 21.92
+        },
+        {
+          "w": "network",
+          "start": 21.92,
+          "end": 22.2
+        },
+        {
+          "w": "title",
+          "start": 22.2,
+          "end": 22.4
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 22.4,
+      "end": 23.58,
+      "text": "update feature the agenda this",
+      "words": [
+        {
+          "w": "update",
+          "start": 22.4,
+          "end": 22.66
+        },
+        {
+          "w": "feature",
+          "start": 22.66,
+          "end": 22.96
+        },
+        {
+          "w": "the",
+          "start": 22.96,
+          "end": 23.12
+        },
+        {
+          "w": "agenda",
+          "start": 23.12,
+          "end": 23.4
+        },
+        {
+          "w": "this",
+          "start": 23.4,
+          "end": 23.58
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 23.58,
+      "end": 24.48,
+      "text": "risk problem class to",
+      "words": [
+        {
+          "w": "risk",
+          "start": 23.58,
+          "end": 23.72
+        },
+        {
+          "w": "problem",
+          "start": 23.72,
+          "end": 24.1
+        },
+        {
+          "w": "class",
+          "start": 24.1,
+          "end": 24.32
+        },
+        {
+          "w": "to",
+          "start": 24.32,
+          "end": 24.48
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 24.48,
+      "end": 24.64,
+      "text": "whether",
+      "words": [
+        {
+          "w": "whether",
+          "start": 24.48,
+          "end": 24.64
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 24.64,
+      "end": 26.18,
+      "text": "that last design is this client center",
+      "words": [
+        {
+          "w": "that",
+          "start": 24.64,
+          "end": 24.8
+        },
+        {
+          "w": "last",
+          "start": 24.8,
+          "end": 25.02
+        },
+        {
+          "w": "design",
+          "start": 25.02,
+          "end": 25.34
+        },
+        {
+          "w": "is",
+          "start": 25.34,
+          "end": 25.5
+        },
+        {
+          "w": "this",
+          "start": 25.5,
+          "end": 25.66
+        },
+        {
+          "w": "client",
+          "start": 25.66,
+          "end": 25.88
+        },
+        {
+          "w": "center",
+          "start": 25.88,
+          "end": 26.18
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 26.18,
+      "end": 27.52,
+      "text": "microphone the index chart project",
+      "words": [
+        {
+          "w": "microphone",
+          "start": 26.18,
+          "end": 26.54
+        },
+        {
+          "w": "the",
+          "start": 26.54,
+          "end": 26.7
+        },
+        {
+          "w": "index",
+          "start": 26.7,
+          "end": 27.0
+        },
+        {
+          "w": "chart",
+          "start": 27.0,
+          "end": 27.2
+        },
+        {
+          "w": "project",
+          "start": 27.2,
+          "end": 27.52
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 27.52,
+      "end": 28.9,
+      "text": "confirm the upload you not actually",
+      "words": [
+        {
+          "w": "confirm",
+          "start": 27.52,
+          "end": 27.88
+        },
+        {
+          "w": "the",
+          "start": 27.88,
+          "end": 28.04
+        },
+        {
+          "w": "upload",
+          "start": 28.04,
+          "end": 28.4
+        },
+        {
+          "w": "you",
+          "start": 28.4,
+          "end": 28.66
+        },
+        {
+          "w": "not",
+          "start": 28.66,
+          "end": 28.8
+        },
+        {
+          "w": "actually",
+          "start": 28.8,
+          "end": 28.9
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 28.9,
+      "end": 30.44,
+      "text": "result budget table quarter meeting",
+      "words": [
+        {
+          "w": "result",
+          "start": 28.9,
+          "end": 29.2
+        },
+        {
+          "w": "budget",
+          "start": 29.2,
+          "end": 29.64
+        },
+        {
+          "w": "table",
+          "start": 29.64,
+          "end": 29.98
+        },
+        {
+          "w": "quarter",
+          "start": 29.98,
+          "end": 30.2
+        },
+        {
+          "w": "meeting",
+          "start": 30.2,
+          "end": 30.44
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 30.44,
+      "end": 31.22,
+      "text": "signal record with",
+      "words": [
+        {
+          "w": "signal",
+          "start": 30.44,
+          "end": 30.82
+        },
+        {
+          "w": "record",
+          "start": 30.82,
+          "end": 31.06
+        },
+        {
+          "w": "with",
+          "start": 31.06,
+          "end": 31.22
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 31.22,
+      "end": 31.88,
+      "text": "noise people the",
+      "words": [
+        {
+          "w": "noise",
+          "start": 31.22,
+          "end": 31.46
+        },
+        {
+          "w": "people",
+          "start": 31.46,
+          "end": 31.74
+        },
+        {
+          "w": "the",
+          "start": 31.74,
+          "end": 31.88
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 31.88,
+      "end": 32.94,
+      "text": "channels to signal channel",
+      "words": [
+        {
+          "w": "channels",
+          "start": 31.88,
+          "end": 32.16
+        },
+        {
+          "w": "to",
+          "start": 32.16,
+          "end": 32.38
+        },
+        {
+          "w": "signal",
+          "start": 32.38,
+          "end": 32.64
+        },
+        {
+          "w": "channel",
+          "start": 32.64,
+          "end": 32.94
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 32.94,
+      "end": 33.7,
+      "text": "job agenda and",
+      "words": [
+        {
+          "w": "job",
+          "start": 32.94,
+          "end": 33.2
+        },
+        {
+          "w": "agenda",
+          "start": 33.2,
+          "end": 33.52
+        },
+        {
+          "w": "and",
+          "start": 33.52,
+          "end": 33.7
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 33.7,
+      "end": 33.96,
+      "text": "search",
+      "words": [
+        {
+          "w": "search",
+          "start": 33.7,
+          "end": 33.96
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 33.96,
+      "end": 34.94,
+      "text": "month device status",
+      "words": [
+        {
+          "w": "month",
+          "start": 33.96,
+          "end": 34.22
+        },
+        {
+          "w": "device",
+          "start": 34.22,
+          "end": 34.56
+        },
+        {
+          "w": "status",
+          "start": 34.56,
+          "end": 34.94
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 34.94,
+      "end": 36.48,
+      "text": "is canceled title the in that client",
+      "words": [
+        {
+          "w": "is",
+          "start": 34.94,
+          "end": 35.16
+        },
+        {
+          "w": "canceled",
+          "start": 35.16,
+          "end": 35.44
+        },
+        {
+          "w": "title",
+          "start": 35.44,
+          "end": 35.76
+        },
+        {
+          "w": "the",
+          "start": 35.76,
+          "end": 35.94
+        },
+        {
+          "w": "in",
+          "start": 35.94,
+          "end": 36.06
+        },
+        {
+          "w": "that",
+          "start": 36.06,
+          "end": 36.22
+        },
+        {
+          "w": "client",
+          "start": 36.22,
+          "end": 36.48
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 36.48,
+      "end": 37.12,
+      "text": "you have item",
+      "words": [
+        {
+          "w": "you",
+          "start": 36.48,
+          "end": 36.62
+        },
+        {
+          "w": "have",
+          "start": 36.62,
+          "end": 36.84
+        },
+        {
+          "w": "item",
+          "start": 36.84,
+          "end": 37.12
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 37.12,
+      "end": 37.5,
+      "text": "for the that",
+      "words": [
+        {
+          "w": "for",
+          "start": 37.12,
+          "end": 37.28
+        },
+        {
+          "w": "the",
+          "start": 37.28,
+          "end": 37.36
+        },
+        {
+          "w": "that",
+          "start": 37.36,
+          "end": 37.5
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 37.5,
+      "end": 39.08,
+      "text": "uploading either not later receive we talk",
+      "words": [
+        {
+          "w": "uploading",
+          "start": 37.5,
+          "end": 37.86
+        },
+        {
+          "w": "either",
+          "start": 37.86,
+          "end": 38.06
+        },
+        {
+          "w": "not",
+          "start": 38.06,
+          "end": 38.24
+        },
+        {
+          "w": "later",
+          "start": 38.24,
+          "end": 38.48
+        },
+        {
+          "w": "receive",
+          "start": 38.48,
+          "end": 38.76
+        },
+        {
+          "w": "we",
+          "start": 38.76,
+          "end": 38.9
+        },
+        {
+          "w": "talk",
+          "start": 38.9,
+          "end": 39.08
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 39.08,
+      "end": 40.0,
+      "text": "audio signal label you",
+      "words": [
+        {
+          "w": "audio",
+          "start": 39.08,
+          "end": 39.34
+        },
+        {
+          "w": "signal",
+          "start": 39.34,
+          "end": 39.64
+        },
+        {
+          "w": "label",
+          "start": 39.64,
+          "end": 39.88
+        },
+        {
+          "w": "you",
+          "start": 39.88,
+          "end": 40.0
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 40.0,
+      "end": 43.02,
+      "text": "metric meeting check the value sure for not okay the next number start your",
+      "words": [
+        {
+          "w": "metric",
+          "start": 40.0,
+          "end": 40.24
+        },
+        {
+          "w": "meeting",
+          "start": 40.24,
+          "end": 40.58
+        },
+        {
+          "w": "check",
+          "start": 40.58,
+          "end": 40.84
+        },
+        {
+          "w": "the",
+          "start": 40.84,
+          "end": 41.02
+        },
+        {
+          "w": "value",
+          "start": 41.02,
+          "end": 41.24
+        },
+        {
+          "w": "sure",
+          "start": 41.24,
+          "end": 41.5
+        },
+        {
+          "w": "for",
+          "start": 41.5,
+          "end": 41.64
+        },
+        {
+          "w": "not",
+          "start": 41.64,
+          "end": 41.76
+        },
+        {
+          "w": "okay",
+          "start": 41.76,
+          "end": 42.04
+        },
+        {
+          "w": "the",
+          "start": 42.04,
+          "end": 42.26
+        },
+        {
+          "w": "next",
+          "start": 42.26,
+          "end": 42.42
+        },
+        {
+          "w": "number",
+          "start": 42.42,
+          "end": 42.64
+        },
+        {
+          "w": "start",
+          "start": 42.64,
+          "end": 42.88
+        },
+        {
+          "w": "your",
+          "start": 42.88,
+          "end": 43.02
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 43.02,
+      "end": 46.76,
+      "text": "customer afternoon clear with budget and title number smaller summary device",
+      "words": [
+        {
+          "w": "customer",
+          "start": 43.02,
+          "end": 43.4
+        },
+        {
+          "w": "afternoon",
+          "start": 43.4,
+          "end": 43.82
+        },
+        {
+          "w": "clear",
+          "start": 43.82,
+          "end": 44.08
+        },
+        {
+          "w": "with",
+          "start": 44.08,
+          "end": 44.26
+        },
+        {
+          "w": "budget",
+          "start": 44.26,
+          "end": 44.56
+        },
+        {
+          "w": "and",
+          "start": 44.56,
+          "end": 44.74
+        },
+        {
+          "w": "title",
+          "start": 44.74,
+          "end": 45.14
+        },
+        {
+          "w": "number",
+          "start": 45.14,
+          "end": 45.52
+        },
+        {
+          "w": "smaller",
+          "start": 45.52,
+          "end": 45.8
+        },
+        {
+          "w": "summary",
+          "start": 45.8,
+          "end": 46.32
+        },
+        {
+          "w": "device",
+          "start": 46.32,
+          "end": 46.76
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 46.76,
+      "end": 46.96,
+      "text": "chart",
+      "words": [
+        {
+          "w": "chart",
+          "start": 46.76,
+          "end": 46.96
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 46.96,
+      "end": 49.74,
+      "text": "device that release under named data packet plan index we scheduled a",
+      "words": [
+        {
+          "w": "device",
+          "start": 46.96,
+          "end": 47.26
+        },
+        {
+          "w": "that",
+          "start": 47.26,
+          "end": 47.46
+        },
+        {
+          "w": "release",
+          "start": 47.46,
+          "end": 47.66
+        },
+        {
+          "w": "under",
+          "start": 47.66,
+          "end": 47.98
+        },
+        {
+          "w": "named",
+          "start": 47.98,
+          "end": 48.18
+        },
+        {
+          "w": "data",
+          "start": 48.18,
+          "end": 48.42
+        },
+        {
+          "w": "packet",
+          "start": 48.42,
+          "end": 48.62
+        },
+        {
+          "w": "plan",
+          "start": 48.62,
+          "end": 48.9
+        },
+        {
+          "w": "index",
+          "start": 48.9,
+          "end": 49.16
+        },
+        {
+          "w": "we",
+          "start": 49.16,
+          "end": 49.3
+        },
+        {
+          "w": "scheduled",
+          "start": 49.3,
+          "end": 49.58
+        },
+        {
+          "w": "a",
+          "start": 49.58,
+          "end": 49.74
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 49.74,
+      "end": 52.26,
+      "text": "record with the begin review the customer open on a quarter number the",
+      "words": [
+        {
+          "w": "record",
+          "start": 49.74,
+          "end": 50.02
+        },
+        {
+          "w": "with",
+          "start": 50.02,
+          "end": 50.22
+        },
+        {
+          "w": "the",
+          "start": 50.22,
+          "end": 50.3
+        },
+        {
+          "w": "begin",
+          "start": 50.3,
+          "end": 50.52
+        },
+        {
+          "w": "review",
+          "start": 50.52,
+          "end": 50.74
+        },
+        {
+          "w": "the",
+          "start": 50.74,
+          "end": 50.88
+        },
+        {
+          "w": "customer",
+          "start": 50.88,
+          "end": 51.2
+        },
+        {
+          "w": "open",
+          "start": 51.2,
+          "end": 51.42
+        },
+        {
+          "w": "on",
+          "start": 51.42,
+          "end": 51.52
+        },
+        {
+          "w": "a",
+          "start": 51.52,
+          "end": 51.64
+        },
+        {
+          "w": "quarter",
+          "start": 51.64,
+          "end": 51.8
+        },
+        {
+          "w": "number",
+          "start": 51.8,
+          "end": 52.04
+        },
+        {
+          "w": "the",
+          "start": 52.04,
+          "end": 52.26
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 52.26,
+      "end": 55.04,
+      "text": "plan that we we create metric and the transcript release the feature start",
+      "words": [
+        {
+          "w": "plan",
+          "start": 52.26,
+          "end": 52.44
+        },
+        {
+          "w": "that",
+          "start": 52.44,
+          "end": 52.6
+        },
+        {
+          "w": "we",
+          "start": 52.6,
+          "end": 52.7
+        },
+        {
+          "w": "we",
+          "start": 52.7,
+          "end": 52.84
+        },
+        {
+          "w": "create",
+          "start": 52.84,
+          "end": 53.0
+        },
+        {
+          "w": "metric",
+          "start": 53.0,
+          "end": 53.32
+        },
+        {
+          "w": "and",
+          "start": 53.32,
+          "end": 53.5
+        },
+        {
+          "w": "the",
+          "start": 53.5,
+          "end": 53.62
+        },
+        {
+          "w": "transcript",
+          "start": 53.62,
+          "end": 53.98
+        },
+        {
+          "w": "release",
+          "start": 53.98,
+          "end": 54.3
+        },
+        {
+          "w": "the",
+          "start": 54.3,
+          "end": 54.5
+        },
+        {
+          "w": "feature",
+          "start": 54.5,
+          "end": 54.7
+        },
+        {
+          "w": "start",
+          "start": 54.7,
+          "end": 55.04
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 55.04,
+      "end": 58.42,
+      "text": "quite a verify issue review budget packet job device the question charge",
+      "words": [
+        {
+          "w": "quite",
+          "start": 55.04,
+          "end": 55.28
+        },
+        {
+          "w": "a",
+          "start": 55.28,
+          "end": 55.44
+        },
+        {
+          "w": "verify",
+          "start": 55.44,
+          "end": 55.76
+        },
+        {
+          "w": "issue",
+          "start": 55.76,
+          "end": 56.12
+        },
+        {
+          "w": "review",
+          "start": 56.12,
+          "end": 56.42
+        },
+        {
+          "w": "budget",
+          "start": 56.42,
+          "end": 56.72
+        },
+        {
+          "w": "packet",
+          "start": 56.72,
+          "end": 57.02
+        },
+        {
+          "w": "job",
+          "start": 57.02,
+          "end": 57.28
+        },
+        {
+          "w": "device",
+          "start": 57.28,
+          "end": 57.6
+        },
+        {
+          "w": "the",
+          "start": 57.6,
+          "end": 57.76
+        },
+        {
+          "w": "question",
+          "start": 57.76,
+          "end": 58.06
+        },
+        {
+          "w": "charge",
+          "start": 58.06,
+          "end": 58.42
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 58.42,
+      "end": 61.48,
+      "text": "around sandwich report transcript solution item right delay the proposed",
+      "words": [
+        {
+          "w": "around",
+          "start": 58.42,
+          "end": 58.7
+        },
+        {
+          "w": "sandwich",
+          "start": 58.7,
+          "end": 59.02
+        },
+        {
+          "w": "report",
+          "start": 59.02,
+          "end": 59.38
+        },
+        {
+          "w": "transcript",
+          "start": 59.38,
+          "end": 59.74
+        },
+        {
+          "w": "solution",
+          "start": 59.74,
+          "end": 60.26
+        },
+        {
+          "w": "item",
+          "start": 60.26,
+          "end": 60.62
+        },
+        {
+          "w": "right",
+          "start": 60.62,
+          "end": 60.84
+        },
+        {
+          "w": "delay",
+          "start": 60.84,
+          "end": 61.02
+        },
+        {
+          "w": "the",
+          "start": 61.02,
+          "end": 61.16
+        },
+        {
+          "w": "proposed",
+          "start": 61.16,
+          "end": 61.48
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 61.48,
+      "end": 64.68,
+      "text": "agenda delay in that early packet again to design decision the update",
+      "words": [
+        {
+          "w": "agenda",
+          "start": 61.48,
+          "end": 61.8
+        },
+        {
+          "w": "delay",
+          "start": 61.8,
+          "end": 62.12
+        },
+        {
+          "w": "in",
+          "start": 62.12,
+          "end": 62.34
+        },
+        {
+          "w": "that",
+          "start": 62.34,
+          "end": 62.48
+        },
+        {
+          "w": "early",
+          "start": 62.48,
+          "end": 62.72
+        },
+        {
+          "w": "packet",
+          "start": 62.72,
+          "end": 63.08
+        },
+        {
+          "w": "again",
+          "start": 63.08,
+          "end": 63.36
+        },
+        {
+          "w": "to",
+          "start": 63.36,
+          "end": 63.52
+        },
+        {
+          "w": "design",
+          "start": 63.52,
+          "end": 63.82
+        },
+        {
+          "w": "decision",
+          "start": 63.82,
+          "end": 64.2
+        },
+        {
+          "w": "the",
+          "start": 64.2,
+          "end": 64.4
+        },
+        {
+          "w": "update",
+          "start": 64.4,
+          "end": 64.68
+        }
+      ]
+    },
+    {
+      "speaker": "spk5",
+      "start": 64.68,
+      "end": 65.22,
+      "text": "you audio",
+      "words": [
+        {
+          "w": "you",
+          "start": 64.68,
+          "end": 64.94
+        },
+        {
+          "w": "audio",
+          "start": 64.94,
+          "end": 65.22
+        }
+      ]
+    },
+    {
+      "speaker": "spk5",
+      "start": 65.22,
+      "end": 66.46,
+      "text": "review our customer question",
+      "words": [
+        {
+          "w": "review",
+          "start": 65.22,
+          "end": 65.44
+        },
+        {
+          "w": "our",
+          "start": 65.44,
+          "end": 65.66
+        },
+        {
+          "w": "customer",
+          "start": 65.66,
+          "end": 66.04
+        },
+        {
+          "w": "question",
+          "start": 66.04,
+          "end": 66.46
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 66.46,
+      "end": 67.12,
+      "text": "measure and we",
+      "words": [
+        {
+          "w": "measure",
+          "start": 66.46,
+          "end": 66.74
+        },
+        {
+          "w": "and",
+          "start": 66.74,
+          "end": 66.88
+        },
+        {
+          "w": "we",
+          "start": 66.88,
+          "end": 67.12
+        }
+      ]
+    },
+    {
+      "speaker": "spk5",
+      "start": 67.12,
+      "end": 68.22,
+      "text": "review test that for update",
+      "words": [
+        {
+          "w": "review",
+          "start": 67.12,
+          "end": 67.4
+        },
+        {
+          "w": "test",
+          "start": 67.4,
+          "end": 67.66
+        },
+        {
+          "w": "that",
+          "start": 67.66,
+          "end": 67.82
+        },
+        {
+          "w": "for",
+          "start": 67.82,
+          "end": 67.92
+        },
+        {
+          "w": "update",
+          "start": 67.92,
+          "end": 68.22
+        }
+      ]
+    },
+    {
+      "speaker": "spk5",
+      "start": 68.22,
+      "end": 68.56,
+      "text": "project",
+      "words": [
+        {
+          "w": "project",
+          "start": 68.22,
+          "end": 68.56
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 68.56,
+      "end": 71.38,
+      "text": "test with maybe signal agenda not afternoon agenda channel release",
+      "words": [
+        {
+          "w": "test",
+          "start": 68.56,
+          "end": 68.78
+        },
+        {
+          "w": "with",
+          "start": 68.78,
+          "end": 68.92
+        },
+        {
+          "w": "maybe",
+          "start": 68.92,
+          "end": 69.1
+        },
+        {
+          "w": "signal",
+          "start": 69.1,
+          "end": 69.42
+        },
+        {
+          "w": "agenda",
+          "start": 69.42,
+          "end": 69.78
+        },
+        {
+          "w": "not",
+          "start": 69.78,
+          "end": 69.96
+        },
+        {
+          "w": "afternoon",
+          "start": 69.96,
+          "end": 70.4
+        },
+        {
+          "w": "agenda",
+          "start": 70.4,
+          "end": 70.78
+        },
+        {
+          "w": "channel",
+          "start": 70.78,
+          "end": 71.14
+        },
+        {
+          "w": "release",
+          "start": 71.14,
+          "end": 71.38
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 71.38,
+      "end": 71.6,
+      "text": "record",
+      "words": [
+        {
+          "w": "record",
+          "start": 71.38,
+          "end": 71.6
+        }
+      ]
+    },
+    {
+      "speaker": "spk6",
+      "start": 71.6,
+      "end": 72.4,
+      "text": "speaker with a complex",
+      "words": [
+        {
+          "w": "speaker",
+          "start": 71.6,
+          "end": 71.9
+        },
+        {
+          "w": "with",
+          "start": 71.9,
+          "end": 72.06
+        },
+        {
+          "w": "a",
+          "start": 72.06,
+          "end": 72.16
+        },
+        {
+          "w": "complex",
+          "start": 72.16,
+          "end": 72.4
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 72.4,
+      "end": 74.24,
+      "text": "stream power and in project summary first",
+      "words": [
+        {
+          "w": "stream",
+          "start": 72.4,
+          "end": 72.7
+        },
+        {
+          "w": "power",
+          "start": 72.7,
+          "end": 73.02
+        },
+        {
+          "w": "and",
+          "start": 73.02,
+          "end": 73.2
+        },
+        {
+          "w": "in",
+          "start": 73.2,
+          "end": 73.32
+        },
+        {
+          "w": "project",
+          "start": 73.32,
+          "end": 73.56
+        },
+        {
+          "w": "summary",
+          "start": 73.56,
+          "end": 73.92
+        },
+        {
+          "w": "first",
+          "start": 73.92,
+          "end": 74.24
+        }
+      ]
+    },
+    {
+      "speaker": "spk5",
+      "start": 74.24,
+      "end": 75.52,
+      "text": "transcript design budget version",
+      "words": [
+        {
+          "w": "transcript",
+          "start": 74.24,
+          "end": 74.56
+        },
+        {
+          "w": "design",
+          "start": 74.56,
+          "end": 74.92
+        },
+        {
+          "w": "budget",
+          "start": 74.92,
+          "end": 75.22
+        },
+        {
+          "w": "version",
+          "start": 75.22,
+          "end": 75.52
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 75.52,
+      "end": 77.32,
+      "text": "cloud clear risk budget that chart room",
+      "words": [
+        {
+          "w": "cloud",
+          "start": 75.52,
+          "end": 75.92
+        },
+        {
+          "w": "clear",
+          "start": 75.92,
+          "end": 76.22
+        },
+        {
+          "w": "risk",
+          "start": 76.22,
+          "end": 76.4
+        },
+        {
+          "w": "budget",
+          "start": 76.4,
+          "end": 76.76
+        },
+        {
+          "w": "that",
+          "start": 76.76,
+          "end": 76.98
+        },
+        {
+          "w": "chart",
+          "start": 76.98,
+          "end": 77.14
+        },
+        {
+          "w": "room",
+          "start": 77.14,
+          "end": 77.32
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 77.32,
+      "end": 78.08,
+      "text": "warning status will",
+      "words": [
+        {
+          "w": "warning",
+          "start": 77.32,
+          "end": 77.54
+        },
+        {
+          "w": "status",
+          "start": 77.54,
+          "end": 77.92
+        },
+        {
+          "w": "will",
+          "start": 77.92,
+          "end": 78.08
+        }
+      ]
+    },
+    {
+      "speaker": "spk6",
+      "start": 78.08,
+      "end": 78.92,
+      "text": "be office again target",
+      "words": [
+        {
+          "w": "be",
+          "start": 78.08,
+          "end": 78.18
+        },
+        {
+          "w": "office",
+          "start": 78.18,
+          "end": 78.36
+        },
+        {
+          "w": "again",
+          "start": 78.36,
+          "end": 78.64
+        },
+        {
+          "w": "target",
+          "start": 78.64,
+          "end": 78.92
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 78.92,
+      "end": 80.1,
+      "text": "how transcript the server you",
+      "words": [
+        {
+          "w": "how",
+          "start": 78.92,
+          "end": 79.1
+        },
+        {
+          "w": "transcript",
+          "start": 79.1,
+          "end": 79.32
+        },
+        {
+          "w": "the",
+          "start": 79.32,
+          "end": 79.46
+        },
+        {
+          "w": "server",
+          "start": 79.46,
+          "end": 79.78
+        },
+        {
+          "w": "you",
+          "start": 79.78,
+          "end": 80.1
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 80.1,
+      "end": 82.96,
+      "text": "know is designed this today from the next status this review review cable",
+      "words": [
+        {
+          "w": "know",
+          "start": 80.1,
+          "end": 80.24
+        },
+        {
+          "w": "is",
+          "start": 80.24,
+          "end": 80.4
+        },
+        {
+          "w": "designed",
+          "start": 80.4,
+          "end": 80.72
+        },
+        {
+          "w": "this",
+          "start": 80.72,
+          "end": 80.9
+        },
+        {
+          "w": "today",
+          "start": 80.9,
+          "end": 81.16
+        },
+        {
+          "w": "from",
+          "start": 81.16,
+          "end": 81.36
+        },
+        {
+          "w": "the",
+          "start": 81.36,
+          "end": 81.48
+        },
+        {
+          "w": "next",
+          "start": 81.48,
+          "end": 81.64
+        },
+        {
+          "w": "status",
+          "start": 81.64,
+          "end": 81.96
+        },
+        {
+          "w": "this",
+          "start": 81.96,
+          "end": 82.16
+        },
+        {
+          "w": "review",
+          "start": 82.16,
+          "end": 82.44
+        },
+        {
+          "w": "review",
+          "start": 82.44,
+          "end": 82.66
+        },
+        {
+          "w": "cable",
+          "start": 82.66,
+          "end": 82.96
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 82.96,
+      "end": 86.38,
+      "text": "that the customer report status the owner transcript this have the microphone",
+      "words": [
+        {
+          "w": "that",
+          "start": 82.96,
+          "end": 83.12
+        },
+        {
+          "w": "the",
+          "start": 83.12,
+          "end": 83.22
+        },
+        {
+          "w": "customer",
+          "start": 83.22,
+          "end": 83.58
+        },
+        {
+          "w": "report",
+          "start": 83.58,
+          "end": 83.94
+        },
+        {
+          "w": "status",
+          "start": 83.94,
+          "end": 84.6
+        },
+        {
+          "w": "the",
+          "start": 84.6,
+          "end": 84.9
+        },
+        {
+          "w": "owner",
+          "start": 84.9,
+          "end": 85.06
+        },
+        {
+          "w": "transcript",
+          "start": 85.06,
+          "end": 85.48
+        },
+        {
+          "w": "this",
+          "start": 85.48,
+          "end": 85.7
+        },
+        {
+          "w": "have",
+          "start": 85.7,
+          "end": 85.88
+        },
+        {
+          "w": "the",
+          "start": 85.88,
+          "end": 86.02
+        },
+        {
+          "w": "microphone",
+          "start": 86.02,
+          "end": 86.38
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 86.38,
+      "end": 89.74,
+      "text": "you develop option stream first and you issue value into close office device",
+      "words": [
+        {
+          "w": "you",
+          "start": 86.38,
+          "end": 86.54
+        },
+        {
+          "w": "develop",
+          "start": 86.54,
+          "end": 86.76
+        },
+        {
+          "w": "option",
+          "start": 86.76,
+          "end": 87.2
+        },
+        {
+          "w": "stream",
+          "start": 87.2,
+          "end": 87.46
+        },
+        {
+          "w": "first",
+          "start": 87.46,
+          "end": 87.86
+        },
+        {
+          "w": "and",
+          "start": 87.86,
+          "end": 88.04
+        },
+        {
+          "w": "you",
+          "start": 88.04,
+          "end": 88.12
+        },
+        {
+          "w": "issue",
+          "start": 88.12,
+          "end": 88.36
+        },
+        {
+          "w": "value",
+          "start": 88.36,
+          "end": 88.56
+        },
+        {
+          "w": "into",
+          "start": 88.56,
+          "end": 88.88
+        },
+        {
+          "w": "close",
+          "start": 88.88,
+          "end": 89.12
+        },
+        {
+          "w": "office",
+          "start": 89.12,
+          "end": 89.38
+        },
+        {
+          "w": "device",
+          "start": 89.38,
+          "end": 89.74
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 89.74,
+      "end": 91.0,
+      "text": "with done project not afternoon",
+      "words": [
+        {
+          "w": "with",
+          "start": 89.74,
+          "end": 89.98
+        },
+        {
+          "w": "done",
+          "start": 89.98,
+          "end": 90.16
+        },
+        {
+          "w": "project",
+          "start": 90.16,
+          "end": 90.48
+        },
+        {
+          "w": "not",
+          "start": 90.48,
+          "end": 90.68
+        },
+        {
+          "w": "afternoon",
+          "start": 90.68,
+          "end": 91.0
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 91.0,
+      "end": 91.9,
+      "text": "frame record received",
+      "words": [
+        {
+          "w": "frame",
+          "start": 91.0,
+          "end": 91.3
+        },
+        {
+          "w": "record",
+          "start": 91.3,
+          "end": 91.56
+        },
+        {
+          "w": "received",
+          "start": 91.56,
+          "end": 91.9
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 91.9,
+      "end": 92.78,
+      "text": "with noise the speaker",
+      "words": [
+        {
+          "w": "with",
+          "start": 91.9,
+          "end": 92.1
+        },
+        {
+          "w": "noise",
+          "start": 92.1,
+          "end": 92.32
+        },
+        {
+          "w": "the",
+          "start": 92.32,
+          "end": 92.48
+        },
+        {
+          "w": "speaker",
+          "start": 92.48,
+          "end": 92.78
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 92.78,
+      "end": 94.34,
+      "text": "don't change the update action plan you a",
+      "words": [
+        {
+          "w": "don't",
+          "start": 92.78,
+          "end": 93.08
+        },
+        {
+          "w": "change",
+          "start": 93.08,
+          "end": 93.24
+        },
+        {
+          "w": "the",
+          "start": 93.24,
+          "end": 93.4
+        },
+        {
+          "w": "update",
+          "start": 93.4,
+          "end": 93.62
+        },
+        {
+          "w": "action",
+          "start": 93.62,
+          "end": 93.92
+        },
+        {
+          "w": "plan",
+          "start": 93.92,
+          "end": 94.14
+        },
+        {
+          "w": "you",
+          "start": 94.14,
+          "end": 94.28
+        },
+        {
+          "w": "a",
+          "start": 94.28,
+          "end": 94.34
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 94.34,
+      "end": 94.94,
+      "text": "metric complex",
+      "words": [
+        {
+          "w": "metric",
+          "start": 94.34,
+          "end": 94.58
+        },
+        {
+          "w": "complex",
+          "start": 94.58,
+          "end": 94.94
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 94.94,
+      "end": 95.86,
+      "text": "solution review second",
+      "words": [
+        {
+          "w": "solution",
+          "start": 94.94,
+          "end": 95.34
+        },
+        {
+          "w": "review",
+          "start": 95.34,
+          "end": 95.56
+        },
+        {
+          "w": "second",
+          "start": 95.56,
+          "end": 95.86
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 95.86,
+      "end": 96.4,
+      "text": "status you",
+      "words": [
+        {
+          "w": "status",
+          "start": 95.86,
+          "end": 96.26
+        },
+        {
+          "w": "you",
+          "start": 96.26,
+          "end": 96.4
+        }
+      ]
+    },
+    {
+      "speaker": "spk7",
+      "start": 96.4,
+      "end": 98.58,
+      "text": "already status not timeline maybe quarter schedule that is",
+      "words": [
+        {
+          "w": "already",
+          "start": 96.4,
+          "end": 96.68
+        },
+        {
+          "w": "status",
+          "start": 96.68,
+          "end": 97.04
+        },
+        {
+          "w": "not",
+          "start": 97.04,
+          "end": 97.24
+        },
+        {
+          "w": "timeline",
+          "start": 97.24,
+          "end": 97.58
+        },
+        {
+          "w": "maybe",
+          "start": 97.58,
+          "end": 97.82
+        },
+        {
+          "w": "quarter",
+          "start": 97.82,
+          "end": 98.06
+        },
+        {
+          "w": "schedule",
+          "start": 98.06,
+          "end": 98.36
+        },
+        {
+          "w": "that",
+          "start": 98.36,
+          "end": 98.46
+        },
+        {
+          "w": "is",
+          "start": 98.46,
+          "end": 98.58
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 98.58,
+      "end": 98.82,
+      "text": "finished",
+      "words": [
+        {
+          "w": "finished",
+          "start": 98.58,
+          "end": 98.82
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 98.82,
+      "end": 100.16,
+      "text": "design with and we agenda speaker",
+      "words": [
+        {
+          "w": "design",
+          "start": 98.82,
+          "end": 99.12
+        },
+        {
+          "w": "with",
+          "start": 99.12,
+          "end": 99.38
+        },
+        {
+          "w": "and",
+          "start": 99.38,
+          "end": 99.56
+        },
+        {
+          "w": "we",
+          "start": 99.56,
+          "end": 99.68
+        },
+        {
+          "w": "agenda",
+          "start": 99.68,
+          "end": 99.92
+        },
+        {
+          "w": "speaker",
+          "start": 99.92,
+          "end": 100.16
+        }
+      ]
+    },
+    {
+      "speaker": "spk7",
+      "start": 100.16,
+      "end": 101.66,
+      "text": "decision the status about and for that",
+      "words": [
+        {
+          "w": "decision",
+          "start": 100.16,
+          "end": 100.5
+        },
+        {
+          "w": "the",
+          "start": 100.5,
+          "end": 100.6
+        },
+        {
+          "w": "status",
+          "start": 100.6,
+          "end": 100.88
+        },
+        {
+          "w": "about",
+          "start": 100.88,
+          "end": 101.2
+        },
+        {
+          "w": "and",
+          "start": 101.2,
+          "end": 101.4
+        },
+        {
+          "w": "for",
+          "start": 101.4,
+          "end": 101.5
+        },
+        {
+          "w": "that",
+          "start": 101.5,
+          "end": 101.66
+        }
+      ]
+    },
+    {
+      "speaker": "spk7",
+      "start": 101.66,
+      "end": 101.86,
+      "text": "meeting",
+      "words": [
+        {
+          "w": "meeting",
+          "start": 101.66,
+          "end": 101.86
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 101.86,
+      "end": 102.76,
+      "text": "afternoon you plan issue",
+      "words": [
+        {
+          "w": "afternoon",
+          "start": 101.86,
+          "end": 102.2
+        },
+        {
+          "w": "you",
+          "start": 102.2,
+          "end": 102.36
+        },
+        {
+          "w": "plan",
+          "start": 102.36,
+          "end": 102.54
+        },
+        {
+          "w": "issue",
+          "start": 102.54,
+          "end": 102.76
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 102.76,
+      "end": 103.92,
+      "text": "option issue small the network",
+      "words": [
+        {
+          "w": "option",
+          "start": 102.76,
+          "end": 103.0
+        },
+        {
+          "w": "issue",
+          "start": 103.0,
+          "end": 103.2
+        },
+        {
+          "w": "small",
+          "start": 103.2,
+          "end": 103.48
+        },
+        {
+          "w": "the",
+          "start": 103.48,
+          "end": 103.62
+        },
+        {
+          "w": "network",
+          "start": 103.62,
+          "end": 103.92
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 103.92,
+      "end": 104.22,
+      "text": "upload",
+      "words": [
+        {
+          "w": "upload",
+          "start": 103.92,
+          "end": 104.22
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 104.22,
+      "end": 105.04,
+      "text": "deadline timeline",
+      "words": [
+        {
+          "w": "deadline",
+          "start": 104.22,
+          "end": 104.64
+        },
+        {
+          "w": "timeline",
+          "start": 104.64,
+          "end": 105.04
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 105.04,
+      "end": 105.94,
+      "text": "the customer that the",
+      "words": [
+        {
+          "w": "the",
+          "start": 105.04,
+          "end": 105.26
+        },
+        {
+          "w": "customer",
+          "start": 105.26,
+          "end": 105.64
+        },
+        {
+          "w": "that",
+          "start": 105.64,
+          "end": 105.84
+        },
+        {
+          "w": "the",
+          "start": 105.84,
+          "end": 105.94
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 105.94,
+      "end": 107.34,
+      "text": "project have confirmed issue stream",
+      "words": [
+        {
+          "w": "project",
+          "start": 105.94,
+          "end": 106.24
+        },
+        {
+          "w": "have",
+          "start": 106.24,
+          "end": 106.44
+        },
+        {
+          "w": "confirmed",
+          "start": 106.44,
+          "end": 106.76
+        },
+        {
+          "w": "issue",
+          "start": 106.76,
+          "end": 107.04
+        },
+        {
+          "w": "stream",
+          "start": 107.04,
+          "end": 107.34
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 107.34,
+      "end": 108.68,
+      "text": "you send schedule the schedule stat",
+      "words": [
+        {
+          "w": "you",
+          "start": 107.34,
+          "end": 107.48
+        },
+        {
+          "w": "send",
+          "start": 107.48,
+          "end": 107.6
+        },
+        {
+          "w": "schedule",
+          "start": 107.6,
+          "end": 107.98
+        },
+        {
+          "w": "the",
+          "start": 107.98,
+          "end": 108.1
+        },
+        {
+          "w": "schedule",
+          "start": 108.1,
+          "end": 108.42
+        },
+        {
+          "w": "stat",
+          "start": 108.42,
+          "end": 108.68
+        }
+      ]
+    },
+    {
+      "speaker": "spk2",
+      "start": 108.68,
+      "end": 108.98,
+      "text": "measure",
+      "words": [
+        {
+          "w": "measure",
+          "start": 108.68,
+          "end": 108.98
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 108.98,
+      "end": 110.2,
+      "text": "release audio metric status",
+      "words": [
+        {
+          "w": "release",
+          "start": 108.98,
+          "end": 109.24
+        },
+        {
+          "w": "audio",
+          "start": 109.24,
+          "end": 109.56
+        },
+        {
+          "w": "metric",
+          "start": 109.56,
+          "end": 109.8
+        },
+        {
+          "w": "status",
+          "start": 109.8,
+          "end": 110.2
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 110.2,
+      "end": 111.42,
+      "text": "charts every issue answer",
+      "words": [
+        {
+          "w": "charts",
+          "start": 110.2,
+          "end": 110.5
+        },
+        {
+          "w": "every",
+          "start": 110.5,
+          "end": 110.8
+        },
+        {
+          "w": "issue",
+          "start": 110.8,
+          "end": 111.02
+        },
+        {
+          "w": "answer",
+          "start": 111.02,
+          "end": 111.42
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 111.42,
+      "end": 112.94,
+      "text": "in the customer we audio and then have",
+      "words": [
+        {
+          "w": "in",
+          "start": 111.42,
+          "end": 111.64
+        },
+        {
+          "w": "the",
+          "start": 111.64,
+          "end": 111.74
+        },
+        {
+          "w": "customer",
+          "start": 111.74,
+          "end": 112.06
+        },
+        {
+          "w": "we",
+          "start": 112.06,
+          "end": 112.28
+        },
+        {
+          "w": "audio",
+          "start": 112.28,
+          "end": 112.56
+        },
+        {
+          "w": "and",
+          "start": 112.56,
+          "end": 112.72
+        },
+        {
+          "w": "then",
+          "start": 112.72,
+          "end": 112.82
+        },
+        {
+          "w": "have",
+          "start": 112.82,
+          "end": 112.94
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 112.94,
+      "end": 113.24,
+      "text": "we this",
+      "words": [
+        {
+          "w": "we",
+          "start": 112.94,
+          "end": 113.06
+        },
+        {
+          "w": "this",
+          "start": 113.06,
+          "end": 113.24
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 113.24,
+      "end": 116.1,
+      "text": "issue release deadline another number between a review packet agenda",
+      "words": [
+        {
+          "w": "issue",
+          "start": 113.24,
+          "end": 113.52
+        },
+        {
+          "w": "release",
+          "start": 113.52,
+          "end": 113.68
+        },
+        {
+          "w": "deadline",
+          "start": 113.68,
+          "end": 114.3
+        },
+        {
+          "w": "another",
+          "start": 114.3,
+          "end": 114.58
+        },
+        {
+          "w": "number",
+          "start": 114.58,
+          "end": 114.88
+        },
+        {
+          "w": "between",
+          "start": 114.88,
+          "end": 115.08
+        },
+        {
+          "w": "a",
+          "start": 115.08,
+          "end": 115.3
+        },
+        {
+          "w": "review",
+          "start": 115.3,
+          "end": 115.48
+        },
+        {
+          "w": "packet",
+          "start": 115.48,
+          "end": 115.76
+        },
+        {
+          "w": "agenda",
+          "start": 115.76,
+          "end": 116.1
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 116.1,
+      "end": 116.46,
+      "text": "project",
+      "words": [
+        {
+          "w": "project",
+          "start": 116.1,
+          "end": 116.46
+        }
+      ]
+    },
+    {
+      "speaker": "spk4",
+      "start": 116.46,
+      "end": 117.4,
+      "text": "around cancel month",
+      "words": [
+        {
+          "w": "around",
+          "start": 116.46,
+          "end": 116.84
+        },
+        {
+          "w": "cancel",
+          "start": 116.84,
+          "end": 117.2
+        },
+        {
+          "w": "month",
+          "start": 117.2,
+          "end": 117.4
+        }
+      ]
+    },
+    {
+      "speaker": "spk3",
+      "start": 117.4,
+      "end": 119.92,
+      "text": "item record again tomorrow priorities and review the end",
+      "words": [
+        {
+          "w": "item",
+          "start": 117.4,
+          "end": 117.64
+        },
+        {
+          "w": "record",
+          "start": 117.64,
+          "end": 117.9
+        },
+        {
+          "w": "again",
+          "start": 117.9,
+          "end": 118.18
+        },
+        {
+          "w": "tomorrow",
+          "start": 118.18,
+          "end": 118.46
+        },
+        {
+          "w": "priorities",
+          "start": 118.46,
+          "end": 119.02
+        },
+        {
+          "w": "and",
+          "start": 119.02,
+          "end": 119.2
+        },
+        {
+          "w": "review",
+          "start": 119.2,
+          "end": 119.52
+        },
+        {
+          "w": "the",
+          "start": 119.52,
+          "end": 119.7
+        },
+        {
+          "w": "end",
+          "start": 119.7,
+          "end": 119.92
+        }
+      ]
+    }
+  ],
+  "extra": {
+    "audio": {
+      "path": "/Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-2spk-overlap-s0102/device/recording.ogg",
+      "container": "pyav",
+      "source_sample_rate": 48000,
+      "source_channels": 1,
+      "sample_rate": 16000,
+      "duration_s": 120.0,
+      "container_duration_s": 120.013
+    },
+    "components": {
+      "transcriber": "faster-whisper",
+      "diarizer": "sherpa-onnx"
+    },
+    "models": {
+      "asr": {
+        "key": "faster-whisper-small.en",
+        "kind": "asr",
+        "path": "/Users/mivi/Desktop/plaud-harness/data/models/faster-whisper/small.en",
+        "licence": "MIT",
+        "licence_source": "https://huggingface.co/Systran/faster-whisper-small.en (model card 'license: mit'; ungated)",
+        "upstream": "openai/whisper small.en converted to CTranslate2 (float16 weights; quantised to int8 at load time)",
+        "bytes": 486098798,
+        "files": {
+          "config.json": {
+            "sha256": "666a9605530ac1f61fa8177f3702b4dacec9966749e42610839fcc32661d5fae",
+            "pinned_sha256": "666a9605530ac1f61fa8177f3702b4dacec9966749e42610839fcc32661d5fae",
+            "bytes": 2657,
+            "url": "https://huggingface.co/Systran/faster-whisper-small.en/resolve/d1d751a5f8271d482d14ca55d9e2deeebbae577f/config.json"
+          },
+          "model.bin": {
+            "sha256": "62b2a45b05ee59acb4a5341b33ee35e041395d378d418a18acfe4c9e768ee37a",
+            "pinned_sha256": "62b2a45b05ee59acb4a5341b33ee35e041395d378d418a18acfe4c9e768ee37a",
+            "bytes": 483545366,
+            "url": "https://huggingface.co/Systran/faster-whisper-small.en/resolve/d1d751a5f8271d482d14ca55d9e2deeebbae577f/model.bin"
+          },
+          "tokenizer.json": {
+            "sha256": "929c5252409436dce1b38a75d1abbcb5e132d170d8e324e4e04ed915fa2d22df",
+            "pinned_sha256": "929c5252409436dce1b38a75d1abbcb5e132d170d8e324e4e04ed915fa2d22df",
+            "bytes": 2128466,
+            "url": "https://huggingface.co/Systran/faster-whisper-small.en/resolve/d1d751a5f8271d482d14ca55d9e2deeebbae577f/tokenizer.json"
+          },
+          "vocabulary.txt": {
+            "sha256": "ff77588746d3a2595d32ab5b69ffd7b95ce2441ac57533cb66fc3eb575a115cf",
+            "pinned_sha256": "ff77588746d3a2595d32ab5b69ffd7b95ce2441ac57533cb66fc3eb575a115cf",
+            "bytes": 422309,
+            "url": "https://huggingface.co/Systran/faster-whisper-small.en/resolve/d1d751a5f8271d482d14ca55d9e2deeebbae577f/vocabulary.txt"
+          }
+        },
+        "revision": "d1d751a5f8271d482d14ca55d9e2deeebbae577f",
+        "pinned": true,
+        "sha256_matches_pin": true
+      },
+      "segmentation": {
+        "key": "pyannote-segmentation-3.0-onnx",
+        "kind": "segmentation",
+        "path": "/Users/mivi/Desktop/plaud-harness/data/models/sherpa-onnx/sherpa-onnx-pyannote-segmentation-3-0/model.onnx",
+        "licence": "MIT (Copyright (c) 2022 CNRS; LICENSE shipped in the archive)",
+        "licence_source": "archive LICENSE file; https://huggingface.co/pyannote/segmentation-3.0 card metadata 'license: mit' (that repo is gated; this harness did not accept its form and uses k2-fsa's ungated ONNX conversion)",
+        "upstream": "pyannote/segmentation-3.0 (powerset, 10 s windows) exported to ONNX by k2-fsa (sherpa-onnx)",
+        "bytes": 5993974,
+        "files": {
+          "model.onnx": {
+            "sha256": "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079",
+            "pinned_sha256": "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079",
+            "bytes": 5992913,
+            "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2"
+          },
+          "LICENSE": {
+            "sha256": "14d7016ad68e7394d6e6b78d96cc2ae431c905287b89674cfdf021e79e62b8ba",
+            "pinned_sha256": "14d7016ad68e7394d6e6b78d96cc2ae431c905287b89674cfdf021e79e62b8ba",
+            "bytes": 1061,
+            "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2"
+          }
+        },
+        "archive": {
+          "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2",
+          "sha256": "24615ee884c897d9d2ba09bb4d30da6bb1b15e685065962db5b02e76e4996488",
+          "bytes": 6958444
+        },
+        "pinned": true,
+        "sha256_matches_pin": true
+      },
+      "embedding": {
+        "key": "3dspeaker-campplus-en-voxceleb",
+        "kind": "speaker-embedding",
+        "path": "/Users/mivi/Desktop/plaud-harness/data/models/sherpa-onnx/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx",
+        "licence": "Apache-2.0",
+        "licence_source": "https://modelscope.cn/models/iic/speech_campplus_sv_en_voxceleb_16k (License: Apache License 2.0)",
+        "upstream": "3D-Speaker CAM++ speaker verification, English, trained on VoxCeleb2 (5994 speakers); ONNX by k2-fsa",
+        "bytes": 29596978,
+        "files": {
+          "3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx": {
+            "sha256": "357a834f702b80161e5b981182c038e18553c1f2ca752ed6cec2052365d4129b",
+            "pinned_sha256": "357a834f702b80161e5b981182c038e18553c1f2ca752ed6cec2052365d4129b",
+            "bytes": 29596978,
+            "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx"
+          }
+        },
+        "pinned": true,
+        "sha256_matches_pin": true
+      }
+    },
+    "timing": {
+      "model_load_s": 1.1416879999742378,
+      "diarization_s": 14.769325792003656,
+      "asr_s": 26.57914616598282,
+      "assign_s": 0.006286707997787744,
+      "audio_s": 120.0,
+      "rtf": 0.3446229888832022
+    },
+    "asr": {
+      "settings": {
+        "model": "small.en",
+        "device": "cpu",
+        "compute_type": "int8",
+        "language": "en",
+        "beam_size": 5,
+        "vad_filter": false,
+        "cpu_threads": 4,
+        "word_timestamps": true
+      },
+      "language": "en",
+      "language_probability": 1.0,
+      "duration": 120.0,
+      "duration_after_vad": 120.0,
+      "n_segments": 40,
+      "n_words": 488
+    },
+    "assignment": {
+      "rule": "max total overlap per speaker; ties to the speaker of the earliest-starting overlapping turn; no overlap -> nearest turn by gap (HARNESS_POLICY, 2026-09-25)",
+      "words": 488,
+      "overlap": 488,
+      "nearest": 0,
+      "fallback": 0,
+      "segments_without_words": 0
+    },
+    "diarization": {
+      "settings": {
+        "cluster_threshold": 0.5,
+        "min_duration_on": 0.3,
+        "min_duration_off": 0.5,
+        "num_threads": 4
+      },
+      "num_speakers_hint": null,
+      "n_speakers": 8,
+      "hint_honoured": null,
+      "n_turns": 82,
+      "turns": [
+        [
+          0.4697187542915344,
+          1.7859687805175781,
+          "spk0"
+        ],
+        [
+          1.2797187566757202,
+          4.334094047546387,
+          "spk1"
+        ],
+        [
+          3.962843894958496,
+          4.350968837738037,
+          "spk2"
+        ],
+        [
+          4.030344009399414,
+          5.0259690284729,
+          "spk3"
+        ],
+        [
+          5.0259690284729,
+          9.210968971252441,
+          "spk2"
+        ],
+        [
+          6.797843933105469,
+          7.253468990325928,
+          "spk3"
+        ],
+        [
+          8.789093971252441,
+          11.235969543457031,
+          "spk3"
+        ],
+        [
+          10.932219505310059,
+          13.02471923828125,
+          "spk2"
+        ],
+        [
+          13.02471923828125,
+          14.23971939086914,
+          "spk3"
+        ],
+        [
+          14.23971939086914,
+          15.52221965789795,
+          "spk4"
+        ],
+        [
+          15.032844543457031,
+          19.18409538269043,
+          "spk3"
+        ],
+        [
+          18.86347007751465,
+          21.46221923828125,
+          "spk2"
+        ],
+        [
+          21.276594161987305,
+          22.40721893310547,
+          "spk4"
+        ],
+        [
+          22.120344161987305,
+          23.62221908569336,
+          "spk2"
+        ],
+        [
+          23.385969161987305,
+          24.533470153808594,
+          "spk4"
+        ],
+        [
+          24.19597053527832,
+          26.42346954345703,
+          "spk2"
+        ],
+        [
+          25.88347053527832,
+          29.072845458984375,
+          "spk4"
+        ],
+        [
+          28.819719314575195,
+          31.232845306396484,
+          "spk2"
+        ],
+        [
+          31.232845306396484,
+          31.975345611572266,
+          "spk4"
+        ],
+        [
+          31.975345611572266,
+          32.970970153808594,
+          "spk2"
+        ],
+        [
+          32.2622184753418,
+          34.16909408569336,
+          "spk3"
+        ],
+        [
+          33.9497184753418,
+          35.029720306396484,
+          "spk2"
+        ],
+        [
+          34.928470611572266,
+          36.54846954345703,
+          "spk3"
+        ],
+        [
+          36.44721984863281,
+          37.72972106933594,
+          "spk4"
+        ],
+        [
+          37.459720611572266,
+          39.33284378051758,
+          "spk3"
+        ],
+        [
+          39.02909469604492,
+          47.02784729003906,
+          "spk2"
+        ],
+        [
+          40.68284606933594,
+          41.0372200012207,
+          "spk3"
+        ],
+        [
+          41.93159484863281,
+          42.3028450012207,
+          "spk3"
+        ],
+        [
+          45.74534606933594,
+          46.15034484863281,
+          "spk3"
+        ],
+        [
+          47.02784729003906,
+          64.78034973144531,
+          "spk3"
+        ],
+        [
+          47.75347137451172,
+          48.057220458984375,
+          "spk2"
+        ],
+        [
+          49.49159622192383,
+          49.82909393310547,
+          "spk2"
+        ],
+        [
+          51.12847137451172,
+          52.24222183227539,
+          "spk0"
+        ],
+        [
+          51.36471939086914,
+          52.20846939086914,
+          "spk5"
+        ],
+        [
+          55.26284408569336,
+          55.85346984863281,
+          "spk0"
+        ],
+        [
+          58.77284622192383,
+          59.1778450012207,
+          "spk4"
+        ],
+        [
+          61.557220458984375,
+          61.962223052978516,
+          "spk4"
+        ],
+        [
+          64.72972106933594,
+          66.41722106933594,
+          "spk5"
+        ],
+        [
+          66.41722106933594,
+          67.17659759521484,
+          "spk3"
+        ],
+        [
+          66.43409729003906,
+          67.22721862792969,
+          "spk2"
+        ],
+        [
+          67.17659759521484,
+          68.44222259521484,
+          "spk5"
+        ],
+        [
+          68.39159393310547,
+          68.77972412109375,
+          "spk2"
+        ],
+        [
+          68.42534637451172,
+          71.51347351074219,
+          "spk3"
+        ],
+        [
+          71.51347351074219,
+          72.5428466796875,
+          "spk6"
+        ],
+        [
+          72.5428466796875,
+          74.3147201538086,
+          "spk3"
+        ],
+        [
+          74.3147201538086,
+          75.4115982055664,
+          "spk5"
+        ],
+        [
+          75.4115982055664,
+          78.0272216796875,
+          "spk3"
+        ],
+        [
+          78.0272216796875,
+          78.93846893310547,
+          "spk6"
+        ],
+        [
+          78.92160034179688,
+          91.05472564697266,
+          "spk3"
+        ],
+        [
+          78.93846893310547,
+          79.24222564697266,
+          "spk2"
+        ],
+        [
+          80.7103500366211,
+          81.11534881591797,
+          "spk2"
+        ],
+        [
+          83.56222534179688,
+          84.45659637451172,
+          "spk2"
+        ],
+        [
+          86.8865966796875,
+          87.27471923828125,
+          "spk2"
+        ],
+        [
+          88.40534973144531,
+          88.81034851074219,
+          "spk2"
+        ],
+        [
+          90.53160095214844,
+          91.96597290039062,
+          "spk2"
+        ],
+        [
+          92.0334701538086,
+          94.44659423828125,
+          "spk3"
+        ],
+        [
+          93.9740982055664,
+          94.3959732055664,
+          "spk7"
+        ],
+        [
+          93.99097442626953,
+          95.03722381591797,
+          "spk2"
+        ],
+        [
+          95.03722381591797,
+          96.64035034179688,
+          "spk3"
+        ],
+        [
+          95.96534729003906,
+          96.65721893310547,
+          "spk2"
+        ],
+        [
+          96.3197250366211,
+          98.58097076416016,
+          "spk7"
+        ],
+        [
+          98.2772216796875,
+          100.3865966796875,
+          "spk3"
+        ],
+        [
+          100.1166000366211,
+          100.42034912109375,
+          "spk2"
+        ],
+        [
+          100.13347625732422,
+          102.05722045898438,
+          "spk7"
+        ],
+        [
+          101.87159729003906,
+          102.66472625732422,
+          "spk3"
+        ],
+        [
+          102.6478500366211,
+          104.08222198486328,
+          "spk2"
+        ],
+        [
+          102.66472625732422,
+          103.96409606933594,
+          "spk7"
+        ],
+        [
+          103.96409606933594,
+          104.97660064697266,
+          "spk3"
+        ],
+        [
+          104.97660064697266,
+          105.97222137451172,
+          "spk2"
+        ],
+        [
+          105.97222137451172,
+          108.94222259521484,
+          "spk3"
+        ],
+        [
+          106.54597473144531,
+          106.95097351074219,
+          "spk2"
+        ],
+        [
+          108.68909454345703,
+          109.00971984863281,
+          "spk2"
+        ],
+        [
+          109.02659606933594,
+          110.03910064697266,
+          "spk4"
+        ],
+        [
+          110.03910064697266,
+          111.47347259521484,
+          "spk3"
+        ],
+        [
+          110.44409942626953,
+          111.4228515625,
+          "spk2"
+        ],
+        [
+          111.47347259521484,
+          112.97534942626953,
+          "spk4"
+        ],
+        [
+          112.97534942626953,
+          115.96222686767578,
+          "spk3"
+        ],
+        [
+          113.56597137451172,
+          113.8865966796875,
+          "spk2"
+        ],
+        [
+          115.01721954345703,
+          115.40534973144531,
+          "spk4"
+        ],
+        [
+          115.96222686767578,
+          117.54847717285156,
+          "spk4"
+        ],
+        [
+          117.3291015625,
+          119.97846984863281,
+          "spk3"
+        ],
+        [
+          119.5228500366211,
+          119.82659912109375,
+          "spk0"
+        ]
+      ]
+    }
+  }
+}

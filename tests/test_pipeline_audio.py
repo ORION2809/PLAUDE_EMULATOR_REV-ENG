@@ -159,3 +159,127 @@ def test_routing_is_by_suffix_and_libsndfile_also_decodes_opus(tmp_path):
     assert load_audio(_pinned("r6s2_16k_mono.ogg")).source_sample_rate == 48000
     assert abs(len(a.pcm) - 32000) <= 160
     assert _corr(_source_tone(32000), a.pcm) > 0.99
+
+
+# --- PIPE-12: every path is clipped ------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("rate", [16000, 48000])
+def test_float_wav_over_full_scale_is_clipped_on_every_path(tmp_path, rate):
+    """Review finding PIPE-12: only the resampling branch clipped, so a 16 kHz
+    float wav reached the components at +-3.0 while the same data at 48 kHz
+    was clipped to +-1.0."""
+    t = np.arange(rate) / rate
+    x = 3.0 * np.sin(2 * np.pi * 220 * t)
+    sf.write(str(tmp_path / "hot.wav"), x, rate, subtype="FLOAT")
+    a = load_audio(tmp_path / "hot.wav")
+    assert float(np.abs(a.pcm).max()) <= 1.0
+    assert float(np.abs(a.pcm).max()) > 0.99
+
+
+# --- PIPE-09: the synthetic device Ogg is SDK-shaped (hard CBR, 80 B) ----------------------------
+
+
+def test_synthetic_device_ogg_packets_are_80_byte_cbr(tmp_path):
+    """Review finding PIPE-09: libopus defaulted to VBR (43-152 B packets); the
+    SDK's repack stage accepts only 80-byte packets (docs/protocol-ledger.md:1171-1180)."""
+    import av
+
+    from pipeline.synthetic import write_device_ogg_opus
+
+    noise = (0.3 * np.random.default_rng(0).standard_normal(3 * 16000)).astype(np.float32)
+    p = write_device_ogg_opus(tmp_path / "r.ogg", noise)
+    c = av.open(str(p))
+    try:
+        sizes = [pk.size for pk in c.demux(c.streams.audio[0]) if pk.size]
+    finally:
+        c.close()
+    assert len(sizes) >= 149
+    assert set(sizes) == {80}, sorted(set(sizes))  # 80 B / 20 ms / channel (ledger section 8)
+
+
+# --- PIPE-03: damaged Ogg/Opus ---------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def tone_ogg(tmp_path_factory):
+    from pipeline.synthetic import write_device_ogg_opus
+
+    t = np.arange(10 * 16000) / 16000
+    x = (0.4 * np.sin(2 * np.pi * 440 * t) * (1 + 0.5 * np.sin(2 * np.pi * 0.7 * t)) / 1.5).astype(np.float32)
+    p = write_device_ogg_opus(tmp_path_factory.mktemp("dmg") / "ok.ogg", x)
+    return p, x
+
+
+def _damaged(tmp_path, raw, name):
+    q = tmp_path / f"{name}.ogg"
+    q.write_bytes(raw)
+    return q
+
+
+def test_intact_ogg_reports_no_damage(tone_ogg):
+    a = load_audio(tone_ogg[0])
+    assert a.gaps == () and a.warnings == () and not a.damaged
+    assert a.container_duration_s == pytest.approx(10.0, abs=0.02)
+
+
+def test_mid_file_corruption_is_zero_filled_so_later_audio_keeps_its_time(tone_ogg, tmp_path):
+    """Review finding PIPE-03: 2 KB zeroed mid-file decoded without error to 9.0 s,
+    and everything after the damage arrived 1 s early."""
+    p, x = tone_ogg
+    raw = p.read_bytes()
+    q = _damaged(tmp_path, raw[: len(raw) // 2] + b"\x00" * 2048 + raw[len(raw) // 2 + 2048 :], "zeroed")
+    a = load_audio(q)
+    assert abs(a.duration_s - 10.0) <= 0.02, f"decoded {a.duration_s:.3f} s: not zero-filled back to the true length"
+    assert len(a.gaps) == 1
+    g0, g1 = a.gaps[0]
+    assert 0.5 < g1 - g0 <= 3.0  # whole Ogg pages (about 1 s each here) are lost
+    # audio after the gap lines up with the source at zero lag
+    i0 = int((g1 + 0.2) * 16000)
+    seg = slice(i0, i0 + 16000)
+    assert _corr(x[seg], a.pcm[seg]) > 0.99
+    with pytest.raises(AudioFormatError, match="timestamps jump"):
+        load_audio(q, on_gap="error")
+
+
+def test_truncated_ogg_is_refused_by_a_pipeline_that_knows_the_duration(tone_ogg, tmp_path):
+    """A truncated file is self-consistent (the last page's granule says 3 s), so
+    only meeting.json's duration_s can expose it: audio_check=strict refuses it,
+    audio_check=warn scores it and records the problem."""
+    from pipeline import PipelineConfig, get_pipeline
+    from pipeline.synthetic import synthetic_meeting
+
+    p, _ = tone_ogg
+    m, d = synthetic_meeting(tmp_path / "m", meeting_id="trunc", write_device_ogg=True)
+    raw = (d / "device" / "recording.ogg").read_bytes()
+    (d / "device" / "recording.ogg").write_bytes(raw[: int(len(raw) * 0.3)])
+    audio = d / "device" / "recording.ogg"
+    with pytest.raises(AudioFormatError, match="duration_s"):
+        get_pipeline("energy-vad-cluster").run(audio, d)
+    assert not load_audio(audio).damaged  # the container itself cannot tell
+    hyp = get_pipeline("energy-vad-cluster", PipelineConfig(params={"audio_check": "warn"})).run(audio, d)
+    assert any("duration_s" in p for p in hyp.extra["audio"]["problems"])
+    ok = get_pipeline("energy-vad-cluster", PipelineConfig(params={"audio_check": "off"})).run(audio, d)
+    assert "problems" not in ok.extra["audio"]
+
+
+def test_decode_time_errors_become_audio_format_errors(tone_ogg, tmp_path, monkeypatch):
+    import av
+
+    from pipeline import base
+
+    class Boom:
+        def __init__(self, real):
+            self.real = real
+            self.streams = real.streams
+
+        def decode(self, stream):
+            raise av.error.InvalidDataError(1094995529, "Invalid data found when processing input")
+
+        def close(self):
+            self.real.close()
+
+    real_open = av.open
+    monkeypatch.setattr(av, "open", lambda *a, **k: Boom(real_open(*a, **k)))
+    with pytest.raises(AudioFormatError, match="could not decode"):
+        base.load_audio(tone_ogg[0])

@@ -1,0 +1,7 @@
+synth-piper-2spk-overlap-s0102 [whisper-sherpa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.5636  JER 0.6588
+synth-piper-2spk-s0101 [whisper-sherpa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.5373  JER 0.7150
+synth-piper-3spk-reverb-noise-s0103 [whisper-sherpa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.6408  JER 0.6706
+synth-piper-4spk-s0104 [whisper-sherpa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.7029  JER 0.8326
+macro  n=4  cpWER 1.0000  tcpWER 1.0000  DER 0.6112  JER 0.7192
+micro  n=4  cpWER 1.0000  tcpWER 1.0000  DER 0.6164  JER 0.7354
+# exit 0

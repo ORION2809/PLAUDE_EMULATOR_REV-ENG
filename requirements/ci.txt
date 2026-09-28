@@ -1,0 +1,14 @@
+# CI install set for .github/workflows/tests.yml (HARNESS_POLICY, 2026-09-25).
+# Everything the suite imports: the consolidated set, plus any test-only extras
+# the local .venv carries that all.txt does not list. Keep this a superset of
+# all.txt so the CI environment is the documented local one.
+#   python3.11 -m venv .venv
+#   .venv/bin/pip install -e reference/upstream/bumble
+#   .venv/bin/pip install -r requirements/ci.txt
+-r all.txt
+
+# No test-only extras at present. pycryptodome==3.23.0 (the independent
+# ChaCha20-Poly1305 that tests/test_r5_s7_sealed.py cross-checks via
+# pytest.importorskip("Crypto.Cipher...")) used to be listed only here; it now
+# lives in all.txt, so a local `pip install -r requirements/all.txt` runs that
+# vector instead of silently skipping it. Add CI-only pins below this line.

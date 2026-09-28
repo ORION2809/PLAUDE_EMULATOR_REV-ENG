@@ -132,6 +132,12 @@ our copy of the template app, using only public SDK API with a synthetic identif
 `recoveryConnectBleDevice(device, historicalUserId)` derives the k3 token by a pure
 local string transform of `historicalUserId` (`removePrefix "client_user_"`, drop
 `-`) and, on the pv < 20 path, makes no cloud call. Four runs:
+(Correction, 25 Sep 2026: the recovery path makes no cloud call, but the driver's
+`initSDK` passed a synthetic token. With a non-blank token the SDK sends one
+automatic `partner/sdk/gen-key` request per app start. That request appears in the
+later R7-S13/R7-S14 logs, where every response shown was 401. The four runs here
+very likely sent it too, but their logs were filtered and show neither request nor
+response. See `r7/r7-s14-wifi-real-sdk.md` D7.)
 
 | run | id | outcome |
 |---|---|---|
@@ -226,7 +232,7 @@ cross.
 ## Reproducibility
 
 ```bash
-cd ~/Desktop/plaud-harness
+cd plaud-harness                      # your clone
 ./scripts/fetch-references.sh        # 33 repos, commit-pinned (docs/reference-pins.txt)
 ./scripts/build-evidence.sh          # verifies AAR sha256, then javap + jadx into build/evidence/
 python3 scripts/extract_evidence_digest.py   # regenerates docs/evidence-digest.json identically
@@ -276,3 +282,15 @@ above (301 tests) are the Phase-1 figures; the tree now carries 978 tests
 across all layers. See `r7/r7-s13-recording-pull.md`, ledger §15, and
 PROJECT.md §8.
 
+**Note, 25 September 2026.** The test counts in the body of this report are
+Phase-1 figures from 23 September: "**301 passed**" under "Test evidence" and
+"# 301 passed" under "Reproducibility". The addendum's "978 tests" is the
+24 September figure. On 25 September the full suite gave `1365 passed, 4 skipped, 11 warnings in 339.00s (0:05:38)`. The
+install line under "Reproducibility" (Bumble, pytest, pytest-asyncio, grpcio,
+protobuf) is also the Phase-1 set; the current suite needs
+`requirements/all.txt` (README, "Quick start"). The statement under
+"Security / auth boundary" that no cloud endpoint was called is subject to the
+25 September correction under "Runtime": the SDK, initialised by our driver
+with a synthetic token, sent automatic `gen-key` requests, and every visible
+response was 401 (`r7/r7-s14-wifi-real-sdk.md` D7; `docs/progress-report.md`
+§8.6).

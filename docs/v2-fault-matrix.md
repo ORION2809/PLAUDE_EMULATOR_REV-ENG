@@ -5,13 +5,35 @@ corrupting a transfer". Every cell below is a real Bumble `TwoDevices` GATT
 session: `plaudsim.faults.FaultyPeripheral` serves a file while an injector
 damages its outbound frames, and a receiver model derived from the Android
 SDK's bytecode (`tests/fault_support.py`) drives the transfer the way the SDK
-would. The invariant asserted for every cell is `outcome_of`: **the
+would. The invariant asserted for every counted cell is `outcome_of`: **the
 reassembled bytes equal the served file byte-for-byte, or the client model
 reports a detected failure -- never a silently corrupted file.**
 
+**What that invariant does and does not show.** It has two halves, and only
+one of them is an empirical result:
+
+* *Completion* (recovered / recovered by app resume / detected /
+  corruption risk) is a real assertion per cell and can fail: it depends on
+  the receiver rules R1-R13, the emission mode and the fault.
+* *No silent corruption* holds **by construction** for every counted cell.
+  The receiver accepts a payload only at offset == cursor (R3; P6 asserts
+  the same), and every counted fault acts on frames -- drop, duplicate,
+  reorder, truncate, mislabel, sentinel and link faults -- never on what a
+  frame at a given offset carries. Such faults can change whether a
+  transfer completes, not which bytes land where. Content integrity
+  therefore follows from R3 plus the absence of content faults; the matrix
+  does not demonstrate it.
+
+To show the check is not vacuous, two rows outside the count feed wrong
+bytes at the right offsets and expect `outcome_of` to raise
+`SilentCorruption`: a payload bit-flip, and a restart that serves another
+revision of the file (`restart_serves_other_revision`). The SDK receiver
+completes normally in both, which is the point: it has no content check.
+
 Run: `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/test_v2_receiver_model.py tests/test_v2_fault_matrix.py -q -p no:cacheprovider --timeout=120`
-(48 model tests + 61 matrix cells; the cells write `build/v2-fault-matrix.json`,
-from which the table below was rendered).
+(53 model tests + 62 matrix tests = 60 counted cells and the 2 content-fault
+rows; the matrix writes `build/v2-fault-matrix.json`, from which the table
+below was rendered).
 
 ## 1. What "complete" means -- the R7-S13 correction
 
@@ -126,12 +148,17 @@ callback fired, the failure label, SDK restarts and z6 stop-syncs.
 | `back_to_back_two_files[paced]` | sync A (DROP DATA@512) then sync B (777 B) | recovered | recovered, bytes exact, finish, tail cb, restarts 0, z6 0, finish[0] | BYTECODE_PROVEN + HARNESS_POLICY | q$a rules R1/R12 (ALL.txt:68962-69395) |
 | `second_connection_control_traffic[paced]` | second central sends getState mid-stream | recovered | recovered, bytes exact, finish, tail cb, restarts 0, z6 0, finish[0] | HARNESS_POLICY |  |
 | `second_connection_competing_sync[paced]` | second central issues its own syncFile mid-stream | recovered_by_app_resume | recovered_by_app_resume, bytes exact, finish, tail cb, restarts 0, z6 0, finish[0] | HARNESS_POLICY | policy P2/P5; ledger S12 |
-| `data_payload_bitflip[atomic]` | CORRUPT DATA@512 payload byte ^ 0x80 (not a cell) | undetectable | undetectable, bytes corrupted | BYTECODE_PROVEN |  |
+| `data_payload_bitflip[atomic]` | CORRUPT DATA@512 payload byte ^ 0x80 (not a cell) | undetectable | undetectable, bytes corrupted; `outcome_of` raises `SilentCorruption` | BYTECODE_PROVEN |  |
+| `restart_serves_other_revision[paced]` | DROP DATA@512; the restarted stream serves revision 1 of the file (`file_revisions`, not a cell) | silent_corruption | silent_corruption, bytes = rev0[:512] + rev1[512:], finish, restarts 1; `outcome_of` raises against either revision | BYTECODE_PROVEN + HARNESS_POLICY | q$a rules R3/R6/R11 (ALL.txt:68962-69395) |
 
-`data_payload_bitflip` is deliberately outside the invariant: q$a has no
-payload integrity check and the TAIL crc is never verified (R13), so a flipped
-byte is accepted; on real BLE the link-layer CRC rejects the PDU, on Bumble's
-virtual link nothing does.
+Both rows are deliberately outside the invariant. `data_payload_bitflip`: q$a
+has no payload integrity check and the TAIL crc is never verified (R13), so a
+flipped byte is accepted; on real BLE the link-layer CRC rejects the PDU, on
+Bumble's virtual link nothing does. `restart_serves_other_revision`: every
+frame is well-formed and at its true offset, so the SDK splices two
+revisions of the file and reports completion; only the harness's own check
+(`outcome_of`) sees it. Whether real firmware can change a file between a
+stream and its restart is UNKNOWN.
 
 ## 3. Receiver-model provenance
 
@@ -199,6 +226,11 @@ Device side (`emulator/plaudsim/faults.py`, `profile.py`, `transfer.py`):
 | `abandon_stream_on_restart` / `cancel_stream_on_stop` | True by default (runs 6b-10); False reproduces the run-6 device |
 | `cancel_stream_on_delete` | a w6 delete of the streaming session aborts the stream (real device UNKNOWN) |
 | single transfer slot | a second y6 (from any central) replaces the active session |
+| request validation first | a malformed y6 or z6 is rejected WITHOUT aborting the running stream (it used to abort it before parsing) |
+| link loss | a disconnection aborts the stream serving that link (`aborted`/`disconnected`); frames for a dead link are logged `undelivered`, never `response`; a transport error ends the stream with an `error` entry |
+| fault scope | a CUT or DISCONNECT silences the stream it fired in and only that one; other writes are answered and do not revive it; injector ordinals (`indices`, `streams`) are counted per stream, so an orphan stream keeps its own numbering |
+| unknown session | with `files`/`file_revisions` set, a y6 for a session in neither is refused with HEAD status `unknown_session_head_status` (1) and nothing else; real firmware: UNKNOWN |
+| `file_revisions` | the n-th y6 for a session serves revision n; used only by the `restart_serves_other_revision` row |
 | CCCD | 2BB0 advertises NOTIFY and INDICATE; the emulator answers in whichever mode the central selected |
 | HEAD status, TAIL crc, file table, file bytes | synthetic values (status 0, crc 0xBEEF, one 1024 B random file; 777 B second file; 96 B and 131 072 B variants) |
 | injector `once` semantics | a fault fires once per matching key so "the client recovers" is separable from "the device is permanently broken" |
@@ -227,13 +259,38 @@ Device side (`emulator/plaudsim/faults.py`, `profile.py`, `transfer.py`):
 * `TntBleCommUtils.readInt` on under-length frames (native): reported as
   `undecodable`, never reproduced.
 
-## 6. Files
+## 6. Review fixes (2026-09-25)
+
+An independent review of this track found problems in the fault machinery
+itself. None of the 60 counted cells combined the affected features: running
+the pre-fix matrix (HEAD) and the fixed one and diffing
+`build/v2-fault-matrix.json` gives identical outcome, bytes, completion,
+failure, restart, stop-sync and finish-code values for all 60; only
+`data_frames` of `old_stream_not_abandoned[paced]` and
+`second_connection_competing_sync[paced]` differ, and those two vary from run
+to run on the pre-fix code as well (timing-dependent paced cells). Each fix
+has a test that failed before it.
+
+| finding | what was wrong | fix | test |
+|---|---|---|---|
+| T6 | task streams were not aborted on disconnect (Bumble drops notifications to a gone link silently, so the stream logged `completed` for frames nobody received); a transport error killed the task unobserved; a malformed y6/z6 aborted the running stream before being rejected | `PlaudPeripheral._on_disconnection`, `_link_alive`, `_stream` error branch, parse-before-abort in `_on_command_write` | `tests/test_r7_s13_transfer_close.py` section (f) |
+| T7 | a CUT was undone by any unrelated write; `begin_stream()` renumbered an orphan stream's frames; a y6 for a session missing from `files` served the last file | scope-keyed suppression and injector state (`_Scope`, `FaultInjector(key=)`); `file_bytes_for` instead of mutating `file_bytes`; unknown sessions refused | `test_a_cut_stays_cut_when_the_client_writes_something_else`, `test_orphan_stream_keeps_its_own_fault_ordinals`, `test_unknown_session_is_refused_instead_of_serving_the_last_file` |
+| T10 | the corruption half of the invariant could not fail in any counted cell | this document says so (above); `SilentCorruption`; the `restart_serves_other_revision` row | `test_restart_that_serves_another_revision_trips_the_invariant`, `test_outcome_of_raises_on_wrong_bytes_at_the_right_offset` |
+
+Remaining limitation: a REORDER whose target is the last frame of a keyed
+stream has no partner; the held frame is dropped silently unless the same
+stream key begins again (the pure, unkeyed injector still logs
+`held_frame_discarded`). No cell reorders a last frame.
+
+## 7. Files
 
 * `emulator/plaudsim/faults.py` -- `Kind` (HEAD/DATA/EMPTY/TAIL/FILE_LIST/OTHER),
   `FaultKind`, `Fault`, `FaultInjector`, `FaultyPeripheral`.
 * `tests/fault_support.py` -- `SdkHost`, `SdkReceiver`, `SdkTransferDriver`,
-  `TransferResult`, `outcome_of`, `run6_signature`, link helpers.
-* `tests/test_v2_receiver_model.py` -- 48 pure tests of the rules and the injector.
-* `tests/test_v2_fault_matrix.py` -- the 61 cells; writes `build/v2-fault-matrix.json`.
+  `TransferResult`, `outcome_of` / `SilentCorruption`, `run6_signature`, link helpers.
+* `tests/test_v2_receiver_model.py` -- 53 tests of the rules, the injector and
+  FaultyPeripheral's stream scoping.
+* `tests/test_v2_fault_matrix.py` -- 60 counted cells + 2 content-fault rows;
+  writes `build/v2-fault-matrix.json`.
 * `tests/test_r7_s13_transfer_close.py` -- the runtime evidence and the emulator's
   default sequence (owned by the R7-S13 track; the model tests there pass).

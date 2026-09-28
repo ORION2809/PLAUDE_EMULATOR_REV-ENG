@@ -1,0 +1,25 @@
+# 2026-09-25T09:11:43Z ami energy-vad-cluster TS3003a pipeline=energy-vad-cluster hint=0 n_active=4
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/TS3003a/mix.wav
+# load average at start: { 2.79 3.94 3.58 }
+# swap at start: total = 8192.00M  used = 7053.81M  free = 1138.19M  (encrypted)
+energy-vad-cluster: 585 segments, 4 speakers, 3.51s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/ami/energy-vad-cluster/TS3003a.partial/hyp.json (+ .rttm, .stm)
+        3.80 real         3.68 user         0.09 sys
+           317931520  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               30350  page reclaims
+                  18  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   8  voluntary context switches
+                1139  involuntary context switches
+         46552369192  instructions retired
+         11779237240  cycles elapsed
+           314410880  peak memory footprint
+# load average at end: { 2.73 3.91 3.57 }
+# exit 0

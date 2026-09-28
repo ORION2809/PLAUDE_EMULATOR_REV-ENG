@@ -60,6 +60,8 @@ def test_dotted_overrides_and_unknown_keys() -> None:
         ({"device.preset": "note_ultra"}, "device.preset"),
         ({"export.opus_complexity": 11}, "opus_complexity"),
         ({"turn_taking.words_min": 20}, "words range"),
+        # GEN-3: a 2-channel scenario's primary recording is the stereo Ogg
+        ({"device.channels": 2, "export.include_stereo_ogg": False}, "include_stereo_ogg"),
     ],
 )
 def test_validation_rejects_bad_scenarios(overrides: dict, message: str) -> None:

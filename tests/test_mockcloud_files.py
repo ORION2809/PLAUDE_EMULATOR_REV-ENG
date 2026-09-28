@@ -14,7 +14,15 @@ import random
 
 import pytest
 
-from test_mockcloud_helpers import PARTNER, bearer, client, make_app, upload_bytes, user_token
+from test_mockcloud_helpers import (  # noqa: F401 - no_outbound_network is an autouse fixture
+    PARTNER,
+    bearer,
+    client,
+    make_app,
+    no_outbound_network,
+    upload_bytes,
+    user_token,
+)
 from mockcloud.settings import DOC_CHUNK_SIZE, MockSettings
 
 FILES = f"{PARTNER}/open/partner/files/upload"

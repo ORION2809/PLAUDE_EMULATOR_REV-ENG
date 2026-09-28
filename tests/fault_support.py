@@ -135,10 +135,12 @@ HARNESS_POLICY (things the SDK does not fix, chosen here and labelled):
       genuine export layer producing a CORRUPTED file (fixture[0:4800] ||
       fixture[3200:11271]) when the device kept draining an abandoned stream
       and the -98/-99 request retries re-issued the download while the
-      writer appended. q$a only ever accepts DATA at its cursor, so this
-      model's sink is always a prefix of the served file; the corruption
-      lives in the export writer + op-queue retry, which this model does not
-      contain. The matrix therefore reports the run-6 signature as
+      writer appended. q$a only ever accepts DATA at its cursor, so as long
+      as every DATA frame carries served[offset:...] this model's sink is a
+      prefix of the served file (only a content fault -- a payload bit-flip,
+      a file that changes between a stream and its restart -- breaks that;
+      see `outcome_of`); the run-6 corruption lives in the export writer +
+      op-queue retry, which this model does not contain. The matrix therefore reports the run-6 signature as
       `corruption_risk` instead of claiming byte-exactness for the real SDK.
 """
 
@@ -875,12 +877,33 @@ DETECTED = "detected"                       # the model reported failure; bytes 
 #: refuses to call it "recovered".
 CORRUPTION_RISK = "corruption_risk"
 NOT_TESTABLE = "n-a"
+#: Recorded (never returned by `outcome_of`) for the cells that deliberately
+#: feed wrong bytes at the right offsets -- a payload bit-flip, a file that
+#: changes between a stream and its restart -- to show the check can trip.
+SILENT_CORRUPTION = "silent_corruption"
+
+
+class SilentCorruption(AssertionError):
+    """The receiver accepted bytes that are not a prefix of the served file."""
 
 
 def outcome_of(result: TransferResult, served: bytes, app_resumes: int = 0) -> str:
-    """The V2 invariant, as a function. Raises on silent corruption."""
+    """The V2 invariant, as a function. Raises `SilentCorruption` when the
+    accepted bytes are not a prefix of `served`.
+
+    What each half can and cannot catch (review T10). The receiver only
+    accepts a payload at offset == cursor (R3; P6 asserts the same), so frame
+    faults -- drop, duplicate, reorder, truncate, mislabel, sentinel and link
+    faults -- can change WHETHER a transfer completes, never WHICH bytes land
+    at an offset, as long as every frame's payload is `served[offset:...]`.
+    For those cells the corruption half holds by construction and the real
+    assertion is the completion half (recovered vs detected). It can only
+    fire when wrong content arrives at its true offset: a payload bit-flip,
+    or a restart that serves a different revision of the file -- both
+    exercised as dedicated cells that expect this exception.
+    """
     if not served.startswith(result.data):
-        raise AssertionError("SILENT CORRUPTION: accepted bytes are not a prefix of the served file")
+        raise SilentCorruption("SILENT CORRUPTION: accepted bytes are not a prefix of the served file")
     if result.complete and result.failure is None and result.data == served:
         return RECOVERED if app_resumes == 0 else RECOVERED_BY_APP_RESUME
     if result.failure is not None:

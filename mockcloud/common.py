@@ -39,9 +39,24 @@ class MockHTTPError(Exception):
 
 
 def new_id(prefix: str, nbytes: int = 8) -> str:
-    """SYNTHETIC identifiers. `task_exec_` / `file_` / `upload_` prefixes are
-    DOC-EXACT (openapi examples); the hex tail is HARNESS_POLICY."""
+    """SYNTHETIC identifiers. The `task_exec_` / `file_` / `upload_` prefixes
+    are INFERRED from the placeholder examples "task_exec_xxx", "file_xxx" and
+    "upload_xxx" (openapi_transcription.json, openapi_file.json): the docs never
+    state an id format, only these examples. The hex tail is HARNESS_POLICY."""
     return f"{prefix}{secrets.token_hex(nbytes)}"
+
+
+def secrets_equal(expected: str, supplied: str) -> bool:
+    """Constant-time comparison of two text secrets.
+
+    hmac.compare_digest raises TypeError on a str that is not pure ASCII, so a
+    header or query value carrying e.g. "\xe9" used to escape as HTTP 500
+    (review finding MC-2). Both sides are compared as UTF-8 bytes instead;
+    surrogateescape keeps any code point encodable.
+    """
+    return hmac.compare_digest(
+        expected.encode("utf-8", "surrogateescape"), supplied.encode("utf-8", "surrogateescape")
+    )
 
 
 @dataclass
@@ -49,6 +64,8 @@ class MockContext:
     settings: MockSettings
     state: MockState
     worker_tasks: set[asyncio.Task[Any]] = field(default_factory=set)
+    #: set once restored non-terminal tasks have been rescheduled (worker.resume_pending)
+    resumed: bool = False
 
     # ---------------------------------------------------------------- time
     def now(self) -> float:
@@ -92,7 +109,7 @@ class MockContext:
         if self.now() >= exp_f:
             raise MockHTTPError(403, "AccessDenied: presigned URL expired")
         expected = self.sign(method, bucket, key, *extra, exp)
-        if not hmac.compare_digest(expected, sig):
+        if not secrets_equal(expected, sig):
             raise MockHTTPError(403, "AccessDenied: signature mismatch")
 
     # -------------------------------------------------------- mock signer
@@ -154,7 +171,7 @@ def require_partner_app_basic(request: Request) -> PartnerApp:
     if pair is None:
         raise MockHTTPError(401, "missing or malformed Basic authorization")
     app = ctx.settings.app_by_client_id(pair[0])
-    if app is None or not hmac.compare_digest(app.secret_key, pair[1]):
+    if app is None or not secrets_equal(app.secret_key, pair[1]):
         raise MockHTTPError(401, "unknown client_id or wrong secret_key")
     return app
 
@@ -170,7 +187,7 @@ def require_sdk_basic_as_bearer(request: Request) -> PartnerApp:
     if pair is None:
         raise MockHTTPError(401, "expected Bearer base64(appKey:appSecret)")
     app = ctx.settings.app_by_client_id(pair[0])
-    if app is None or not hmac.compare_digest(app.secret_key, pair[1]):
+    if app is None or not secrets_equal(app.secret_key, pair[1]):
         raise MockHTTPError(401, "unknown appKey or wrong appSecret")
     return app
 
@@ -190,6 +207,11 @@ def _require_jwt(request: Request, token_use: str) -> dict[str, Any]:
         raise MockHTTPError(401, f"invalid or expired {token_use} token: {exc}") from exc
     if claims.get("token_use") != token_use:
         raise MockHTTPError(401, f"this endpoint needs a {token_use} token")
+    # The HS256 secret is public (settings.MOCK_JWT_SECRET), so a correctly
+    # signed token may still lack the claims the routes read: 401, not a KeyError.
+    needed = ("client_id",) if token_use == "partner" else ("sub", "client_id")
+    if any(not isinstance(claims.get(k), str) or not claims[k] for k in needed):
+        raise MockHTTPError(401, f"{token_use} token lacks {'/'.join(needed)}")
     return claims
 
 
@@ -226,18 +248,23 @@ def require_client_keys(request: Request) -> PartnerApp:
     if not client_id or not api_key:
         raise MockHTTPError(401, "missing X-Client-Id / X-Client-Api-Key")
     app = ctx.settings.app_by_client_id(client_id)
-    if app is None or not hmac.compare_digest(app.api_key, api_key):
+    if app is None or not secrets_equal(app.api_key, api_key):
         raise MockHTTPError(401, "unknown client_id or wrong api_key")
     return app
 
 
 def require_device_signature(request: Request) -> dict[str, Any]:
     """`X-Device-Signature` -- BYTECODE_PROVEN header name
-    (sdk/network/PartnerApiService.java postDeviceMetadata @Header,
+    (sdk/network/PartnerApiService.java postDeviceMetadata @Header, jadx
+    build/evidence/jadx-out/sources/sdk/network/PartnerApiService.java:36; the
+    literal also appears in an OkHttp interceptor at
     build/evidence/javap/ALL.txt:20772) and the template's version/latest call
     (DeviceManager.kt:555-558). The value is the sn-sign signature the SDK
     stored (`PlaudDeviceAgent.getSnSignature()`, DeviceManager.kt:546).
-    Missing -> 401, unknown/forged -> 403 (both HARNESS_POLICY)."""
+    Missing -> 401; unknown, forged, or revoked by a later gen-key -> 403 (all
+    HARNESS_POLICY codes; revocation follows the doc sentence "A new key pair
+    invalidates every cached sn-sign signature", advanced-ios-sdk.md:514 -- what
+    the real server does with a stale signature is UNKNOWN)."""
     ctx = ctx_of(request)
     sig = request.headers.get("x-device-signature", "").strip()
     if not sig:
@@ -245,4 +272,6 @@ def require_device_signature(request: Request) -> dict[str, Any]:
     rec = ctx.state.signatures.get(sig)
     if rec is None:
         raise MockHTTPError(403, "X-Device-Signature was not issued by this mock")
+    if rec.get("revoked_at") is not None:
+        raise MockHTTPError(403, "X-Device-Signature was revoked by a later gen-key (re-sign the SN)")
     return rec

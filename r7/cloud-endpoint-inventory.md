@@ -12,6 +12,22 @@ the SDK jar), **CLOUD_OBSERVED** (documented by shipped source or a community
 client that talked to the cloud), **INFERRED** (structure follows but a detail
 such as the host is not literal), **UNKNOWN**.
 
+> **Correction, 25 September 2026 (R7-S14 finding D7).** "Nothing here was
+> called" is true of this inventory's own work, but not of the runtime rig:
+> the official SDK itself, when our debug drivers initialised it with a synthetic token, sent one automatic key-generation request (`POST platform-jp.plaud.ai/developer/api/open/partner/sdk/gen-key`) per app start. 19 of the 22 archived R7-S13/R7-S14 logs that captured SDK
+> network logging show the server's HTTP 401 (`Status: 401`,
+> ACCESS_TOKEN_INVALID). In the other 3 (R7-S13 runs 11–13) the host name did
+> not resolve (UnknownHostException), so those requests never reached the
+> server. No other Plaud URL was requested. The R7-S12 driver passed the same
+> synthetic token, but its logs were filtered, so it very likely sent the
+> request too. R4-S3 and R5-S1 ran the stock template with an empty token
+> (`user access token not set`) and very likely sent nothing. Cause: `NiceBuildSdk.initSdk` stores a
+> non-blank token and then fetches an RSA key pair. Fix: the drivers now pass a
+> blank token; verified with the emulator offline and a byte-exact pull
+> (`r7/r7-s14-evidence/blank-token-offline-check/`, no gen-key line). The
+> `partner/sdk/gen-key` row below is therefore "exercised by the SDK
+> automatically, 401", not "never called".
+
 Three distinct surfaces exist and must not be conflated:
 
 | surface | base | auth | who uses it |

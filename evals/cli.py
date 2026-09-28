@@ -3,8 +3,11 @@
 Exit codes (HARNESS_POLICY, see evals.gates):
   0  scored and every gate passed (or no gates requested)
   1  scored but at least one gate failed (the failing metrics are printed)
-  2  input error: malformed contract file, missing hypothesis, bad arguments
-  3  skipped: nothing to score (e.g. the corpus root does not exist)
+  2  input error: malformed or unreadable contract/gates file, unknown suite,
+     missing hypothesis, bad arguments -- and any unexpected error (1 is
+     reserved for a failed gate, so a crash can never read as one)
+  3  skipped: nothing to score (the reference root is absent or holds no
+     meeting.json); never used when meetings exist but no hypothesis does
 """
 
 from __future__ import annotations
@@ -12,8 +15,10 @@ from __future__ import annotations
 import argparse
 import importlib.metadata
 import json
+import math
 import sys
 import tempfile
+import traceback
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -132,10 +137,23 @@ def _headline(report: MeetingReport) -> str:
     return "  ".join(f"{label} {format_value(flat[key])}" for label, key in report.HEADLINE[:4])
 
 
+def _collar(text: str) -> float:
+    """argparse type: a finite collar >= 0 (pyannote reads a negative collar as
+    0, meeteval's CLI refuses one; the report must not record a value that was
+    not applied)."""
+    try:
+        v = float(text)
+    except ValueError:
+        v = math.nan
+    if not math.isfinite(v) or v < 0:
+        raise argparse.ArgumentTypeError(f"collar must be a finite number >= 0, got {text!r}")
+    return v
+
+
 def _add_metric_options(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--der-collar",
-        type=float,
+        type=_collar,
         default=DEFAULT_DER_COLLAR,
         help="DER/JER collar, pyannote semantics: total no-score width centred on each reference "
         f"boundary (default {DEFAULT_DER_COLLAR} = ±{DEFAULT_DER_COLLAR / 2:g} s)",
@@ -143,7 +161,7 @@ def _add_metric_options(p: argparse.ArgumentParser) -> None:
     p.add_argument("--skip-overlap", action="store_true", help="do not score reference overlap regions")
     p.add_argument(
         "--tcp-collar",
-        type=float,
+        type=_collar,
         default=DEFAULT_TCP_COLLAR,
         help=f"tcpWER collar in seconds (meeteval semantics, default {DEFAULT_TCP_COLLAR})",
     )
@@ -250,6 +268,13 @@ def batch_markdown(result: BatchResult, gates: Sequence[GateResult]) -> str:
 def cmd_batch(args: argparse.Namespace) -> int:
     refs_root = Path(args.refs)
     hyps_root = Path(args.hyps)
+    # The suite is resolved first: a mistyped --suite is an input error even
+    # while the corpus is absent (otherwise the typo hides behind exit 3).
+    try:
+        suite = _resolve_suite(args)
+    except GateConfigError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_INPUT_ERROR
     if not refs_root.is_dir():
         print(f"skipped: reference root {refs_root} does not exist — nothing to score.", file=sys.stderr)
         print(AMI_EXPECTED_LAYOUT, file=sys.stderr)
@@ -259,19 +284,19 @@ def cmd_batch(args: argparse.Namespace) -> int:
         print(f"skipped: no meeting.json found under {refs_root} — nothing to score.", file=sys.stderr)
         print(AMI_EXPECTED_LAYOUT, file=sys.stderr)
         return EXIT_SKIPPED
-    try:
-        suite = _resolve_suite(args)
-    except GateConfigError as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return EXIT_INPUT_ERROR
 
     result = BatchResult(reports=[])
     options = _score_options(args)
     for mdir in meeting_dirs:
+        # One meeting's failure -- whatever it is -- is recorded against that
+        # meeting and the batch goes on, so the report is always written.
         try:
             meeting = load_meeting(mdir)
         except ContractError as exc:
             result.errors.append({"meeting_dir": str(mdir), "error": str(exc)})
+            continue
+        except Exception as exc:  # noqa: BLE001
+            result.errors.append({"meeting_dir": str(mdir), "error": f"unexpected {type(exc).__name__}: {exc}"})
             continue
         hyp_path = find_hypothesis(hyps_root, refs_root, mdir, meeting.meeting_id)
         if hyp_path is None:
@@ -282,6 +307,8 @@ def cmd_batch(args: argparse.Namespace) -> int:
             result.reports.append(score_meeting(meeting, hyp, **options))
         except (ContractError, ValueError) as exc:
             result.errors.append({"meeting_dir": str(mdir), "error": str(exc)})
+        except Exception as exc:  # noqa: BLE001
+            result.errors.append({"meeting_dir": str(mdir), "error": f"unexpected {type(exc).__name__}: {exc}"})
 
     gates: list[GateResult] = []
     if suite and result.reports:
@@ -317,8 +344,15 @@ def cmd_batch(args: argparse.Namespace) -> int:
     if result.missing and args.missing == "fail":
         return EXIT_INPUT_ERROR
     if not result.reports:
-        print("skipped: no meeting could be paired with a hypothesis.", file=sys.stderr)
-        return EXIT_SKIPPED
+        # Meetings exist but none has a hypothesis: the pipeline produced
+        # nothing.  That is an input error even under --missing skip -- it must
+        # not read as "skipped" (3), which a CI step may treat as benign.
+        print(
+            f"error: none of the {len(meeting_dirs)} meeting(s) has a hypothesis under {hyps_root} "
+            "— nothing was scored.",
+            file=sys.stderr,
+        )
+        return EXIT_INPUT_ERROR
     if any(not g.passed for g in gates):
         return EXIT_GATE_FAILED
     return EXIT_OK
@@ -414,7 +448,11 @@ def cmd_selfcheck(args: argparse.Namespace) -> int:
         loaded_meeting = load_meeting(mdir)
         loaded_hyp = load_hypothesis(root / "hyps" / meeting.meeting_id / "hyp.json")
         report = score_meeting(loaded_meeting, loaded_hyp, der_collar=args.der_collar, tcp_collar=args.tcp_collar)
-        suite = get_suite(load_gates(args.gates), "oracle")
+        try:
+            suite = get_suite(load_gates(args.gates), "oracle")
+        except GateConfigError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return EXIT_INPUT_ERROR
         gate = evaluate(suite, report.flat(), target=meeting.meeting_id)
         doc = _document("meeting", {"report": report.to_dict()}, gate.to_dict())
         _write_json(args.report, doc)
@@ -467,8 +505,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("selfcheck", help="score a built-in meeting against itself and require the oracle suite")
     p.add_argument("--gates", default=str(DEFAULT_GATES_PATH))
     p.add_argument("--report", help="write the JSON report here")
-    p.add_argument("--der-collar", type=float, default=DEFAULT_DER_COLLAR)
-    p.add_argument("--tcp-collar", type=float, default=DEFAULT_TCP_COLLAR)
+    p.add_argument("--der-collar", type=_collar, default=DEFAULT_DER_COLLAR)
+    p.add_argument("--tcp-collar", type=_collar, default=DEFAULT_TCP_COLLAR)
     p.set_defaults(func=cmd_selfcheck)
     return parser
 
@@ -476,7 +514,19 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    return int(args.func(args))
+    try:
+        return int(args.func(args))
+    except (ContractError, GateConfigError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_INPUT_ERROR
+    except Exception as exc:  # noqa: BLE001 -- exit 1 means "a gate failed"; a crash must not look like one
+        traceback.print_exc(file=sys.stderr)
+        print(
+            f"error: unexpected {type(exc).__name__}: {exc} (exit {EXIT_INPUT_ERROR}; exit {EXIT_GATE_FAILED} "
+            "is reserved for a failed gate)",
+            file=sys.stderr,
+        )
+        return EXIT_INPUT_ERROR
 
 
 if __name__ == "__main__":  # pragma: no cover

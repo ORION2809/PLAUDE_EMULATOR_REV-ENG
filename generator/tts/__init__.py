@@ -1,9 +1,12 @@
 """Pluggable TTS backends.
 
 REQUIRED and always available: "formant" (model-free, deterministic, exact
-word timings). OPTIONAL and import-guarded: "piper", "kokoro" -- both raise
-BackendUnavailable when their package or weights are absent, and neither
-ever downloads anything.
+word timings). OPTIONAL and import-guarded: "piper" (real speech; word
+timings from the voice's own duration alignment, see generator/tts/piper.py)
+and "kokoro" (estimated timings) -- both raise BackendUnavailable when their
+package or weights are absent (piper also when no voice file can be loaded
+with alignments here, e.g. no verified aligned copy and no `onnx`), and
+neither ever downloads anything. `available_backends()` reports the reason.
 """
 
 from __future__ import annotations

@@ -1,0 +1,238 @@
+09-25 13:10:18.124  7008  7008 I .plaud.template: Late-enabling -Xcheck:jni
+09-25 13:10:18.324  7008  7008 I .plaud.template: Using CollectorTypeCC GC.
+09-25 13:10:18.686  7008  7008 D CompatibilityChangeReporter: Compat change id reported: 171979766; UID 10193; state: ENABLED
+09-25 13:10:18.689  7008  7008 D CompatibilityChangeReporter: Compat change id reported: 242716250; UID 10193; state: ENABLED
+09-25 13:10:18.709  7008  7008 W ziparchive: Unable to open '/data/app/~~wDLGGby_lIxiZtG5W6FrXQ==/com.plaud.template-6RMcX0XasXQfHpc2d9XVMA==/base.dm': No such file or directory
+09-25 13:10:18.709  7008  7008 W ziparchive: Unable to open '/data/app/~~wDLGGby_lIxiZtG5W6FrXQ==/com.plaud.template-6RMcX0XasXQfHpc2d9XVMA==/base.dm': No such file or directory
+09-25 13:10:19.286  7008  7008 D nativeloader: Configuring clns-6 for other apk /data/app/~~wDLGGby_lIxiZtG5W6FrXQ==/com.plaud.template-6RMcX0XasXQfHpc2d9XVMA==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~wDLGGby_lIxiZtG5W6FrXQ==/com.plaud.template-6RMcX0XasXQfHpc2d9XVMA==/lib/arm64:/data/app/~~wDLGGby_lIxiZtG5W6FrXQ==/com.plaud.template-6RMcX0XasXQfHpc2d9XVMA==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.plaud.template
+09-25 13:10:19.310  7008  7008 V GraphicsEnvironment: Currently set values for:
+09-25 13:10:19.310  7008  7008 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+09-25 13:10:19.310  7008  7008 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+09-25 13:10:19.314  7008  7008 V GraphicsEnvironment: ANGLE GameManagerService for com.plaud.template: false
+09-25 13:10:19.314  7008  7008 V GraphicsEnvironment: com.plaud.template is not listed in per-application setting
+09-25 13:10:19.314  7008  7008 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+09-25 13:10:19.373  7008  7029 D libEGL  : loaded /vendor/lib64/egl/libGLESv1_CM_emulation.so
+09-25 13:10:19.376  7008  7029 D libEGL  : loaded /vendor/lib64/egl/libGLESv2_emulation.so
+09-25 13:10:19.390  7008  7008 I WIFICAP : WIFICAP_START id="SYNTH-HIST-0001" mode=transfer arg="SYNTH-WIFI-USER-0001" hold=8
+09-25 13:10:19.403  7008  7008 W .plaud.template: Accessing hidden method Landroid/app/AppGlobals;->getInitialApplication()Landroid/app/Application; (unsupported, reflection, allowed)
+09-25 13:10:19.486  7008  7008 I PlaudSdk_SourceFile: Logger initialized. File logging is active.
+09-25 13:10:19.489  7008  7008 D PlaudSdk_SourceFile: Initializing manager with base URL: https://api.plaud.ai
+09-25 13:10:19.489  7008  7008 D PlaudSdk_SourceFile: Creating Retrofit service with base URL: https://api.plaud.ai
+09-25 13:10:19.490  7008  7008 W .plaud.template: Accessing hidden method Ljava/lang/invoke/MethodHandles$Lookup;-><init>(Ljava/lang/Class;I)V (unsupported, reflection, allowed)
+09-25 13:10:19.506  7008  7008 D PlaudSdk_SourceFile: Set logging level using OkHttp 4.x 'level' property.
+09-25 13:10:19.521  7008  7008 D PlaudSdk_SourceFile: Partner API: 已清除旧的缓存数据
+09-25 13:10:19.522  7008  7008 D PlaudSdk_SourceFile: Creating Partner API service with base URL: https://platform-jp.plaud.ai
+09-25 13:10:19.523  7008  7008 D PlaudSdk_SourceFile: Partner API: User Access Token set (length: 136)
+09-25 13:10:19.524  7008  7008 I PlaudSdk_SourceFile: Partner API Token set successfully
+09-25 13:10:19.525  7008  7008 I PlaudSdk_SourceFile: Partner API: Token 可用，正在获取 RSA 密钥对...
+09-25 13:10:19.536  7008  7032 D PlaudSdk_SourceFile: Partner API: 正在获取 RSA 密钥对...
+09-25 13:10:19.537  7008  7032 D PlaudSdk_SourceFile: Partner API: Generating RSA key pair...
+09-25 13:10:19.549  7008  7008 I PenBleSDK-BleAgentImpl: --- create ---
+09-25 13:10:19.550  7008  7008 D CompatibilityChangeReporter: Compat change id reported: 263076149; UID 10193; state: ENABLED
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: PartnerRetrofitClient
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ╔══════════════════════════════════════════════════════════════
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ║ 🚀 REQUEST
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ╠══════════════════════════════════════════════════════════════
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ║ Method: POST
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ║ URL: https://platform-jp.plaud.ai/developer/api/open/partner/sdk/gen-key
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ╠──────────────────────────────────────────────────────────────
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ║ Headers:
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ║   Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR..._SIGNATURE
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ╠──────────────────────────────────────────────────────────────
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ║ Request Body:
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ║   (empty)
+09-25 13:10:19.563  7008  7035 I PlaudSdk_SourceFile: ╚══════════════════════════════════════════════════════════════
+09-25 13:10:19.581  7008  7008 I BluetoothManager: BLE Agent initialized successfully
+09-25 13:10:19.584  7008  7008 I PlaudSdk_SourceFile: SDK initialized successfully
+09-25 13:10:19.588  7008  7035 D TrafficStats: tagSocket(83) with statsTag=0xffffffff, statsUid=-1
+09-25 13:10:19.589  7008  7008 D BluetoothAdapter: isLeEnabled(): ON
+09-25 13:10:19.595  7008  7032 E PlaudSdk_SourceFile: AppKey or AppSecret is null or empty.
+09-25 13:10:19.606  7008  7022 D BluetoothLeScanner: onScannerRegistered() - status=0 scannerId=3 mScannerId=0
+09-25 13:10:19.622  7008  7008 I WIFICAP : WIFICAP_SCAN_STARTED
+09-25 13:10:19.654  7008  7008 D CompatibilityChangeReporter: Compat change id reported: 237531167; UID 10193; state: DISABLED
+09-25 13:10:19.799  7008  7027 I Gralloc4: mapper 4.x is not supported
+09-25 13:10:20.418  7008  7050 I WIFICAP : WIFICAP_SCAN sn=8810000001 projectCode=881 pv=7 wifiName=PLAUD0001
+09-25 13:10:20.418  7008  7050 I PenBleSDK-BluetoothLeOperation: stopScanBLE
+09-25 13:10:20.418  7008  7050 D BluetoothAdapter: isLeEnabled(): ON
+09-25 13:10:20.469  7008  7050 W PlaudDeviceAgent: recoveryConnect WARNING: token 长度=13，预期 32 hex（底层会补零/截断）
+09-25 13:10:20.471  7008  7050 I PlaudDeviceAgent: recoveryConnect start sn=8810000001 protVersion=7 historicalUserId=SYNTH-HIST-0001 handshakeToken=SYNTHHIST0001 isForceClear=true (PRE_HANDSHAKE_AND_CLEAR/0xFE20)
+09-25 13:10:20.479  7008  7050 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-25 13:10:20.483  7008  7051 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=start detail=sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E
+09-25 13:10:20.483  7008  7051 I WIFICAP : WIFICAP_STAGE stage="start" detail="sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E"
+09-25 13:10:20.484  7008  7052 I PenBleSDK-BleAgentImpl: start validCustomer
+09-25 13:10:20.484  7008  7052 I PenBleSDK-BleAgentImpl: validCustomer result: Pass
+09-25 13:10:20.484  7008  7052 I PenBleSDK-BleAgentImpl: bleOperation.connection:F0:1A:2B:3C:4D:5E
+09-25 13:10:20.489  7008  7052 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=gatt_connect
+09-25 13:10:20.516  7008  7052 I PenBleSDK-BluetoothLeOperation: start connect conBtDevice name:null mac:F0:1A:2B:3C:4D:5E
+09-25 13:10:20.523  7008  7052 D CompatibilityChangeReporter: Compat change id reported: 265103382; UID 10193; state: ENABLED
+09-25 13:10:20.527  7008  7052 D BluetoothGatt: connect() - device: XX:XX:XX:XX:4D:5E, auto: false
+09-25 13:10:20.527  7008  7052 D BluetoothGatt: registerApp()
+09-25 13:10:20.532  7008  7052 D BluetoothGatt: registerApp() - UUID=75f94c98-d138-4d9f-96e8-4547f176b67b
+09-25 13:10:20.549  7008  7042 D BluetoothGatt: onClientRegistered() - status=0 clientIf=7
+09-25 13:10:20.549  7008  7052 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTING
+09-25 13:10:20.550  7008  7008 I PenBleSDK-TntAgent: btStatusChange:sn:[5c4317a7], CONNECTING
+09-25 13:10:20.550  7008  7008 I PenBleSDK-TntAgent: cur sn:sn:[5c4317a7]
+09-25 13:10:20.592  7008  7054 I BluetoothManager: Bluetooth status changed: CONNECTING
+09-25 13:10:20.600  7008  7053 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=gatt_connect
+09-25 13:10:20.601  7008  7053 I WIFICAP : WIFICAP_STAGE stage="gatt_connect" detail="null"
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: PartnerRetrofitClient
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ╔══════════════════════════════════════════════════════════════
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║ 📥 RESPONSE (1397ms)
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ╠══════════════════════════════════════════════════════════════
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║ Status: 401 
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║ URL: https://platform-jp.plaud.ai/developer/api/open/partner/sdk/gen-key
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ╠──────────────────────────────────────────────────────────────
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║ Response Headers:
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   date: Fri, 25 Sep 2026 07:40:20 GMT
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   content-type: application/json
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   server-timing: cfCacheStatus;desc="DYNAMIC"
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   server-timing: cfEdge;dur=133,cfOrigin;dur=6
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   x-request-id: 57e3905ea47baff626c4c12c1a5270b4
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   vary: Accept-Encoding
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   cf-cache-status: DYNAMIC
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   server: cloudflare
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   cf-ray: a40861562bb1b089-HYD
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ╠──────────────────────────────────────────────────────────────
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║ Response Body:
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   {
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║     "detail": "ACCESS_TOKEN_INVALID"
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ║   }
+09-25 13:10:20.968  7008  7035 I PlaudSdk_SourceFile: ╚══════════════════════════════════════════════════════════════
+09-25 13:10:20.975  7008  7032 E PlaudSdk_SourceFile: Partner API: Authentication failed for gen-key (401)
+09-25 13:10:20.978  7008  7032 E PlaudSdk_SourceFile: Partner API: ✗ 获取 RSA 密钥对失败
+09-25 13:10:21.360  7008  7042 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=7 device=F0:1A:2B:3C:4D:5E
+09-25 13:10:21.362  7008  7042 I PenBleSDK-BluetoothLeOperation: onConnectionStateChange:errorCode: 0 newState: CONNECTED isConnectFailUseDisConnect:false
+09-25 13:10:21.384  7008  7042 D BluetoothGatt: configureMTU() - device: XX:XX:XX:XX:4D:5E mtu: 255
+09-25 13:10:21.394  7008  7042 I PenBleSDK-BluetoothLeOperation: start requestMtu 255 true
+09-25 13:10:21.407  7008  7042 D BluetoothGatt: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=6 latency=0 timeout=500 status=0
+09-25 13:10:21.670  7008  7042 D BluetoothGatt: onConnectionUpdated() - Device=F0:1A:2B:3C:4D:5E interval=40 latency=0 timeout=500 status=0
+09-25 13:10:21.682  7008  7042 D BluetoothGatt: onConfigureMTU() - Device=F0:1A:2B:3C:4D:5E mtu=517 status=0
+09-25 13:10:21.682  7008  7042 I PenBleSDK-BluetoothLeOperation: onMtuChanged: 517 status: 0 isSetDefMtu: false
+09-25 13:10:21.684  7008  7042 I PenBleSDK-BluetoothLeOperation: discoverServices
+09-25 13:10:21.684  7008  7042 I PenBleSDK-BluetoothLeOperation: start discoverServices
+09-25 13:10:21.684  7008  7042 D BluetoothGatt: discoverServices() - device: XX:XX:XX:XX:4D:5E
+09-25 13:10:21.696  7008  7042 D BluetoothGatt: onSearchComplete() = Device=F0:1A:2B:3C:4D:5E Status=0
+09-25 13:10:21.697  7008  7042 I PenBleSDK-BluetoothLeOperation: onServicesDiscovered status: 0
+09-25 13:10:21.697  7008  7042 I PenBleSDK-BleAgentImpl: btStatusChange: CONNECTED
+09-25 13:10:21.699  7008  7042 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_notify
+09-25 13:10:21.701  7008  7042 I PenBleSDK-BleAgentImpl: New Battery Service
+09-25 13:10:21.703  7008  7042 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=set_data_notify detail=new_battery_service_port_7
+09-25 13:10:21.705  7008  7067 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=set_data_notify detail=new_battery_service_port_7
+09-25 13:10:21.705  7008  7067 I WIFICAP : WIFICAP_STAGE stage="set_data_notify" detail="new_battery_service_port_7"
+09-25 13:10:21.705  7008  7066 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=set_notify
+09-25 13:10:21.706  7008  7066 I WIFICAP : WIFICAP_STAGE stage="set_notify" detail="null"
+09-25 13:10:21.710  7008  7042 D BluetoothGatt: setCharacteristicNotification() - uuid: 00002bb0-0000-1000-8000-00805f9b34fb enable: true
+09-25 13:10:21.718  7008  7060 I PenBleSDK-BluetoothLeOperation: -checkRequest-null-getRequestType-DescriptorWrite
+09-25 13:10:21.751  7008  7042 I PenBleSDK-BluetoothLeOperation: -callBackRequest:null status:0
+09-25 13:10:21.751  7008  7042 E BluetoothLeOperation: -callBackRequest:null status:0
+09-25 13:10:21.753  7008  7042 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake
+09-25 13:10:21.755  7008  7042 I PenBleSDK-BleAgentImpl: handshake start
+09-25 13:10:21.757  7008  7068 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=first_handshake
+09-25 13:10:21.758  7008  7068 I WIFICAP : WIFICAP_STAGE stage="first_handshake" detail="null"
+09-25 13:10:21.791  7008  7060 I PenBleSDK-BluetoothLeOperation: 01010002000053594E54484849535430303031303030-checkRequest-[1, 2]-getRequestType-CharacteristicWrite
+09-25 13:10:21.809  7008  7022 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 1 01010000070005000100000056010000
+09-25 13:10:21.809  7008  7022 I PenBleSDK-BluetoothLeOperation: cmd type:1
+09-25 13:10:21.810  7008  7022 I PenBleSDK-BluetoothLeOperation: onCallback: 1
+09-25 13:10:21.812  7008  7070 I PenBleSDK-BleAgentImpl: handshake data type1
+09-25 13:10:21.815  7008  7070 I PenBleSDK-BleAgentImpl: old HandShakeRsp: l3{status=0, portVersion=7, timezone=5, timezoneMin=0, audioChannel=1, supportWifi=false, noNsAgc=false, isOggAudio=false, versionType=V, version=1}
+09-25 13:10:21.815  7008  7070 I PenBleSDK-BleAgentImpl: audioChannel:1
+09-25 13:10:21.815  7008  7070 I PenBleSDK-BleAgentImpl: supportWifi:false
+09-25 13:10:21.815  7008  7070 I PenBleSDK-BleAgentImpl: noNsAgc:false
+09-25 13:10:21.815  7008  7070 I PenBleSDK-BleAgentImpl: isOggAudio:false
+09-25 13:10:21.816  7008  7070 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=first_handshake detail=old_protocol_ok
+09-25 13:10:21.817  7008  7070 I PenBleSDK-BleAgentImpl: syncTimeCount:0
+09-25 13:10:21.817  7008  7070 W PenBleSDK-BleAgentImpl: bleConnectStage sn=sn:[5c4317a7] stage=sync_time detail=attempt_0
+09-25 13:10:21.818  7008  7022 I PenBleSDK-BluetoothLeOperation: 01010002000053594E54484849535430303031303030-callBackRequest:[1, 2] status:0
+09-25 13:10:21.818  7008  7022 E BluetoothLeOperation: 01010002000053594E54484849535430303031303030-callBackRequest:[1, 2] status:0
+09-25 13:10:21.818  7008  7071 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=first_handshake detail=old_protocol_ok
+09-25 13:10:21.818  7008  7071 I WIFICAP : WIFICAP_STAGE stage="first_handshake" detail="old_protocol_ok"
+09-25 13:10:21.818  7008  7022 I PenBleSDK-BleAgentImpl: handshake sendSuccess errorCode:0
+09-25 13:10:21.818  7008  7070 E PenBleSDK-err: stamp:1790322021
+09-25 13:10:21.819  7008  7070 E PenBleSDK-err: timeZone:5, min:30
+09-25 13:10:21.819  7008  7070 I PenBleSDK-BleAgentImpl: getBatLevelCount:0
+09-25 13:10:21.821  7008  7072 I PlaudDeviceAgent: bleConnectStage sn=8810000001 stage=sync_time detail=attempt_0
+09-25 13:10:21.822  7008  7072 I WIFICAP : WIFICAP_STAGE stage="sync_time" detail="attempt_0"
+09-25 13:10:21.826  7008  7060 I PenBleSDK-BluetoothLeOperation: 0104006525B66A051E-checkRequest-[4]-getRequestType-CharacteristicWrite
+09-25 13:10:21.847  7008  7022 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 4 01040000F153650000
+09-25 13:10:21.847  7008  7022 I PenBleSDK-BluetoothLeOperation: cmd type:4
+09-25 13:10:21.847  7008  7022 I PenBleSDK-BluetoothLeOperation: onCallback: 4
+09-25 13:10:21.848  7008  7008 I PenBleSDK-TntAgent: btStatusChange:sn:[5c4317a7], CONNECTED
+09-25 13:10:21.850  7008  7008 I PenBleSDK-TntAgent: cur sn:sn:[5c4317a7]
+09-25 13:10:21.853  7008  7073 I PenBleSDK-BleAgentImpl: not Statistics data
+09-25 13:10:21.853  7008  7074 I WIFICAP : WIFICAP_CONNECT_STATE state=1 t=1790322021853
+09-25 13:10:21.853  7008  7022 I PenBleSDK-BluetoothLeOperation: 0104006525B66A051E-callBackRequest:[4] status:0
+09-25 13:10:21.853  7008  7022 E BluetoothLeOperation: 0104006525B66A051E-callBackRequest:[4] status:0
+09-25 13:10:21.853  7008  7074 I WIFICAP : WIFICAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+09-25 13:10:21.854  7008  7074 I BluetoothManager: Bluetooth status changed: CONNECTED
+09-25 13:10:21.861  7008  7060 I PenBleSDK-BluetoothLeOperation: 010900-checkRequest-[9]-getRequestType-CharacteristicWrite
+09-25 13:10:21.879  7008  7022 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 9 0109000057
+09-25 13:10:21.879  7008  7022 I PenBleSDK-BluetoothLeOperation: cmd type:9
+09-25 13:10:21.879  7008  7022 I PenBleSDK-BluetoothLeOperation: onCallback: 9
+09-25 13:10:21.890  7008  7022 I PenBleSDK-BluetoothLeOperation: 010900-callBackRequest:[9] status:0
+09-25 13:10:21.891  7008  7022 E BluetoothLeOperation: 010900-callBackRequest:[9] status:0
+09-25 13:10:21.894  7008  7060 I PenBleSDK-BluetoothLeOperation: 010300-checkRequest-[3]-getRequestType-CharacteristicWrite
+09-25 13:10:21.913  7008  7022 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 3 010300011000000101000400F15365000000
+09-25 13:10:21.913  7008  7022 I PenBleSDK-BluetoothLeOperation: cmd type:3
+09-25 13:10:21.913  7008  7022 I PenBleSDK-BluetoothLeOperation: onCallback: 3
+09-25 13:10:21.915  7008  7076 E PenBleSDK-zdk: get secnes-010300011000000101000400F15365000000
+09-25 13:10:21.916  7008  7076 E PenBleSDK-zdk: get secnes-----------
+09-25 13:10:21.916  7008  7076 I PenBleSDK-BleAgentImpl: getState after bind
+09-25 13:10:21.922  7008  7022 I PenBleSDK-BluetoothLeOperation: 010300-callBackRequest:[3] status:0
+09-25 13:10:21.923  7008  7022 E BluetoothLeOperation: 010300-callBackRequest:[3] status:0
+09-25 13:10:21.931  7008  7060 I PenBleSDK-BluetoothLeOperation: 010800010F00-checkRequest-[8, 1015]-getRequestType-CharacteristicWrite
+09-25 13:10:21.946  7008  7022 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 8 0108000F0001000000
+09-25 13:10:21.947  7008  7022 I PenBleSDK-BluetoothLeOperation: cmd type:8
+09-25 13:10:21.957  7008  7022 I PenBleSDK-BluetoothLeOperation: 010800010F00-callBackRequest:[8, 1015] status:0
+09-25 13:10:21.959  7008  7022 E BluetoothLeOperation: 010800010F00-callBackRequest:[8, 1015] status:0
+09-25 13:10:21.965  7008  7060 I PenBleSDK-BluetoothLeOperation: 010800011100-checkRequest-[8, 1017]-getRequestType-CharacteristicWrite
+09-25 13:10:21.981  7008  7022 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 8 010800110001000000
+09-25 13:10:21.981  7008  7022 I PenBleSDK-BluetoothLeOperation: cmd type:8
+09-25 13:10:21.992  7008  7022 I PenBleSDK-BluetoothLeOperation: 010800011100-callBackRequest:[8, 1017] status:0
+09-25 13:10:21.992  7008  7022 E BluetoothLeOperation: 010800011100-callBackRequest:[8, 1017] status:0
+09-25 13:10:22.857  7008  7008 I WIFICAP : WIFICAP_PRE agent=true state=NONE active=false
+09-25 13:10:22.860  7008  7008 I WIFICAP : WIFICAP_STOPSYNC_CALLED t=1790322022860
+09-25 13:10:22.897  7008  7060 I PenBleSDK-BluetoothLeOperation: 011D00-checkRequest-[30]-getRequestType-CharacteristicWrite
+09-25 13:10:22.929  7008  7022 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 30 011E00
+09-25 13:10:22.929  7008  7022 I PenBleSDK-BluetoothLeOperation: cmd type:30
+09-25 13:10:22.929  7008  7022 I PenBleSDK-BluetoothLeOperation: onCallback: 30
+09-25 13:10:22.939  7008  7022 I PenBleSDK-BluetoothLeOperation: 011D00-callBackRequest:[30] status:0
+09-25 13:10:22.939  7008  7022 E BluetoothLeOperation: 011D00-callBackRequest:[30] status:0
+09-25 13:10:24.375  7008  7008 I WIFICAP : WIFICAP_START_WIFI_TRANSFER arg="SYNTH-WIFI-USER-0001" t=1790322024371
+09-25 13:10:24.397  7008  7008 D PlaudSdk_SourceFile: resolveHandshakeToken: using JWT userId: SYNTHETICHISTORICALID
+09-25 13:10:24.398  7008  7008 I WifiAgentImpl: generateToken: using BLE handshake userToken (len=21)
+09-25 13:10:24.399  7008  7008 I WIFICAP : WIFICAP_START_WIFI_TRANSFER_RETURNED started=true rel=28
+09-25 13:10:24.400  7008  7032 I WIFICAP : WIFICAP_CB_STATE state=CONNECTING rel=29
+09-25 13:10:24.401  7008  7032 I WifiAgentImpl: Saved encryption keys locally before WiFi transfer (hasKey=false, sendSeq=1, recvSeq=0, algo=ChaCha20-Poly1305)
+09-25 13:10:24.435  7008  7060 I PenBleSDK-BluetoothLeOperation: 010A0000-checkRequest-[10]-getRequestType-CharacteristicWrite
+09-25 13:10:24.465  7008  7022 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 10 010A00003130303030303031
+09-25 13:10:24.465  7008  7022 I PenBleSDK-BluetoothLeOperation: cmd type:10
+09-25 13:10:24.465  7008  7022 I PenBleSDK-BluetoothLeOperation: onCallback: 10
+09-25 13:10:24.469  7008  7080 I WifiAgentImpl: WiFi opened, name: PLAUD0001
+09-25 13:10:24.477  7008  7008 I WifiConnectionManager: Connecting to device WiFi: PLAUD0001
+09-25 13:10:24.492  7008  7022 I PenBleSDK-BluetoothLeOperation: 010A0000-callBackRequest:[10] status:0
+09-25 13:10:24.492  7008  7022 E BluetoothLeOperation: 010A0000-callBackRequest:[10] status:0
+09-25 13:10:24.497  7008  7008 I WifiConnectionManager: WiFi connection request sent for: PLAUD0001
+09-25 13:10:25.037  7008  7086 D ProfileInstaller: Installing profile for com.plaud.template
+09-25 13:10:26.402  7008  7008 I WIFICAP : WIFICAP_PROBE s=2 agent=true state=CONNECTING active=false rel=2031
+09-25 13:10:29.401  7008  7008 I WIFICAP : WIFICAP_PROBE s=5 agent=true state=CONNECTING active=false rel=5030
+09-25 13:10:34.410  7008  7008 I WIFICAP : WIFICAP_PROBE s=10 agent=true state=CONNECTING active=false rel=10039
+09-25 13:10:39.410  7008  7008 I WIFICAP : WIFICAP_PROBE s=15 agent=true state=CONNECTING active=false rel=15038
+09-25 13:10:44.407  7008  7008 I WIFICAP : WIFICAP_PROBE s=20 agent=true state=CONNECTING active=false rel=20036
+09-25 13:10:49.410  7008  7008 I WIFICAP : WIFICAP_PROBE s=25 agent=true state=CONNECTING active=false rel=25039
+09-25 13:10:53.406  7008  7008 I WIFICAP : WIFICAP_PROBE s=29 agent=true state=CONNECTING active=false rel=29035
+09-25 13:10:54.522  7008  7038 E WifiConnectionManager: WiFi network unavailable
+09-25 13:10:54.522  7008  7038 D ConnectivityManager: NetworkCallback was already unregistered
+09-25 13:10:54.526  7008  7032 E WIFICAP : WIFICAP_CB_ERROR code=1003 message="Failed to connect to device WiFi" rel=30155 agent=true state=CONNECTING active=false
+09-25 13:10:54.528  7008  7008 W WifiAgentImpl: Cannot get file list - WiFi not ready
+09-25 13:10:54.530  7008  7008 I WIFICAP : WIFICAP_GUARD getFileList returned=false agent=true state=CONNECTING active=false
+09-25 13:10:54.531  7008  7008 I WIFICAP : WIFICAP_EXPORT why=guard sessionId=1700000000 format=OPUS channels=1 rel=30160
+09-25 13:10:54.539  7008  7008 E WIFICAP : WIFICAP_EXPORT_ERROR why=guard "WiFi is not ready. Current state: CONNECTING" rel=30168
+09-25 13:10:55.544  7008  7008 I WIFICAP : WIFICAP_END_WIFI_TRANSFER rel=31173
+09-25 13:10:55.544  7008  7008 I WIFICAP : WIFICAP_TEARDOWN bleUp=true -> setDeviceWiFi(false) rel=31173
+09-25 13:10:55.550  7008  7060 I PenBleSDK-BluetoothLeOperation: 010D00-checkRequest-[10]-getRequestType-CharacteristicWrite
+09-25 13:10:55.567  7008  7022 I PenBleSDK-BluetoothLeOperation: recv-cmd:cmd 13 010D0000
+09-25 13:10:55.567  7008  7022 I PenBleSDK-BluetoothLeOperation: cmd type:13
+09-25 13:10:55.569  7008  7149 E BleAgentImpl: 蓝牙监控 bleNotify: 13 data=����
+09-25 13:10:55.577  7008  7022 I PenBleSDK-BluetoothLeOperation: 010D00-callBackRequest:[10] status:0
+09-25 13:10:55.577  7008  7022 E BluetoothLeOperation: 010D00-callBackRequest:[10] status:0
+09-25 13:11:06.542  7008  7008 I WIFICAP : WIFICAP_END mode=transfer agent=true state=CONNECTING active=false rel=42171

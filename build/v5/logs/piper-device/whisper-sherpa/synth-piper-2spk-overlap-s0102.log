@@ -1,0 +1,25 @@
+# 2026-09-25T10:02:35Z piper-device whisper-sherpa synth-piper-2spk-overlap-s0102 pipeline=whisper-sherpa hint=0 n_active=2
+# audio /Users/mivi/Desktop/plaud-harness/build/synthetic/piper/synth-piper-2spk-overlap-s0102/device/recording.ogg
+# load average at start: { 5.66 6.07 6.81 }
+# swap at start: total = 9216.00M  used = 8085.56M  free = 1130.44M  (encrypted)
+whisper-sherpa: 90 segments, 8 speakers, 42.12s -> /Users/mivi/Desktop/plaud-harness/build/v5/hyp/piper-device/whisper-sherpa/synth-piper-2spk-overlap-s0102.partial/hyp.json (+ .rttm, .stm)
+       43.91 real       167.00 user        14.72 sys
+          1279148032  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1363224  page reclaims
+                1476  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 242  voluntary context switches
+             1305011  involuntary context switches
+        997423658870  instructions retired
+        332180635482  cycles elapsed
+          1510758016  peak memory footprint
+# load average at end: { 5.44 5.94 6.72 }
+# exit 0

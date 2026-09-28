@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +31,23 @@ class MeetingFormatError(PipelineError):
 
 
 MEETING_FILENAME = "meeting.json"
+
+#: HARNESS_POLICY: a meeting_id is used as a directory name (``batch`` writes
+#: ``<out>/<meeting_id>/``), so it must be one safe path component: word
+#: characters (Unicode letters, digits, ``_``), ``.`` and ``-``, not starting
+#: with ``.`` or ``-`` (so no ``..``, no ``/``, no whitespace), at most 200
+#: characters.  The generator's ids (``synth-<name>-s0003``, built with
+#: ``str.isalnum``) and AMI ids (``ES2002a``) fit.
+MEETING_ID_RE = re.compile(r"^\w[\w.-]{0,199}$")
+
+
+def check_meeting_id(meeting_id: Any) -> str:
+    if not isinstance(meeting_id, str) or not MEETING_ID_RE.match(meeting_id):
+        raise MeetingFormatError(
+            f"meeting_id {meeting_id!r} must match {MEETING_ID_RE.pattern} "
+            "(one safe path component: letters, digits, '.', '_', '-')"
+        )
+    return meeting_id
 
 
 def find_meeting_json(audio_path: str | Path, meeting_dir: str | Path | None = None) -> Path | None:
@@ -75,6 +93,7 @@ def validate_meeting(m: dict[str, Any]) -> dict[str, Any]:
             raise MeetingFormatError(f"meeting.json lacks {k!r}")
     if not isinstance(m["meeting_id"], str) or not m["meeting_id"] or any(c.isspace() for c in m["meeting_id"]):
         raise MeetingFormatError("meeting_id must be a non-empty string without whitespace")
+    check_meeting_id(m["meeting_id"])
     ids = {s.get("id") for s in m["speakers"]}
     if len(ids) != len(m["speakers"]) or None in ids:
         raise MeetingFormatError("speakers need unique non-null ids")
@@ -100,26 +119,62 @@ def validate_meeting(m: dict[str, Any]) -> dict[str, Any]:
 def resolve_audio(meeting_dir: str | Path, meeting: dict[str, Any], key: str = "mix") -> Path:
     """Pick an audio file from ``meeting["audio"]``.
 
-    ``key`` is ``"mix"`` (audio.mix_wav), ``"device"`` (the first entry under
-    audio.device, or ``device.<name>``), ``"stem:<speaker>"`` or a literal
+    ``key`` is ``"mix"`` (audio.mix_wav), ``"device"`` (the primary device
+    recording, see below), ``device.<name>``, ``"stem:<speaker>"`` or a literal
     relative path.  HARNESS_POLICY: paths are relative to the meeting dir.
+
+    ``"device"`` resolves like ``generator.contract.device_primary_path``: the
+    entry named by audio.device_primary (generator >= 0.2.0), else
+    audio.device["ogg_opus"], else -- only for older or hand-written meetings
+    with neither -- the first entry under audio.device.  Never blindly the
+    first entry: the generator writes keys sorted, so on a 0.2.0 meeting that
+    is ``e2ee_ogg`` (device/recording_e2ee.bin, ciphertext).  A device_primary
+    naming no audio.device entry is a MeetingFormatError.
+
+    A path taken from meeting.json (every key but the literal) must be
+    relative and must stay inside the meeting dir after resolving symlinks
+    and ``..``; a literal ``key`` is the operator's own choice and is not
+    constrained.
     """
     md = Path(meeting_dir)
     audio = meeting.get("audio", {})
+    from_meeting_json = True
     if key == "mix":
         rel = audio.get("mix_wav")
     elif key == "device":
         dev = audio.get("device") or {}
-        rel = next(iter(dev.values()), None)
+        primary = audio.get("device_primary")
+        if primary:
+            if not isinstance(primary, str) or primary not in dev:
+                raise MeetingFormatError(
+                    f"meeting {meeting.get('meeting_id')!r}: audio.device_primary {primary!r} "
+                    "names no audio.device entry"
+                )
+            rel = dev[primary]
+        elif "ogg_opus" in dev:
+            rel = dev["ogg_opus"]
+        else:
+            rel = next(iter(dev.values()), None)
     elif key.startswith("device."):
         rel = (audio.get("device") or {}).get(key.split(".", 1)[1])
     elif key.startswith("stem:"):
         rel = (audio.get("stems") or {}).get(key.split(":", 1)[1])
     else:
-        rel = key
+        rel, from_meeting_json = key, False
     if not rel:
         raise MeetingFormatError(f"meeting {meeting.get('meeting_id')!r} has no audio for key {key!r}")
+    if not isinstance(rel, str):
+        raise MeetingFormatError(f"meeting {meeting.get('meeting_id')!r}: audio path for {key!r} is not a string")
     p = md / rel
+    if from_meeting_json:
+        if Path(rel).is_absolute():
+            raise MeetingFormatError(f"meeting.json audio path {rel!r} (key {key!r}) must be relative")
+        root = md.resolve()
+        target = p.resolve()
+        if target != root and root not in target.parents:
+            raise MeetingFormatError(
+                f"meeting.json audio path {rel!r} (key {key!r}) resolves outside the meeting dir {md}"
+            )
     if not p.is_file():
         raise FileNotFoundError(p)
     return p
@@ -167,18 +222,42 @@ def meeting_from_stm(
     audio: dict[str, Any] | None = None,
     generator: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Build a meeting dict from an STM reference (word times interpolated)."""
-    from .formats import parse_stm
+    """Build a meeting dict from an STM reference (word times interpolated).
+
+    ``meeting_id`` selects that file id's rows from a multi-meeting STM.  For
+    a single-meeting STM whose file id differs, it RENAMES the import (the
+    original id is recorded as ``generator.scenario.stm_file_id``).  An id
+    that matches no rows of a multi-meeting STM, or an STM with no usable
+    rows, raises MeetingFormatError -- an empty reference would make every
+    downstream score meaningless.  The optional NIST ``<label>`` field is
+    never part of the words; NIST pseudo-speaker rows are dropped and
+    counted (``excluded_region``/``ignore_time_segment_in_scoring`` spans
+    are kept in ``generator.scenario.stm_excluded_regions``).
+    """
+    from .formats import STM_PSEUDO_SPEAKERS, parse_stm
 
     rows = parse_stm(stm_text)
     if not rows:
         raise MeetingFormatError("STM has no lines")
-    ids = {r["meeting_id"] for r in rows}
+    ids = sorted({r["meeting_id"] for r in rows})
+    stm_file_id = None
     if meeting_id is None:
         if len(ids) != 1:
-            raise MeetingFormatError(f"STM covers several meetings {sorted(ids)}; pass meeting_id")
-        meeting_id = rows[0]["meeting_id"]
-    rows = [r for r in rows if r["meeting_id"] == meeting_id]
+            raise MeetingFormatError(f"STM covers several meetings {ids}; pass meeting_id")
+        meeting_id = ids[0]
+    elif meeting_id not in ids:
+        if len(ids) != 1:
+            raise MeetingFormatError(
+                f"meeting_id {meeting_id!r} matches no STM rows; the STM covers {ids}"
+            )
+        stm_file_id = ids[0]  # single-meeting STM: rename the import
+    check_meeting_id(meeting_id)
+    wanted = stm_file_id or meeting_id
+    rows = [r for r in rows if r["meeting_id"] == wanted]
+    pseudo = [r for r in rows if r["speaker"] in STM_PSEUDO_SPEAKERS]
+    rows = [r for r in rows if r["speaker"] not in STM_PSEUDO_SPEAKERS]
+    if not rows:
+        raise MeetingFormatError(f"STM has no speaker rows for {wanted!r}")
     speakers = []
     for r in rows:
         if r["speaker"] not in speakers:
@@ -190,6 +269,20 @@ def meeting_from_stm(
     segments = sort_segments(segments)
     if duration_s is None:
         duration_s = max((s["end"] for s in segments), default=0.0)
+    stm_notes: dict[str, Any] = {}
+    if stm_file_id is not None:
+        stm_notes["stm_file_id"] = stm_file_id
+    if pseudo:
+        stm_notes["stm_pseudo_speaker_rows"] = len(pseudo)
+        excluded = [[r["start"], r["end"]] for r in pseudo if r["speaker"] != "inter_segment_gap"]
+        if excluded:
+            stm_notes["stm_excluded_regions"] = excluded
+    labelled = sum(1 for r in rows if r.get("label"))
+    if labelled:
+        stm_notes["stm_label_fields"] = labelled
+    if generator is not None and stm_notes:
+        generator = dict(generator)
+        generator["scenario"] = {**dict(generator.get("scenario") or {}), **stm_notes}
     return {
         "schema": MEETING_SCHEMA,
         "meeting_id": meeting_id,
@@ -202,7 +295,7 @@ def meeting_from_stm(
         "audio": audio or {"mix_wav": "mix.wav", "stems": {}, "device": {}},
         "generator": generator
         or {"name": "pipeline.meeting.meeting_from_stm", "version": "1", "seed": 0,
-            "scenario": {"source": "stm", "word_times": "interpolated (HARNESS_POLICY)"}},
+            "scenario": {"source": "stm", "word_times": "interpolated (HARNESS_POLICY)", **stm_notes}},
     }
 
 

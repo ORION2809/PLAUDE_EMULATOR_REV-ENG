@@ -2,7 +2,10 @@
 
 Everything this package issues is synthetic and labelled. It never proxies to,
 fetches from, or otherwise contacts any real host: there is no HTTP client in
-this package at all (tests/test_mockcloud_mock.py greps for one).
+this package at all. tests/test_mockcloud_mock.py checks the source with an
+AST scan for network imports and calls, and every mockcloud test runs with
+outbound socket connects blocked; neither is a proof for code paths no test
+exercises.
 
 Evidence classes used in the code comments:
 

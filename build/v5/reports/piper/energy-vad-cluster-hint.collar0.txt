@@ -1,0 +1,7 @@
+synth-piper-2spk-overlap-s0102 [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.1823  JER 0.2235
+synth-piper-2spk-s0101 [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.1649  JER 0.1600
+synth-piper-3spk-reverb-noise-s0103 [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.1889  JER 0.2657
+synth-piper-4spk-s0104 [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.5509  JER 0.6363
+macro  n=4  cpWER 1.0000  tcpWER 1.0000  DER 0.2717  JER 0.3214
+micro  n=4  cpWER 1.0000  tcpWER 1.0000  DER 0.2755  JER 0.3736
+# exit 0

@@ -32,6 +32,17 @@ API-34 AVD (mivi_test_34, arm64, google_apis)          netsimd :50922
 
 ## Why the recovery entry point is cloud-free (bytecode)
 
+> **Correction, 25 September 2026.** The recovery *entry point* is cloud-free, as
+> shown below. The driver around it was not: its `initSDK` call passed a synthetic
+> token, and `NiceBuildSdk.initSdk` answers a non-blank token by POSTing
+> `partner/sdk/gen-key` to `platform-jp.plaud.ai`. This report's logs were filtered
+> to K3CAP/PenBleSDK lines and do not show SDK network activity, but the later
+> R7-S13/S14 logs show one such request per app start (19 of those 22 logs record a 401;
+> in R7-S13 runs 11–13 a failed DNS lookup stopped the request before it reached the
+> server), so these four runs very likely sent it too. The drivers now pass a blank token
+> (`r7/r7-s14-wifi-real-sdk.md` D7; offline check in
+> `r7/r7-s14-evidence/blank-token-offline-check/`).
+
 `PlaudDeviceAgent.recoveryConnectBleDevice(BleDevice, String)` (ALL.txt:2653):
 
 1. `startsWith("client_user_")` → `removePrefix` (2678-2688)
@@ -107,9 +118,9 @@ answered (run 4: zero rejects). Full decode in ledger §5.12.
 ## Reproduce
 
 ```bash
-# toolchain used: JDK 17 (/Users/mivi/mivi-toolchain/jdk17), Android SDK
-# (/Users/mivi/mivi-toolchain/android-sdk), AVD mivi_test_34, gradle 8.2 (cached)
-export JAVA_HOME=/Users/mivi/mivi-toolchain/jdk17/Contents/Home ANDROID_HOME=/Users/mivi/mivi-toolchain/android-sdk
+# toolchain used: JDK 17 (<jdk17>), Android SDK (<android-sdk>), AVD mivi_test_34,
+# gradle 8.2 (cached); replace <jdk17> / <android-sdk> with your own install paths
+export JAVA_HOME=<jdk17>/Contents/Home ANDROID_HOME=<android-sdk>   # macOS JDK bundle layout
 ( cd r7/android-app && ./gradlew :app:assembleDebug --offline )      # local.properties: synthetic token only
 emulator -avd mivi_test_34 -no-window -no-audio -no-snapshot -no-boot-anim &
 adb -s emulator-5554 wait-for-device

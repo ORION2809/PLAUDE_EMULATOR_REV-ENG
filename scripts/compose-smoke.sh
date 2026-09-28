@@ -6,9 +6,14 @@
 #   KEEP_UP=1 ./scripts/compose-smoke.sh       # leave the system running afterwards
 #   SKIP_BUILD=1 ./scripts/compose-smoke.sh    # images already built
 #   COMPOSE_TARGET_S=60                         # the target (seconds)
+#   COMPOSE_PROJECT_NAME=ci-a ./scripts/compose-smoke.sh   # an isolated project: its network and
+#                                               # volume are <project>_harness / <project>_harness-build
 #
 # Exit codes: 0 pass; 1 the bring-up exceeded the target, `up --wait` failed or the job
-# failed; 2 Docker (or the compose v2 plugin, or the daemon) is not available here.
+# failed; 2 Docker (or the compose v2 plugin, or the daemon) is not available here;
+# 3 the Bumble tree the images would copy (reference/upstream/bumble, or BUMBLE_TREE) is not
+# at the commit pinned in docs/reference-pins.txt, or the Dockerfiles carry another pin.
+# The pin check runs first: it needs no Docker (review finding C14).
 #
 # HARNESS_POLICY: the image build is excluded from the timed window (V6 is about bringing
 # the system live, and the first build of numpy/scipy/pyroomacoustics/av dominates by
@@ -21,20 +26,34 @@ PROJECT="${COMPOSE_PROJECT_NAME:-plaud-harness}"
 
 now_s() { python3 -c 'import time; print(f"{time.time():.3f}")' 2>/dev/null || date +%s; }
 diff_s() { awk -v a="$1" -v b="$2" 'BEGIN { printf "%.2f", b - a }'; }
-
-if ! command -v docker >/dev/null 2>&1; then
-  echo "compose-smoke: docker is not installed or not on PATH; V6 cannot be executed on this machine." >&2
+no_docker() {
+  echo "compose-smoke: $*; V6 cannot be executed on this machine." >&2
   echo "compose-smoke: the same topology runs without Docker via ./scripts/local-up.sh" >&2
   exit 2
+}
+
+# --- the images COPY reference/upstream/bumble as it is on disk: it must be the pinned commit
+PIN="$(awk '$2 == "https://github.com/google/bumble.git" { print $1; exit }' "$ROOT/docs/reference-pins.txt")"
+BUMBLE_TREE="${BUMBLE_TREE:-$ROOT/reference/upstream/bumble}"
+off_pin() { echo "compose-smoke: FAIL $* (pin $PIN, docs/reference-pins.txt)" >&2; exit 3; }
+[[ "$PIN" =~ ^[0-9a-f]{40}$ ]] || off_pin "no bumble pin found"
+for svc in emulator mockcloud job; do
+  grep -q "^ARG BUMBLE_PIN=$PIN\$" "$ROOT/docker/Dockerfile.$svc" || off_pin "docker/Dockerfile.$svc does not carry ARG BUMBLE_PIN=$PIN"
+done
+if [ -e "$BUMBLE_TREE/.git" ] && command -v git >/dev/null 2>&1; then
+  # read-only: no index refresh, nothing written under reference/**
+  head="$(GIT_OPTIONAL_LOCKS=0 git -C "$BUMBLE_TREE" rev-parse HEAD 2>/dev/null || echo unknown)"
+  [ "$head" = "$PIN" ] || off_pin "$BUMBLE_TREE is at $head, not at the pin"
+  dirty="$(GIT_OPTIONAL_LOCKS=0 git --no-optional-locks -C "$BUMBLE_TREE" status --porcelain --untracked-files=no 2>/dev/null || echo '?')"
+  [ -z "$dirty" ] || off_pin "$BUMBLE_TREE has local modifications, so it is not at the pin"
+  echo "compose-smoke: bumble tree at the pin $PIN"
+else
+  echo "compose-smoke: WARNING $BUMBLE_TREE has no .git (or git is missing); cannot verify it is at the pin $PIN" >&2
 fi
-if ! docker compose version >/dev/null 2>&1; then
-  echo "compose-smoke: 'docker compose' (the v2 plugin) is not available." >&2
-  exit 2
-fi
-if ! docker info >/dev/null 2>&1; then
-  echo "compose-smoke: the Docker daemon is not reachable (is it running?)." >&2
-  exit 2
-fi
+
+command -v docker >/dev/null 2>&1 || no_docker "docker is not installed or not on PATH"
+docker compose version >/dev/null 2>&1 || no_docker "'docker compose' (the v2 plugin) is not available"
+docker info >/dev/null 2>&1 || no_docker "the Docker daemon is not reachable (is it running?)"
 
 COMPOSE=(docker compose -f "$ROOT/docker-compose.yml" -p "$PROJECT")
 

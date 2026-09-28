@@ -7,17 +7,31 @@ usual diarization convention); nothing downstream detects it from energy.
 
 Overlap control (HARNESS_POLICY): consecutive turns of DIFFERENT speakers may
 overlap. Before placing each turn the planner computes the overlap d that
-would bring the realised ratio (overlapped seconds / union-of-speech
-seconds) to the target after the turn is added,
-    d = (target * (union + dur) - overlapped) / (1 + target),
-clipped to [0, max_overlap_fraction * min(prev_dur, dur)]. Because d never
-exceeds half of either turn, no three turns ever overlap at once and the
-running totals stay exact. Same-speaker consecutive turns never overlap
-(a speaker cannot talk over themself).
+would bring the realised ratio (overlapped samples / union-of-speech
+samples) to the target after the turn is added,
+    d = (target * (union + dur_q) - overlapped) / (1 + target),
+where dur_q is the new turn's grid-quantised span. d is rounded to the
+NEAREST grid step and then capped, on the grid, at
+    quantise_down(max_overlap_fraction * min(prev_span, dur_q))
+and at prev.end - earliest, where `earliest` is the end of every turn before
+the previous one (and of the same speaker's last turn). The overlap itself is
+quantised, never the start: prev.end is on the grid, so start = prev.end - d
+is too, and the realised overlap is exactly d. (Quantising the start instead
+turned d into ceil_grid(d), up to 124 samples over the cap; that stacked
+three speakers and let a speaker overwrite their own previous turn.)
+
+Invariants (property-tested over many seeds, tests/test_generator_turns.py):
+* a turn overlaps at most its immediate predecessor and successor, so no
+  three turns are ever active at once and the running totals stay exact;
+* an overlap never exceeds max_overlap_fraction (<= 0.5) of the shorter of
+  the two grid-quantised spans;
+* a speaker never overlaps themself (a speaker cannot talk over themself),
+  which `build_dry_stems` enforces by refusing such a table.
 
 All turn boundaries are quantised to the 1/128 s grid (contract.GRID_SAMPLES):
-start is rounded down to the grid, end is rounded up, so a turn contains up
-to 124 samples of trailing digital silence and every word lies inside it.
+a non-overlapping start is rounded down to the grid, end is rounded up, so a
+turn contains up to 124 samples of trailing digital silence and every word
+lies inside it.
 """
 
 from __future__ import annotations
@@ -81,6 +95,10 @@ def plan_turns(
     union = 0  # samples of speech (union over speakers)
     overlapped = 0  # samples where two speakers are active
     prev: Turn | None = None
+    # No new turn may start before `earliest`: the latest end of every turn
+    # except the previous one. It is on the grid (every end is).
+    earliest = 0
+    last_end_by_speaker: dict[int, int] = {}
     cursor = quantise_up(int(round(tt.lead_in_s * SAMPLE_RATE)))
     index = 0
     while True:
@@ -99,21 +117,26 @@ def plan_turns(
             text = text_source.utterance(n_words)
             result: SynthResult = tts.synth(text, voices[speaker], _seed_int(scenario.seed, index, n_words))
             dur = result.duration_samples
+            dur_q = quantise_up(dur)  # the span the turn will occupy (start is on the grid)
+            floor = max(earliest, last_end_by_speaker.get(speaker, 0))
             if prev is None:
-                start = cursor
-                d = 0
+                start = quantise_down(max(cursor, 0))
             else:
-                start = prev.end_sample + int(round(pause * SAMPLE_RATE))
-                d = 0
+                start = quantise_down(max(prev.end_sample + int(round(pause * SAMPLE_RATE)), 0))
                 if tt.overlap_ratio > 0 and speaker != prev.speaker:
-                    prev_dur = prev.end_sample - prev.start_sample
-                    need = (tt.overlap_ratio * (union + dur) - overlapped) / (1.0 + tt.overlap_ratio)
-                    d_max = int(tt.max_overlap_fraction * min(prev_dur, dur))
-                    d = int(np.clip(need, 0, d_max))
+                    d = overlap_samples(
+                        target=tt.overlap_ratio,
+                        union=union,
+                        overlapped=overlapped,
+                        dur_q=dur_q,
+                        prev_span=prev.end_sample - prev.start_sample,
+                        max_fraction=tt.max_overlap_fraction,
+                        room=prev.end_sample - floor,
+                    )
                     if d > 0:
                         start = prev.end_sample - d
-            start = quantise_down(max(start, 0))
-            end = quantise_up(start + dur)
+            start = max(start, floor)
+            end = start + dur_q
             if end <= n_samples:
                 placed = (start, end, result, text)
                 break
@@ -122,6 +145,7 @@ def plan_turns(
             break
         start, end, result, text = placed
         actual_overlap = max(0, prev.end_sample - start) if prev is not None else 0
+        # start >= earliest, so the new turn can only overlap `prev`: exact totals
         overlapped += actual_overlap
         union += (end - start) - actual_overlap
         words = [WordTiming(w.word, start + w.start_sample, start + w.end_sample) for w in result.words]
@@ -137,9 +161,35 @@ def plan_turns(
             notes=dict(result.notes),
         )
         turns.append(turn)
+        if prev is not None:
+            earliest = max(earliest, prev.end_sample)
+        last_end_by_speaker[speaker] = end
         prev = turn
         index += 1
     return turns
+
+
+def overlap_samples(
+    target: float,
+    union: int,
+    overlapped: int,
+    dur_q: int,
+    prev_span: int,
+    max_fraction: float,
+    room: int,
+) -> int:
+    """Overlap (samples, a multiple of GRID_SAMPLES) for the next turn.
+
+    `need` brings overlapped/union to `target` once the turn is added; it is
+    rounded to the nearest grid step (unbiased), then capped on the grid at
+    max_fraction of the shorter span and at `room` (prev.end - earliest start).
+    """
+    need = (target * (union + dur_q) - overlapped) / (1.0 + target)
+    if need <= 0:
+        return 0
+    d = GRID_SAMPLES * int(np.floor(need / GRID_SAMPLES + 0.5))
+    cap = quantise_down(int(max_fraction * min(prev_span, dur_q)))
+    return int(max(0, min(d, cap, quantise_down(max(room, 0)))))
 
 
 def activity_mask(turns: list[Turn], n_speakers: int, n_samples: int) -> np.ndarray:
@@ -173,8 +223,21 @@ def mask_to_segments(mask: np.ndarray) -> list[tuple[int, int, int]]:
 
 def build_dry_stems(turns: list[Turn], n_speakers: int, n_samples: int) -> np.ndarray:
     """(n_speakers, n_samples) int16 dry stems: each turn's pcm placed at its
-    start. Same-speaker turns never overlap, so placement is assignment."""
+    start. Placement is assignment, which is only exact when a speaker's turns
+    never overlap; a table where they do is refused (ValueError) rather than
+    letting a later turn silently overwrite an earlier one's words."""
     stems = np.zeros((n_speakers, n_samples), dtype=np.int16)
+    by_speaker: dict[int, list[Turn]] = {}
+    for t in turns:
+        by_speaker.setdefault(t.speaker, []).append(t)
+    for spk, own in by_speaker.items():
+        own = sorted(own, key=lambda t: t.start_sample)
+        for a, b in zip(own, own[1:]):
+            if b.start_sample < a.end_sample:
+                raise ValueError(
+                    f"spk{spk} turns {a.index} [{a.start_sample},{a.end_sample}) and {b.index} "
+                    f"[{b.start_sample},{b.end_sample}) overlap: a speaker cannot overlap themself"
+                )
     for t in turns:
         n = len(t.pcm)
         if t.start_sample + n > t.end_sample:
@@ -190,5 +253,6 @@ __all__ = [
     "build_dry_stems",
     "mask_to_segments",
     "overlap_ratio",
+    "overlap_samples",
     "plan_turns",
 ]

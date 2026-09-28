@@ -1,0 +1,8 @@
+error: /Users/mivi/Desktop/plaud-harness/data/corpora/ami/meetings/EN2002a: unexpected RuntimeError: Too few fallback keys provided! There are more over-/under-estimated speakers than fallback_keys in abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+meeteval cpWER 20-speaker guard lifted in-process (supplementary scoring, docs/v5-results.md)
+ES2004a [whisper-sherpa]  cpWER 1.0633  tcpWER 1.1338  DER 0.7231  JER 0.7278
+IS1009a [whisper-sherpa]  cpWER 1.0446  tcpWER 1.2190  DER 0.7550  JER 0.8107
+TS3003a [whisper-sherpa]  cpWER 1.2210  tcpWER 1.3343  DER 0.8498  JER 0.8675
+macro  n=3  cpWER 1.1096  tcpWER 1.2290  DER 0.7760  JER 0.8020
+micro  n=3  cpWER 1.1135  tcpWER 1.2282  DER 0.7825  JER 0.8020
+# exit 2

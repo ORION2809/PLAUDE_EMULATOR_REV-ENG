@@ -27,6 +27,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 from plaudsim.sealed import SYNTHETIC_J, SYNTHETIC_K, SYNTHETIC_L, SealedSession
 from plaudsim.wifi import (
     CIPHERTEXT_TYPE_THRESHOLD,
+    MSG_FILE_SYNC,
     MSG_FILE_SYNC_CONTENT,
     MSG_FILE_SYNC_STOP,
     MSG_GET_FILE_LIST,
@@ -36,10 +37,12 @@ from plaudsim.wifi import (
     FileRecord,
     FileSyncContent,
     FileSyncStopRequest,
+    GetFileListRequest,
     WifiSealer,
     looks_encrypted,
+    pack_pdu,
 )
-from plaudsim.wifi_device import WifiDevice, WifiDeviceState, WifiFileStore
+from plaudsim.wifi_device import MAX_CHUNK_SIZE, WifiDevice, WifiDeviceState, WifiFileStore
 from wifi_support import ERROR_HANDSHAKE_FAILED, STATE_READY, PhoneWifiServer
 
 TOKEN = "SYNTHETIC-WIFI-TOKEN-0123456789ABCDEF"[:32]
@@ -136,16 +139,158 @@ async def test_full_plaintext_session_handshake_list_sync_delete_extend_close():
 
 
 @pytest.mark.asyncio
-async def test_phone_never_speaks_before_say_hello():
-    """With auto_handshake off the phone stays mute forever; the pen keeps
-    heartbeating in CONNECTED and never reaches HANDSHAKED."""
-    async with PhoneWifiServer(token=TOKEN, auto_handshake=False) as phone:
+async def test_pen_speaks_first_and_waits_for_the_phones_handshake():
+    """The phone sends nothing until it sees SayHello (WifiAgentImpl.txt:1353,
+    :1417). Against a phone that never answers, the first frame on the wire
+    must therefore be the pen's SayHello, and the pen must stay CONNECTED
+    (heartbeating) without reaching HANDSHAKED. Review T11: the previous
+    version passed even if the pen never sent SayHello."""
+    async with PhoneWifiServer(token=TOKEN, auto_handshake=False, auto_pong=False) as phone:
         dev = make_device(phone, idle_heartbeats_before_close=None)
         task = await run_device(dev)
+        await asyncio.wait_for(phone.client_connected.wait(), 3)
         await asyncio.sleep(0.3)
+        wire = [(e["dir"], e.get("type")) for e in phone.log if "type" in e]
+        assert wire and wire[0] == ("in", MSG_SAY_HELLO), wire
+        assert not [d for d, _ in wire if d == "out"], "the mute phone spoke"
+        assert len(phone.hellos) == 1 and phone.hellos[0].sn == dev.serial
         assert dev.state is WifiDeviceState.CONNECTED
-        assert not [e for e in phone.log if e["dir"] == "out" and e.get("type") == MSG_HANDSHAKE]
         assert dev.heartbeats_sent >= 3 and not phone.ready.is_set()
+        await dev.close("test")
+        await asyncio.wait_for(task, 3)
+
+
+# --- close / rerun / error paths (review T3, T4, T5) -------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_close_before_run_is_a_clean_no_op_session():
+    """T3: close() on a device that never dialled used to raise AttributeError
+    (send() on ws=None) and leave the state at CLOSING."""
+    dev = WifiDevice("127.0.0.1", 9, heartbeat_interval=None, exit_timeout=None)
+    await dev.close("ble_close_wifi")
+    assert dev.state is WifiDeviceState.CLOSED and dev.closed.is_set()
+    assert dev.close_reason == "ble_close_wifi"
+    await asyncio.wait_for(dev.run(), 1)          # the pending run() is a no-op
+    assert dev.state_log == ["idle", "closed"]
+    assert any(e.get("kind") == "closed_before_connect" for e in dev.log)
+
+
+@pytest.mark.asyncio
+async def test_close_while_dialling_cancels_the_session():
+    """T3: close() while CONNECTING raised, and run() then overwrote CLOSING
+    with CONNECTED/HANDSHAKED and served normally."""
+    async with PhoneWifiServer(token=TOKEN) as phone:
+        dev = make_device(phone, idle_heartbeats_before_close=None)
+        task = asyncio.create_task(dev.run())
+        await asyncio.sleep(0)
+        assert dev.state is WifiDeviceState.CONNECTING
+        await dev.close("ble_close_wifi")
+        await asyncio.wait_for(task, 3)
+        assert dev.state_log == ["idle", "connecting", "closing", "closed"], dev.state_log
+        assert dev.close_reason == "ble_close_wifi"
+        await asyncio.sleep(0.1)
+        assert not phone.ready.is_set() and not phone.hellos
+
+
+@pytest.mark.asyncio
+async def test_device_is_single_use():
+    """T4: a second run() reused the connected/handshaked/closed Events, so
+    wait_handshaked() returned at once on a phone that never handshook."""
+    async with PhoneWifiServer(token=TOKEN) as phone:
+        dev = make_device(phone, idle_heartbeats_before_close=None)
+        task = await run_device(dev)
+        await dev.wait_handshaked(3)
+        await dev.close("first")
+        await asyncio.wait_for(task, 3)
+    with pytest.raises(RuntimeError, match="single-use"):
+        await dev.run()
+    assert dev.state is WifiDeviceState.CLOSED and dev.state_log[-1] == "closed"
+
+
+@pytest.mark.asyncio
+async def test_a_failing_handler_is_logged_and_the_session_keeps_serving():
+    """T5(a): a handler exception escaped run(), killing the session without
+    a WifiClose or any log entry."""
+    store = make_store()
+    async with PhoneWifiServer(token=TOKEN) as phone:
+        dev = make_device(phone, store=store, idle_heartbeats_before_close=None)
+        task = await run_device(dev)
+        await phone.wait_ready(3)
+        store.entries.append({"session_id": -1, "file_size": 1, "scene": 1})   # bypasses add()'s guard
+        list_fut = phone._new_waiter(MSG_GET_FILE_LIST)
+        await phone.send(GetFileListRequest(0, 0, False))
+        await asyncio.sleep(0.1)
+        assert not list_fut.done()
+        errors = [e for e in dev.log if e.get("kind") == "handler_error"]
+        assert len(errors) == 1, [e for e in dev.log if e["dir"] == "event"]
+        err = errors[0]
+        assert err["type"] == MSG_GET_FILE_LIST and "error" in err["error"]
+        assert dev.state is WifiDeviceState.HANDSHAKED and not task.done()
+        store.entries.pop()
+        assert (await phone.extend_exit_time()).status == 0       # still serving
+        assert (await phone.get_file_list()).count == 2
+        await dev.close("test")
+        await asyncio.wait_for(task, 3)
+        assert phone.closes and phone.closes[0].reason == "test"
+
+
+@pytest.mark.asyncio
+async def test_non_finite_json_numbers_do_not_crash_the_session():
+    """T5(a): {"start": 1e400} became float inf and int(inf) raised OverflowError."""
+    async with PhoneWifiServer(token=TOKEN) as phone:
+        dev = make_device(phone, idle_heartbeats_before_close=None)
+        task = await run_device(dev)
+        await phone.wait_ready(3)
+        phone._transfer = None
+        await phone.send_raw(pack_pdu(MSG_FILE_SYNC, b'{"session":5,"scene":1,"start":1e400,"end":0}'))
+        await asyncio.sleep(0.1)
+        assert not task.done() and dev.state is WifiDeviceState.HANDSHAKED
+        assert not [e for e in dev.log if e.get("kind") == "handler_error"]
+        assert (await phone.get_file_list()).count == 2
+        await dev.close("test")
+        await asyncio.wait_for(task, 3)
+
+
+def test_store_and_chunk_size_are_validated_against_the_wire_fields():
+    """T5: the u32 record fields and the u24 totalSize bound the inputs."""
+    store = WifiFileStore()
+    for bad in (-1, 0x1_0000_0000):
+        with pytest.raises(ValueError, match="session id"):
+            store.add(bad, b"x")
+    with pytest.raises(ValueError, match="scene"):
+        store.add(5, b"x", scene=0x10000)
+    store.add(0xFFFFFFFF, b"x")
+    assert store.records()[0].pack()[:4] == b"\xff\xff\xff\xff"
+    with pytest.raises(ValueError, match="chunk_size"):
+        WifiDevice("127.0.0.1", 1, chunk_size=MAX_CHUNK_SIZE + 1)
+    WifiDevice("127.0.0.1", 1, chunk_size=MAX_CHUNK_SIZE)
+    assert len(FileSyncContent(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, bytes(MAX_CHUNK_SIZE), last=True).encode()) <= 0xFFFFFF
+
+
+@pytest.mark.asyncio
+async def test_a_failing_stream_is_logged_as_transfer_failed():
+    """T5(b): an exception inside _stream_file vanished; the phone only saw
+    its request time out and the device log held nothing."""
+    class UnreadableFile(bytes):
+        """len() works, reading the bytes fails -- a storage fault mid-transfer."""
+
+        def __getitem__(self, key):
+            raise OSError("synthetic storage read failure")
+
+    store = make_store()
+    store.contents[SESSION_BIG] = UnreadableFile(BIG)
+    async with PhoneWifiServer(token=TOKEN, request_timeout=0.5) as phone:
+        dev = make_device(phone, store=store, idle_heartbeats_before_close=None)
+        task = await run_device(dev)
+        await phone.wait_ready(3)
+        with pytest.raises(asyncio.TimeoutError):
+            await phone.download(SESSION_BIG, len(BIG))
+        failures = [e for e in dev.log if e.get("kind") == "transfer_failed"]
+        assert len(failures) == 1, [e for e in dev.log if e["dir"] == "event"]
+        failed = failures[0]
+        assert failed["session"] == SESSION_BIG and "synthetic storage read failure" in failed["error"]
+        assert not dev.transfer_active
         await dev.close("test")
         await asyncio.wait_for(task, 3)
 
@@ -243,9 +388,40 @@ async def test_second_file_sync_replaces_the_active_stream():
         out = [e for e in dev.log if e["dir"] == "out" and e.get("type") in (MSG_FILE_SYNC_CONTENT, 12)]
         status2 = next(i for i, e in enumerate(out) if e["type"] == 12 and i > 0)
         assert all(e["type"] == MSG_FILE_SYNC_CONTENT for e in out[status2 + 1:]) and len(out) - status2 - 1 == 1
-        # ... and whatever chunks of stream 1 were already on the wire were
-        # dropped by the phone, which keys transfers by session id, not appended.
-        assert all(d == "No transfer context for session: 1" for d in phone.dropped)
+        await dev.close("test")
+        await asyncio.wait_for(task, 3)
+
+
+@pytest.mark.asyncio
+async def test_stale_chunks_of_a_replaced_stream_are_dropped_by_session():
+    """Review T11: the previous assertion (`all(...)` over phone.dropped) held
+    vacuously when nothing was dropped. Here the phone is held inside its
+    handling of stream 1's first chunk while the pen keeps sending, then asks
+    for file 2: the queued stream-1 chunks must reach the phone AFTER the new
+    transfer opened, and must be dropped, not appended to file 2."""
+    big = bytes(range(256)) * 128
+    store = WifiFileStore.from_files({1: big, 2: b"second"})
+    async with PhoneWifiServer(token=TOKEN) as phone:
+        dev = make_device(phone, store=store, chunk_size=256, chunk_delay=0.002, idle_heartbeats_before_close=None)
+        task = await run_device(dev)
+        await phone.wait_ready(3)
+        switched: dict[str, object] = {}
+
+        async def hold_then_switch(content: FileSyncContent) -> None:
+            if content.session == 1 and "fut" not in switched:
+                await asyncio.sleep(0.05)                 # the pen keeps streaming file 1
+                switched["fut"] = await phone.start_download(2, 6)
+
+        phone.chunk_hook = hold_then_switch
+        await phone.start_download(1, len(big))
+        for _ in range(100):
+            if "fut" in switched:
+                break
+            await asyncio.sleep(0.01)
+        dl = await asyncio.wait_for(switched["fut"], 3)
+        assert dl.data == b"second" and [c.session for c in dl.chunks] == [2]
+        assert phone.dropped, "no stale stream-1 chunk reached the phone after the switch"
+        assert set(phone.dropped) == {"No transfer context for session: 1"}
         await dev.close("test")
         await asyncio.wait_for(task, 3)
 
