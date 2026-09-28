@@ -1,0 +1,32 @@
+booted=1
+Success
+internet check (expect failure):
+connect: Network is unreachable
+BluetoothShellCommand: Exec enable
+enable: Success
+<scratchpad>/r7-drivers/run.sh: line 29:  6423 Terminated: 15          nohup $ROOT/.venv/bin/python $ROOT/r7/k3_capture_peripheral.py android-netsim $OUT/k3-capture.json > $OUT/k3-peripheral.log 2>&1
+== K3 ==
+K3CAP_RECOVERY calling recoveryConnectBleDevice sn=8810000001 id="SYNTH-HIST-0001"
+K3CAP_STAGE sn="8810000001" stage="start" detail="sn=sn:[5c4317a7],mac=F0:1A:2B:3C:4D:5E"
+K3CAP_STAGE sn="8810000001" stage="gatt_connect" detail="null"
+K3CAP_STAGE sn="8810000001" stage="set_data_notify" detail="new_battery_service_port_7"
+K3CAP_STAGE sn="8810000001" stage="set_notify" detail="null"
+K3CAP_STAGE sn="8810000001" stage="first_handshake" detail="null"
+K3CAP_STAGE sn="8810000001" stage="first_handshake" detail="old_protocol_ok"
+K3CAP_STAGE sn="8810000001" stage="sync_time" detail="attempt_0"
+K3: gen-key lines 0; https URL lines 3; RSA-fetch lines 0
+== Wi-Fi mode=open ==
+WIFICAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+WIFICAP_BLE_WIFI_OPEN status=0 wifiName="" wholeName="" passLen=0 t=1790586294055 rel=35
+WIFICAP_END mode=open rel=20016
+Wi-Fi open: gen-key lines 0; https URL lines 3; RSA-fetch lines 0
+== Wi-Fi mode=transfer ==
+WIFICAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+WIFICAP_CB_STATE state=CONNECTING rel=21
+WIFICAP_CB_ERROR code=1003 message="Failed to connect to device WiFi" rel=151 agent=true state=CONNECTING active=false
+WIFICAP_EXPORT why=guard sessionId=1700000000 format=OPUS channels=1 rel=157
+WIFICAP_EXPORT_ERROR why=guard "WiFi is not ready. Current state: CONNECTING" rel=158
+WIFICAP_END_WIFI_TRANSFER rel=1160
+WIFICAP_END mode=transfer agent=true state=CONNECTING active=false rel=12162
+Wi-Fi transfer: gen-key lines 0; https URL lines 3; RSA-fetch lines 0
+ALL DONE

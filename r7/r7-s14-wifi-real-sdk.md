@@ -43,10 +43,14 @@ our docs (§5).
 > was already happening in the rig before this task. It contradicts the task's
 > "no Plaud cloud calls" rule and `cloud-endpoint-inventory.md`'s "none
 > exercised" (§5, D7). **Before any further AVD run, do one of these:** pass
-> a blank init token (tested 25 Sep, offline, on the pull driver only: no `gen-key`
+> a blank init token (tested 25 Sep, offline, on the pull driver: no `gen-key`
 > line, byte-exact pull — `r7-s14-evidence/blank-token-offline-check/`; it also empties the
 > Wi-Fi handshake token, which our pen accepts), or cut the AVD's egress
-> (untested, e.g. a DNS sinkhole).
+> (untested, e.g. a DNS sinkhole). **28 Sep:** the K3 driver and this Wi-Fi
+> driver (modes `open` and `transfer`) were re-run the same way, offline,
+> with full logcats archived: no `gen-key` line in any of them
+> (`r7-s14-evidence/blank-token-drivers-check/`). All three drivers are now
+> checked.
 
 ## 1. Topology and driver
 
