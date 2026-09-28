@@ -229,6 +229,25 @@ transcription together under the best label matching, which is the only fair
 reading of an unlabelled diarization output. The swap test asserts the
 rationale directly: same words, labels swapped → `wer_literal` 1.33, cpWER 0.
 
+**More than 20 speakers (since 28 Sep 2026).** meeteval 0.4.3 refuses cpWER
+and tcpWER when either side has more than 20 speakers: its
+`_minimum_permutation_word_error_rate` raises `RuntimeError("Are you
+sure?…")`. It is a sanity check, not a computational limit. Until 28 Sep
+`evals batch` recorded that as an error and dropped the whole meeting, DER
+included, so no un-hinted AMI meeting could be scored (V5, 25 Sep). Now
+`cp_wer`/`tcp_wer` return a result with every count `None` and `refused`
+set to the reason (`meeteval refuses more than 20 speakers (reference 4,
+hypothesis 95)`), and the meeting's DER, JER and WER are reported as usual
+(HARNESS_POLICY; `evals.metrics.MEETEVAL_SPEAKER_LIMIT`). The macro and
+micro aggregates leave a refused meeting out of the cpWER/tcpWER pools, say
+how many meetings each value covers (`counts`) and how many were refused
+(`not_scored`). A gate check on a metric with a non-zero `not_scored`
+fails closed ("not scored on k of n meetings (meeteval refused)"), so a
+gate never passes on the scorable subset. An *undefined* value (DER of a
+meeting with no reference speech) is still left out of the mean and
+counted, as before. `scripts/run-v5.sh` still runs meeteval with its guard
+lifted as a separately labelled, supplementary score.
+
 ### tcpWER — `meeteval.wer.wer.time_constrained.tcp_word_error_rate`
 
 cpWER with a time constraint: a hypothesis word may only match a reference

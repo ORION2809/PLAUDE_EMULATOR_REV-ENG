@@ -8,6 +8,11 @@ bound it declares (``max``, ``min``, ``eq`` with optional ``tol``).
 HARNESS_POLICY (fail closed): a metric that is missing, ``None`` (for
 example DER/JER on a meeting with no scorable reference speech) or non-finite
 fails its check — a gate can never pass because a number was not produced.
+On an aggregate (``macro``/``micro``), a check on a metric that meeteval
+refused for any meeting (``not_scored``, the >20-speaker limit in
+evals/metrics.py) fails, so a gate never passes on the meetings that
+happened to be scorable.  An *undefined* value (DER of a meeting with no
+reference speech) is still left out of the mean and counted, as before.
 The gate file itself cannot open a gate either: bounds and ``tol`` must be
 finite (``max: .nan`` or ``tol: .inf`` would pass any value).  A check with
 ``min`` > ``max``, or whose ``eq`` lies outside its ``min``/``max`` even
@@ -211,6 +216,10 @@ def evaluate_check(check: Check, metrics: Mapping[str, Any]) -> CheckResult:
     if check.metric not in metrics:
         return CheckResult(check, None, False, "metric not in report")
     value = metrics[check.metric]
+    not_scored = metrics.get("not_scored")
+    if isinstance(not_scored, Mapping) and not_scored.get(check.metric):
+        return CheckResult(check, value, False,
+                           f"not scored on {not_scored[check.metric]} of {metrics.get('n')} meetings (meeteval refused)")
     if value is None or isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
         return CheckResult(check, value, False, "metric has no numeric value")
     reasons = []

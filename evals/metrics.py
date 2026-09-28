@@ -334,20 +334,30 @@ class WerResult:
 
 @dataclass
 class CpWerResult:
-    """meeteval CPErrorRate (cpWER when ``collar`` is None, tcpWER otherwise)."""
+    """meeteval CPErrorRate (cpWER when ``collar`` is None, tcpWER otherwise).
+
+    ``refused`` is set, and every count is ``None``, when meeteval would not
+    score the meeting (:data:`MEETEVAL_SPEAKER_LIMIT`); the meeting's other
+    metrics are still reported (HARNESS_POLICY).
+    """
 
     error_rate: float | None
-    errors: int
-    length: int
-    substitutions: int
-    deletions: int
-    insertions: int
-    missed_speaker: int
-    falarm_speaker: int
-    scored_speaker: int
+    errors: int | None
+    length: int | None
+    substitutions: int | None
+    deletions: int | None
+    insertions: int | None
+    missed_speaker: int | None
+    falarm_speaker: int | None
+    scored_speaker: int | None
     assignment: list[tuple[str | None, str | None]]
     collar: float | None
     word_level_timing: bool | None
+    refused: str | None = None
+
+    @classmethod
+    def not_scored(cls, reason: str, collar: float | None, word_level: bool | None) -> "CpWerResult":
+        return cls(None, None, None, None, None, None, None, None, None, [], collar, word_level, reason)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -363,6 +373,7 @@ class CpWerResult:
             "assignment": [list(pair) for pair in self.assignment],
             "collar": self.collar,
             "word_level_timing": self.word_level_timing,
+            "refused": self.refused,
         }
 
 
@@ -491,13 +502,21 @@ class MeetingReport:
                 f"{b.false_alarm:.3f} | {format_value(b.error_rate)} | {b.mapped_to or '-'} |"
             )
         c, t = self.cpwer, self.tcpwer
-        lines += [
-            "",
+        cp_line = (
+            f"cpWER: not scored ({c.refused})" if c.refused else
             f"cpWER: {c.errors}/{c.length} (S {c.substitutions}, D {c.deletions}, I {c.insertions}; "
             f"missed speakers {c.missed_speaker}, false-alarm speakers {c.falarm_speaker}); "
-            f"assignment {c.assignment}",
+            f"assignment {c.assignment}"
+        )
+        tcp_line = (
+            f"tcpWER: not scored ({t.refused})" if t.refused else
             f"tcpWER (collar {t.collar} s, word-level timing {t.word_level_timing}): "
-            f"{t.errors}/{t.length} (S {t.substitutions}, D {t.deletions}, I {t.insertions})",
+            f"{t.errors}/{t.length} (S {t.substitutions}, D {t.deletions}, I {t.insertions})"
+        )
+        lines += [
+            "",
+            cp_line,
+            tcp_line,
             f"WER label-literal: {self.wer_literal.errors}/{self.wer_literal.reference_words} "
             f"(S {self.wer_literal.substitutions}, D {self.wer_literal.deletions}, I {self.wer_literal.insertions})",
             "",
@@ -872,6 +891,33 @@ def _cp_result(res: Any, collar: float | None, word_level: bool | None) -> CpWer
     )
 
 
+#: meeteval 0.4.3 raises ``RuntimeError("Are you sure?...")`` from
+#: ``_minimum_permutation_word_error_rate`` (used by cpWER and tcpWER) when
+#: either side has more than this many speakers.  It is a sanity check, not a
+#: computational limit (the assignment is a linear-sum problem).  The harness
+#: keeps meeteval's refusal: the meeting's cpWER/tcpWER are recorded as not
+#: scored, with the reason, and its DER/JER/WER are still reported.  A gate on
+#: an aggregate fails closed when any meeting was not scored (evals/gates.py).
+MEETEVAL_SPEAKER_LIMIT = 20
+
+
+def _speaker_limit_reason(ref: Any, hyp: Any) -> str | None:
+    n_ref = len({e["speaker"] for e in ref})
+    n_hyp = len({e["speaker"] for e in hyp})
+    if max(n_ref, n_hyp) <= MEETEVAL_SPEAKER_LIMIT:
+        return None
+    return (f"meeteval refuses more than {MEETEVAL_SPEAKER_LIMIT} speakers "
+            f"(reference {n_ref}, hypothesis {n_hyp})")
+
+
+def _refusal(exc: RuntimeError, ref: Any, hyp: Any) -> str:
+    """The recorded reason for a meeteval refusal; anything else re-raises."""
+    reason = _speaker_limit_reason(ref, hyp)
+    if reason is None or not str(exc).startswith("Are you sure?"):
+        raise exc
+    return reason
+
+
 def cp_wer(
     ref_segments: Sequence[Segment],
     hyp_segments: Sequence[Segment],
@@ -891,7 +937,10 @@ def cp_wer(
 
     ref, _ = to_seglst(ref_segments, session_id, normalizer, word_level=False)
     hyp, _ = to_seglst(hyp_segments, session_id, normalizer, word_level=False)
-    return _cp_result(cp_word_error_rate(ref, hyp), None, None)
+    try:
+        return _cp_result(cp_word_error_rate(ref, hyp), None, None)
+    except RuntimeError as exc:
+        return CpWerResult.not_scored(_refusal(exc, ref, hyp), None, None)
 
 
 def tcp_wer(
@@ -916,13 +965,16 @@ def tcp_wer(
     _check_collar("collar", collar)
     ref, ref_wl = to_seglst(ref_segments, session_id, normalizer, word_level=True)
     hyp, hyp_wl = to_seglst(hyp_segments, session_id, normalizer, word_level=True)
-    res = tcp_word_error_rate(
-        ref,
-        hyp,
-        collar=collar,
-        reference_pseudo_word_level_timing="none" if ref_wl else "character_based",
-        hypothesis_pseudo_word_level_timing="none" if hyp_wl else "character_based_points",
-    )
+    try:
+        res = tcp_word_error_rate(
+            ref,
+            hyp,
+            collar=collar,
+            reference_pseudo_word_level_timing="none" if ref_wl else "character_based",
+            hypothesis_pseudo_word_level_timing="none" if hyp_wl else "character_based_points",
+        )
+    except RuntimeError as exc:
+        return CpWerResult.not_scored(_refusal(exc, ref, hyp), collar, ref_wl and hyp_wl)
     return _cp_result(res, collar, ref_wl and hyp_wl)
 
 

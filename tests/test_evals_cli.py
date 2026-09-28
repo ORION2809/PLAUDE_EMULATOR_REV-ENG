@@ -345,3 +345,64 @@ def test_an_unexpected_exception_exits_2_never_1(tmp_path: Path, capsys, monkeyp
     doc = json.loads((tmp_path / "b.json").read_text())  # the report is still written, naming the meeting
     assert "RuntimeError: synthetic failure" in doc["errors"][0]["error"]
     assert main(["selfcheck"]) == 2
+
+
+def _fragmented(m: "Meeting", n_speakers: int) -> Hypothesis:  # noqa: F821
+    """The reference's words, each segment split into one-word pieces spread
+    over ``n_speakers`` hypothesis labels (a 'many speakers' hypothesis); labels
+    left without a word get one inserted "uh" after the last reference word."""
+    segs: list[Segment] = []
+    k = 0
+    for s in m.segments:
+        words = s.text.split()
+        step = (s.end - s.start) / max(1, len(words))
+        for i, w in enumerate(words):
+            segs.append(Segment(f"h{k % n_speakers:02d}", s.start + i * step, s.start + (i + 1) * step, w))
+            k += 1
+    t = max(s.end for s in m.segments)
+    for j in range(k, n_speakers):
+        segs.append(Segment(f"h{j:02d}", min(t, m.duration_s - 0.1), min(t + 0.05, m.duration_s), "uh"))
+    assert len({s.speaker for s in segs}) == n_speakers
+    return Hypothesis(m.meeting_id, "fragmented", segs)
+
+
+def test_batch_keeps_der_when_meeteval_refuses_more_than_20_speakers(tmp_path: Path) -> None:
+    """V5 no-hint AMI runs (docs/v5-results.md): meeteval 0.4.3 refuses
+    cpWER/tcpWER above 20 speakers, and ``evals batch`` used to drop the
+    whole meeting, DER included.  Now cpWER/tcpWER are recorded as not
+    scored, with the reason; DER/JER/WER are reported; a gate on cpWER fails
+    closed, and the macro/micro pools say how many meetings were refused."""
+    d, m = make_meeting_dir(tmp_path, "many")
+    write_hypothesis_files(_fragmented(m, 21), tmp_path / "hyps" / "many")
+    good, gm = make_meeting_dir(tmp_path, "good")
+    write_hypothesis_files(Hypothesis(gm.meeting_id, "sys", list(gm.segments)), tmp_path / "hyps" / "good")
+    base = ["batch", "--refs", str(tmp_path / "refs"), "--hyps", str(tmp_path / "hyps"),
+            "--report", str(tmp_path / "b.json"), "--md", str(tmp_path / "b.md"), "--quiet"]
+    assert main(base) == 0
+    doc = json.loads((tmp_path / "b.json").read_text())
+    assert doc["errors"] == [] and doc["n_meetings"] == 2
+    many = next(r for r in doc["meetings"] if r["meeting_id"] == "many")
+    assert isinstance(many["der"]["der"], float) and isinstance(many["jer"]["jer"], float)
+    assert isinstance(many["wer_concat"]["wer"], float)
+    for k in ("cpwer", "tcpwer"):
+        assert many[k]["error_rate"] is None and many[k]["errors"] is None
+        assert many[k]["refused"] == "meeteval refuses more than 20 speakers (reference 2, hypothesis 21)"
+    assert doc["macro"]["counts"]["der.der"] == 2 and doc["macro"]["counts"]["cpwer.error_rate"] == 1
+    assert doc["macro"]["not_scored"]["cpwer.error_rate"] == 1 and "der.der" not in doc["macro"]["not_scored"]
+    assert doc["micro"]["counts"]["cpwer.error_rate"] == 1 and doc["micro"]["cpwer.error_rate"] == 0.0
+    # a cpWER gate fails closed on the refused meeting; the per-meeting gate names it
+    assert main(base + ["--suite", "synthetic-clean"]) == 1
+    doc = json.loads((tmp_path / "b.json").read_text())
+    cp = next(c for c in doc["gates"][0]["checks"] if c["metric"] == "cpwer.error_rate")
+    assert cp["passed"] is False and "not scored on 1 of 2 meetings" in cp["reason"]
+
+
+def test_score_reports_a_refused_cpwer_in_its_markdown(tmp_path: Path) -> None:
+    d, m = make_meeting_dir(tmp_path, "many")
+    hyp_dir = tmp_path / "hyps" / "many"
+    write_hypothesis_files(_fragmented(m, 21), hyp_dir)
+    md = tmp_path / "r.md"
+    assert main(["score", "--ref", str(d), "--hyp", str(hyp_dir / "hyp.json"), "--quiet", "--md", str(md)]) == 0
+    text = md.read_text()
+    assert "cpWER: not scored (meeteval refuses more than 20 speakers (reference 2, hypothesis 21))" in text
+    assert "tcpWER: not scored" in text

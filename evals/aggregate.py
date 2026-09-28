@@ -7,6 +7,13 @@
   weighs more).  DER = Σ(miss+fa+conf)/Σtotal, JER = Σspeaker_error/Σspeakers,
   WER/cpWER/tcpWER = Σerrors/Σreference words.  Speaker-count error has no
   natural pooling, so micro reports the same mean as macro plus the sums.
+  A meeting whose cpWER/tcpWER meeteval refused (``CpWerResult.refused``) is
+  left out of those pools; ``counts`` says how many meetings each pooled
+  cpWER/tcpWER value covers.
+
+Both aggregates carry ``counts`` (metric -> meetings that produced a value)
+and ``not_scored`` (cpWER/tcpWER metric -> meetings meeteval refused); a gate
+on a metric with a non-zero ``not_scored`` fails closed (evals/gates.py).
 
 HARNESS_POLICY: which average a gate is applied to is the CLI's ``--gate-on``
 choice (default ``macro``); both are always in the report.
@@ -61,6 +68,19 @@ def macro_average(reports: Sequence[MeetingReport]) -> dict[str, Any]:
         counts[k] = len(vals)
         out[k] = (sum(vals) / len(vals)) if vals else None
     out["counts"] = counts
+    out["not_scored"] = _not_scored(reports)
+    return out
+
+
+def _not_scored(reports: Sequence[MeetingReport]) -> dict[str, int]:
+    """cpWER/tcpWER metric path -> number of meetings meeteval refused."""
+    out: dict[str, int] = {}
+    for r in reports:
+        for name, res in (("cpwer", r.cpwer), ("tcpwer", r.tcpwer)):
+            if res.refused is not None:
+                for k in r.flat():
+                    if k.startswith(name + "."):
+                        out[k] = out.get(k, 0) + 1
     return out
 
 
@@ -74,6 +94,7 @@ def micro_average(reports: Sequence[MeetingReport]) -> dict[str, Any]:
     wl_err = wl_n = wc_err = wc_n = 0
     cp_err = cp_len = tcp_err = tcp_len = 0
     cp_missed = cp_falarm = 0
+    n_cp = n_tcp = 0
     sc_err = sc_abs = 0
     for r in reports:
         d = r.der
@@ -92,17 +113,26 @@ def micro_average(reports: Sequence[MeetingReport]) -> dict[str, Any]:
         wl_n += r.wer_literal.reference_words
         wc_err += r.wer_concat.errors
         wc_n += r.wer_concat.reference_words
-        cp_err += r.cpwer.errors
-        cp_len += r.cpwer.length
-        cp_missed += r.cpwer.missed_speaker
-        cp_falarm += r.cpwer.falarm_speaker
-        tcp_err += r.tcpwer.errors
-        tcp_len += r.tcpwer.length
+        if r.cpwer.refused is None:
+            n_cp += 1
+            cp_err += r.cpwer.errors
+            cp_len += r.cpwer.length
+            cp_missed += r.cpwer.missed_speaker
+            cp_falarm += r.cpwer.falarm_speaker
+        if r.tcpwer.refused is None:
+            n_tcp += 1
+            tcp_err += r.tcpwer.errors
+            tcp_len += r.tcpwer.length
         sc_err += r.speaker_count.error
         sc_abs += r.speaker_count.abs_error
     n = len(reports)
+    cp_keys = ("cpwer.error_rate", "cpwer.errors", "cpwer.length", "cpwer.missed_speaker", "cpwer.falarm_speaker")
+    tcp_keys = ("tcpwer.error_rate", "tcpwer.errors", "tcpwer.length")
+    counts = {**{k: n_cp for k in cp_keys}, **{k: n_tcp for k in tcp_keys}}
     return {
         "n": n,
+        "counts": counts,
+        "not_scored": _not_scored(reports),
         "der.der": _rate(miss + fa + conf, total),
         "der.total": total,
         "der.correct": correct,
@@ -124,14 +154,14 @@ def micro_average(reports: Sequence[MeetingReport]) -> dict[str, Any]:
         "wer_concat.wer": _rate(wc_err, wc_n),
         "wer_concat.errors": wc_err,
         "wer_concat.reference_words": wc_n,
-        "cpwer.error_rate": _rate(cp_err, cp_len),
-        "cpwer.errors": cp_err,
-        "cpwer.length": cp_len,
-        "cpwer.missed_speaker": cp_missed,
-        "cpwer.falarm_speaker": cp_falarm,
-        "tcpwer.error_rate": _rate(tcp_err, tcp_len),
-        "tcpwer.errors": tcp_err,
-        "tcpwer.length": tcp_len,
+        "cpwer.error_rate": _rate(cp_err, cp_len) if n_cp else None,
+        "cpwer.errors": cp_err if n_cp else None,
+        "cpwer.length": cp_len if n_cp else None,
+        "cpwer.missed_speaker": cp_missed if n_cp else None,
+        "cpwer.falarm_speaker": cp_falarm if n_cp else None,
+        "tcpwer.error_rate": _rate(tcp_err, tcp_len) if n_tcp else None,
+        "tcpwer.errors": tcp_err if n_tcp else None,
+        "tcpwer.length": tcp_len if n_tcp else None,
         "speaker_count.error": sc_err / n,
         "speaker_count.abs_error": sc_abs / n,
         "speaker_count.error_sum": sc_err,
