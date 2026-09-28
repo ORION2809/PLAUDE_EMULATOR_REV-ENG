@@ -30,8 +30,14 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Three platforms: R-CI-1 (docs/project-state.md) was a result that differed
+    # between LAPACK builds, and only a real runner showed it.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
     defaults:
       run:
         shell: bash  # -eo pipefail
@@ -117,9 +123,9 @@ jobs:
       - name: Annotate failures
         if: ${{ failure() }}
         run: |
-          python3 - "$RUNNER_TEMP/junit.xml" "$RUNNER_TEMP/pytest.log" <<'PYEOF'
+          python3 - "$RUNNER_TEMP/junit.xml" "$RUNNER_TEMP/pytest.log" "${{ matrix.os }}" <<'PYEOF'
           import sys, xml.etree.ElementTree as ET
-          junit, log = sys.argv[1], sys.argv[2]
+          junit, log, os_name = sys.argv[1], sys.argv[2], sys.argv[3]
           def esc(s):
               return s.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
           n = 0
@@ -130,11 +136,11 @@ jobs:
                       if el is not None and n < 20:
                           name = f"{tc.get('classname')}::{tc.get('name')}"
                           msg = (el.get("message") or "") + "\n" + (el.text or "")[-1500:]
-                          print(f"::error title={tag}: {name}::{esc(msg[:1800])}"); n += 1
+                          print(f"::error title={tag} ({os_name}): {name}::{esc(msg[:1800])}"); n += 1
           except Exception as exc:
               print(f"::warning::could not read junit xml: {exc}")
           tail = open(log, errors="replace").read().splitlines()[-40:]
-          print("::error title=pytest tail::" + esc("\n".join(tail)[-3000:]))
+          print(f"::error title=pytest tail ({os_name})::" + esc("\n".join(tail)[-3000:]))
           PYEOF
 
       # reference/** is immutable evidence. Anything that writes into it is a

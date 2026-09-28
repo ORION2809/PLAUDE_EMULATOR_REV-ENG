@@ -1,0 +1,76 @@
+# V6 on a GitHub runner: `docker compose up -d --wait` from a cold cache on
+# x86_64, timed against the 60 s target by scripts/compose-smoke.sh (the image
+# build is timed separately and is outside the window, HARNESS_POLICY).
+#
+# The images COPY reference/upstream/bumble, so Bumble is fetched at its pin
+# first (as in tests.yml); the Plaud SDK is not needed and not fetched.  The
+# timings are published as check-run notices, which the public GitHub API
+# returns without authentication.
+name: compose
+
+on:
+  push:
+    paths:
+      - "docker/**"
+      - "docker-compose.yml"
+      - "scripts/compose-smoke.sh"
+      - "emulator/**"
+      - "mockcloud/**"
+      - "generator/**"
+      - "pipeline/**"
+      - "evals/**"
+      - "requirements/**"
+      - "docs/reference-pins.txt"
+      - ".github/workflows/compose.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compose-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Fetch Bumble at its pin
+        run: |
+          pin=$(awk '$2 == "https://github.com/google/bumble.git" {print $1; exit}' docs/reference-pins.txt)
+          [[ "$pin" =~ ^[0-9a-f]{40}$ ]] || { echo "no bumble pin in docs/reference-pins.txt" >&2; exit 1; }
+          dest=reference/upstream/bumble
+          mkdir -p "$dest"
+          git -C "$dest" init -q
+          git -C "$dest" remote add origin https://github.com/google/bumble.git
+          git -C "$dest" fetch -q --depth 1 origin "$pin"
+          git -C "$dest" -c advice.detachedHead=false checkout -q FETCH_HEAD
+          test "$(git -C "$dest" rev-parse HEAD)" = "$pin"
+
+      - name: Docker environment
+        run: |
+          docker version
+          docker compose version
+          nproc; free -b | head -2
+          docker image ls
+
+      - name: Compose smoke (V6)
+        shell: bash -eo pipefail {0}
+        run: ./scripts/compose-smoke.sh 2>&1 | tee "$RUNNER_TEMP/compose-smoke.log"
+
+      - name: Publish timings
+        if: ${{ always() }}
+        run: |
+          [ -f "$RUNNER_TEMP/compose-smoke.log" ] || exit 0
+          grep -E "compose-smoke: (build_s|up_wait_s|job_s|PASS|FAIL)" "$RUNNER_TEMP/compose-smoke.log" | while read -r line; do
+            echo "::notice title=V6 ($(uname -m), $(nproc) CPU)::$line"
+          done
