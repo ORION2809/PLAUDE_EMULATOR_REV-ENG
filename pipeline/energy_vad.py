@@ -664,6 +664,39 @@ def _absorb_small(x: np.ndarray, labels: np.ndarray, min_size: int, metric: str,
     return np.array([remap[int(c)] for c in out], dtype=int)
 
 
+def _past_ties(evals: np.ndarray, k: int, tol: float = 1e-8) -> int:
+    """Smallest m >= k such that eigenvalue m-1 is not tied with eigenvalue m.
+
+    R-CI-1 (28 Sep 2026): with g disconnected groups the top g eigenvalues are all
+    1.0, and any rotation of their eigenvectors is an equally valid ``eigh`` result;
+    which one LAPACK returns differs between builds (macOS arm64 vs GitHub's
+    x86_64). Cutting inside such a tie takes an arbitrary slice of the subspace, so
+    the cut is moved past the tie and the extra clusters are resolved afterwards.
+    """
+    m = max(1, int(k))
+    while m < len(evals) and abs(float(evals[m - 1]) - float(evals[m])) <= tol:
+        m += 1
+    return m
+
+
+def _merge_to(x: np.ndarray, labels: np.ndarray, k: int, metric: str) -> np.ndarray:
+    """Merge the two clusters with the closest centroids until ``k`` remain
+    (R-CI-1; HARNESS_POLICY). Labels are returned compacted in order of size."""
+    lab = labels.copy()
+    while len(set(lab.tolist())) > max(1, k):
+        ids = sorted(set(lab.tolist()))
+        centres = np.array([x[lab == c].mean(axis=0) for c in ids])
+        d = cdist(centres, centres, metric=metric)
+        np.fill_diagonal(d, np.inf)
+        i, j = np.unravel_index(int(np.argmin(d)), d.shape)
+        keep, gone = min(ids[i], ids[j]), max(ids[i], ids[j])
+        lab[lab == gone] = keep
+    sizes = np.bincount(lab)
+    order = [int(c) for c in np.argsort(-sizes, kind="stable") if sizes[c] > 0]
+    remap = {c: n for n, c in enumerate(order)}
+    return np.array([remap[int(c)] for c in lab], dtype=int)
+
+
 def cluster_embeddings(
     emb: np.ndarray,
     *,
@@ -723,9 +756,10 @@ def cluster_embeddings(
     def spectral_labels(k: int) -> np.ndarray:
         if k <= 1:
             return np.zeros(n, dtype=int)
-        u = evecs[:, :k]
+        m = _past_ties(evals, k)  # R-CI-1: never cut inside a group of tied eigenvalues
+        u = evecs[:, :m]
         u = u / np.maximum(np.linalg.norm(u, axis=1, keepdims=True), 1e-12)
-        return kmeans_deterministic(u, k)
+        return kmeans_deterministic(u, m)
 
     info.update(method="spectral", affinity_knn=knn, eigenvalues=[float(v) for v in evals[: k_cap + 1]])
     if want is not None:
@@ -745,6 +779,7 @@ def cluster_embeddings(
     k_thr = int((np.bincount(lt) >= min_size).sum())
     k0 = 1 if k_thr <= 1 else min(k_thr, k_eig)
     lab = _absorb_small(emb, spectral_labels(k0), min_size, metric)
+    lab = _merge_to(emb, lab, k0, metric)  # R-CI-1: a tie may have added clusters past k0
     info.update(k_eigengap=k_eig, k_threshold=k_thr, k=int(len(set(lab.tolist()))))
     return lab
 

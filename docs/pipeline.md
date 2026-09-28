@@ -171,6 +171,18 @@ voices of the unit tests and the generator's formant voices), not on speech.
      the minimum size. One such cluster means **one speaker**: this absolute test is
      the explicit k = 1 check (an eigengap cannot tell one tight speaker from two).
      Then small clusters are absorbed.
+   * Tied eigenvalues (R-CI-1, fixed 28 Sep 2026). With g disconnected groups of cells
+     the top g eigenvalues are all 1.0, and any rotation of their eigenvectors is an
+     equally valid `eigh` result; which one LAPACK returns differs between builds.
+     Taking "the first k eigenvectors" inside such a tie made the cut platform-dependent:
+     GitHub's x86_64 runner returned 1 speaker where macOS returned 2
+     (`test_cluster_embeddings_absorbs_an_outlier_island`). The cut now moves past any
+     tie (`_past_ties`), clusters the whole tied group, absorbs small clusters, and
+     merges the closest centroids down to k (`_merge_to`, HARNESS_POLICY).
+     `test_cluster_embeddings_is_invariant_to_the_basis_of_tied_eigenvectors` forces
+     random rotations of the tied block (5 of its 12 seeds failed before the fix).
+     Re-running the baseline on the 8 V5 meetings, with and without the hint, gave
+     RTTMs identical to the published ones: no V5 number changed.
    * More than 2000 cells (about 17 minutes of speech): an evenly spaced subset of
      2000 is clustered and every cell takes its nearest centroid, so the O(n²)
      matrices stay bounded.

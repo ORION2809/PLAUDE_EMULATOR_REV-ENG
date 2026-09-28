@@ -2,10 +2,12 @@
 
 **As of 28 September 2026.** Branch `main`, published at
 `github.com/ORION2809/PLAUDE_EMULATOR_REV-ENG` (public). This document is
-committed together with the 25–28 September work it describes. The commit before
-it on GitHub, `70249ba`, failed the `tests` workflow; this commit carries the
-fix, which had passed only local clean-clone simulations when this was written.
-Its first GitHub run is the check that matters (Actions tab).
+committed together with the 25–28 September work it describes. On GitHub the
+`tests` workflow failed on `70249ba` (missing dependencies and fixtures). With
+the fixed workflow, `8b72dda` and `7d01b1f` ran the whole suite on Linux x86_64
+and failed on exactly one test, which exposed a platform-dependent choice in the
+baseline diarizer (R-CI-1, [§5.13](#513-ci)). This commit fixes it; its own
+GitHub run is the check that matters (Actions tab).
 
 **Summary.** plaud-harness is a hardware-free test harness for Plaud's
 Bluetooth LE voice recorders. It rebuilds the recorder's protocol from Plaud's
@@ -126,7 +128,7 @@ code. **Not done** = never attempted or never run.
 | AMI converter | Works | MEASURED (cross-check against BUT RTTMs) | `evals/ami.py`, `tests/test_ami_converter.py` | Audio for 4 of 16 test meetings only |
 | Mock cloud | Works (as a contract mock) | EMULATOR_INTEGRATION; contract from OFFICIAL_DOC (OpenAPI pages, template-app source) and BYTECODE_PROVEN (SDK-internal routes) | [`docs/mockcloud.md`](mockcloud.md) | Never compared with real responses |
 | Compose / V6 | Works (one run) | EMULATOR_INTEGRATION | `build/v6/compose-smoke-2026-09-25.log` (committed evidence), [`docs/compose.md`](compose.md) | One run, arm64 VM on a Mac |
-| CI on GitHub | Partial: failed on `70249ba`; fix in this commit, first GitHub run pending when written | – | GitHub Actions runs 36093783853 (`tests`: failure in step `Tests`, exit code 2) and 36093783882 (`evals`: success) on `70249ba` | The `tests` run skipped its "Reference tree is pristine" step, so CI has never checked `reference/`. The fix for `tests` is in this commit and had not yet run on GitHub when this was written |
+| CI on GitHub | Partial: the fixed workflow ran on `8b72dda` and `7d01b1f` and failed on one diarizer test (R-CI-1); fixed in this commit, its run pending when written | – | GitHub Actions runs 36093783853 (`tests`: failure in step `Tests`, exit code 2) and 36093783882 (`evals`: success) on `70249ba` | The `tests` run skipped its "Reference tree is pristine" step, so CI has never checked `reference/`. On `7d01b1f` every step ran, including the reference check (clean); only `test_cluster_embeddings_absorbs_an_outlier_island` failed |
 | iOS SDK | Not done | – | – | No Xcode on this machine |
 | Real hardware | Not done | – | – | None used |
 
@@ -151,7 +153,7 @@ Full suite, run on 28 September 2026:
 
 ```
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ -q -p no:cacheprovider --timeout=120 -rs
-1365 passed, 4 skipped, 11 warnings in 240.99s (0:04:00)
+1377 passed, 4 skipped, 11 warnings in 242.22s (0:04:02)
 ```
 
 - Counts include parametrised cases.
@@ -186,13 +188,13 @@ support modules:
 | Evals | `test_evals_*.py` | 198 |
 | AMI converter | `test_ami_converter.py` | 51 |
 | V5 gate calibration | `test_v5_gates.py` | 8 |
-| Pipeline | `test_pipeline_*.py` | 228 |
+| Pipeline | `test_pipeline_*.py` | 240 |
 | Mock cloud | `test_mockcloud_*.py` | 76 |
 | Cross-layer integration and V4 end to end | `test_integration_*.py`, `test_v4_e2e.py` | 21 |
 | Compose | `test_compose_*.py` | 59 |
-| **Total collected** | | **1369** |
+| **Total collected** | | **1381** |
 
-History: 301 tests after phase 1; 978 on 24 Sep; 1365 passed on 25 Sep.
+History: 301 tests after phase 1; 978 on 24 Sep; 1365 passed on 25 Sep; 1377 on 28 Sep (12 added for R-CI-1).
 
 CI-like runs (never on GitHub; both on macOS arm64 on 25 Sep; from the
 follow-up and stage-2 journals):
@@ -572,8 +574,19 @@ a byte-for-byte passthrough.
 - The fix is in this commit. `tests.yml` installs `requirements/ci.txt` into
   `.venv`, fetches Bumble at its pin, generates one meeting, runs with
   `PLAUD_STRICT_SKIPS=1` and compares `reference/` before and after.
-  `.gitignore` lets `tests/fixtures/*.ogg` through. Only local clean-clone
-  simulations on macOS arm64 have run it.
+  `.gitignore` lets `tests/fixtures/*.ogg` through.
+- On GitHub (28 Sep), the fixed workflow ran on `8b72dda` (run 36381797867) and
+  `7d01b1f` (run 36385278334). Install, Bumble fetch at the pin, meeting
+  generation and the reference-tree check all passed. The Tests step failed on one
+  test, `tests/test_pipeline_energy_vad.py::test_cluster_embeddings_absorbs_an_outlier_island`
+  (1 speaker instead of 2). `7d01b1f` added an "Annotate failures" step that
+  publishes failing tests as check-run annotations, which the public API returns
+  without a token; that is how the failure was read.
+- Cause (R-CI-1): three tied eigenvalues of 1.0, whose eigenvector basis differs
+  between LAPACK builds; the clusterer cut inside the tie. An x86_64 Linux
+  container on this Mac (Rosetta, with and without Docker) passed, so only the real
+  runner showed it. Fixed in `pipeline/energy_vad.py` with a rotation test; the
+  baseline's V5 outputs re-ran identical ([`docs/pipeline.md`](pipeline.md) §2).
 
 ### 5.14 Milestone spikes R4–R6
 
@@ -653,9 +666,9 @@ closes that gap.
 - The iOS SDK. This machine has only the Xcode command-line tools
   (`xcode-select -p` → `/Library/Developer/CommandLineTools`).
 - Any real Plaud device, account or credential.
-- The fixed `tests` workflow on GitHub, and therefore Linux x86_64. The compose
-  tests that need the Docker CLI (gate `docker-cli-absent`, which CI provides)
-  have run only on this Mac.
+- A green `tests` run on GitHub. The fixed workflow has run there twice
+  (`8b72dda`, `7d01b1f`), each failing only the R-CI-1 test ([§5.13](#513-ci));
+  the commit with the fix had not run when this was written.
 - V6 on x86_64, on a GitHub runner, or from a cold cache.
 - The four model adapters listed in §5.10.
 - V5 on the full 16-meeting test split; any AMI dev-split calibration.
@@ -847,7 +860,7 @@ In order. Each item names what blocks it and what would unblock it.
 
 | # | Item | Blocked on | Unblocked by |
 |---|---|---|---|
-| 1 | Read the first GitHub run of the fixed `tests` workflow | The push of this commit | Linux x86_64 has never run the suite; the diarizer's speaker-count tests are the likeliest to differ |
+| 1 | Confirm the `tests` workflow is green on GitHub | The push of this commit | The R-CI-1 fix; if anything else fails, the "Annotate failures" step publishes it |
 | 2 | Decide whether to keep absolute local paths in the published V5 evidence | Owner's call | 152 files in `build/v5/` contain `/Users/…` paths from the run; they are left byte-identical as produced |
 | 3 | Re-run the K3 and Wi-Fi drivers with the blank token, offline | An Android emulator session | One run each, as in the offline check |
 | 4 | Make `evals batch` report DER/JER when meeteval refuses > 20 speakers | Not started | A code change in `evals/` |

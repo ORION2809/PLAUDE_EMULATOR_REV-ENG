@@ -564,3 +564,40 @@ def test_generator_single_speaker_is_not_split(generator_meetings):
     for audio in (d / "device" / "recording.ogg", d / m["audio"]["mix_wav"]):
         hyp = get_pipeline("energy-vad-cluster").run(audio, d)
         assert len(hyp.speakers) == 1, (audio.name, len(hyp.speakers), hyp.extra["diarization"].get("count"))
+
+
+# --- R-CI-1 (28 Sep 2026): tied eigenvalues must not make the cut platform-dependent ------------
+# GitHub's x86_64 runner failed test_cluster_embeddings_absorbs_an_outlier_island while macOS
+# passed. With k disconnected groups the top k eigenvalues are all exactly 1.0, so ANY rotation of
+# their eigenvectors is an equally valid eigh() result; which one LAPACK returns differs by build.
+# Taking "the first k0 eigenvectors" inside such a tie cut an arbitrary 2-D slice of a 3-D space.
+# These tests force the rotations LAPACK is free to return, on every machine.
+
+
+def _outlier_island():
+    return np.concatenate([_blobs([[0, 0], [6, 0]], n=40), np.array([[30.0, 30.0], [30.2, 30.1]])])
+
+
+@pytest.mark.parametrize("seed", range(12))
+def test_cluster_embeddings_is_invariant_to_the_basis_of_tied_eigenvectors(monkeypatch, seed):
+    import pipeline.energy_vad as ev
+
+    real = ev._spectrum
+    rng = np.random.default_rng(1000 + seed)
+
+    def rotated(dist, knn, n_vec):
+        w, v = real(dist, knn, n_vec)
+        tied = int(np.sum(np.abs(w - w[0]) <= 1e-8))
+        if tied > 1:  # replace the tied block by a random orthonormal basis of the same subspace
+            q, _ = np.linalg.qr(rng.standard_normal((tied, tied)))
+            v = v.copy()
+            v[:, :tied] = v[:, :tied] @ q
+        return w, v
+
+    monkeypatch.setattr(ev, "_spectrum", rotated)
+    x = _outlier_island()
+    for hint in (None, 2):
+        lab = ev.cluster_embeddings(x, num_speakers=hint)
+        assert len(set(lab.tolist())) == 2, (seed, hint)
+        assert len(set(lab[:40].tolist())) == 1 and len(set(lab[40:80].tolist())) == 1, (seed, hint)
+        assert lab[0] != lab[40], (seed, hint)
