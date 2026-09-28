@@ -144,7 +144,7 @@ physical phone is also attached (the physical phone was never used).
 
 ```
 r7/k3_capture_peripheral.py                 capture peripheral (frozen PlaudPeripheral + write mirror)
-r7/android-app/app/src/main/java/com/plaud/template/debug/K3CaptureActivity.kt
+r7/android-app/app/src/debug/java/com/plaud/template/debug/K3CaptureActivity.kt   (src/main until 28 Sep 2026)
 r7/r7-s12-k3-capture-run1.json              run 1 writes (also r7/k3-capture.json = last run)
 r7/r7-s12-k3-capture-run3-truncate.json     run 3 writes
 r7/r7-s12-k3-capture-run4-settings.json     run 4 writes

@@ -25,32 +25,38 @@ Every file in the pinned commit's `android/` tree (148 files, read with
 sha256 with the file at the same path here. Local build outputs and caches
 (`.gradle/`, `app/build/`) were excluded. Result (re-checked 25 Sep 2026): 147 files are identical,
 1 is modified, 3 source files were added, and 1 local file is not
-distributed.
+distributed. On 28 Sep 2026 the drivers and their manifest entries moved
+into the debug source set (below), so release builds contain none of them.
 
 ## Modified
 
-* `app/src/main/AndroidManifest.xml`: three `<activity>` entries added,
-  `.debug.K3CaptureActivity`, `.debug.PullCaptureActivity` and
-  `.debug.WifiCaptureActivity`, all `android:exported="true"`, plus a
-  `NEARBY_WIFI_DEVICES` permission declaration used only by the Wi-Fi driver.
-  Each addition is preceded by a `DEBUG-ONLY` comment naming its R7 stage.
-  Nothing else in the file changed.
+* `app/src/main/AndroidManifest.xml`: one comment line added, pointing to
+  `app/src/debug/AndroidManifest.xml`. Nothing else in the file changed.
+  (From 23 to 28 Sep 2026 this file itself declared the three driver
+  activities, exported, and the `NEARBY_WIFI_DEVICES` permission, so they
+  were part of every build type.)
 
 ## Added
 
-* `app/src/main/java/com/plaud/template/debug/K3CaptureActivity.kt`: the
+* `app/src/debug/AndroidManifest.xml`: the debug source set's manifest. The
+  manifest merger adds it to debug builds only. It declares the three
+  driver activities, `.debug.K3CaptureActivity`, `.debug.PullCaptureActivity`
+  and `.debug.WifiCaptureActivity`, all `android:exported="true"` so
+  `adb shell am start` can launch them, and a `NEARBY_WIFI_DEVICES`
+  permission used only by the Wi-Fi driver.
+* `app/src/debug/java/com/plaud/template/debug/K3CaptureActivity.kt`: the
   R7-S12 driver. It connects through the public SDK entry point
   `recoveryConnectBleDevice` with a synthetic historical identifier, so the
   unmodified SDK writes its k3 handshake to the harness's Bumble emulator. It
   mirrors stage callbacks to logcat (`K3CAP` prefix). See
   `r7/r7-s12-k3-runtime-capture.md`.
-* `app/src/main/java/com/plaud/template/debug/PullCaptureActivity.kt`: the
+* `app/src/debug/java/com/plaud/template/debug/PullCaptureActivity.kt`: the
   R7-S13 driver. It makes the same connection, calls `getFileList()`, then
   pulls the first listed file through `syncFile` (raw collector) and/or
   `exportAudio(..., OPUS, ...)`. It hashes what the SDK delivers and logs
   with the `PULLCAP` prefix. See `r7/r7-s13-recording-pull.md`.
 
-* `app/src/main/java/com/plaud/template/debug/WifiCaptureActivity.kt`: the
+* `app/src/debug/java/com/plaud/template/debug/WifiCaptureActivity.kt`: the
   R7-S14 driver. It makes the same Bluetooth connection, then drives the SDK's
   Wi-Fi fast-transfer path (`startWifiTransfer`, `setDeviceWiFi`) and logs
   with the `WIFICAP` prefix. See `r7/r7-s14-wifi-real-sdk.md`.

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only runtime drivers (R7-S12, R7-S13, R7-S14). This manifest belongs to
+  the debug source set, so the manifest merger adds these activities to debug
+  builds only; release builds contain neither the activities nor their code
+  (moved here from src/main on 2026-09-28; before that they shipped, exported,
+  in every build type). exported="true" is needed so `adb shell am start`
+  can launch them. Every driver passes a BLANK token to initSDK (see r7/README.md).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- R7-S14 WifiCaptureActivity: declared so a control run can grant it with
+         `pm grant`; the template and the SDK AAR do not declare it.
+         CHANGE_NETWORK_STATE, which ConnectivityManager.requestNetwork needs, is
+         already merged in from the SDK AAR's own manifest. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="tiramisu" />
+
+    <application>
+
+        <!-- R7-S12 k3 runtime capture driver -->
+        <activity
+            android:name=".debug.K3CaptureActivity"
+            android:exported="true" />
+
+        <!-- R7-S13 recording-pull runtime driver -->
+        <activity
+            android:name=".debug.PullCaptureActivity"
+            android:exported="true" />
+
+        <!-- R7-S14 Wi-Fi fast-transfer runtime driver -->
+        <activity
+            android:name=".debug.WifiCaptureActivity"
+            android:exported="true" />
+
+    </application>
+
+</manifest>
