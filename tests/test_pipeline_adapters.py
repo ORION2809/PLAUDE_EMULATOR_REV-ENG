@@ -550,3 +550,32 @@ def test_asr_cache_returns_the_stored_transcript_for_the_same_audio_and_settings
     (tmp_path / "file").write_text("x")
     with pytest.raises(ParamError, match="not a directory"):
         _faster_whisper_from_params({"model": str(model_dir), "asr_cache": str(tmp_path / "file")})
+
+
+def test_reassign_hypothesis_reproduces_itself_and_changes_only_ties(tmp_path):
+    """scripts/run-v5.sh V5_REASSIGN: a hypothesis re-assigned from its cached
+    transcript and stored turns with its own tie-break is identical to itself;
+    with another tie-break only the tied words move."""
+    from pipeline.adapters import ASR_CACHE_SCHEMA, reassign_hypothesis
+    from pipeline.base import assign_speakers
+
+    asr = [{"start": 0.0, "end": 4.0, "text": "one two three four", "words": [
+        {"w": "one", "start": 0.1, "end": 0.5}, {"w": "two", "start": 2.1, "end": 2.5},
+        {"w": "three", "start": 2.6, "end": 2.9}, {"w": "four", "start": 3.5, "end": 3.9}]}]
+    turns = [(0.0, 3.0, "A"), (2.0, 4.0, "B")]
+    key = "k" * 64
+    (tmp_path / f"{key}.json").write_text(json.dumps({"schema": ASR_CACHE_SCHEMA, "key": key, "segments": asr, "info": {}}))
+    stats: dict = {}
+    segs = assign_speakers(asr, turns, stats=stats)
+    doc = {"schema": "plaud-harness/hypothesis/1", "meeting_id": "m", "system": "whisper-sherpa", "segments": segs,
+           "extra": {"asr": {"cache": {"hit": False, "key": key}}, "diarization": {"turns": [list(t) for t in turns]},
+                     "assignment": {"tie_break": "floor", **stats}}}
+    same = reassign_hypothesis(doc, tmp_path, "floor")
+    assert same["segments"] == segs
+    moved = reassign_hypothesis(doc, tmp_path, "latest_start")
+    speakers = lambda d: [(w["w"], s["speaker"]) for s in d["segments"] for w in s["words"]]
+    assert speakers(same) == [("one", "A"), ("two", "A"), ("three", "A"), ("four", "B")]
+    assert speakers(moved) == [("one", "A"), ("two", "B"), ("three", "B"), ("four", "B")]
+    assert moved["extra"]["assignment"]["tie_break"] == "latest_start" and moved["extra"]["assignment"]["tie"] == 2
+    with pytest.raises(Exception, match="asr_cache"):
+        reassign_hypothesis({**doc, "extra": {}}, tmp_path, "floor")

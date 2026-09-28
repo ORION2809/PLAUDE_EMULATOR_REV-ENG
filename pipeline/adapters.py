@@ -30,6 +30,7 @@ All parameter defaults below are HARNESS_POLICY.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import importlib
 import json
@@ -1011,3 +1012,30 @@ def _make_embedding_cluster(config: PipelineConfig | None = None) -> Pipeline:
                   "vad": {f.name: getattr(v, f.name) for f in fields(v)},
                   "cluster": {f.name: getattr(c, f.name) for f in fields(c)}}
     return ModelComposedPipeline(None, d, cfg, name="embedding-cluster", load_s=time.perf_counter() - t0)
+
+
+def reassign_hypothesis(doc: dict[str, Any], asr_cache: str | Path, tie_break: str, system: str | None = None) -> dict[str, Any]:
+    """A composed ASR+diarization hypothesis re-assigned with another
+    ``tie_break``, WITHOUT re-running any model: the transcript comes from
+    the ``asr_cache`` entry the run recorded (``extra.asr.cache.key``) and the
+    turns from ``extra.diarization.turns``, so the result is exactly what the
+    pipeline would have produced with ``--param assignment_tie_break``
+    (assign_speakers is deterministic).  scripts/run-v5.sh checks that
+    re-assigning with a run's own tie-break reproduces its segments."""
+    extra = doc.get("extra") or {}
+    key = ((extra.get("asr") or {}).get("cache") or {}).get("key")
+    if not key:
+        raise PipelineError("hypothesis has no extra.asr.cache.key (run with --param asr_cache)")
+    entry = json.loads((Path(asr_cache) / f"{key}.json").read_text())
+    if entry.get("schema") != ASR_CACHE_SCHEMA or entry.get("key") != key:
+        raise PipelineError(f"asr_cache entry {key} does not match")
+    turns = [(float(a), float(b), str(s)) for a, b, s in (extra.get("diarization") or {}).get("turns") or []]
+    tb = tie_break_param(tie_break)
+    stats: dict[str, Any] = {}
+    segments = assign_speakers(entry["segments"], turns, stats=stats, tie_break=tb)
+    stats["tie_break"] = tb
+    new_extra = copy.deepcopy(extra)
+    new_extra["assignment"] = {"rule": ASSIGNMENT_RULE, **stats}
+    new_extra["reassigned_from"] = {"system": doc.get("system"), "tie_break": ((extra.get("assignment") or {}).get("tie_break"))}
+    return Hypothesis(meeting_id=doc["meeting_id"], system=system or f"{doc.get('system')}:{tb}", segments=segments,
+                      extra=new_extra).validate().to_dict()

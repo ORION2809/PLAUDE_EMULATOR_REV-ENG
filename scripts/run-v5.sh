@@ -40,6 +40,12 @@
 #                         the standard ones (e.g. a calibrated cluster_threshold)
 #   V5_AMI_GATES="suite:system:on ..."   gate suites for the ami dataset (default: the 25 Sep
 #                         regression suite on the hinted run)
+#   V5_ONLY_EXTRA=1       the infer stage runs only V5_EXTRA_SYSTEMS (a second instance can then
+#                         run beside the main one without both computing the same hypotheses)
+#   V5_REASSIGN="name:source:tie_break ..."   derived systems: the source whisper-sherpa system's
+#                         words re-assigned to its own turns with another tie-break, from the ASR
+#                         cache, no model run (pipeline/adapters.py reassign_hypothesis); the
+#                         derive stage first checks that the source's own tie-break reproduces it
 #
 # Exit codes: 0 ok (every gate passed); 1 a gate failed; 2 an inference run failed;
 # 3 a local-only input is missing and could not be provided; 4 gave up waiting.
@@ -350,6 +356,9 @@ for spec in ${EXTRA_SPECS[@]+"${EXTRA_SPECS[@]}"}; do
   [[ "$_p" == whisper-sherpa ]] && WS_EXTRA_NAMES+=("$_n")
 done
 WS_SYSTEMS=(whisper-sherpa whisper-sherpa-hint ${WS_EXTRA_NAMES[@]+"${WS_EXTRA_NAMES[@]}"})
+REASSIGN_SPECS=(${V5_REASSIGN:-})
+REASSIGN_NAMES=()
+for spec in ${REASSIGN_SPECS[@]+"${REASSIGN_SPECS[@]}"}; do REASSIGN_NAMES+=("${spec%%:*}"); done
 
 # ---------------------------------------------------------------- derive ----
 
@@ -399,6 +408,34 @@ for src_sys in sys.argv[2:]:
         write_rttm(ordered, d["meeting_id"], out_dir / "hyp.rttm")
         write_stm(ordered, d["meeting_id"], out_dir / "hyp.stm")
         print(f"[run-v5] derived {out_dir.relative_to(hyp_root.parent)} ({len(runs)} word runs)")
+EOF
+}
+
+# Re-assigned views (V5_REASSIGN): no model run; see pipeline/adapters.py reassign_hypothesis.
+reassign_systems() {
+  "$PY" - "$OUT/hyp" "$V5_ASR_CACHE" "${REASSIGN_SPECS[@]}" <<'EOF'
+import json, sys
+from pathlib import Path
+from pipeline.adapters import reassign_hypothesis
+from evals.io import Segment, write_rttm, write_stm
+hyp_root, cache, specs = Path(sys.argv[1]), sys.argv[2], sys.argv[3:]
+for spec in specs:
+    name, source, tb = spec.split(":")
+    for ds_dir in sorted(p for p in hyp_root.iterdir() if (p / source).is_dir()):
+        for src in sorted((ds_dir / source).glob("*/hyp.json")):
+            doc = json.loads(src.read_text())
+            own = (doc.get("extra", {}).get("assignment") or {}).get("tie_break") or "floor"
+            if reassign_hypothesis(doc, cache, own)["segments"] != doc["segments"]:
+                raise SystemExit(f"{src}: re-assigning with its own tie-break ({own}) does not reproduce it")
+            new = reassign_hypothesis(doc, cache, tb, system=f"{doc['system']}:reassigned:{tb}")
+            out_dir = ds_dir / name / src.parent.name
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "hyp.json").write_text(json.dumps(new, indent=2) + "\n")
+            segs = sorted((Segment(str(s["speaker"]), float(s["start"]), float(s["end"]), s.get("text", "")) for s in new["segments"]),
+                          key=lambda s: (s.start, s.end, s.speaker))
+            write_rttm(segs, new["meeting_id"], out_dir / "hyp.rttm")
+            write_stm(segs, new["meeting_id"], out_dir / "hyp.stm")
+        print(f"[run-v5] reassigned {ds_dir.name}/{source} -> {name} (tie_break {tb}); self-check passed")
 EOF
 }
 
@@ -462,7 +499,7 @@ score_dataset() {
   local ds="$1" sys ws derived=()
   for ws in "${WS_SYSTEMS[@]}"; do derived+=("$ws-wordruns" "$ws-turns"); done
   for sys in oracle energy-vad-cluster energy-vad-cluster-hint "${WS_SYSTEMS[@]}" \
-    ${EXTRA_NAMES[@]+"${EXTRA_NAMES[@]}"} "${derived[@]}"; do
+    ${EXTRA_NAMES[@]+"${EXTRA_NAMES[@]}"} ${REASSIGN_NAMES[@]+"${REASSIGN_NAMES[@]}"} "${derived[@]}"; do
     [[ -d "$OUT/hyp/$ds/$sys" ]] || continue
     score_one "$ds" "$sys" ""                       # evals defaults: DER collar 0.25 (±0.125 s), tcpWER collar 5 s
     score_one "$ds" "$sys" collar0 --der-collar 0   # no DER collar, overlap scored
@@ -475,8 +512,8 @@ score_dataset() {
       score_lifted "$ds" "$sys" control
     fi
   done
-  for sys in "${WS_SYSTEMS[@]}"; do
-    score_one "$ds" "$sys" norm --numbers-to-words --expand-contractions
+  for sys in "${WS_SYSTEMS[@]}" ${REASSIGN_NAMES[@]+"${REASSIGN_NAMES[@]}"}; do
+    [[ -d "$OUT/hyp/$ds/$sys" ]] && score_one "$ds" "$sys" norm --numbers-to-words --expand-contractions
   done
 }
 
@@ -504,7 +541,7 @@ gate_one() {  # suite dataset system gate-on -> gates/<suite>.<dataset>[.<system
 # ---------------------------------------------------------------- summary ---
 
 summarise() {
-  "$PY" - "$ROOT" "$OUT" "$AMI_ROOT" "${WS_SYSTEMS[*]}" "${EXTRA_NAMES[*]:-}" <<'EOF'
+  "$PY" - "$ROOT" "$OUT" "$AMI_ROOT" "${WS_SYSTEMS[*]}" "${EXTRA_NAMES[*]:-} ${REASSIGN_NAMES[*]:-}" <<'EOF'
 import hashlib, json, platform, re, subprocess, sys, importlib.metadata as md
 from pathlib import Path
 from pipeline.meeting import read_meeting, resolve_audio
@@ -517,7 +554,7 @@ SYSTEMS = ["oracle", "energy-vad-cluster", "energy-vad-cluster-hint", *ws_system
            *[s for s in extra if s not in ws_systems],
            *[f"{s}-wordruns" for s in ws_systems], *[f"{s}-turns" for s in ws_systems]]
 VARIANTS = ["collar0", "norm", "lifted", "lifted.collar0", "lifted.control"]
-TEXT_SYSTEMS = {"oracle", *ws_systems}
+TEXT_SYSTEMS = {"oracle", *ws_systems, *[s for s in extra if not s.startswith("energy") and not s.startswith("embedding")]}
 KEYS = ["der.der", "der.miss_rate", "der.false_alarm_rate", "der.confusion_rate", "jer.jer",
         "cpwer.error_rate", "tcpwer.error_rate", "wer_concat.wer", "wer_literal.wer",
         "speaker_count.error", "speaker_count.abs_error", "speaker_count.hypothesis", "der.total",
@@ -704,11 +741,19 @@ if want_stage inputs; then
   if want_data piper || want_data piper-device; then inputs_piper; fi
 fi
 if want_stage infer; then
-  if want_data ami; then infer_dataset ami "${SYSTEMS_FULL[@]}" ${EXTRA_SPECS[@]+"${EXTRA_SPECS[@]}"}; fi
+  if want_data ami && [[ "${V5_ONLY_EXTRA:-0}" == 1 ]]; then
+    infer_dataset ami ${EXTRA_SPECS[@]+"${EXTRA_SPECS[@]}"}
+  elif want_data ami; then infer_dataset ami "${SYSTEMS_FULL[@]}" ${EXTRA_SPECS[@]+"${EXTRA_SPECS[@]}"}; fi
   if want_data piper; then infer_dataset piper "${SYSTEMS_FULL[@]}" ${EXTRA_SPECS[@]+"${EXTRA_SPECS[@]}"}; fi
   if want_data piper-device; then infer_dataset piper-device "${SYSTEMS_DEVICE[@]}"; fi
 fi
-if want_stage derive; then derive_turns; fi
+if want_stage derive; then
+  derive_turns
+  if [[ ${#REASSIGN_SPECS[@]} -gt 0 ]]; then
+    [[ -n "${V5_ASR_CACHE:-}" ]] || { echo "error: V5_REASSIGN needs V5_ASR_CACHE" >&2; exit 3; }
+    reassign_systems
+  fi
+fi
 if want_stage score; then
   for ds in ami piper piper-device; do want_data "$ds" && score_dataset "$ds"; done
 fi
