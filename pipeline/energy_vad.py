@@ -471,7 +471,10 @@ def mfcc(
 
     Pre-emphasis ``y[n] = x[n] - a*x[n-1]`` (``y[0] = x[0]``) is applied per
     frame from a one-sample-shifted view, and the zero-padded tail stays zero,
-    so the result is the whole-signal computation's, independent of ``block``.
+    so the result is the whole-signal computation's, independent of ``block``
+    up to floating-point rounding (bit-identical on x86_64 Linux and macOS
+    arm64; last-bit differences on arm64 Linux, where the FFT's multi-row and
+    single-row paths round differently).
     """
     p = params or MfccParams()
     x = np.asarray(pcm, dtype=np.float32).reshape(-1)

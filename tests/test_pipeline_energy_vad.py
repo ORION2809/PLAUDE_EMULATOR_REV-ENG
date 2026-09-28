@@ -388,13 +388,21 @@ def _reference_mfcc(x, sr=SR, p=MfccParams()):
 
 
 def test_front_end_results_do_not_depend_on_the_block_size():
+    """Block boundaries are handled exactly; the arithmetic is equal to
+    floating-point rounding.  Bit-identical on x86_64 Linux and macOS arm64;
+    on arm64 Linux (GitHub's ubuntu-24.04-arm, 28 Sep 2026) the MFCCs of
+    different block sizes differed in the last bits -- the FFT library's
+    multi-row vector path and its single-row path round differently -- so
+    the comparison allows 1e-9 absolute."""
     x = render_layout(LAYOUT, noise_db=-35.0, seed=2)
+    close = dict(rtol=0.0, atol=1e-9)
     for block in (1, 7, 333):
-        assert np.array_equal(mfcc(x, SR, block=block)[0], mfcc(x, SR)[0])
-        assert np.array_equal(frame_energies_db(x, 400, 160, block=block), frame_energies_db(x, 400, 160))
+        np.testing.assert_allclose(mfcc(x, SR, block=block)[0], mfcc(x, SR)[0], **close)
+        np.testing.assert_allclose(frame_energies_db(x, 400, 160, block=block), frame_energies_db(x, 400, 160), **close)
         f_a, s_a = pitch_track(x, SR, 160, block=block)
         f_b, s_b = pitch_track(x, SR, 160)
-        assert np.array_equal(f_a, f_b) and np.array_equal(s_a, s_b)
+        np.testing.assert_allclose(f_a, f_b, **close)
+        np.testing.assert_allclose(s_a, s_b, **close)
     # and the blockwise MFCC is the whole-signal formula (to float rounding)
     x32 = x.astype(np.float32)
     assert np.allclose(mfcc(x32, SR)[0], _reference_mfcc(x32), rtol=1e-9, atol=1e-9)

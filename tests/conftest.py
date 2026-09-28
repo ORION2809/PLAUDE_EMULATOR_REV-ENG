@@ -78,8 +78,9 @@ ENV_GATES: tuple[Gate, ...] = (
          ci_provides=False),
     Gate("docker-cli-absent",
          r"^docker compose CLI is not on PATH",
-         "the docker CLI with the compose v2 plugin (GitHub's ubuntu runners ship both)",
-         ci_provides=True),
+         "the docker CLI with the compose v2 plugin (GitHub's ubuntu runners ship both; "
+         "its macOS runners ship neither, so there the skip is expected)",
+         ci_provides=sys.platform.startswith("linux")),
     Gate("optional-engine-installed",
          r" is installed locally with voices|is importable here",
          "the optional TTS/ASR engine being absent (only a requirements change installs one in CI)",
