@@ -101,7 +101,8 @@ def test_run_v5_script_is_valid_bash_and_applies_both_suites() -> None:
     assert res.returncode == 0, res.stderr
     text = SCRIPT.read_text(encoding="utf-8")
     for name in V5_SUITES:
-        assert f"gate_one {name} " in text, name
+        # the ami suite is the default of V5_AMI_GATES; the others are direct calls
+        assert f"gate_one {name} " in text or f"{name}:whisper-sherpa-hint:macro" in text, name
     assert "build/v5" in text and "python -m pipeline fetch-models" in text
 
 
