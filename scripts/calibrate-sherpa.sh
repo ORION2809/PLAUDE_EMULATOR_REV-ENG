@@ -6,11 +6,18 @@
 #   ./scripts/calibrate-sherpa.sh                       # all stages
 #   CALIB_STAGES=score,select ./scripts/calibrate-sherpa.sh
 #
-# For every threshold in CALIB_THRESHOLDS and every dev meeting it runs the
-# diarization-only pipeline without a speaker-count hint, scores each threshold
-# with `python -m evals batch` (DER collar 0.25, as V5), and selects the
-# threshold with the lowest macro DER (ties: the smaller macro |speaker-count
-# error|, then the lower threshold).  HARNESS_POLICY: the grid, the criterion.
+# sherpa-onnx's segmentation and speaker embeddings do not depend on the
+# threshold, and they are almost all of its cost; so each dev meeting is run
+# through them ONCE (`python -m pipeline.sherpa_sweep precompute`, cached as
+# .npz), and every threshold of CALIB_THRESHOLDS is replayed from the cache
+# (`sweep`: sherpa-onnx's own FastClustering, then a line-by-line port of its
+# label reconstruction; pipeline/sherpa_sweep.py).  The replay was checked
+# bit-identical to real sherpa-onnx runs on IS1008a at five thresholds, and
+# the `confirm` stage repeats that check at the selected threshold on
+# CALIB_CONFIRM meetings.  Each threshold is scored without a speaker-count
+# hint with `python -m evals batch` (DER collar 0.25, as V5); the lowest macro
+# DER wins (ties: the smaller macro |speaker-count error|, then the lower
+# threshold).  HARNESS_POLICY: the grid, the criterion.
 #
 # A last stage compares the word-assignment tie-breaks (pipeline/base.py
 # TIE_BREAKS) on the same dev meetings: the REFERENCE words, stripped of their
@@ -21,7 +28,8 @@
 # (ties: the current default, floor).
 #
 # Outputs (CALIB_OUT, default build/v5-calib):
-#   hyp/<threshold>/<meeting>/hyp.{json,rttm,stm}, logs/<threshold>/<meeting>.log
+#   pre/<meeting>.npz (cached stages), logs/precompute/<meeting>.log
+#   hyp/<threshold>/<meeting>/hyp.json (replayed), confirm/<meeting>/hyp.json (real sherpa-onnx)
 #   reports/<threshold>.{json,md,txt}, selected.json, summary.md
 #   tiebreak.json, tiebreak.md
 #
@@ -29,7 +37,9 @@
 #   CALIB_THRESHOLDS="..."  grid (default below)
 #   CALIB_JOBS=N            parallel inference processes (default 1)
 #   CALIB_ROOT=DIR          converted dev meetings (default data/corpora/ami/dev)
-#   CALIB_STAGES=a,b        subset of inputs,infer,score,select,tiebreak (default: all)
+#   CALIB_STAGES=a,b        subset of inputs,precompute,sweep,score,select,confirm,tiebreak
+#   CALIB_CONFIRM="..."     dev meetings re-run with real sherpa-onnx at the selected threshold
+#                           (default: IS1008a TS3004a)
 #   V5_NO_DOWNLOAD=1        never download (a missing input is an error, exit 3)
 #
 # Exit codes: 0 ok; 2 an inference run failed; 3 an input is missing or wrong.
@@ -43,9 +53,10 @@ OUT="${CALIB_OUT:-$ROOT/build/v5-calib}"
 case "$OUT" in /*) ;; *) OUT="$ROOT/$OUT" ;; esac
 DEV_ROOT="${CALIB_ROOT:-$ROOT/data/corpora/ami/dev}"
 case "$DEV_ROOT" in /*) ;; *) DEV_ROOT="$ROOT/$DEV_ROOT" ;; esac
-THRESHOLDS="${CALIB_THRESHOLDS:-0.9 1.0 1.1 1.2 1.3 1.4}"
+THRESHOLDS="${CALIB_THRESHOLDS:-$(awk 'BEGIN{for(t=0.80;t<=1.4001;t+=0.025) printf "%.3f ", t}')}"
 JOBS="${CALIB_JOBS:-1}"
-STAGES=",${CALIB_STAGES:-inputs,infer,score,select,tiebreak},"
+STAGES=",${CALIB_STAGES:-inputs,precompute,sweep,score,select,confirm,tiebreak},"
+CONFIRM="${CALIB_CONFIRM:-IS1008a TS3004a}"
 want_stage() { [[ "$STAGES" == *",$1,"* ]]; }
 say() { printf '[calibrate] %s\n' "$*"; }
 sha256() { shasum -a 256 "$1" | cut -d' ' -f1; }
@@ -106,38 +117,37 @@ inputs() {
   say "dev meetings present and verified: 18"
 }
 
-run_one() {  # threshold meeting
-  local t="$1" m="$2" dest="$OUT/hyp/$1/$2" log="$OUT/logs/$1/$2.log"
-  [[ -f "$dest/hyp.json" ]] && return 0
+precompute_one() {  # meeting
+  local m="$1" dest="$OUT/pre/$1.npz" log="$OUT/logs/precompute/$1.log"
+  [[ -f "$dest" ]] && return 0
   mkdir -p "$(dirname "$log")"
-  rm -rf "$dest.partial"
-  {
-    echo "# $(date -u +%Y-%m-%dT%H:%M:%SZ) threshold=$t meeting=$m"
-    echo "# load average at start: $(sysctl -n vm.loadavg 2>/dev/null || cat /proc/loadavg)"
-  } >"$log"
-  if /usr/bin/time -l "$PY" -m pipeline run --pipeline sherpa-onnx-diarization --audio "$DEV_ROOT/$m/mix.wav" \
-      --meeting-dir "$DEV_ROOT/$m" --param "cluster_threshold=$t" --out "$dest.partial/hyp.json" >>"$log" 2>&1; then
-    mv "$dest.partial" "$dest"
-    say "done threshold=$t $m"
+  echo "# $(date -u +%Y-%m-%dT%H:%M:%SZ) precompute $m; load: $(sysctl -n vm.loadavg 2>/dev/null || cat /proc/loadavg)" >"$log"
+  if /usr/bin/time -l "$PY" -m pipeline.sherpa_sweep precompute --meeting-dir "$DEV_ROOT/$m" --out "$dest" >>"$log" 2>&1; then
+    say "precomputed $m"
   else
-    say "FAILED threshold=$t $m (see ${log#$ROOT/})"
+    say "FAILED precompute $m (see ${log#$ROOT/})"
     return 1
   fi
 }
-export -f run_one say
+export -f precompute_one say
 export OUT DEV_ROOT PY ROOT
 
-infer() {
-  local t m jobs=()
-  for t in $THRESHOLDS; do for m in $DEV_MEETINGS; do jobs+=("$t $m"); done; done
-  say "${#jobs[@]} runs, $JOBS at a time"
-  printf '%s\n' "${jobs[@]}" | xargs -P "$JOBS" -L 1 bash -c 'run_one "$0" "$1"' || { echo "error: inference failures" >&2; exit 2; }
+precompute() {
+  say "precompute: 18 meetings, $JOBS at a time"
+  printf '%s\n' $DEV_MEETINGS | xargs -P "$JOBS" -L 1 bash -c 'precompute_one "$0"' || { echo "error: precompute failures" >&2; exit 2; }
+}
+
+sweep() {
+  rm -rf "$OUT/hyp"
+  "$PY" -m pipeline.sherpa_sweep sweep --pre-dir "$OUT/pre" --refs "$DEV_ROOT" --thresholds "$THRESHOLDS" --out "$OUT/hyp"
 }
 
 score() {
   local t
   mkdir -p "$OUT/reports"
-  for t in $THRESHOLDS; do
+  rm -rf "$OUT/reports"
+  mkdir -p "$OUT/reports"
+  for t in $("$PY" -c 'import sys; print(" ".join(f"{float(x):g}" for x in sys.argv[1:]))' $THRESHOLDS); do
     local rc=0
     "$PY" -m evals batch --refs "$DEV_ROOT" --hyps "$OUT/hyp/$t" --report "$OUT/reports/$t.json" \
       --md "$OUT/reports/$t.md" >"$OUT/reports/$t.txt" 2>&1 || rc=$?
@@ -150,7 +160,7 @@ select_threshold() {
   "$PY" - "$OUT" "$THRESHOLDS" <<'PYEOF'
 import json, sys
 from pathlib import Path
-out, grid = Path(sys.argv[1]), sys.argv[2].split()
+out, grid = Path(sys.argv[1]), [f"{float(x):g}" for x in sys.argv[2].split()]
 rows = []
 for t in grid:
     r = json.loads((out / "reports" / f"{t}.json").read_text())
@@ -193,7 +203,7 @@ from pipeline.base import DEFAULT_TIE_BREAK, TIE_BREAKS, assign_speakers
 out, dev = Path(sys.argv[1]), Path(sys.argv[2])
 sel = json.loads((out / "selected.json").read_text())
 t = sel["cluster_threshold"]
-tdir = out / "hyp" / next(d.name for d in (out / "hyp").iterdir() if float(d.name) == t)
+tdir = out / "hyp" / f"{t:g}"
 rows = {tb: {"cpwer": [], "der": [], "ties": 0, "words": 0, "errors": 0, "length": 0} for tb in TIE_BREAKS}
 per_meeting = {}
 for mdir in sorted(p for p in dev.iterdir() if (p / "meeting.json").is_file()):
@@ -236,8 +246,35 @@ PYEOF
 }
 
 say "output root: ${OUT#$ROOT/}; grid: $THRESHOLDS; jobs: $JOBS"
+confirm() {
+  "$PY" - "$OUT" "$DEV_ROOT" $CONFIRM <<'PYEOF'
+import json, subprocess, sys
+from pathlib import Path
+out, dev, meetings = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3:]
+sel = json.loads((out / "selected.json").read_text())
+t = sel["cluster_threshold"]
+rows = {}
+for m in meetings:
+    dest = out / "confirm" / m / "hyp.json"
+    if not dest.is_file():
+        subprocess.run([sys.executable, "-m", "pipeline", "run", "--pipeline", "sherpa-onnx-diarization", "--audio",
+                        str(dev / m / "mix.wav"), "--meeting-dir", str(dev / m), "--param", f"cluster_threshold={t}",
+                        "--out", str(dest)], check=True, capture_output=True)
+    real = json.loads(dest.read_text())["extra"]["diarization"]["turns"]
+    replay = json.loads((out / "hyp" / f"{t:g}" / m / "hyp.json").read_text())["extra"]["diarization"]["turns"]
+    rows[m] = {"identical": real == replay, "turns_real": len(real), "turns_replayed": len(replay)}
+sel["confirmed_against_real_sherpa"] = rows
+(out / "selected.json").write_text(json.dumps(sel, indent=2) + "\n")
+print(json.dumps(rows))
+if not all(r["identical"] for r in rows.values()):
+    sys.exit("the replayed turns differ from real sherpa-onnx at the selected threshold")
+PYEOF
+}
+
 want_stage inputs && inputs
-want_stage infer && infer
+want_stage precompute && precompute
+want_stage sweep && sweep
 want_stage score && score
 want_stage select && select_threshold
+want_stage confirm && confirm
 want_stage tiebreak && tiebreak

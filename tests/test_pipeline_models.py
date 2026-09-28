@@ -861,3 +861,50 @@ def test_real_whisper_sherpa_pipeline_writes_a_scorable_hypothesis(clip, tmp_pat
         assert e["timing"]["audio_s"] == pytest.approx(CLIP_T1 - CLIP_T0)
         assert e["timing"]["rtf"] > 0
         assert paths["rttm"].read_text().startswith(f"SPEAKER {wav.stem} 1 ")
+
+
+# --- the threshold-sweep replay of sherpa-onnx (pipeline/sherpa_sweep.py) -----------------
+
+
+def test_topk_index_follows_libcxx_partial_sort_on_ties():
+    """sherpa-onnx's TopkIndex is std::partial_sort with vec[a] > vec[b],
+    which is not stable; on macOS (libc++) a tie at the boundary goes where
+    the heap puts it, not to the lower index."""
+    from pipeline.sherpa_sweep import topk_index
+
+    # make_heap([0, 1]) sifts index 1 up on the tie (libc++ __sift_down moves unless the
+    # child compares strictly lower), so index 1 is the heap top and index 2 replaces it
+    assert sorted(topk_index(np.array([1, 1, 2]), 2)) == [0, 2]
+    assert sorted(topk_index(np.array([1, 1, 1]), 1)) == [0]
+    assert sorted(topk_index(np.array([0, 3, 3, 1, 3]), 2)) == [1, 2]
+    assert topk_index(np.array([5]), 0) == [] and sorted(topk_index(np.array([2, 1]), 5)) == [0, 1]
+    for seed in range(20):
+        v = np.random.default_rng(seed).integers(0, 4, size=7)
+        for k in range(8):
+            got = topk_index(v, k)
+            assert len(got) == min(k, 7) and len(set(got)) == len(got)
+            if 0 < k < 7:  # a valid top-k set: nothing outside beats anything inside
+                assert min(v[got]) >= max(v[[i for i in range(7) if i not in got]])
+
+
+@pytest.mark.timeout(900)
+def test_real_sherpa_replay_equals_sherpa_onnx_at_several_thresholds(clip):
+    """The calibration replays sherpa-onnx from cached embeddings; its turns
+    must be exactly sherpa-onnx's (checked on the full IS1008a dev meeting at
+    five thresholds, build/v5-calib/validation/)."""
+    if not _need_real(SEGMENTATION_ASSET, EMBEDDING_ASSET, packages=("sherpa_onnx", "onnxruntime"), entry="sherpa-onnx-diarization"):
+        return
+    import types
+
+    from pipeline.sherpa_sweep import SherpaStages
+    from pipeline.whisper_sherpa import sherpa_turns
+
+    _, x = clip
+    d = SherpaOnnxDiarizer()
+    st = SherpaStages(d.segmentation_path, d.embedding_path, num_threads=d.settings["num_threads"])
+    pre = st.precompute(x)
+    for t in (0.5, 0.9, 1.1):
+        real = SherpaOnnxDiarizer(cluster_threshold=t).diarize(x, SR)
+        raw = st.turns_for(pre, t)
+        replay = sherpa_turns([types.SimpleNamespace(start=a, end=b, speaker=s) for a, b, s in raw], x.size / SR)
+        assert replay == real, t
