@@ -117,6 +117,20 @@ def pack_sync_tail(session_id: int, crc: int) -> bytes:
     return b"\x01\x1d\x00" + pack("<I", session_id) + pack("<H", crc & 0xFFFF)
 
 
+#: q2 frame header: [01][1A 00][u32le requestStamp][u16le totals][u16le frameStartIndex].
+FILE_LIST_HEADER_LEN = 11
+
+#: HARNESS_POLICY: the HEAD status answered to a syncFile that has nothing to
+#: send (an empty file, or ``start`` at or past its end).  Real firmware's
+#: HEAD status values are UNKNOWN (U16).  With status 0 the only honest
+#: sequence would be HEAD, EMPTY_PACKAGE, TAIL, which the SDK ignores
+#: (q$a.a 259-268: EMPTY_PACKAGE while cursor == start) and answers by
+#: restarting after the TAIL (632-654 -> 741-815), forever -- so a non-zero
+#: HEAD status, which the SDK treats as a failed transfer (z.c(29) and the
+#: head callback), is the only clean end.
+NOTHING_TO_SEND_HEAD_STATUS = 1
+
+
 def pack_file_list_frame(
     request_stamp: int,
     totals: int,
@@ -203,7 +217,8 @@ class TransferSession:
     syncFileStart(sessionId, lastPosition=cursor, end) (runnable
     `fileSyncLossPkgStop`, ALL.txt:69157-69182) -- BYTECODE_PROVEN and observed
     live ~35 ms after the gap (R7-S13 runs 6b/6c/6d, ledger 5.8/15). The 5 s
-    runnable `q$a.f` is the separate *stall* path. The device side modelled
+    runnable stored in the FIELD `q$a.f` (method `q$a.b`) is the separate *stall*
+    path; it restarts without stopSync. The device side modelled
     here performs NO resend and NO ACK: it must deliver DATA in monotonic
     offset order from the requested start, close with EMPTY_PACKAGE before
     the TAIL, and (see profile.PlaudPeripheral.stream_in_task) abandon the
@@ -222,11 +237,15 @@ class TransferSession:
     port_version: int = 7
     payload_size: int = DEFAULT_DATA_PAYLOAD_SIZE   # HARNESS POLICY
     head_status: int = 0                            # HARNESS POLICY
+    nothing_to_send_status: int | None = NOTHING_TO_SEND_HEAD_STATUS  # HARNESS POLICY; None = HEAD/EMPTY/TAIL anyway
     empty_package_code: int | None = DEFAULT_EMPTY_PACKAGE_CODE  # R7-S13; None = legacy 3-part sequence
     done: bool = False                              # frames generated, NOT frames emitted
 
     def start(self, session_id: int, start: int, end: int) -> None:
-        del end  # y6's `end` is 0 at every observed call site and is stored nowhere
+        # The emulator ignores y6's `end` (0 at every observed call site); the
+        # SDK does keep it (q$a.j, set in q.a(JJJZ...) 212-226) and re-sends it
+        # on every restart.
+        del end
         self.session_id = session_id
         self.cursor = max(0, start)
         self.done = False
@@ -240,11 +259,18 @@ class TransferSession:
         never completes (runs 1, 2, 9).
 
         `drop_offsets` omits the DATA frame that would start at each listed
-        offset WITHOUT advancing past it in the stream, so the next frame's
-        offset no longer matches the host's cursor. That is the fault the
-        SDK's gap detector is written to catch; it is a test hook, not device
-        behaviour.
+        offset; the stream still moves past its bytes, so the next frame's
+        offset is ahead of the host's cursor, which stays put. That is the
+        fault the SDK's gap detector is written to catch; it is a test hook,
+        not device behaviour.
+
+        With nothing to send (``cursor >= len(file_bytes)``) the session
+        answers a lone HEAD with ``nothing_to_send_status``
+        (NOTHING_TO_SEND_HEAD_STATUS), unless that is None.
         """
+        if self.cursor >= len(self.file_bytes) and self.nothing_to_send_status is not None:
+            self.done = True
+            return [pack_sync_head(self.session_id, self.nothing_to_send_status)]
         out = [pack_sync_head(self.session_id, self.head_status)]
         offset = self.cursor
         size = max(1, min(self.payload_size, MAX_DATA_PAYLOAD_SIZE))
@@ -323,14 +349,21 @@ class FileTable:
     """Device-side synthetic file table backing file-list responses.
 
     `frames()` pages the table at `per_frame` entries, stamping each frame's
-    frameStartIndex so a conforming host accumulates them in order.
+    frameStartIndex so a conforming host accumulates them in order.  Without
+    `per_frame`, a `max_frame_len` (the link's ATT_MTU - 3) pages the table
+    so that every frame fits one notification: Bumble silently cuts a longer
+    one, and the SDK then accumulates fewer entries than `totals` and never
+    completes (s5.f; review 2026-09-28: 25 entries at MTU 255).  With
+    neither, the whole table goes in one frame.
     """
 
     entries: list[dict[str, int]] = field(default_factory=list)
     port_version: int = 7
 
-    def frames(self, request_stamp: int, per_frame: int | None = None) -> list[bytes]:
+    def frames(self, request_stamp: int, per_frame: int | None = None, max_frame_len: int | None = None) -> list[bytes]:
         n = len(self.entries)
+        if per_frame is None and max_frame_len is not None:
+            per_frame = max(1, (max_frame_len - FILE_LIST_HEADER_LEN) // file_entry_stride(self.port_version))
         step = n if per_frame is None else max(1, per_frame)
         if n == 0:
             return [pack_file_list_frame(request_stamp, 0, [], 0, self.port_version)]

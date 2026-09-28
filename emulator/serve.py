@@ -251,12 +251,20 @@ class ServeConfig:
         if mode == "bridge":
             parse_tcp_server_spec(transport)  # validates the tcp-server form early
         file_path, file_source = resolve_recording(env)
+        raw_sid = env.get("PLAUD_SESSION_ID", str(DEFAULT_SESSION_ID))
+        try:
+            session_id = int(raw_sid, 0)
+        except ValueError:
+            raise ConfigError(f"PLAUD_SESSION_ID={raw_sid!r}: not an integer") from None
+        if not 0 <= session_id <= 0xFFFFFFFF:
+            # the file list and the transfer frames carry it as a u32
+            raise ConfigError(f"PLAUD_SESSION_ID={raw_sid!r}: must be 0..0xFFFFFFFF (a u32 on the wire)")
         return cls(
             transport=transport,
             mode=mode,
             health_host=env.get("PLAUD_HEALTH_HOST") or DEFAULT_HEALTH_HOST,
             health_port=parse_health_port(env.get("PLAUD_HEALTH_PORT", str(DEFAULT_HEALTH_PORT))),
-            session_id=int(env.get("PLAUD_SESSION_ID", str(DEFAULT_SESSION_ID)), 0),
+            session_id=session_id,
             device_name=env.get("PLAUD_DEVICE_NAME", DEFAULT_DEVICE_NAME),
             device_address=env.get("PLAUD_DEVICE_ADDRESS", DEFAULT_DEVICE_ADDRESS),
             bumble_log=env.get("PLAUD_BUMBLE_LOG", "WARNING"),

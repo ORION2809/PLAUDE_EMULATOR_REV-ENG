@@ -37,6 +37,7 @@ from support import SDK_REQUESTED_MTU, discover, load_fixture, role_uuids
 from plaudsim.advertising import parse_manufacturer_data
 from plaudsim.filesync import parse_file_data_frame, parse_sync_head
 from plaudsim.profile import (
+    ADVERTISING_COMPANY_ID,
     ENCRYPTED_PORT_VERSION,
     PlaudBatteryState,
     PlaudDeviceState,
@@ -86,9 +87,17 @@ async def scan_for_plaud(central) -> tuple[object, dict]:
         )
         if not blobs:
             return
-        blob = blobs if isinstance(blobs, (bytes, bytearray)) else blobs[0]
+        blob = bytes(blobs if isinstance(blobs, (bytes, bytearray)) else blobs[0])
+        # Android's getManufacturerSpecificData() splits the u16le company id
+        # off; `u4.a` parses what follows (review 2026-09-28: this test used to
+        # parse the whole AD payload, which hid a missing company id).
+        if len(blob) < 2:
+            return
+        company, blob = int.from_bytes(blob[:2], "little"), blob[2:]
+        if company != ADVERTISING_COMPANY_ID:
+            return
         try:
-            fields = parse_manufacturer_data(bytes(blob))
+            fields = parse_manufacturer_data(blob)
         except ValueError:
             return                      # not one of ours; the SDK drops it too
         if not fields.serial_number:
@@ -186,12 +195,21 @@ async def test_scan_discover_connect_and_run_a_control_session() -> None:
 async def test_advertisement_carries_the_service_uuid_and_a_name() -> None:
     devices, peripheral = await advertising_emulator()
     advertisement, _ = await scan_for_plaud(devices[0])
-    name = advertisement.data.get(AdvertisingData.COMPLETE_LOCAL_NAME)
+    # The name and the service UUID travel in the scan response.  Bumble's
+    # emulated controller answers a scan request with the ADVERTISING data
+    # (reference/upstream/bumble/bumble/controller.py, the SCAN_RSP report
+    # reuses pdu.data), so the configured scan response is checked directly.
+    response = type("Rsp", (), {"data": AdvertisingData.from_bytes(peripheral.device.scan_response_data)})
+    name = response.data.get(AdvertisingData.COMPLETE_LOCAL_NAME)
     assert name == "Plaud Note Pro"
-    uuids = advertisement.data.get(
+    uuids = response.data.get(
         AdvertisingData.INCOMPLETE_LIST_OF_16_BIT_SERVICE_CLASS_UUIDS, raw=True
     )
     assert uuids is not None, "advertise the service so ordinary BLE tooling finds us"
+    # legacy advertising: each payload fits 31 bytes (netsimd and real
+    # controllers refuse more); the advertising data is the rigs' 29 bytes
+    adv = peripheral.device.advertising_data
+    assert len(adv) == 29 and len(peripheral.device.scan_response_data) <= 31
 
 
 @pytest.mark.asyncio

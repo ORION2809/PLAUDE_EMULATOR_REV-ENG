@@ -50,7 +50,7 @@ def parse_ogg_page(data: bytes, offset: int = 0) -> dict[str, object]:
     raw = bytes(data)
     if len(raw) - offset < 4 or raw[offset : offset + 4] != OGG_PAGE_MAGIC:
         raise ValueError("not an OggS page at offset %d" % offset)
-    if len(raw) - offset < OGG_PAGE_HEADER_LEN + 1:
+    if len(raw) - offset < OGG_PAGE_HEADER_LEN:   # 27 bytes, the segment count included
         raise ValueError("truncated Ogg page header")
     seg_count = raw[offset + 26]
     lacing = raw[offset + 27 : offset + 27 + seg_count]
@@ -104,13 +104,30 @@ def parse_opus_head(packet: bytes) -> dict[str, int]:
     }
 
 
+#: OggOpusParser's constructor defaults, kept when page 0 is not a valid OpusHead.
+OPUS_HEAD_DEFAULTS = {"channels": 1, "pre_skip": 0, "sample_rate": 48000}
+
+
 def classify_ogg_pages(pages: list[dict[str, object]]) -> dict[str, object]:
     """Page-role-by-count (DIRECT): page 0 is OpusHead, page 1 is discarded
-    unread (OpusTags), pages 2+ are audio. No content sniffing anywhere."""
+    unread (OpusTags), pages 2+ are audio. No content sniffing anywhere.
+
+    Like the SDK (OggOpusParser.process_item_data 0-37 "OpusHead too short",
+    52-76 "Not a valid OpusHead": log and return), an invalid page 0 does NOT
+    stop the stream: ``head`` then holds the constructor defaults,
+    ``head_valid`` is False and ``head_error`` says why; pages 2+ are still
+    audio.  ``parse_opus_head`` itself stays strict."""
     pages = list(pages)
-    head = parse_opus_head(bytes(pages[0]["payload"])) if pages else None
+    head, valid, error = None, None, None
+    if pages:
+        try:
+            head, valid = parse_opus_head(bytes(pages[0]["payload"])), True
+        except ValueError as exc:
+            head, valid, error = dict(OPUS_HEAD_DEFAULTS), False, str(exc)
     return {
         "head": head,
+        "head_valid": valid,
+        "head_error": error,
         "tags_dropped": len(pages) > 1,
         "audio_pages": pages[2:],
     }
@@ -158,7 +175,15 @@ def m4_output_len(packet_len: int, decoded_samples: int) -> int:
     return packet_len * 4 if decoded_samples > 0 else 0
 
 
-# --- h4 "ogg2pcm" wire framing (DIRECT: h4.<init> + a(byte[],long)) ---------
+# --- h4 "ogg2pcm" wire framing ------------------------------------------------
+# h4_frame_params is DIRECT (h4.<init>).  h4_payload_spans is an INFERENCE from
+# those constants (a 512-byte lead, then 1536-byte frames of 45 + 1440 + 51
+# bytes); it is NOT what h4.a executes.  h4_bytecode_payload_spans models the
+# bytecode (review 2026-09-28): on the first call ``r`` is set to ``l`` (70-91),
+# so ``position(l - r)`` at 340-381 is position(0) -- no lead is skipped
+# (g4.a sets o = offset instead, 63-76) -- and the drain loop (437-499) steps
+# ``position += n`` then ``get(p)``: 1485 bytes per frame, never skipping the
+# trailing 51, while ``remaining() >= o``.
 def h4_frame_params(channels: int) -> dict[str, int]:
     """h4 ctor math (DIRECT): l=512 stream skip, n=45 per-frame skip,
     p=1440*ch payload, o=p+96 wire frame, i=80*ch decode quantum, k=18."""
@@ -169,16 +194,31 @@ def h4_frame_params(channels: int) -> dict[str, int]:
 
 
 def h4_payload_spans(total_len: int, channels: int) -> list[tuple[int, int]]:
-    """(payload_offset, payload_len) spans of full h4 wire frames: the first
-    512 bytes are skipped, then per (1440*ch+96)-byte frame 45 bytes are
-    skipped and 1440*ch bytes are opus payload (DIRECT framing math; the
-    remainder is handled by flush()/hasCompleteTail, not here)."""
+    """(payload_offset, payload_len) spans of full h4 wire frames AS INFERRED
+    from the constructor constants: the first 512 bytes skipped, then per
+    (1440*ch+96)-byte frame 45 bytes skipped and 1440*ch bytes of opus
+    payload.  The bytecode does something else (h4_bytecode_payload_spans);
+    the remainder is handled by flush()/hasCompleteTail, not here."""
     params = h4_frame_params(channels)
     spans: list[tuple[int, int]] = []
     off = params["l"]
     while off + params["o"] <= total_len:
         spans.append((off + params["n"], params["p"]))
         off += params["o"]
+    return spans
+
+
+def h4_bytecode_payload_spans(total_len: int, channels: int) -> list[tuple[int, int]]:
+    """(payload_offset, payload_len) spans h4.a(byte[], long) reads when the
+    whole stream arrives in its FIRST call (see the section note): offsets
+    45 + k*(45+1440*ch) while ``total_len - k*(45+1440*ch) >= 1440*ch+96``."""
+    params = h4_frame_params(channels)
+    step = params["n"] + params["p"]
+    spans: list[tuple[int, int]] = []
+    pos = 0
+    while total_len - pos >= params["o"]:
+        spans.append((pos + params["n"], params["p"]))
+        pos += step
     return spans
 
 

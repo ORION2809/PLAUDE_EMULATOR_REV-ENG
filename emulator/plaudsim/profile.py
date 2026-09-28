@@ -27,6 +27,7 @@ import enum
 import functools
 import weakref
 from dataclasses import dataclass
+from struct import error as struct_error
 from struct import pack, unpack_from
 from typing import Any, Callable
 
@@ -56,10 +57,13 @@ from plaudsim.filesync import (
     OPCODE_SYNC_START,
 )
 from plaudsim.transfer import (
+    DEFAULT_DATA_PAYLOAD_SIZE,
     DEFAULT_EMPTY_PACKAGE_CODE,
+    NOTHING_TO_SEND_HEAD_STATUS,
     FileTable,
     TransferSession,
     pack_delete_file_response,
+    pack_file_data_frame,
     pack_resume_record_response,
     pack_stop_sync_response,
     parse_delete_file_request,
@@ -163,6 +167,15 @@ GET_STATE_REQUEST = b"\x01\x03\x00"
 GET_STORAGE_REQUEST = b"\x01\x06\x00"
 
 
+#: HARNESS_POLICY: the company identifier the manufacturer data is advertised
+#: under -- 0xFFFF, the value the Bluetooth SIG reserves for tests, as used by
+#: every runtime rig and emulator/serve.py.  `u4.a` reads whatever ``keyAt(0)``
+#: is, so the SDK does not check it; a real device's value is UNKNOWN (U1).
+ADVERTISING_COMPANY_ID = 0xFFFF
+
+#: Legacy advertising data and scan response are each at most 31 bytes.
+LEGACY_ADVERTISING_MAX = 31
+
 class PlaudLifecycle(enum.Enum):
     """Emulator lifecycle, mapped to states the SDK and templates observe.
 
@@ -171,9 +184,11 @@ class PlaudLifecycle(enum.Enum):
     CONNECTED     link up; mirrors z's a0.CONNECTED, set in onServicesDiscovered.
     HANDSHAKED    the device answered an opcode-1 handshake with status 0.
     BOUND         the SDK's own notion of a completed bind: handshake status 0,
-                  then the battery exchange (portVersion >= 5), then syncTime.
-                  `bleBind` fires off the syncTime success callback -- there is
-                  no BLE "bind" message at all.
+                  then syncTime; `bleBind` fires off the syncTime success
+                  callback -- there is no BLE "bind" message at all.  The
+                  battery exchange (opcode 9, portVersion >= 5) and getState
+                  come AFTER it (R7-S12 run 1: handshake, syncTime, bleBind
+                  status 0, battStatus, getState; ledger §14).
     READY         post-refreshDeviceInfo. Not modelled.
 
     ON BOUND, AND WHAT IT DOES NOT MEAN. Reaching BOUND here is legitimate, and
@@ -208,6 +223,11 @@ class PlaudDeviceState:
     Layout from z2.<init>: state u32le@3, privacyEnable u8@7, keyState u8@8,
     usbState u8@9, scene u8@10, sessionId u32le@11, findMyState u8@15,
     then two further u8 at 16 and 17 that z2 parses but toString does not name.
+
+    ``key_state`` is byte 8 RAW: z2 stores it as its status code ``d`` (which
+    drives the SDK's device-state enum; ledger §5.1: 0 IDLE, 1 RECORD,
+    2 TRANSFER, ...) and derives keyState as ``d == 1`` (z2.<init> 91-119).
+    So ``key_state=2`` reports TRANSFER with keyState false.
     """
 
     state: int = 0
@@ -260,11 +280,11 @@ class PlaudBatteryState:
     p.<init>: charging = (u8@3 == 1), level = u8@4. Names are DIRECT from the
     p.toString literal "BattStatusRsp{charging=..., level=...}".
 
-    This message is load-bearing for a real-SDK connect: `q` gates connection
-    success on three separate device replies -- handshake status 0, this
-    battery exchange (when portVersion >= 5), and syncTime -- each retried a
-    few times before the connect is reported as failed. A device that answers
-    the handshake but not opcode 9 is reported to the app as a failed connect.
+    The real SDK asks for it right after the bind (portVersion >= 5): in
+    R7-S12 run 1 the order was handshake, syncTime, bleBind(status 0), then
+    opcode 9 and getState.  An earlier note here said a device silent on
+    opcode 9 is reported as a failed connect; since bleBind is reported
+    before opcode 9 is even sent, that is not established.
 
     The device also PUSHES this frame unsolicited to report battery changes.
     """
@@ -343,8 +363,9 @@ def parse_feature_request(data: bytes) -> dict[str, object]:
 
     Mirrors `q$f.a(byte[])` case 138: the SDK requires `length > 3` before it
     strips the 3-byte header, and reads bit 3 of payload[0]. A frame with no
-    payload is not an error -- the SDK logs "数据长度不足" and leaves its
-    selector untouched -- so this returns `bitmap=None` rather than raising.
+    payload is not an error -- the SDK logs "数据长度不足" and then reads bit 3
+    of the frame's first byte (0x01), which CLEARS its Wi-Fi AES selector --
+    so this returns `bitmap=None` and ``wifi_aes=False`` rather than raising.
     """
     raw = bytes(data)
     if len(raw) < 3 or raw[0] != 1 or unpack_from("<H", raw, 1)[0] != OPCODE_NEW_FEATURE:
@@ -455,6 +476,9 @@ WIFI_PASS_LEN = 8
 #: The emulator answers `wifi_busy_status` (default this 4) in both cases;
 #: applying the claims is HARNESS_POLICY.
 WIFI_OPEN_STATUS_BUSY = 4
+#: HARNESS_POLICY: the OpenWiFi status answered when the Wi-Fi device could
+#: not be started (real firmware's failure codes are UNKNOWN).
+WIFI_OPEN_STATUS_FAILED = 1
 
 #: R7-S13 (r7/r7-s13-recording-pull.md §4.4, runs 6b-13; RUNTIME_PROVEN on the
 #: AVD against the genuine SDK): the device must stream a transfer from a
@@ -746,8 +770,11 @@ class PlaudPeripheral:
         wifi_open_status: int = 0,
         wifi_close_status: int = 0,
         wifi_busy_status: int = WIFI_OPEN_STATUS_BUSY,
+        wifi_failed_status: int = WIFI_OPEN_STATUS_FAILED,
         websocket_profile: dict[int, str] | None = None,
         wifi_device_factory: Callable[["PlaudPeripheral"], Any] | None = None,
+        size_frames_to_mtu: bool = True,
+        empty_transfer_head_status: int | None = NOTHING_TO_SEND_HEAD_STATUS,
     ) -> None:
         if port_version >= ENCRYPTED_PORT_VERSION:
             raise ValueError(
@@ -769,6 +796,15 @@ class PlaudPeripheral:
             bind_info=0,
             port_version=port_version,
         )
+        if self.scan_fields.port_version != port_version:
+            # The SDK takes portVersion from the advertisement (u4.a) and picks
+            # the sealed path at >= 20 (z$c.onCharacteristicChanged 10-18), so
+            # an advertisement that disagrees with the served protocol is a
+            # device that cannot be talked to.
+            raise ValueError(
+                f"scan_fields.port_version {self.scan_fields.port_version} != port_version {port_version}: "
+                "the advertisement must declare the protocol this peripheral serves"
+            )
         self.state = state or PlaudDeviceState()
         self.storage = storage or PlaudStorageState()
         self.synctime = synctime or PlaudSyncTimeState()
@@ -776,6 +812,13 @@ class PlaudPeripheral:
         self.file_bytes = bytes(file_bytes)
         self.file_table = FileTable(list(file_table or []), port_version=port_version)
         self.file_list_per_frame = file_list_per_frame
+        # HARNESS_POLICY (review 2026-09-28): page file lists and cap DATA
+        # payloads so every frame fits one notification.  False models a
+        # device that ignores the MTU (the V2 matrix's truncating-link rows).
+        self.size_frames_to_mtu = size_frames_to_mtu
+        # HEAD status for a syncFile with nothing to send; None answers
+        # HEAD, EMPTY_PACKAGE, TAIL, which the SDK restarts forever.
+        self.empty_transfer_head_status = empty_transfer_head_status
         self.tail_crc = tail_crc
         self.resume_start = resume_start
         self.resume_status = resume_status
@@ -839,6 +882,7 @@ class PlaudPeripheral:
         self.wifi_open_status = wifi_open_status
         self.wifi_close_status = wifi_close_status
         self.wifi_busy_status = wifi_busy_status
+        self.wifi_failed_status = wifi_failed_status
         self.wifi_hotspot_on = False
         self.websocket_profile: dict[int, str] = dict(
             DEFAULT_WEBSOCKET_PROFILE if websocket_profile is None else websocket_profile
@@ -854,10 +898,11 @@ class PlaudPeripheral:
         self.lifecycle = PlaudLifecycle.DISCONNECTED
         self.lifecycle_log: list[str] = []
         self.connection: Any = None
+        self._request_connection: Any = None   # the link of the request being handled
         device.on(Device.EVENT_CONNECTION, self._on_device_connection)
 
         # 2BB0 property mask is a VIRTUAL-TEST choice, not a hardware claim.
-        # z.a(boolean) writes ENABLE_INDICATION_VALUE or ENABLE_NOTIFICATION_VALUE
+        # z.a(UUID, UUID, boolean) writes ENABLE_INDICATION_VALUE or ENABLE_NOTIFICATION_VALUE
         # to the CCCD depending on the discovered properties, so the real client
         # copes with either. Advertising both lets a test drive each path.
         self.data_characteristic = Characteristic[bytes](
@@ -897,8 +942,12 @@ class PlaudPeripheral:
         round-trip that exercises host logic the harness could not reach before.
 
         The SDK skips the 3-byte header before reading the bitmap
-        (`if (bArr.length > 3) copyOfRange(bArr, 3, len)`), so a frame with no
-        payload is logged as "数据长度不足" and leaves the selector untouched.
+        (`if (bArr.length > 3) copyOfRange(bArr, 3, len)`).  A frame with no
+        payload is logged as "数据长度不足" and then still read as a bitmap
+        from the WHOLE frame: ``frame[0] & 8`` is ``0x01 & 8 = 0``, so it
+        CLEARS the Wi-Fi AES selector (q$f.a case 138, 477-484 and 642-670;
+        z.a(boolean) is ``putstatic O``), is still forwarded to
+        deviceNewFeature and still answered with l1.
         """
         value = self.feature_bitmap if bitmap is None else bitmap
         frame = encode_feature_frame(value)
@@ -914,7 +963,19 @@ class PlaudPeripheral:
         on Android puts nothing on the wire of its own.
         """
         self.battery = battery
-        return self._emit(self._live_connection(connection), battery.encode())
+        # keep 0x2A19 in step: below portVersion 5 the SDK reads and
+        # subscribes to it instead of asking opcode 9 (see __init__)
+        self.battery_characteristic.value = bytes([battery.level & 0xFF])
+        return self._push_battery(self._live_connection(connection), battery)
+
+    async def _push_battery(self, connection: Any, battery: PlaudBatteryState) -> bool:
+        server = getattr(self.device, "gatt_server", None)
+        subscribers = getattr(server, "subscribers", None)
+        if connection is not None and isinstance(subscribers, dict) and subscribers.get(connection, {}).get(
+            self.battery_characteristic.handle
+        ):
+            await server.notify_subscriber(connection, self.battery_characteristic, bytes([battery.level & 0xFF]))
+        return await self._emit(connection, battery.encode())
 
     def _live_connection(self, connection: Any = None) -> Any:
         """The connection to push an unsolicited frame on.
@@ -966,16 +1027,39 @@ class PlaudPeripheral:
         )
 
     async def advertise(self, name: str | None = None) -> None:
-        """Start advertising with the Plaud service UUID and manufacturer data.
+        """Start legacy advertising in the layout the runtime rigs put on the
+        air for the real SDK (R4-S3, R5-S1, R7; emulator/serve.py):
 
-        The SDK does NOT filter on the service UUID -- it hands `startScan` an
-        empty ScanFilter list and filters in software on the manufacturer data
-        -- but advertising the service is what lets ordinary BLE tooling (and
-        a Bumble central) find the device at all.
+        * advertising data, 29 bytes: Flags 0x06 and Manufacturer Specific
+          Data = u16le company id (``ADVERTISING_COMPANY_ID``) + the blob.
+          Android's ``ScanRecord.getManufacturerSpecificData()`` splits the
+          company id off, and `u4.a` (82-135) reads ``keyAt(0)``'s value, so
+          the blob must NOT start at the AD payload's first byte;
+        * scan response: the name and the 0x1910 service UUID.  The SDK does
+          not filter on the service UUID -- it hands `startScan` an empty
+          ScanFilter list and filters in software on the manufacturer data --
+          but it lets ordinary BLE tooling (and a Bumble central) find the
+          device.
+
+        Before 2026-09-28 this put name, UUID and the bare blob in one
+        42-44-byte advertisement: over the 31-byte legacy limit (netsimd
+        rejected it, r5-s1/README.md) and, on Android, parsed with the blob's
+        first two bytes taken as the company id.
         """
         from bumble.core import AdvertisingData
 
-        self.device.advertising_data = bytes(
+        adv = bytes(
+            AdvertisingData(
+                [
+                    (AdvertisingData.FLAGS, bytes([0x06])),
+                    (
+                        AdvertisingData.MANUFACTURER_SPECIFIC_DATA,
+                        pack("<H", ADVERTISING_COMPANY_ID) + self.manufacturer_data(),
+                    ),
+                ]
+            )
+        )
+        rsp = bytes(
             AdvertisingData(
                 [
                     (
@@ -986,13 +1070,14 @@ class PlaudPeripheral:
                         AdvertisingData.INCOMPLETE_LIST_OF_16_BIT_SERVICE_CLASS_UUIDS,
                         bytes.fromhex("1019"),  # 0x1910 little-endian
                     ),
-                    (
-                        AdvertisingData.MANUFACTURER_SPECIFIC_DATA,
-                        self.manufacturer_data(),
-                    ),
                 ]
             )
         )
+        for label, payload in (("advertising data", adv), ("scan response", rsp)):
+            if len(payload) > LEGACY_ADVERTISING_MAX:
+                raise ValueError(f"{label} is {len(payload)} bytes; legacy advertising allows {LEGACY_ADVERTISING_MAX}")
+        self.device.advertising_data = adv
+        self.device.scan_response_data = rsp
         await self.device.start_advertising()
 
     def _set_lifecycle(self, next_state: PlaudLifecycle) -> None:
@@ -1070,9 +1155,13 @@ class PlaudPeripheral:
         # malformed y6/z6 is rejected and leaves the stream (and
         # `self.transfer`) alone. Nothing awaits between the handler and the
         # abort, so the old stream cannot emit in between.
+        self._request_connection = connection   # read by handlers that size frames to the MTU
         try:
             frames = handler(request)
-        except ValueError as exc:
+        except (ValueError, struct_error) as exc:
+            # struct.error is not a ValueError; a packing error must not escape
+            # the GATT write handler (Bumble would then never send the ATT
+            # Write Response and the central's write would hang).
             return self._reject(request, f"malformed_request: {exc}")
         if opcode in (OPCODE_SYNC_START, OPCODE_STOP_SYNC):
             self._abort_stream("new_sync_start" if opcode == OPCODE_SYNC_START else "stop_sync")
@@ -1242,12 +1331,23 @@ class PlaudPeripheral:
         sequence with no pacing, are HARNESS POLICY.
         """
         params = parse_sync_start_request(request)
+        payload = self.data_payload_size
+        limit = self._notify_limit(self._request_connection) if self.size_frames_to_mtu else None
+        if limit is not None:
+            # a DATA frame must fit one notification (see _emit)
+            header = len(pack_file_data_frame(0, b"", params["session_id"], self.port_version))
+            cap = max(1, limit - header)
+            if (payload or DEFAULT_DATA_PAYLOAD_SIZE) > cap:
+                self.stream_log.append({"event": "payload_capped", "requested": payload or DEFAULT_DATA_PAYLOAD_SIZE,
+                                        "cap": cap, "att_mtu": limit + 3})
+                payload = cap
         self.transfer = TransferSession(
             file_bytes=self.file_bytes_for(params["session_id"]),
             crc=self.tail_crc & 0xFFFF,
             port_version=self.port_version,
             empty_package_code=self.empty_package_code,
-            **({"payload_size": self.data_payload_size} if self.data_payload_size else {}),
+            nothing_to_send_status=self.empty_transfer_head_status,
+            **({"payload_size": payload} if payload else {}),
         )
         self.transfer.start(params["session_id"], params["start"], params["end"])
         return self.transfer.frames(drop_offsets=self.drop_data_offsets)
@@ -1260,7 +1360,11 @@ class PlaudPeripheral:
         documents that rather than inventing a filter.
         """
         params = parse_file_list_request(request)
-        return self.file_table.frames(params["request_stamp"], self.file_list_per_frame)
+        return self.file_table.frames(
+            params["request_stamp"],
+            self.file_list_per_frame,
+            max_frame_len=self._notify_limit(self._request_connection) if self.size_frames_to_mtu else None,
+        )
 
     def _stop_transfer(self, request: bytes) -> list[bytes]:
         """z6 (opcode 29 INBOUND): abandon the active transfer, ack with a7.
@@ -1323,13 +1427,22 @@ class PlaudPeripheral:
         elif self.wifi_hotspot_on:
             busy = "already_open"
         status = self.wifi_busy_status if busy else self.wifi_open_status
+        failed: str | None = None
         if status == 0:
-            self.wifi_hotspot_on = True
+            # start the Wi-Fi device BEFORE committing the hotspot flag: a
+            # factory that raises must not leave the peripheral answering
+            # "busy" to every later open with no device behind it
+            try:
+                self._start_wifi_device()
+            except Exception as exc:  # noqa: BLE001 -- any factory failure is a failed open
+                failed = f"{type(exc).__name__}: {exc}"
+                status = self.wifi_failed_status
+            else:
+                self.wifi_hotspot_on = True
         self.wifi_log.append(
-            {"opcode": OPCODE_OPEN_WIFI, **parsed, "status": status, "busy": busy, "hotspot_on": self.wifi_hotspot_on}
+            {"opcode": OPCODE_OPEN_WIFI, **parsed, "status": status, "busy": busy, "hotspot_on": self.wifi_hotspot_on,
+             **({"failed": failed} if failed else {})}
         )
-        if status == 0:
-            self._start_wifi_device()
         wifi_pass = self.wifi_password() if status == 0 else None
         return [encode_open_wifi_response(status, wifi_pass)]
 
@@ -1438,15 +1551,40 @@ class PlaudPeripheral:
 
     # --- transport -------------------------------------------------------
 
+    def _notify_limit(self, connection: Any) -> int | None:
+        """ATT_MTU - 3 of the link (the largest notification), or None when
+        the connection does not say (test doubles)."""
+        mtu = getattr(connection, "att_mtu", None)
+        return mtu - 3 if isinstance(mtu, int) and mtu >= 23 else None
+
+    def _subscribed(self, connection: Any) -> bool:
+        """Whether the central enabled 2BB0; True when that cannot be known
+        (no connection, or a test double without Bumble's subscriber table)."""
+        subscribers = getattr(getattr(self.device, "gatt_server", None), "subscribers", None)
+        if connection is None or not isinstance(subscribers, dict):
+            return True
+        cccd = subscribers.get(connection, {}).get(self.data_characteristic.handle, b"\x00\x00")
+        return bool(cccd and (cccd[0] & 0x03))
+
     async def _emit(self, connection: Any, payload: bytes) -> bool:
         """Send one frame; True when it was handed to the link. It is logged
-        as a `response` only once `_respond` returned; a frame for a link
-        already known to be gone is logged as `undelivered` and not sent."""
+        as a `response` only once `_respond` returned.  Not sent, and logged
+        as `undelivered`: a frame for a link already known to be gone, or for
+        a central that has not enabled 2BB0 (Bumble would drop it silently).
+        A frame longer than ATT_MTU - 3 is sent -- Bumble cuts it, as a real
+        stack would refuse it -- and its log entry records `truncated_to`."""
         if not self._link_alive(connection):
             self.packet_log.append({"direction": "undelivered", "reason": "disconnected", "bytes": payload.hex()})
             return False
+        if not self._subscribed(connection):
+            self.packet_log.append({"direction": "undelivered", "reason": "not_subscribed", "bytes": payload.hex()})
+            return False
         await self._respond(connection, payload)
-        self.packet_log.append({"direction": "response", "bytes": payload.hex()})
+        entry: dict[str, Any] = {"direction": "response", "bytes": payload.hex()}
+        limit = self._notify_limit(connection)
+        if limit is not None and len(payload) > limit:
+            entry["truncated_to"] = limit
+        self.packet_log.append(entry)
         return True
 
     async def _respond(self, connection: Any, response: bytes) -> None:

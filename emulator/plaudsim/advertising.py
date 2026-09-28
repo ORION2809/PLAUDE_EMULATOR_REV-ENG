@@ -30,6 +30,7 @@ capture exists. Do not read this module as a record of observed hardware.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from struct import pack, unpack_from
 
@@ -58,6 +59,37 @@ FIXED_18_OFFSET = 18
 SHORT_SERIAL_LEN = 10
 
 
+def scrub_serial(text: str) -> str:
+    """`u4.a` 795-805: ``serial.replaceAll("[^a-zA-Z0-9_-\\u2E80-\\u9FFF]", "")``.
+
+    Java parses ``_-\\u2E80`` as a RANGE (U+005F..U+2E80) and the trailing
+    ``-\\u9FFF`` as a literal hyphen and U+9FFF, so the kept set is: ``-``,
+    ``0-9``, ``A-Z``, U+005F..U+2E80 (which includes ``a-z``, backtick,
+    ``{|}~``, DEL and all of Latin-1) and U+9FFF.  Most CJK characters are
+    therefore REMOVED, whatever the pattern's author meant.  Established by
+    running the pattern in a JDK 17 over the whole BMP (2026-09-28).
+    Characters above the BMP are two surrogates in Java, neither kept."""
+    return "".join(
+        c for c in text
+        if c == "-" or "0" <= c <= "9" or "A" <= c <= "Z" or 0x5F <= ord(c) <= 0x2E80 or ord(c) == 0x9FFF
+    )
+
+
+def _java_parse_int(text: str) -> int | None:
+    """``Integer.parseInt``: an optional sign then decimal digits (Unicode
+    decimal digits count, as in ``Character.digit``); anything else -- spaces,
+    underscores, an empty string -- throws, which `u4.a` catches (None here)."""
+    if not re.fullmatch(r"[+-]?\d+", text):
+        return None
+    return int(text)
+
+
+def _l2i(value: int) -> int:
+    """Java ``l2i``: the low 32 bits, as a signed int."""
+    value &= 0xFFFFFFFF
+    return value - (1 << 32) if value >= 1 << 31 else value
+
+
 def _hexify(raw: bytes) -> str:
     """`s7.b(byte[])` -- the hex rendering used for short serial numbers."""
     return raw.hex().upper()
@@ -82,9 +114,10 @@ class ScanFields:
 
     @property
     def product_name(self) -> str | None:
-        """The synthesised name, used only when the GAP name is absent."""
-        cleaned = "".join(c for c in self.serial_number if c.isalnum())
-        return PRODUCT_NAMES.get(cleaned[:3]) if len(cleaned) >= 3 else None
+        """The synthesised name, used only when the GAP name is absent
+        (`u4.a` 812-904: the first three characters of the SCRUBBED serial,
+        which is what `serial_number` holds)."""
+        return PRODUCT_NAMES.get(self.serial_number[:3]) if len(self.serial_number) >= 3 else None
 
 
 def parse_manufacturer_data(data: bytes, manufacturer_code: int = 0) -> ScanFields:
@@ -142,7 +175,7 @@ def parse_manufacturer_data(data: bytes, manufacturer_code: int = 0) -> ScanFiel
         raise ValueError(f"manufacturer data too short for versionCode: {len(raw)}")
     if _READ_WIDTHS.get(code_width) is None:
         raise ValueError(f"unsupported versionCode width: {code_width} bytes")
-    out.version_code = int.from_bytes(raw[version_at:code_end], "little")   # 365-381
+    out.version_code = _l2i(int.from_bytes(raw[version_at:code_end], "little"))   # 365-381: readInt, l2i
 
     serial_len = raw[code_end]                               # 383-388
     serial_at = code_end + 1                                 # 390
@@ -179,11 +212,11 @@ def parse_manufacturer_data(data: bytes, manufacturer_code: int = 0) -> ScanFiel
         if gate_at >= 1 and raw[gate_at - 1] == 1:            # 666-680
             out.bind_info = raw[gate_at]                      # 683-693
 
-    if len(out.serial_number) >= 3:                           # 699-719
-        try:
-            out.project_code = int(out.serial_number[:3])
-        except ValueError:
-            pass   # the whole method is wrapped in `catch (Exception)`
+    if len(out.serial_number) >= 3:                           # 699-719: the UNSCRUBBED serial
+        parsed = _java_parse_int(out.serial_number[:3])
+        if parsed is not None:     # a throw goes to handler 250 -> 795: the u16 code stays
+            out.project_code = parsed
+    out.serial_number = scrub_serial(out.serial_number)       # 795-805; BleDevice gets this
     return out
 
 
@@ -241,6 +274,11 @@ def build_manufacturer_data(
     """
     if not 0 <= project_code <= 0xFFFF:
         raise ValueError(f"project_code out of u16 range: {project_code}")
+    if project_code in CURSOR_PORT_VERSION_PROJECTS:
+        raise ValueError(
+            f"project_code {project_code} takes u4.a's cursor branch (427-443 -> 592): the serial is read as "
+            "text and portVersion from the u16 right after it, not from the fixed offset this builder writes"
+        )
     if len(version_type) != 1:
         raise ValueError("version_type is a single character")
     if not 0 <= version_code <= 0xFFFFFF:

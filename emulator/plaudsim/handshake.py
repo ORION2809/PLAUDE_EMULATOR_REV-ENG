@@ -94,31 +94,36 @@ def parse_marker_frame(frame: bytes) -> dict[str, object]:
 
 
 def reassemble_secret_chunks(frames: list[bytes]) -> bytes:
-    """Reassemble 0xFE12 chunks exactly as z$c.onCharacteristicChanged does.
+    """Reassemble 0xFE12 chunks as z$c.onCharacteristicChanged does (217-349).
 
-    The SDK: drops a frame byte-identical to one already held, sorts the held
-    frames by `bArr[3] & 255` (the index), and concatenates `frame[4:]` once
-    `G.size() == I` where I is the count byte of the most recent frame.
+    Per frame, the SDK: stores the count byte ``I = frame[2]`` -- a SIGNED
+    byte (``baload``), so a count of 128 or more is negative and can never be
+    reached -- then drops a frame byte-identical to one already held (and
+    returns without checking the count), else appends it, sorts the held
+    frames by ``bArr[3] & 255`` (Java's sort is stable, as is Python's), and
+    assembles ``frame[4:]`` of every held frame as soon as ``G.size() == I``.
+    So it completes at the FIRST frame after which the counts match; frames
+    after that are not part of this secret and are ignored here.
 
-    Raises ValueError if the set is not exactly `count` distinct frames --
-    the SDK simply waits instead, which is not expressible as a return value.
+    Raises ValueError when no frame completes the set -- the SDK waits
+    instead, which is not expressible as a return value.
     """
     seen: list[bytes] = []
-    count = None
+    count: int | None = None
     for raw in frames:
         data = bytes(raw)
         if len(data) < MARKER_HEADER_LEN:
             raise ValueError(f"marker frame too short: {len(data)}")
-        count = data[2]          # z: I = value2[2], overwritten by every frame
+        count = data[2] - 256 if data[2] >= 128 else data[2]   # z.I = (signed) value2[2], every frame
         if any(data == held for held in seen):
-            continue             # z: "已存在该包，跳过添加"
+            continue             # z: "已存在该包，跳过添加" -- returns before the size check
         seen.append(data)
+        seen.sort(key=lambda f: f[3] & 0xFF)
+        if len(seen) == count:
+            return b"".join(f[4:] for f in seen)
     if count is None:
         raise ValueError("no frames")
-    if len(seen) != count:
-        raise ValueError(f"incomplete: {len(seen)} distinct frames, count says {count}")
-    seen.sort(key=lambda f: f[3] & 0xFF)
-    return b"".join(f[4:] for f in seen)
+    raise ValueError(f"incomplete: {len(seen)} distinct frames, count says {count}")
 
 
 # --- secret package ------------------------------------------------------
@@ -189,6 +194,10 @@ class ReplayWindow:
         self.last = last
 
     def accept(self, seq: int) -> bool:
+        # z$c 808-817: the u32 read is narrowed with l2i, so 0x80000000 and
+        # above are negative and dropped (sealed.SealedSession.open agrees).
+        if seq >= 1 << 31:
+            seq -= 1 << 32
         if self.last >= seq:
             return False
         self.last = seq
@@ -407,24 +416,26 @@ def parse_handshake_request(data: bytes, port_version: int = 7) -> dict[str, obj
         raise ValueError(f"expected the constant 0x02 at offset 3, got {raw[3]:#04x}")
 
     has_stage = port_version >= 3
-    stage = raw[5] if has_stage else K3_STAGE_FIRST
     token_at = 6 if has_stage else 5
     width = token_width(port_version)
-    if len(raw) < token_at + width:
+    if len(raw) < token_at + width:     # checked before the stage byte is read
         raise ValueError(
             f"handshake request too short for a {width}-char token: {len(raw)}"
         )
+    stage = raw[5] if has_stage else K3_STAGE_FIRST
     token = raw[token_at : token_at + width].decode("ascii", "replace")
+    tail = raw[token_at + width :]
 
     out: dict[str, object] = {
         "agent_value": raw[4],
         "stage": stage,
-        "is_second": stage == K3_STAGE_SECOND,
+        # Below portVersion 3 k3.enPkg writes no stage byte (100-104); only
+        # j3's appended block tells the two apart.
+        "is_second": stage == K3_STAGE_SECOND if has_stage else bool(tail),
         "token": token,
         "dev_token": None,
         "user_name": None,
     }
-    tail = raw[token_at + width :]
     if tail:
         # j3's extra block. The shipped wrappers always append it, because the
         # null short-circuit needs BOTH extra strings to be null and they pass

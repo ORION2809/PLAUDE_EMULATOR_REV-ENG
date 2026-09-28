@@ -70,8 +70,11 @@ is discarded (`pop`) at every Java call site.
 The SDK's transfer layer ends at raw file bytes: o4/v3 forward bytes
 untouched to a FileOutputStream callback, and audio begins at the
 decrypt/sniff/dispatch in AudioExporter. The 512-B header is consumed by
-decryption (skip(512)), and h4's unconditional 512-B stream skip is the
-second witness that transferred files carry the 512-B header region.
+decryption (skip(512)). An earlier version of this section cited "h4's
+unconditional 512-B stream skip" as a second witness; the 28 Sep review of
+the bytecode showed h4.a does NOT skip it on the first call (it sets r = l,
+so position(l - r) is 0; emulator/plaudsim/audio.py h4_bytecode_payload_spans),
+so decryption's skip(512) is the only witness.
 Whether the region is zeros when unencrypted is UNKNOWN. No wrapper
 between TransferSession-equivalent and OggUtils beyond the file itself
 was found. Lambda bodies behind invokedynamic are UNKNOWN by tooling,

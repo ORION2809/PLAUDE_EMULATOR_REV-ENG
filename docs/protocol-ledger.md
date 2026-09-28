@@ -732,10 +732,14 @@ request class:  y6
 request:        [0]=01 [1..2]=1C 00 [3..6] u32le sessionId
                 [7..10] u32le start [11..14] u32le end             15 bytes
 head (rsp 28):  s6 SyncFileHeadRsp [3..6] u32le sessionId [7] u8 status
-                8 bytes.  status > 0 is a FAILURE: q$a sets the state
-                field z.n = 29 (`z.c(29)`, a plain putfield at
-                ALL.txt:50955-50960 -- NOT a handler teardown and NOT a
-                wire write) before forwarding.
+                8 bytes.  status > 0 is a FAILURE: q$a calls `z.c(29)`
+                before forwarding.  z.c(int) (com.plaud.sdk.proto.z,
+                ALL.txt:76989) removes every pending response bean whose
+                opcode list contains 29 and logs "removeResponseBean:"; it
+                is also called on the TAIL (q$a.a 657-666) and on file-list
+                completion (z.c(26)).  It is not a wire write.  (Until
+                28 Sep this cited ALL.txt:50955-50960 as "a plain
+                putfield"; that range is j6$a.c(int), another class.)
 tail (rsp 29):  t6 SyncFileTailRsp [3..6] u32le sessionId [7..8] u16le crc
                 9 bytes.
 ```
@@ -809,8 +813,11 @@ completion (runnable `fileSyncLossPkgStop`, ALL.txt:69157-69182). RUNTIME
 (R7-S13 runs 6b/6c/6d): `start resend syncFileStart(…,lastPosition:3200)` →
 opcode 29 at +0 ms → `a7` → opcode 28 `start=3200` at +35 ms. The earlier
 wording here ("stopSync is reached only through the 5 000 ms stall timeout")
-was wrong: the 5 s runnable `q$a.f` (ALL.txt:69396-69434) is the *stall*
-path, the gap path sends stopSync immediately. The client has gap
+was wrong: the gap branch (q$a.a 387-439) reaches *method* `q$a.f`
+(ALL.txt:69396-69434), which calls `q.k` (stopSync) immediately; the 5 s
+*stall* runnable is the lambda stored in *field* `q$a.f` (bootstrap #0,
+method `q$a.b`), which never calls `q.k` and restarts directly through
+`q$a.a(JJ…)` (review 2026-09-28; the two share a name). The client has gap
 *detection* and a whole-stream *restart* primitive only — no selective/NAK
 retransmit, no per-frame transport ACK (R5-S6). After the restart the client
 accepts only frames whose offset equals its cursor; a device that keeps
@@ -836,13 +843,15 @@ confidence:     DIRECT
 implemented:    yes
 ```
 
-**The response opcode is 30, not 29.** The SDK sends this from its 5 000 ms
-stall-timeout runnable (`q$a.f` → `q.k`), which is armed when a gap is seen
-while a recovery is already in flight (`H` true); the *immediate* reaction to a
-gap is to re-issue `syncFile` from the cursor (§5.8), not to send stopSync. A
-peripheral that ignores the stop — or that echoes opcode 29 — leaves the
-client waiting forever and its recovery path stalls. (Wording corrected in
-R7; BYTECODE_PROVEN.)
+**The response opcode is 30, not 29.** The SDK sends this at once on an
+offset gap: the gap branch calls *method* `q$a.f`, which writes stopSync
+(`q.k`) and re-issues `syncFile` from the cursor on the `a7` ack (§5.8;
+RUNTIME_PROVEN in R7-S13, ~35 ms). The 5 000 ms stall runnable (*field*
+`q$a.f`, method `q$a.b`) does NOT send stopSync; it restarts `syncFile`
+directly. A peripheral that ignores the stop — or that echoes opcode 29 —
+leaves the client waiting forever and its recovery path stalls. (Wording
+corrected in R7 and again on 28 Sep, when an independent review read the
+bytecode; BYTECODE_PROVEN.)
 
 Note what this means for a dispatcher: **opcode 29 inbound is "stop syncing",
 while opcode 29 outbound is the transfer TAIL.** Likewise opcode 30 inbound is
@@ -958,8 +967,10 @@ device push:    [0]=01 [1..2]=8A 00 [3] u8 bitmap        4 bytes (read as payloa
 host reply:     01 8A 00 FF   (l1.enPkg = packHead + c(1|2|4|8|16|32|64|128))
 consumer:       q$f.a(byte[]) case 138: requires length > 3, forwards the payload
                 to listener.deviceNewFeature, derives the Wi-Fi AES selector
-                from bit 3 (§4.3); an empty payload logs "数据长度不足" and
-                leaves the selector untouched
+                from bit 3 (§4.3); an empty payload logs "数据长度不足" and is
+                then read as a bitmap from the whole frame: frame[0] & 8 =
+                0x01 & 8 = 0, so it CLEARS the selector (q$f.a 477-484,
+                642-670; corrected 28 Sep, it said "untouched")
 confidence:     DIRECT
 implemented:    yes — profile.py `push_new_feature` / `_feature_request`
 tests:          tests/test_r7_feature_exchange.py (9)
@@ -1056,11 +1067,18 @@ must be walked in bytecode. **This is the gating unknown for R4** (§8).
 
 ### 6.3 A regex quirk that affects the product-name lookup
 
-The serial is scrubbed with `[^a-zA-Z0-9_-\u2E80-\u9FFF]` before the
-product-name lookup. `_-\u2E80` parses as a character **range** U+005F..U+2E80,
-not as a literal `-`, so backtick, braces, tilde and all of Latin-1 survive
-while most CJK is stripped. `plaudsim.advertising.ScanFields.product_name` uses
-a plain alphanumeric filter instead; the two differ only for non-ASCII serials.
+The serial is scrubbed with `[^a-zA-Z0-9_-\u2E80-\u9FFF]` (u4.a 795-805)
+before the product-name lookup, and `BleDevice` is built from the scrubbed
+string. `_-\u2E80` parses as a character **range** U+005F..U+2E80, not as a
+literal `-`, so backtick, braces, tilde and all of Latin-1 survive while most
+CJK is stripped. Run in a JDK 17 over the whole BMP (28 Sep), the kept set is
+exactly `-`, `0-9`, `A-Z`, U+005F..U+2E80 and U+9FFF. The projectCode override
+(699-719) parses the first three characters of the **unscrubbed** serial with
+`Integer.parseInt`; a throw keeps the u16 project code. Until 28 Sep
+`ScanFields` used a plain alphanumeric filter for the name and did not scrub
+`serial_number` at all, so it differed from the SDK for ASCII serials too
+(`88_1…`, trailing NULs); `plaudsim.advertising.scrub_serial` now applies the
+SDK's kept set (review 2026-09-28).
 
 ---
 

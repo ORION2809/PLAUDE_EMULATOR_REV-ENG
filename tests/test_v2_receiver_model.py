@@ -352,10 +352,22 @@ def test_sequence_codes_0_and_1_both_finish_on_the_normal_path(code: int) -> Non
 
 
 def test_sequence_zero_length_file_can_never_finish() -> None:
-    t = TransferSession(file_bytes=b"", crc=1, port_version=7)
+    """A device that answers HEAD, EMPTY_PACKAGE, TAIL for nothing."""
+    t = TransferSession(file_bytes=b"", crc=1, port_version=7, nothing_to_send_status=None)
     t.start(SID, 0, 0)
     host, r, out = dispatch_all(t.frames())
     assert out == ["head", "empty_package_ignored", "restart"] and r.stopped
+
+
+def test_sequence_zero_length_file_default_is_a_failing_head() -> None:
+    """The emulator's default: a lone HEAD with status 1 (R8: state 29)."""
+    t = TransferSession(file_bytes=b"", crc=1, port_version=7)
+    t.start(SID, 0, 0)
+    frames = t.frames()
+    assert frames == [pack_sync_head(SID, 1)]
+    host, r = receiver()
+    acts = r.on_frame(frames[0])
+    assert kinds(acts) == ["head"] and acts[0].value["status"] == 1 and host.state == 29
 
 
 # --- R8 HEAD --------------------------------------------------------------

@@ -243,12 +243,13 @@ def sealed_filelist_roundtrip(
 
     request = pack_file_list_request(request_stamp, start_session_id, flag)
     request_wire = link.host.seal(request)
+    request_seq = link.host.tx_seq      # seal pre-increments; this is the sequence it sealed
     inner = link.device.open(request_wire)
     if inner != request:
         raise AssertionError("device did not accept the sealed FileList request")
     params = parse_file_list_request(inner)
     frames = file_table.frames(params["request_stamp"])
-    wires = [link.device.seal(f) for f in frames]
+    wires, response_seqs = _seal_all(link.device, frames)
     inners = []
     for w in wires:
         opened = link.host.open(w)
@@ -263,9 +264,9 @@ def sealed_filelist_roundtrip(
     if not accumulator.complete:
         raise AssertionError("accumulator did not complete on sealed frames")
     return {
-        "request_seq": 2,
+        "request_seq": request_seq,
         "request_wire": request_wire,
-        "response_seqs": [2 + i for i in range(len(wires))],
+        "response_seqs": response_seqs,
         "response_wires": wires,
         "parsed_frames": parsed_frames,
         "entries": accumulator.entries,
@@ -298,6 +299,7 @@ def sealed_sync_roundtrip(
 
     request = pack_sync_start(session_id, start, end)
     request_wire = link.host.seal(request)
+    request_seq = link.host.tx_seq
     inner = link.device.open(request_wire)
     if inner != request:
         raise AssertionError("device did not accept the sealed SyncFile request")
@@ -307,7 +309,7 @@ def sealed_sync_roundtrip(
     )
     session.start(params["session_id"], params["start"], params["end"])
     frames = session.frames()
-    wires = [link.device.seal(f) for f in frames]
+    wires, response_seqs = _seal_all(link.device, frames)
     inners = []
     for w in wires:
         opened = link.host.open(w)
@@ -324,18 +326,36 @@ def sealed_sync_roundtrip(
         d for d in (parse_file_data_frame(f, port_version) for f in inners[1:-1])
         if d["offset"] != EMPTY_PACKAGE_OFFSET
     ]
-    reassembled = bytearray()
+    # Each chunk is written at its ABSOLUTE offset into a file-sized buffer
+    # and the chunks must tile [start, len(file)) exactly: a wrong offset,
+    # a gap, an overlap or a chunk past the end fails.
+    reassembled = bytearray(len(file_bytes))
+    cursor = start
     for d in datas:
-        reassembled[d["offset"] : d["offset"] + len(d["payload"])] = d["payload"]
-    if bytes(reassembled) != bytes(file_bytes)[start:]:
+        off, payload = d["offset"], d["payload"]
+        if off != cursor or off + len(payload) > len(file_bytes):
+            raise AssertionError(f"DATA at offset {off} (+{len(payload)}) does not continue at {cursor}")
+        reassembled[off : off + len(payload)] = payload
+        cursor = off + len(payload)
+    if cursor != len(file_bytes) or bytes(reassembled[start:]) != bytes(file_bytes)[start:]:
         raise AssertionError("transfer payload did not survive sealing")
     return {
-        "request_seq": 2,
+        "request_seq": request_seq,
         "request_wire": request_wire,
-        "response_seqs": [2 + i for i in range(len(wires))],
+        "response_seqs": response_seqs,
         "response_wires": wires,
         "head": head,
         "datas": datas,
         "tail": tail,
-        "payload": bytes(reassembled),
+        "payload": bytes(reassembled[start:]),
     }
+
+
+def _seal_all(session: "SealedSession", frames) -> tuple[list[bytes], list[int]]:
+    """Seal each frame and record the sequence number actually sealed."""
+    wires: list[bytes] = []
+    seqs: list[int] = []
+    for f in frames:
+        wires.append(session.seal(f))
+        seqs.append(session.tx_seq)
+    return wires, seqs

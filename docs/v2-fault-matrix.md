@@ -31,9 +31,13 @@ revision of the file (`restart_serves_other_revision`). The SDK receiver
 completes normally in both, which is the point: it has no content check.
 
 Run: `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/test_v2_receiver_model.py tests/test_v2_fault_matrix.py -q -p no:cacheprovider --timeout=120`
-(53 model tests + 62 matrix tests = 60 counted cells and the 2 content-fault
+(54 model tests + 64 matrix tests = 62 counted cells and the 2 content-fault
 rows; the matrix writes `build/v2-fault-matrix.json`, from which the table
-below was rendered).
+below was rendered).  Since 28 Sep 2026: 39 recovered byte-exact, 6 recovered
+after an app resume, 16 detected, 1 corruption risk.  Two rows were added
+for two new emulator defaults (below the table, §5a); the two rows that
+model the old device behaviour stay, with the behaviour switched on
+explicitly.
 
 ## 1. What "complete" means -- the R7-S13 correction
 
@@ -137,11 +141,13 @@ callback fired, the failure label, SDK restarts and z6 stop-syncs.
 | `mtu_185_fitted[atomic]` | ATT MTU 185, frames fitted (172 B payload) | recovered | recovered, bytes exact, finish, tail cb, restarts 0, z6 0, finish[0] | BYTECODE_PROVEN + HARNESS_POLICY | q$a rules R3/R7/R2 (ALL.txt:68962-69395); ledger S12 |
 | `mtu_247_fitted[atomic]` | ATT MTU 247, frames fitted (234 B payload) | recovered | recovered, bytes exact, finish, tail cb, restarts 0, z6 0, finish[0] | BYTECODE_PROVEN + HARNESS_POLICY | q$a rules R3/R7/R2 (ALL.txt:68962-69395); ledger S12 |
 | `mtu_517_fitted[atomic]` | ATT MTU 517, frames fitted (255 B payload) | recovered | recovered, bytes exact, finish, tail cb, restarts 0, z6 0, finish[0] | BYTECODE_PROVEN + HARNESS_POLICY | q$a rules R3/R7/R2 (ALL.txt:68962-69395); ledger S12 |
-| `mtu_23_unsized_frames[paced]` | ATT MTU 23 with 32 B frames (link truncates to 20 B), 96 B file | recovered_by_app_resume | recovered_by_app_resume, bytes exact, finish, tail cb, restarts 0, z6 0, app resumes 2, finish[0] | BYTECODE_PROVEN + HARNESS_POLICY | q$a rules R7/R6/R2/R11 (ALL.txt:68962-69395); policy P4/P5 |
+| `mtu_23_unsized_frames[paced]` | ATT MTU 23 with 32 B frames (link truncates to 20 B), 96 B file; a device that ignores the MTU (`size_frames_to_mtu=False`) | recovered_by_app_resume | recovered_by_app_resume, bytes exact, finish, tail cb, restarts 0, z6 0, app resumes 2, finish[0] | BYTECODE_PROVEN + HARNESS_POLICY | q$a rules R7/R6/R2/R11 (ALL.txt:68962-69395); policy P4/P5 |
 | `cccd_notify_with_gap[paced]` | CCCD notify + DROP DATA@512 | recovered | recovered, bytes exact, finish, tail cb, restarts 1, z6 1, finish[0] | BYTECODE_PROVEN + HARNESS_POLICY | ledger S12 |
 | `cccd_indicate_with_gap[paced]` | CCCD indicate + DROP DATA@512 | recovered | recovered, bytes exact, finish, tail cb, restarts 1, z6 1, finish[0] | BYTECODE_PROVEN + HARNESS_POLICY | ledger S12 |
 | `delete_file_being_synced[paced]` | w6 delete of the session at cursor >= 256 | detected | detected, bytes prefix, no finish, no tail cb, `stalled`, restarts 0, z6 0 | HARNESS_POLICY + UNKNOWN | policy P2 |
-| `zero_length_file[atomic]` | 0-byte file (HEAD . EMPTY . TAIL) | detected | detected, bytes exact, no finish, no tail cb, `restart_cap_exceeded`, restarts 9, z6 0 | BYTECODE_PROVEN + HARNESS_POLICY + UNKNOWN | q$a rules R2/R9 (ALL.txt:68962-69395); policy P3 |
+| `zero_length_file_head_failure[atomic]` | 0-byte file, the emulator's default since 28 Sep: a lone HEAD with status 1 | detected | detected, no DATA, no finish, restarts 0 | BYTECODE_PROVEN + HARNESS_POLICY | q$a rule R8 (HEAD status > 0 fails the transfer); `NOTHING_TO_SEND_HEAD_STATUS` |
+| `mtu_23_sized_frames[paced]` | ATT MTU 23, the emulator's default since 28 Sep: DATA payloads capped to fit ATT_MTU - 3 | recovered | recovered, bytes exact, finish, restarts 0 | BYTECODE_PROVEN + HARNESS_POLICY | q$a rules R3/R2/R9; `PlaudPeripheral(size_frames_to_mtu=True)` |
+| `zero_length_file[atomic]` | 0-byte file, a device that answers HEAD . EMPTY . TAIL (`empty_transfer_head_status=None`) | detected | detected, bytes exact, no finish, no tail cb, `restart_cap_exceeded`, restarts 9, z6 0 | BYTECODE_PROVEN + HARNESS_POLICY + UNKNOWN | q$a rules R2/R9 (ALL.txt:68962-69395); policy P3 |
 | `file_one_frame[atomic]` | 32-byte file | recovered | recovered, bytes exact, finish, tail cb, restarts 0, z6 0, finish[0] | BYTECODE_PROVEN | q$a rules R3/R2/R9 (ALL.txt:68962-69395) |
 | `file_4096_frames[atomic]` | 131 072-byte file (4096 frames) | recovered | recovered, bytes exact, finish, tail cb, restarts 0, z6 0, finish[0] | BYTECODE_PROVEN | q$a rules R3/R2/R9 (ALL.txt:68962-69395) |
 | `data_wrong_session_persistent[atomic]` | WRONG_SESSION on every DATA and the sentinel | detected | detected, bytes empty, no finish, no tail cb, `restart_cap_exceeded`, restarts 9, z6 0 | BYTECODE_PROVEN + HARNESS_POLICY | q$a rules R1/R9 (ALL.txt:68962-69395); policy P3 |
@@ -259,6 +265,23 @@ Device side (`emulator/plaudsim/faults.py`, `profile.py`, `transfer.py`):
 * `TntBleCommUtils.readInt` on under-length frames (native): reported as
   `undecodable`, never reproduced.
 
+## 5a. New emulator defaults (2026-09-28)
+
+An independent review of the phase-1 protocol code (28 Sep) found two device
+behaviours that leave the real SDK stuck, and the emulator now avoids both by
+default (HARNESS_POLICY; real firmware's behaviour is UNKNOWN):
+
+* **Frames sized to the MTU.** `PlaudPeripheral` pages the file list and caps
+  DATA payloads so that every frame fits one notification (ATT_MTU - 3).
+  Before, a 25-entry file list at MTU 255 was cut by Bumble to 24 entries and
+  the SDK never completed getFileList (s5.f). `size_frames_to_mtu=False`
+  keeps the old device, which `mtu_23_unsized_frames` still measures.
+* **An empty transfer fails at the HEAD.** A syncFile with nothing to send
+  (an empty file, or `start` at or past its end) is answered by one HEAD with
+  status 1 (`NOTHING_TO_SEND_HEAD_STATUS`). HEAD, EMPTY_PACKAGE, TAIL makes
+  the SDK restart forever (R2, R9); `empty_transfer_head_status=None` keeps
+  that device, which `zero_length_file` still measures.
+
 ## 6. Review fixes (2026-09-25)
 
 An independent review of this track found problems in the fault machinery
@@ -288,9 +311,9 @@ stream key begins again (the pure, unkeyed injector still logs
   `FaultKind`, `Fault`, `FaultInjector`, `FaultyPeripheral`.
 * `tests/fault_support.py` -- `SdkHost`, `SdkReceiver`, `SdkTransferDriver`,
   `TransferResult`, `outcome_of` / `SilentCorruption`, `run6_signature`, link helpers.
-* `tests/test_v2_receiver_model.py` -- 53 tests of the rules, the injector and
+* `tests/test_v2_receiver_model.py` -- 54 tests of the rules, the injector and
   FaultyPeripheral's stream scoping.
-* `tests/test_v2_fault_matrix.py` -- 60 counted cells + 2 content-fault rows;
+* `tests/test_v2_fault_matrix.py` -- 62 counted cells + 2 content-fault rows;
   writes `build/v2-fault-matrix.json`.
 * `tests/test_r7_s13_transfer_close.py` -- the runtime evidence and the emulator's
   default sequence (owned by the R7-S13 track; the model tests there pass).

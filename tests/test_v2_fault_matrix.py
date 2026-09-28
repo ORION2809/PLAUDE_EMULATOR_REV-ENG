@@ -622,7 +622,8 @@ async def test_mtu_23_with_unsized_frames_converges_one_frame_per_restart() -> N
     80 -> 90 (short again), 90 -> 96 (a 16-byte frame fits and is intact).
     Paced, so each stopSync aborts the stale stream (as in the gap cells)."""
     small = FILE[:96]
-    link = await bring_up(peripheral_factory([], PACE, small), mtu=None)
+    # a device that ignores the MTU (since 28 Sep the emulator sizes frames by default)
+    link = await bring_up(peripheral_factory([], PACE, small, size_frames_to_mtu=False), mtu=None)
     assert link.connection.att_mtu == 23
     driver = await driver_for(link, stall_timeout=0.4, idle_timeout=0.6, max_restarts=16)
 
@@ -707,17 +708,56 @@ async def test_zero_length_file_is_a_restart_livelock() -> None:
     """R2 ignores the sentinel without progress and R9 makes a TAIL with
     cursor == start a restart, unconditionally. Nothing in q$a can complete a
     zero-length stream; the driver's cap (P3) is what terminates it."""
-    link, driver, result = await run_cell([], None, file_bytes=b"")
+    # a device that answers HEAD+EMPTY+TAIL for nothing (the emulator's default
+    # since 28 Sep is a failing HEAD: test_zero_length_file_gets_a_failing_head)
+    link, driver, result = await run_cell([], None, file_bytes=b"", empty_transfer_head_status=None)
     outcome = outcome_of(result, b"")
     record(
         "zero_length_file[atomic]", outcome, DETECTED,
-        "BYTECODE_PROVEN (R2 needs progress; R9 tail-without-progress restart; no terminal state) + HARNESS_POLICY (P3 cap, emulator answers HEAD+EMPTY+TAIL); runtime UNKNOWN",
+        "BYTECODE_PROVEN (R2 needs progress; R9 tail-without-progress restart; no terminal state) + HARNESS_POLICY (P3 cap, a device answering HEAD+EMPTY+TAIL); runtime UNKNOWN",
         "the sink is (trivially) exact but completion never fires; the real SDK would restart forever.",
         result, b"", mode="atomic",
     )
     assert result.failure == "restart_cap_exceeded" and result.restarts == TIMING["max_restarts"] + 1
     assert all(e.startswith("restart:tail_without_progress") for e in result.events if e.startswith("restart"))
     assert result.finish_codes == []
+
+
+@pytest.mark.asyncio
+async def test_zero_length_file_gets_a_failing_head() -> None:
+    """The emulator's default since 28 Sep (NOTHING_TO_SEND_HEAD_STATUS): a
+    lone HEAD with status 1.  R8 marks the transfer failed at once; no DATA,
+    no restart, no livelock."""
+    link, driver, result = await run_cell([], None, file_bytes=b"")
+    outcome = outcome_of(result, b"")
+    record(
+        "zero_length_file_head_failure[atomic]", outcome, DETECTED,
+        "BYTECODE_PROVEN (R8: HEAD status > 0 fails the transfer) + HARNESS_POLICY (status 1; real HEAD codes are U16)",
+        "a lone failing HEAD ends the transfer cleanly; nothing restarts.",
+        result, b"", mode="atomic",
+    )
+    assert result.head_statuses == [1] and result.restarts == 0 and not result.complete
+
+
+@pytest.mark.asyncio
+async def test_mtu_23_with_sized_frames_completes_without_restarts() -> None:
+    """The emulator's default since 28 Sep: DATA payloads capped to fit
+    ATT_MTU - 3, so nothing is truncated and the transfer completes in one
+    stream (compare test_mtu_23_with_unsized_frames_converges_one_frame_per_restart)."""
+    small = FILE[:96]
+    link = await bring_up(peripheral_factory([], PACE, small), mtu=None)
+    assert link.connection.att_mtu == 23
+    driver = await driver_for(link, stall_timeout=0.4, idle_timeout=0.6, max_restarts=16)
+    result = await driver.sync_file(SID, 0, 0, expected_size=len(small))
+    outcome = outcome_of(result, small)
+    record(
+        "mtu_23_sized_frames[paced]", outcome, RECOVERED,
+        "BYTECODE_PROVEN (R3, R2, R9) + HARNESS_POLICY (payload capped to ATT_MTU - 3 - header)",
+        "10-byte DATA payloads fit a 20-byte notification; one stream, no restart.",
+        result, small, mode="paced+stream_in_task",
+    )
+    assert result.complete and result.restarts == 0
+    assert any(e.get("event") == "payload_capped" for e in link.peripheral.stream_log)
 
 
 @pytest.mark.asyncio

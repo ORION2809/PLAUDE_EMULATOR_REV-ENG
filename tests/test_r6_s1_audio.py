@@ -219,3 +219,37 @@ def test_wav_header_fields() -> None:
     assert int.from_bytes(hdr[24:28], "little") == 16000
     assert int.from_bytes(hdr[40:44], "little") == 640
     assert OGG_PAGE_HEADER_LEN == 27
+
+
+def test_h4_bytecode_spans_do_not_skip_the_lead_and_step_1485_bytes() -> None:
+    """Review 2026-09-28: h4.a sets r = l on the first call, so no 512-byte
+    lead is skipped, and its drain loop steps n + p = 1485 bytes (mono) while
+    remaining() >= o = 1536.  The inferred geometry (h4_payload_spans) differs."""
+    from plaudsim.audio import h4_bytecode_payload_spans
+
+    total = 512 + 3 * 1536
+    assert h4_bytecode_payload_spans(total, 1) == [(45, 1440), (1530, 1440), (3015, 1440)]
+    assert h4_payload_spans(total, 1) == [(557, 1440), (2093, 1440), (3629, 1440)]
+    assert h4_bytecode_payload_spans(1535, 1) == []
+
+
+def test_ogg_page_of_zero_segments_is_27_bytes_and_parses() -> None:
+    """Review 2026-09-28: the 27-byte header includes the segment count, so a
+    zero-segment page (27 bytes) is a page (OggOpusParser counts it)."""
+    from plaudsim.audio import parse_ogg_page
+
+    page = b"OggS" + bytes([0, 4]) + bytes(20) + bytes([0])
+    assert len(page) == 27
+    parsed = parse_ogg_page(page)
+    assert parsed["payload"] == b"" and parsed["total_len"] == 27
+
+
+def test_invalid_opus_head_keeps_the_defaults_and_the_audio_pages() -> None:
+    """Review 2026-09-28: the SDK logs an invalid page 0 and carries on with
+    48000/1/0; classify_ogg_pages now does the same instead of raising."""
+    from plaudsim.audio import OPUS_HEAD_DEFAULTS
+
+    pages = [{"payload": b"short"}, {"payload": b"OpusTags"}, {"payload": b"audio", "lacing": b"\x05"}]
+    roles = classify_ogg_pages(pages)
+    assert roles["head"] == OPUS_HEAD_DEFAULTS and roles["head_valid"] is False
+    assert "too short" in roles["head_error"] and len(roles["audio_pages"]) == 1
