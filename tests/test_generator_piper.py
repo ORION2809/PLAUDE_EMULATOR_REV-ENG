@@ -406,6 +406,35 @@ def test_stub_backend_drives_generate_meeting_with_exact_word_timings(monkeypatc
     assert all(seg["words"] for seg in build_segments(meeting))
 
 
+def test_stub_meeting_json_exports_the_voice_files_timing_method_and_attribution(monkeypatch, tmp_path: Path) -> None:
+    """docs/generator.md §8 (was open): a Piper meeting.json now says how its
+    word boundaries were made and which voice files made the audio; the
+    formant meeting.json is unchanged (no ``generator.tts`` key)."""
+    from generator.export import build_tts_metadata, write_meeting
+    from generator.meeting import generate_meeting
+    from generator.scenario import load_scenario
+
+    backend, _ = _fake_backend(monkeypatch, tmp_path, n_speakers=40)
+    _fake_palette(monkeypatch, "xx_fake-medium", 40)
+    meeting = generate_meeting(load_scenario("piper_smoke", {"seed": 3, "duration_s": 12.0}), tts=backend)
+    m = write_meeting(meeting, tmp_path / "out")
+    tts = m["generator"]["tts"]
+    assert tts == build_tts_metadata(meeting)
+    assert tts["timing_method"] == ["piper-duration-alignment"]
+    assert tts["voice_files"] == [{"voice_model": "xx_fake-medium", "model_source": "custom-loader",
+                                   "voice_sha256": piper_mod.file_sha256(tmp_path / "voices" / "xx_fake-medium.onnx"),
+                                   "config_sha256": piper_mod.file_sha256(tmp_path / "voices" / "xx_fake-medium.onnx.json")}]
+    assert tts["attribution"] == []  # only listed voices carry one
+    assert "not acoustic onsets" in m["provenance"]["ground_truth"]
+    assert "LibriTTS-R" in piper_mod.VOICE_ATTRIBUTIONS["en_US-libritts_r-medium"]
+    assert "CC BY 4.0" in piper_mod.VOICE_ATTRIBUTIONS["en_US-libritts_r-medium"]
+
+    formant = generate_meeting(load_scenario("smoke", {"seed": 3, "duration_s": 12.0}))
+    assert build_tts_metadata(formant) is None
+    fm = write_meeting(formant, tmp_path / "formant")
+    assert "tts" not in fm["generator"] and fm["provenance"]["ground_truth"].startswith("segments, words and activity.npy")
+
+
 def test_stub_voice_as_downloaded_without_onnx_is_unavailable_at_construction(monkeypatch, tmp_path: Path, capsys) -> None:
     """Reviewer's case: <stem>.onnx + .onnx.json exactly as downloaded, no
     aligned copy, and no `onnx` (plain `pip install piper-tts`). The default
@@ -743,6 +772,10 @@ def test_piper_meeting_ground_truth_round_trips_at_der_zero(piper_meeting, piper
     d, m = piper_meeting
     assert main(["validate", str(d)]) == 0
     assert m["generator"]["tts_backend"] == "piper" and m["generator"]["timing_exact"] is True
+    tts = m["generator"]["tts"]
+    assert tts["timing_method"] == ["piper-duration-alignment"]
+    assert [v["voice_model"] for v in tts["voice_files"]] == [VOICE_STEM]
+    assert tts["attribution"] == [piper_mod.VOICE_ATTRIBUTIONS[VOICE_STEM]]
     assert 20.0 <= m["duration_s"] <= 30.0 and len(m["speakers"]) == 2
     assert [s["voice"] for s in m["speakers"]] == piper_backend.assign_voices(2, 7)
     assert m["turn_taking"]["overlap_ratio_realised"] > 0.0, "the smoke preset must overlap"

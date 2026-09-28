@@ -311,8 +311,8 @@ Whether those terms reach weights fine-tuned from a model trained on the
 Materials, and audio made with such weights, is **not established here**.
 Anyone redistributing or commercially using audio made with this voice
 should settle it first. The CC BY 4.0 dataset licence of LibriTTS-R asks for
-attribution. meeting.json does not carry one yet (§8), so §6.3 gives the line
-to use.
+attribution. Since 28 Sep 2026 a Piper meeting.json carries it in
+`generator.tts.attribution` (§6.3 gives the same line).
 
 The aligned copy was first made with piper's own tool, never touching `reference/`:
 
@@ -584,7 +584,9 @@ policy), `synth-piper-2spk-s0101` was regenerated in a fresh process into a
 scratch directory. It was byte-identical to the stored meeting (`diff -r`),
 took 26.2 s wall, and passed `validate`.
 
-Attribution to use with this set, which meeting.json does not carry (§8):
+Attribution to use with this set (since 28 Sep 2026 also in each new Piper
+meeting.json, `generator.tts.attribution`; the four meetings below were made
+before that, on 25 Sep):
 "Speech synthesised with the Piper voice en_US-libritts_r-medium
 (rhasspy/piper-voices), trained on LibriTTS-R (Koizumi et al., 2023,
 https://www.openslr.org/141/, CC BY 4.0) and fine-tuned from the lessac
@@ -668,7 +670,7 @@ failure modes rather than echo fixtures:
 
 - **Intelligible speech without local inputs.** The default offline backend is speech-like pseudo-speech; ASR word-error evaluation on it is meaningless (small.en WER 0.9615 on a formant smoke meeting, §6.2). The piper backend gives intelligible speech but needs piper-tts (GPL-3.0-or-later) and the local voice, which CI does not have. The lessac base-voice data licence is unresolved (§6.2).
 - **Natural text.** Piper meetings speak the seeded vocabulary as word salad. `text_corpus` accepts a real text file, but none is bundled.
-- **Piper metadata in meeting.json** (export.py is another owner's; requested). A Piper meeting's meeting.json still says `provenance.ground_truth: "… facts of construction"` and `generator.timing_exact: true`. Nothing in it tells a consumer that Piper word boundaries are frame-quantised model alignments (256 samples at 22.05 kHz) with coarticulated, non-silent gaps (§6.2). The turn notes (`SynthResult.notes`) already hold `timing_method` (`piper-duration-alignment`), `phonemization` (context or per-token), `voice_model`, `voice_sha256`, `config_sha256`, `model_source`, the noise scales and the thread count. None is exported, and neither is a LibriTTS-R CC BY 4.0 attribution (§6.3 gives the line). The voice names (`<stem>:<reader>`) and `generator.tts_backend` are exported.
+- **Piper metadata in meeting.json: done 28 Sep 2026.** A meeting whose turns carry TTS notes (the Piper backend) now exports `generator.tts` (`generator/export.py` `build_tts_metadata`): the distinct `timing_method` (`piper-duration-alignment`), `phonemization`, noise scales, onnxruntime threads, `deterministic_by_config` and `boundary_rounding` values; `voice_files` (`voice_model`, `voice_sha256`, `config_sha256`, `model_source`); and `attribution` (the LibriTTS-R CC BY 4.0 line, `generator/tts/piper.py` `VOICE_ATTRIBUTIONS`, for the listed voice only). Its `provenance.ground_truth` says that word boundaries are the voice's own alignment, not acoustic onsets. `generator.timing_exact` stays `true`: it means exact with respect to that alignment (§6.2). A formant meeting.json is unchanged byte for byte (no turn carries notes). Tests: `tests/test_generator_piper.py` (a stand-in voice, and the real voice when installed).
 - **Piper portability.** Byte-determinism was measured on one M1 with onnxruntime 1.30.0 at one pinned thread count. Other CPUs, onnxruntime versions and espeak-ng data may change bytes (durations did not change with thread count, but other factors were not tested).
 - **Consumers still on dict order.** `pipeline/meeting.py` `resolve_audio(…, "device")` takes the first `audio.device` entry, which is the encrypted file, and `emulator/serve.py` serves `device/recording.ogg` (mono) in `PLAUD_MEETING_DIR` mode even for 2-channel meetings. Both belong to other components; they should use `generator.contract.device_primary_path` (requested).
 - **Stereo raw/g4/E2EE.** Only the Ogg files exist in stereo; the raw, g4 and E2EE shapes are mono even for a 2-channel scenario (their `channels` field says so).

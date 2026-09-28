@@ -107,6 +107,20 @@ SIDECAR_SCHEMA = "plaud-harness/piper-aligned-source/1"
 DEFAULT_VOICE_MODEL = "en_US-libritts_r-medium"
 
 
+
+#: Attribution to carry with audio made by a voice (exported into
+#: meeting.json ``generator.tts.attribution``).  LibriTTS-R is CC BY 4.0,
+#: which asks for attribution; the lessac base voice's licence is unresolved
+#: (docs/generator.md §6.2).  Voices not listed carry none.
+VOICE_ATTRIBUTIONS: dict[str, str] = {
+    "en_US-libritts_r-medium": (
+        "Speech synthesised with the Piper voice en_US-libritts_r-medium (rhasspy/piper-voices), "
+        "trained on LibriTTS-R (Koizumi et al., 2023, https://www.openslr.org/141/, CC BY 4.0) and "
+        "fine-tuned from the lessac medium voice (Blizzard 2013 research licence; see docs/generator.md §6.2)."
+    ),
+}
+
+
 class PaletteFallbackWarning(UserWarning):
     """Auto-assignment fell back to evenly spaced ids of an unmeasured model."""
 
@@ -750,6 +764,7 @@ class PiperBackend:
             "voice_sha256": file_sha256(model.onnx_path),
             "config_sha256": file_sha256(model.config_path),
             "model_source": self._sources.get(model.stem),
+            "attribution": VOICE_ATTRIBUTIONS.get(model.stem),
         }
 
     def _isolated_phonemes(self, voice_obj, model: _Model, token: str) -> list[str]:
@@ -878,6 +893,7 @@ def render_to_result(r: PiperRender, backend: str = "piper", deterministic: bool
 
 __all__ = [
     "ALIGNED_SUFFIX",
+    "VOICE_ATTRIBUTIONS",
     "AlignedCopyIgnoredWarning",
     "DEFAULT_THREADS",
     "DEFAULT_VOICE_MODEL",

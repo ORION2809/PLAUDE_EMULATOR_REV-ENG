@@ -40,6 +40,7 @@ refused with FileExistsError and left untouched.
 from __future__ import annotations
 
 import hashlib
+import json
 import shutil
 from pathlib import Path
 from typing import Any
@@ -231,8 +232,35 @@ def build_segments(meeting: Meeting) -> list[dict[str, Any]]:
     return segments
 
 
+#: Turn-note keys (SynthResult.notes, generator/tts/*) summarised per meeting.
+TTS_NOTE_KEYS = ("timing_method", "phonemization", "noise_scale", "noise_w_scale", "onnxruntime_threads",
+                 "deterministic_by_config", "boundary_rounding")
+TTS_VOICE_KEYS = ("voice_model", "voice_sha256", "config_sha256", "model_source")
+
+
+def build_tts_metadata(meeting: Meeting) -> dict[str, Any] | None:
+    """What the TTS backend recorded about how the audio and word boundaries
+    were made, summarised over the meeting's turns (distinct values, sorted),
+    or None when no turn carries notes (the formant backend: its boundaries
+    are facts of construction, and its meeting.json is unchanged)."""
+    notes = [t.notes for t in meeting.turns if t.notes]
+    if not notes:
+        return None
+
+    def distinct(key: str) -> list[Any]:
+        vals = {json.dumps(n[key], sort_keys=True) for n in notes if n.get(key) is not None}
+        return [json.loads(v) for v in sorted(vals)]
+
+    out: dict[str, Any] = {k: distinct(k) for k in TTS_NOTE_KEYS}
+    voices = {json.dumps({k: n.get(k) for k in TTS_VOICE_KEYS}, sort_keys=True) for n in notes if n.get("voice_model")}
+    out["voice_files"] = [json.loads(v) for v in sorted(voices)]
+    out["attribution"] = distinct("attribution")
+    return out
+
+
 def build_meeting_json(meeting: Meeting, device_meta: dict[str, dict[str, Any]], stems: dict[str, str], mics_wav: str | None) -> dict[str, Any]:
     sc = meeting.scenario
+    tts = build_tts_metadata(meeting)
     preset = DEVICE_PRESETS[sc.device.preset]
     device_entries = {k: DEVICE_FILES[k] for k in device_meta}
     device_details = {}
@@ -302,9 +330,14 @@ def build_meeting_json(meeting: Meeting, device_meta: dict[str, dict[str, Any]],
             "tts_backend": meeting.tts_backend,
             "timing_exact": all(t.timing_exact for t in meeting.turns),
             "ogg_serial": SYNTHETIC_OGG_SERIAL,
+            **({"tts": tts} if tts is not None else {}),
         },
         "provenance": {
-            "ground_truth": "segments, words and activity.npy are facts of construction (see docs/generator.md)",
+            "ground_truth": (
+                "segments, words and activity.npy are facts of construction (see docs/generator.md)" if tts is None else
+                "segments and activity.npy are facts of construction; word boundaries are the TTS voice's own "
+                "alignment (generator.tts.timing_method; docs/generator.md §6.2), not acoustic onsets"
+            ),
             "device_shapes": "classified with emulator/plaudsim/audio.classify_recording; evidence in docs/generator.md",
             "harness_policy": "geometry, voices, room, noise, bitrate settings and file layout are harness choices",
         },
