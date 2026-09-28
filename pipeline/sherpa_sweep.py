@@ -140,6 +140,34 @@ def topk_index(vec: np.ndarray, topk: int) -> list[int]:
     return head
 
 
+def _finalize_labels(count: np.ndarray, spf: np.ndarray) -> np.ndarray:
+    """FinalizeLabels: per frame, the top-k clusters by count (k = speakers
+    per frame).  Vectorised where the top-k SET is unambiguous (the k-th and
+    (k+1)-th largest counts differ, or k covers every cluster); frames with a
+    tie across that boundary go through ``topk_index`` (libc++'s choice)."""
+    frames, n_clusters = count.shape
+    final = np.zeros_like(count)
+    k = spf[:frames].astype(np.int64)
+    order = np.argsort(-count, axis=1, kind="stable")
+    ranked = np.take_along_axis(count, order, axis=1)
+    for kk in np.unique(k):
+        kk = int(kk)
+        if kk <= 0:
+            continue
+        rows = np.flatnonzero(k == kk)
+        if kk >= n_clusters:
+            final[rows] = 1
+            continue
+        clear = ranked[rows, kk - 1] > ranked[rows, kk]
+        fast = rows[clear]
+        for j in range(kk):
+            final[fast, order[fast, j]] = 1
+        for i in rows[~clear]:
+            for c in topk_index(count[i], kk):
+                final[i, c] = 1
+    return final
+
+
 class SherpaStages:
     """Segmentation + embeddings once, reconstruction per threshold."""
 
@@ -304,13 +332,7 @@ class SherpaStages:
         if (n - m.window_size) % m.window_shift > 0:
             last = min(n // m.receptive_field_shift, count.shape[0] - 1)
             count = count[: last + 1]
-        final = np.zeros_like(count)
-        for i in range(count.shape[0]):
-            k = int(spf[i])
-            if k == 0:
-                continue
-            for c in topk_index(count[i], k):
-                final[i, c] = 1
+        final = _finalize_labels(count, spf)
         return self._result(final, min_duration_on, min_duration_off)
 
     def _result(self, final: np.ndarray, min_on: float, min_off: float) -> list[tuple[float, float, int]]:
