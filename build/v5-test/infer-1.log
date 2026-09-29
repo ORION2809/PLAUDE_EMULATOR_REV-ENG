@@ -1,0 +1,51 @@
+[run-v5] output root: build/v5-test
+[run-v5] ami / oracle / EN2002a (no hint)
+[run-v5] ami / oracle / ES2004a (no hint)
+[run-v5] ami / oracle / ES2004b (no hint)
+[run-v5] ami / oracle / ES2004c (no hint)
+[run-v5] ami / oracle / ES2004d (no hint)
+[run-v5] ami / oracle / IS1009a (no hint)
+[run-v5] ami / oracle / IS1009b (no hint)
+[run-v5] ami / oracle / IS1009c (no hint)
+[run-v5] ami / oracle / IS1009d (no hint)
+[run-v5] ami / oracle / TS3003a (no hint)
+[run-v5] ami / oracle / TS3003b (no hint)
+[run-v5] ami / oracle / TS3003c (no hint)
+[run-v5] ami / energy-vad-cluster / EN2002a (no hint)
+[run-v5] ami / energy-vad-cluster / ES2004a (no hint)
+[run-v5] ami / energy-vad-cluster / ES2004b (no hint)
+[run-v5] ami / energy-vad-cluster / ES2004c (no hint)
+[run-v5] ami / energy-vad-cluster / ES2004d (no hint)
+[run-v5] ami / energy-vad-cluster / IS1009a (no hint)
+[run-v5] ami / energy-vad-cluster / IS1009b (no hint)
+[run-v5] ami / energy-vad-cluster / IS1009c (no hint)
+[run-v5] ami / energy-vad-cluster / IS1009d (no hint)
+[run-v5] ami / energy-vad-cluster / TS3003a (no hint)
+[run-v5] ami / energy-vad-cluster / TS3003b (no hint)
+[run-v5] ami / energy-vad-cluster / TS3003c (no hint)
+[run-v5] ami / energy-vad-cluster-hint / EN2002a (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / ES2004a (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / ES2004b (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / ES2004c (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / ES2004d (--param num_speakers=4)
+[run-v5] waiting: another heavy process is running:
+92717 /bin/zsh -c source /Users/mivi/.claude/shell-snapshots/snapshot-zsh-1790160519537-a16an4.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QU
+92720 .venv/bin/python -m pytest tests/test_v1_discovery_session.py -q -p no:cacheprovider --timeout=120
+[run-v5] ami / energy-vad-cluster-hint / IS1009a (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / IS1009b (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / IS1009c (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / IS1009d (--param num_speakers=4)
+[run-v5] waiting: another heavy process is running:
+92939 /bin/zsh -c source /Users/mivi/.claude/shell-snapshots/snapshot-zsh-1790160519537-a16an4.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QU
+92942 .venv/bin/python -m pytest tests/test_v1_discovery_session.py -q -p no:cacheprovider --timeout=120
+[run-v5] ami / energy-vad-cluster-hint / TS3003a (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / TS3003b (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / TS3003c (--param num_speakers=4)
+[run-v5] ami / whisper-sherpa / EN2002a (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / ES2004a (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] waiting: another heavy process is running:
+96122 /bin/zsh -c source /Users/mivi/.claude/shell-snapshots/snapshot-zsh-1790160519537-a16an4.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QU
+96124 .venv/bin/python -m pytest tests/ -q -p no:cacheprovider --timeout=300 -rs
+96332 /Users/mivi/Desktop/plaud-harness/.venv/bin/python -m mockcloud --host 127.0.0.1 --port 58822 --chunk-size 20000 --task-step-seconds 0.05 --local-file-roo
+96334 /Users/mivi/Desktop/plaud-harness/.venv/bin/python /Users/mivi/Desktop/plaud-harness/docker/cloud_roundtrip.py --url http://127.0.0.1:58822 --meeting-dir 
+[run-v5] ami / whisper-sherpa / ES2004b (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)

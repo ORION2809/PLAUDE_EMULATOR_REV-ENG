@@ -1,0 +1,25 @@
+# 2026-09-28T07:55:58Z ami oracle EN2002d pipeline=oracle hint=0 n_active=4 params=
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/EN2002d/mix.wav
+# load average at start: { 5.47 29.36 35.70 }
+# swap at start: total = 9216.00M  used = 7479.50M  free = 1736.50M  (encrypted)
+oracle: 685 segments, 4 speakers, 0.05s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/oracle/EN2002d.partial/hyp.json (+ .rttm, .stm)  [HARNESS SELF-TEST, not a system under test]
+        0.32 real         0.28 user         0.03 sys
+            79806464  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                7690  page reclaims
+                   0  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+                  16  involuntary context switches
+          3225140043  instructions retired
+           994983532  cycles elapsed
+            61195520  peak memory footprint
+# load average at end: { 5.47 29.36 35.70 }
+# exit 0

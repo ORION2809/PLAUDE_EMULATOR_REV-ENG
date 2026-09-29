@@ -1,0 +1,409 @@
+TS3003b 1 spk0 4.700 11.780 hey good afternoon good afternoon
+TS3003b 1 spk0 23.800 31.840 now my laptop does it again it's working
+TS3003b 1 spk0 40.300 60.300 ok good afternoon ok everybody found this place again yeah
+TS3003b 1 spk0 60.300 75.180 that's nice ok so this is our second meeting and still failing yeah now we're going into
+TS3003b 1 spk0 75.180 76.160 the functional design
+TS3003b 1 spk1 78.660 85.400 important thing of this phase is that we're going to try to get an
+TS3003b 1 spk1 85.400 93.560 agreement about the user requirements technical function design and the working design so that
+TS3003b 1 spk1 93.560 98.400 we can move on to the second phase but first this phase
+TS3003b 1 spk0 100.440 104.140 first announcement there's a little
+TS3003b 1 spk0 104.140 113.440 adaptation in the air conditioning system so there's our ghost mouse again but that
+TS3003b 1 spk0 113.440 121.860 means that you can have a little trouble with air conditioning that's because of this it's
+TS3003b 1 spk0 121.860 129.700 in wing c and e so it should be over in a couple of days it's going to be cold anyway
+TS3003b 1 spk0 130.160 137.860 so i don't think you're going to need it then our agenda now first the opening this
+TS3003b 1 spk0 137.860 143.920 time i will take the minutes you're going to have a presentation all
+TS3003b 1 spk1 143.920 146.980 of you and we've
+TS3003b 1 spk1 146.980 156.700 got 40 minutes for the whole presentation so i suggest we take about seven minutes per
+TS3003b 1 spk1 156.700 161.700 presentation and then we can have a little discussion about the new project requirements
+TS3003b 1 spk1 162.200 168.440 which have been sent to me and then the decision on the control functions which we want to
+TS3003b 1 spk1 168.440 175.320 include and those which we don't want to include so we've got 40 minutes for all of it so
+TS3003b 1 spk1 175.320 181.200 i suggest let's start with the first presentation who wants to be first
+TS3003b 1 spk0 182.820 183.500 i think i'll go first
+TS3003b 1 spk1 183.500 184.020 okay
+TS3003b 1 spk0 185.480 193.020 so maybe it's easy if you yeah i think you will tell them your presentation as well
+TS3003b 1 spk0 193.380 197.620 just which function you have and what are you going to talk about
+TS3003b 1 spk0 206.300 210.820 okay my name is frank van polen i'm the market expert but you already knew that
+TS3003b 1 spk2 212.600 218.260 i've done some research we have been doing research in a usability lab where we observe
+TS3003b 1 spk2 219.880 226.980 users operating remote controls we let them fill out a questionnaire we had 100 of these
+TS3003b 1 spk2 226.980 234.720 test subjects in addition we did some market research see what the market consists of
+TS3003b 1 spk2 234.720 245.220 what ages are involved well these are three quite astonishing results i thought remotes
+TS3003b 1 spk2 245.220 254.420 are being considered ugly 75 % of the people questioned indicated that they thought their
+TS3003b 1 spk2 254.420 258.040 remote was ugly and an additional
+TS3003b 1 spk0 258.040 261.240 80 % indicated that it would spend more money on a fancy
+TS3003b 1 spk0 261.240 268.900 looking remote control so in addition remotes were not very functional 50 % of the people
+TS3003b 1 spk0 268.900 276.120 indicated they only used about 10 % of the buttons on a remote control and 50 % of the
+TS3003b 1 spk0 276.120 282.960 people indicated that their remote tended to get lost in their room so some things
+TS3003b 1 spk0 285.260 286.940 then we did some research to
+TS3003b 1 spk2 286.940 290.580 do most relevant functions channel selection and volume selection
+TS3003b 1 spk2 291.900 299.660 both got a 10 on a scale of 1 to 10 for relevancy the power button got a 9 and teletext got
+TS3003b 1 spk2 299.660 307.600 a 6 5 so these are the most important functions of a remote control then there are some
+TS3003b 1 spk2 307.600 313.160 one time use function that's what i like to call them audio settings video settings
+TS3003b 1 spk2 313.160 315.880 and channel settings buttons which are not
+TS3003b 1 spk0 315.880 319.280 really used very frequently but are still
+TS3003b 1 spk0 319.280 325.760 considered to be of some importance channel selection was also indicated to be used very
+TS3003b 1 spk0 325.760 337.700 frequently 168 times per hour then this is the market 60 % of the market consists
+TS3003b 1 spk0 337.700 345.820 of users between the ages 16 and 46 the main characteristic of this group is that
+TS3003b 1 spk0 345.820 347.960 they're very critical on the remote control
+TS3003b 1 spk2 349.580 353.280 they like to use new functions but they also
+TS3003b 1 spk2 353.280 360.120 are very critical they won't spend their money very easily so the users of 46 to
+TS3003b 1 spk2 360.120 367.080 65 years they make up 40 % of the market they're not really very interested in features
+TS3003b 1 spk0 367.080 377.240 but they do tend to spend their money a lot easier what i think this indicates for our
+TS3003b 1 spk0 379.240 386.960 design i think we should make a remote for the future this means we would have to focus
+TS3003b 1 spk0 386.960 389.660 on the ages 16 to 45
+TS3003b 1 spk2 391.000 395.200 this also makes the biggest part of the market so that would
+TS3003b 1 spk2 395.200 398.440 also be where our main profit would be
+TS3003b 1 spk0 399.940 402.900 this would mean we would have to make a fancy
+TS3003b 1 spk0 402.900 412.520 design the results also indicated that about one quarter of the people questioned thought
+TS3003b 1 spk0 412.520 421.440 that remote control caused rsi this is certainly something to take into account
+TS3003b 1 spk2 422.480 423.620 34 % thought
+TS3003b 1 spk2 423.620 430.260 that it was hard to learn how to operate a new remote control these are two factors
+TS3003b 1 spk2 430.260 435.660 that i think should be included in the design besides of course that the remote must look
+TS3003b 1 spk2 435.660 443.520 very nice functionality as a lot of people indicated they only use about 10 % of the
+TS3003b 1 spk2 443.520 446.400 buttons i think we should make very few buttons
+TS3003b 1 spk0 447.520 450.620 this will also be beneficial to the design
+TS3003b 1 spk0 450.620 457.060 of the remote i think the most frequently used buttons should be emphasized especially
+TS3003b 1 spk0 457.060 458.540 the channel selection and audio
+TS3003b 1 spk2 458.540 463.700 selection buttons because they're used most so they
+TS3003b 1 spk2 463.700 474.060 should be robust they shouldn't break down easily then as a lot of people indicated
+TS3003b 1 spk2 474.060 481.060 that their remote got lost in the room it might be and i say it might be because it
+TS3003b 1 spk2 481.060 488.140 would certainly boost the production costs a lot but it might be a good idea to make
+TS3003b 1 spk2 488.140 495.340 a docking station this could get a button in it which would send a signal to the remote
+TS3003b 1 spk2 495.340 499.160 which would then beep so you know where it is in the room in
+TS3003b 1 spk0 499.160 499.880 addition to this
+TS3003b 1 spk0 499.880 508.160 it could recharge the batteries in the remote if you put it in then a surprisingly
+TS3003b 1 spk0 508.880 516.060 great deal of people indicated that an lcd screen in the remote control would be preferred
+TS3003b 1 spk0 517.180 523.260 this was mostly people in the age of 16 to 25
+TS3003b 1 spk2 524.260 527.220 but up to 45 it remains feasible
+TS3003b 1 spk2 527.220 532.120 this would also greatly increase the production costs but i
+TS3003b 1 spk0 532.120 533.860 think these are just some small
+TS3003b 1 spk0 533.860 544.120 factors we could consider okay that would be all thank you anybody have any questions
+TS3003b 1 spk0 544.120 551.980 until now about functional requirements okay that's clear to the second
+TS3003b 1 spk0 571.520 577.960 yeah you can take your time we've got plenty of time
+TS3003b 1 spk0 584.260 598.020 i think we must use the general functions of the remote control i've done a
+TS3003b 1 spk3 598.020 598.960 little
+TS3003b 1 spk3 598.960 613.200 research on the internet not much information about it about the interface i've been thinking
+TS3003b 1 spk3 613.200 623.040 about simple manner to put a lot of functions in one remote control you've got a lot of
+TS3003b 1 spk3 623.040 636.100 devices like dvd television stereo but it must be user friendly you can put a lot
+TS3003b 1 spk3 636.100 658.940 of functions in one remote control i've got many functions in one remote control you
+TS3003b 1 spk3 658.940 668.580 can see this is quite simple remote control a few buttons this remote control got a lot
+TS3003b 1 spk3 668.580 669.940 of buttons
+TS3003b 1 spk0 672.120 679.000 people don't like it what i was thinking about was
+TS3003b 1 spk3 679.000 682.500 keep the general functions
+TS3003b 1 spk3 682.500 692.000 like the rs like the on off button keep it like a red button everybody knows it so
+TS3003b 1 spk3 692.000 704.780 you don't have to change that my personal preferences use a display for specific functions
+TS3003b 1 spk3 704.780 725.480 of the different devices what i was thinking about was you've got
+TS3003b 1 spk0 725.480 727.240 just
+TS3003b 1 spk3 727.240 728.040 a remote control
+TS3003b 1 spk3 729.580 739.360 you've got the general functions like the on off button sound i don't know here you've
+TS3003b 1 spk3 739.360 749.100 got a kind of display it's a touch screen you've got the general functions of the device
+TS3003b 1 spk3 749.100 767.620 for a dvd player you've got here real buttons for selecting a device this button is for
+TS3003b 1 spk3 767.620 784.520 a dvd for every device you've got a part display of buttons you never got all the buttons
+TS3003b 1 spk3 784.520 788.900 on one device that's my idea about
+TS3003b 1 spk0 788.900 790.540 it
+TS3003b 1 spk3 799.760 807.360 the real buttons we have to use we use quite
+TS3003b 1 spk3 807.360 818.340 large buttons for everybody after you see it even old people young people we miss keep
+TS3003b 1 spk3 818.340 822.600 buttons quite simple and quite large
+TS3003b 1 spk0 830.060 835.840 any other questions about the technical functions
+TS3003b 1 spk0 836.400 842.100 i think if we're going to use a touch screen we're going to go way above the 12 5 euros
+TS3003b 1 spk0 842.920 843.920 i don't think
+TS3003b 1 spk3 843.920 849.920 so you've got quite cheap touch screens it's not in color
+TS3003b 1 spk0 849.920 858.880 or something i've seen
+TS3003b 1 spk0 860.220 872.360 something on the internet not today but a few weeks ago you've got quite a kind of touch
+TS3003b 1 spk0 872.360 872.800 screen
+TS3003b 1 spk3 872.800 879.940 for 20
+TS3003b 1 spk0 879.940 884.920 euros or less it's possible
+TS3003b 1 spk0 885.880 894.020 we certainly make a fancy design but it wouldn't be very robust it's very fragile and you can
+TS3003b 1 spk0 894.020 898.040 get scratches on it that is true let's look into that
+TS3003b 1 spk0 898.140 903.780 maybe you can first listen to your presentation and then we'll have a little discussion about
+TS3003b 1 spk0 903.780 906.360 the requirements and the design
+TS3003b 1 spk0 923.300 930.320 i've got a presentation about the working design first about how it works it's really
+TS3003b 1 spk0 930.320 932.060 simple of course everybody knows how a remote
+TS3003b 1 spk1 932.060 935.080 works the user presses a button the remote
+TS3003b 1 spk1 935.080 940.580 determines what button it is uses the infrared to send a signal to the tv the tv switches
+TS3003b 1 spk1 940.580 950.240 to the frequency or what function it is we've got the plate it's got conductive disks
+TS3003b 1 spk1 950.240 958.320 for every button when the user presses a button a signal goes to the led and transmits
+TS3003b 1 spk1 958.320 966.340 it to the tv it's a very simple device technically speaking this is a schematic overview you've
+TS3003b 1 spk1 966.340 973.920 got the buttons the power source and when a button gets pressed it goes to the chip
+TS3003b 1 spk1 976.060 986.960 the chip controls the infrared bulb and perhaps a normal bulb when you press a button you
+TS3003b 1 spk1 986.960 992.160 think we should use default materials simple plastics keep the inner workings simple
+TS3003b 1 spk1 992.240 997.800 so it's robust i think we should focus on aesthetics the design and the user
+TS3003b 1 spk0 997.800 998.280 interface
+TS3003b 1 spk0 998.280 1002.960 because if you're going to use high tech materials the price is going to go sky high
+TS3003b 1 spk0 1005.480 1008.940 you only have to design remote ones if you use high
+TS3003b 1 spk1 1008.940 1010.100 tech materials it comes back
+TS3003b 1 spk1 1010.100 1017.820 in every product in my idea it's going to be smart to invest in design and not
+TS3003b 1 spk0 1017.820 1019.100 in
+TS3003b 1 spk0 1019.100 1022.380 the product itself that's it
+TS3003b 1 spk0 1023.400 1046.080 okay thank you okay now i hope everybody has a little bit more insight in the functions
+TS3003b 1 spk0 1046.080 1046.960 we all have and
+TS3003b 1 spk1 1046.960 1052.700 what we're doing right now i'm the project manager so i'm here to mess
+TS3003b 1 spk1 1052.700 1053.700 things up and
+TS3003b 1 spk0 1053.700 1064.480 tell you some new requirements we've got to design a remote
+TS3003b 1 spk1 1064.480 1065.220 which is only
+TS3003b 1 spk1 1065.220 1074.040 suitable for tv that's because it will be too complex and the time to market will
+TS3003b 1 spk1 1074.040 1079.960 be too big if we want to have it for more functions so it has to be simple
+TS3003b 1 spk1 1081.120 1088.880 another point is we have to skip the data text because in the world of upcoming internet
+TS3003b 1 spk1 1089.880 1099.120 we think data text is going to be a thing of the past and it's a function we don't
+TS3003b 1 spk1 1099.120 1105.980 need you know remote control internet is also mentioned just to go in a
+TS3003b 1 spk0 1105.980 1106.420 function we
+TS3003b 1 spk0 1106.420 1113.160 can use maybe also on televisions it will be available as well another one is the
+TS3003b 1 spk0 1113.160 1115.860 customer is 40 plus
+TS3003b 1 spk1 1116.960 1121.060 that's the market we have to target because we are going to
+TS3003b 1 spk1 1121.060 1128.300 develop a new product which is specially designed for the younger customers this is
+TS3003b 1 spk1 1128.300 1136.100 a bit pity for the marketing expert because he was aiming on the younger persons
+TS3003b 1 spk1 1136.980 1143.500 so we have to find a market which is above 40 plus but which will suit our remote
+TS3003b 1 spk1 1143.500 1151.780 control and the other way around and we have to be very attentive in putting the
+TS3003b 1 spk1 1151.780 1158.160 corporate image in our product so it has to be visible in our design in the way our
+TS3003b 1 spk1 1158.160 1163.960 device works and we have to be very clear on this
+TS3003b 1 spk0 1163.960 1168.500 point as well so i suggest let's
+TS3003b 1 spk0 1168.500 1172.040 have a discussion on the control functions
+TS3003b 1 spk0 1174.520 1177.680 so is there any discussion possible about the requirements
+TS3003b 1 spk0 1179.020 1186.880 we can see if we can find a way between the functions we want to use and the market we
+TS3003b 1 spk0 1186.880 1188.100 want to reach with our product
+TS3003b 1 spk0 1190.140 1192.640 you're saying that teletext is going to be
+TS3003b 1 spk2 1192.640 1196.480 an old feature and it's not going to
+TS3003b 1 spk2 1196.480 1201.420 be used any more anyway pretty soon and new tvs will have internet access on them
+TS3003b 1 spk2 1201.940 1206.600 but i think if you're targeting people of 40 plus the chance that they will have
+TS3003b 1 spk2 1206.600 1212.720 a tv with internet access within the next like 20 years is very slim
+TS3003b 1 spk2 1214.140 1219.340 in addition people indicated that teletext simply was an important feature
+TS3003b 1 spk0 1219.340 1226.460 for the
+TS3003b 1 spk0 1226.460 1228.820 product i'm pretty much against it
+TS3003b 1 spk0 1229.540 1230.760 against the no data text
+TS3003b 1 spk0 1231.160 1231.200 yes
+TS3003b 1 spk0 1234.820 1240.420 besides that i think the market for 40 plus is like pretty small
+TS3003b 1 spk0 1243.520 1252.460 but if i see this i think we're just going to go for another pretty
+TS3003b 1 spk0 1252.460 1258.920 i think we can do a lot with the design and
+TS3003b 1 spk1 1258.920 1261.700 the simple buttons which are also mentioned
+TS3003b 1 spk1 1262.680 1269.560 if we put a lot of effort in those we can make remote control with just two or three buttons
+TS3003b 1 spk1 1269.560 1275.540 or just remote which is suitable for the market we want to reach because it is 40 % of the market
+TS3003b 1 spk1 1277.240 1283.780 and if you look in holland the whole generation of 40 plus 50 plus
+TS3003b 1 spk1 1284.120 1290.000 it's the biggest share of the whole population now
+TS3003b 1 spk0 1291.000 1292.000 yes but it's not
+TS3003b 1 spk2 1292.000 1293.580 the biggest part of the
+TS3003b 1 spk0 1293.580 1294.460 market
+TS3003b 1 spk0 1295.680 1296.980 besides that they're not very
+TS3003b 1 spk2 1296.980 1297.300 critical
+TS3003b 1 spk0 1298.460 1298.860 i mean
+TS3003b 1 spk2 1298.900 1302.640 they don't really care what the remote control is like
+TS3003b 1 spk2 1302.640 1306.080 they'll just pretty much take the first thing they see which looks
+TS3003b 1 spk0 1306.080 1306.780 acceptable
+TS3003b 1 spk0 1308.240 1313.640 but don't you think that if we make a remote which is typically
+TS3003b 1 spk1 1313.640 1315.800 made for this market
+TS3003b 1 spk1 1316.720 1324.220 that people think that's the device i've looked for although i didn't realize it
+TS3003b 1 spk1 1324.820 1324.880 so
+TS3003b 1 spk0 1324.880 1326.320 let's try it
+TS3003b 1 spk0 1326.320 1334.000 no i think that would be the case in the 16 to 45 age category
+TS3003b 1 spk0 1335.960 1340.440 because they are critical and they want to have a fancy remote control
+TS3003b 1 spk0 1341.860 1342.780 people are 40 plus
+TS3003b 1 spk0 1343.840 1349.700 i mean they want it to work but as soon as it works it's okay with them
+TS3003b 1 spk0 1352.080 1358.320 i think that if we put our marketing right we can sell this just like
+TS3003b 1 spk0 1358.940 1362.720 i don't know if you've heard about it in the news the elderly mobile phone
+TS3003b 1 spk0 1362.980 1364.300 yeah it's a big success
+TS3003b 1 spk0 1364.820 1371.600 if we make a remote control just with that idea in mind we could make tons of money i think
+TS3003b 1 spk0 1372.420 1377.740 we don't have to focus on the design then but on functionality
+TS3003b 1 spk0 1378.410 1382.040 we just change our focus on the project
+TS3003b 1 spk0 1383.020 1386.540 and i think we can sell this
+TS3003b 1 spk0 1387.480 1398.440 i simply think that the new products we're going to make specifically are
+TS3003b 1 spk1 1398.440 1401.920 designed for younger people
+TS3003b 1 spk1 1402.800 1407.440 so maybe we can focus ourselves on the elderly people
+TS3003b 1 spk1 1408.660 1418.060 and i think we have to see what requirements we need for those remote controls
+TS3003b 1 spk1 1419.120 1426.180 because what you told us channel selection is important volume selection power and
+TS3003b 1 spk0 1426.180 1427.040 data text
+TS3003b 1 spk0 1429.680 1432.600 but obviously the board tends to disagree
+TS3003b 1 spk0 1433.520 1435.000 no we haven't voted yet
+TS3003b 1 spk0 1437.000 1444.800 i think data text can be a function as well
+TS3003b 1 spk1 1445.840 1450.320 but only if it won't hire the cost
+TS3003b 1 spk1 1451.360 1451.960 because i don't know
+TS3003b 1 spk0 1451.960 1455.220 if it will be a lot more money to implement data text as well
+TS3003b 1 spk0 1455.220 1456.960 but i don't think that will be a problem
+TS3003b 1 spk0 1458.840 1459.540 or is data text
+TS3003b 1 spk3 1459.880 1464.280 deaf people need data text for subtitles also
+TS3003b 1 spk0 1465.480 1469.660 i think it would definitely be a bad idea not to include data text
+TS3003b 1 spk0 1470.500 1473.620 is anybody really against data text
+TS3003b 1 spk0 1474.460 1474.580 no
+TS3003b 1 spk0 1475.740 1479.280 just keep the data text
+TS3003b 1 spk0 1479.280 1484.320 i think that's a good idea as well especially for the subtitles
+TS3003b 1 spk0 1486.800 1495.040 maybe we can make that another point of advantage in
+TS3003b 1 spk1 1495.040 1496.420 our remote control
+TS3003b 1 spk1 1497.300 1503.020 if we make a button for example for big subtitles
+TS3003b 1 spk1 1503.580 1506.820 which is instantly on the remote control for elderly people
+TS3003b 1 spk1 1507.020 1511.440 they can think i want to have subtitles push the button and they get the big subtitles
+TS3003b 1 spk1 1512.240 1513.060 that's a good idea
+TS3003b 1 spk1 1515.540 1517.640 so i think data text can be very
+TS3003b 1 spk0 1517.640 1519.480 useful in our advantage
+TS3003b 1 spk0 1523.500 1525.940 functionality should be a few buttons you said
+TS3003b 1 spk0 1528.020 1531.260 i think that's very important
+TS3003b 1 spk0 1531.480 1532.180 we have a few buttons
+TS3003b 1 spk0 1535.040 1536.680 so to keep it simple
+TS3003b 1 spk0 1537.820 1539.680 i don't think that's really an issue anymore
+TS3003b 1 spk0 1541.420 1542.960 well it might be
+TS3003b 1 spk0 1544.260 1547.520 if it's only for tv you're not going to need a lot of buttons anyway
+TS3003b 1 spk0 1548.620 1553.220 you need a one to zero button next channel previous channel
+TS3003b 1 spk0 1554.040 1557.580 volume up volume down and some teletext buttons
+TS3003b 1 spk0 1559.140 1562.620 yeah but do you need
+TS3003b 1 spk3 1562.620 1569.360 the buttons
+TS3003b 1 spk0 1569.360 1571.380 for one to zero
+TS3003b 1 spk0 1572.420 1574.160 maybe we can include teletext you do
+TS3003b 1 spk0 1574.940 1576.720 i think many people like to use that
+TS3003b 1 spk0 1577.060 1581.040 maybe you can use a switch from channel one to like 35
+TS3003b 1 spk0 1581.040 1584.940 you don't want to push the next channel button 35 times
+TS3003b 1 spk0 1585.220 1591.300 maybe you can implement the scroll button or joystick like
+TS3003b 1 spk0 1592.640 1594.080 there are other ways too
+TS3003b 1 spk0 1594.940 1598.060 if you look at telephones the sony telephone and the scroll button
+TS3003b 1 spk0 1598.080 1601.000 which is very useful in searching names
+TS3003b 1 spk0 1602.880 1609.900 that is true but i don't think there are many tvs that can switch channels that fast
+TS3003b 1 spk0 1612.620 1615.860 so the tv would need a function where you
+TS3003b 1 spk2 1615.860 1617.020 can actually view
+TS3003b 1 spk0 1617.020 1617.640 all channels
+TS3003b 1 spk0 1617.640 1619.520 and scroll through it
+TS3003b 1 spk0 1620.500 1624.320 i don't know if many channels do
+TS3003b 1 spk2 1624.320 1624.720 have that
+TS3003b 1 spk0 1626.600 1630.900 besides that if we're going to focus on elderly people
+TS3003b 1 spk0 1630.940 1632.640 they'll have to adapt
+TS3003b 1 spk0 1632.860 1634.480 they're not used to using scroll buttons
+TS3003b 1 spk0 1635.720 1638.540 perhaps we should stick to the basic layout
+TS3003b 1 spk0 1640.420 1641.340 this is the numbers
+TS3003b 1 spk0 1642.140 1646.360 we can see how much buttons there are going to be on the display
+TS3003b 1 spk0 1646.360 1650.380 and if it's too much we can reconsider it
+TS3003b 1 spk0 1650.940 1654.520 but i think there won't be very much buttons or there don't have to be
+TS3003b 1 spk0 1654.640 1658.420 i think if you're going to make a remote control only to operate a tv
+TS3003b 1 spk0 1658.420 1659.940 there's not much you
+TS3003b 1 spk2 1659.940 1664.220 can gain on having as few buttons as possible
+TS3003b 1 spk2 1665.040 1668.560 because i think there are pretty many remote controls that can only operate a tv
+TS3003b 1 spk2 1669.020 1671.940 which already only have the minimum number of
+TS3003b 1 spk0 1671.940 1672.300 buttons
+TS3003b 1 spk0 1673.020 1675.320 i don't think there's much to be gained in that area
+TS3003b 1 spk0 1676.040 1676.980 the number of buttons
+TS3003b 1 spk0 1677.800 1679.000 i think it's very
+TS3003b 1 spk1 1679.000 1680.660 important in the design
+TS3003b 1 spk1 1681.840 1683.500 you can make a very fancy design
+TS3003b 1 spk0 1683.500 1686.740 with putting the buttons on the right places
+TS3003b 1 spk0 1687.380 1689.800 if you have less buttons you can do a lot more
+TS3003b 1 spk0 1691.280 1694.960 that is true but i think there's simply not much to gain on the competition
+TS3003b 1 spk0 1694.960 1699.900 when you're making a remote control only to operate only the tv
+TS3003b 1 spk0 1701.420 1702.700 to operate only the tv
+TS3003b 1 spk0 1702.820 1706.060 if you have a remote control only to operate a tv
+TS3003b 1 spk0 1706.200 1708.800 there's simply not a lot of buttons required
+TS3003b 1 spk0 1709.960 1711.380 there's not a lot of functions required
+TS3003b 1 spk0 1711.520 1711.760 so
+TS3003b 1 spk2 1711.760 1712.960 most
+TS3003b 1 spk0 1712.960 1715.420 existing remote controls simply don't have a lot of buttons either
+TS3003b 1 spk0 1715.420 1716.320 i
+TS3003b 1 spk1 1716.320 1718.000 think
+TS3003b 1 spk0 1718.000 1722.460 it would be very hard to actually gain on the competition here
+TS3003b 1 spk0 1723.040 1728.740 that would cost a big marketing expedition
+TS3003b 1 spk0 1730.320 1733.880 which was one of the arguments to make it only for the tv
+TS3003b 1 spk0 1733.880 1736.600 because we didn't have the time to market a lot
+TS3003b 1 spk0 1737.700 1744.100 you should just we could better focus on for example the docking station
+TS3003b 1 spk1 1745.700 1747.080 like other functions
+TS3003b 1 spk0 1749.540 1751.800 instead of less buttons
+TS3003b 1 spk0 1754.980 1758.100 we obviously need a good way to position all the buttons
+TS3003b 1 spk0 1758.900 1761.480 but i don't think we should spend very much time in that
+TS3003b 1 spk0 1763.680 1771.100 do you think the docking station is allowed in the budget we have
+TS3003b 1 spk0 1772.580 1773.700 it should be possible yes
+TS3003b 1 spk0 1774.100 1775.360 because if it's not too fancy
+TS3003b 1 spk0 1775.860 1778.680 and if the remote stays rather small it should be possible
+TS3003b 1 spk0 1779.060 1784.340 yes because i think that's a good advantage point as well
+TS3003b 1 spk0 1784.340 1787.140 if we have a fancy looking docking station
+TS3003b 1 spk0 1791.980 1793.500 that's a nice requirement
+TS3003b 1 spk0 1796.800 1798.820 we're just going to focus on the extras
+TS3003b 1 spk0 1800.640 1801.080 i think so
+TS3003b 1 spk0 1802.000 1803.600 i think maybe we should do some research
+TS3003b 1 spk0 1803.600 1810.340 into what other people like to have extra in remote control
+TS3003b 1 spk0 1811.320 1812.120 that's a good point
+TS3003b 1 spk0 1816.040 1818.640 you said they easily get lost as well
+TS3003b 1 spk0 1819.640 1824.280 yes well 50 % of the people indicated that remote control tended to get lost
+TS3003b 1 spk0 1824.820 1829.240 so maybe we should implement the audio side or something
+TS3003b 1 spk0 1829.800 1830.740 yeah that was what i suggested
+TS3003b 1 spk0 1831.300 1834.740 like with your keychain if you want to install it it makes a sound
+TS3003b 1 spk0 1835.020 1838.440 you have some phones too which have a docking station
+TS3003b 1 spk0 1839.300 1842.400 and you just press a button and the phone goes ringing
+TS3003b 1 spk0 1842.740 1847.040 yeah so audio signal should be possible as well
+TS3003b 1 spk0 1847.040 1848.360 i think it's not too expensive
+TS3003b 1 spk0 1853.660 1856.720 another point is the lcd screen
+TS3003b 1 spk0 1860.020 1864.980 i don't know if that will raise the cost too much
+TS3003b 1 spk0 1866.280 1869.600 i think we'll have to choose between the docking station or the screen cost
+TS3003b 1 spk1 1870.900 1871.840 yeah it will
+TS3003b 1 spk0 1871.840 1872.820 be too much as well
+TS3003b 1 spk0 1873.220 1874.980 i think since a lot of people indicated
+TS3003b 1 spk0 1874.980 1876.940 that a new remote control is hard to learn
+TS3003b 1 spk0 1877.060 1878.020 and we're focusing
+TS3003b 1 spk2 1878.020 1879.080 on elderly people here
+TS3003b 1 spk2 1879.080 1882.960 which tend to have a hard time understanding new devices
+TS3003b 1 spk2 1883.520 1886.120 it might be a good idea to have just a little screen on it
+TS3003b 1 spk2 1886.120 1888.780 which would explain a button if you press it
+TS3003b 1 spk0 1889.060 1890.660 which would tell you what it does
+TS3003b 1 spk0 1892.360 1892.380 yeah
+TS3003b 1 spk0 1893.080 1896.920 and it wouldn't have to be touchscreen or a very expensive screen
+TS3003b 1 spk0 1898.680 1901.460 just the lcd just a normal screen
+TS3003b 1 spk0 1902.260 1903.660 just a small screen
+TS3003b 1 spk0 1905.040 1907.060 some extra info feedback
+TS3003b 1 spk0 1909.180 1910.600 yeah i think that's a good idea as well
+TS3003b 1 spk0 1911.700 1920.020 but i don't know if that would fit into the cost
+TS3003b 1 spk0 1924.020 1925.560 extra button info
+TS3003b 1 spk0 1928.560 1931.100 i think that should be possible
+TS3003b 1 spk1 1931.100 1932.320 as well
+TS3003b 1 spk1 1934.580 1938.260 let's see what did we say more
+TS3003b 1 spk1 1938.780 1941.440 it should be fancy design easy to learn
+TS3003b 1 spk1 1942.420 1944.240 a few buttons we talked about that
+TS3003b 1 spk1 1944.960 1944.970 docking
+TS3003b 1 spk0 1944.960 1945.940 station lcd
+TS3003b 1 spk0 1948.740 1952.940 general functions yeah
+TS3003b 1 spk0 1960.940 1966.100 default materials i think that's a good idea as well
+TS3003b 1 spk0 1966.100 1973.120 because elderly people don't mind if it's titanium cover
+TS3003b 1 spk1 1973.120 1973.960 or just
+TS3003b 1 spk0 1973.960 1974.720 a plastic one
+TS3003b 1 spk0 1974.720 1976.900 it doesn't really matter
+TS3003b 1 spk0 1978.700 1982.500 i think probably elderly people would be a little bit more careful
+TS3003b 1 spk0 1982.500 1985.860 with their remote controls and youngsters
+TS3003b 1 spk0 1989.260 1992.940 let's specify the target group
+TS3003b 1 spk1 1993.380 1999.540 are we talking about elderly people or people from 40 to 80
+TS3003b 1 spk1 1999.540 2003.200 because i think what we're going to design now
+TS3003b 1 spk1 2003.200 2004.240 is
+TS3003b 1 spk0 2004.240 2006.780 for people above 60 maybe
+TS3003b 1 spk0 2010.240 2011.280 what do we want
+TS3003b 1 spk0 2011.440 2016.580 if we want to profilate us with for example
+TS3003b 1 spk0 2017.180 2018.640 the telephone for elderly people
+TS3003b 1 spk0 2018.800 2022.400 we can target the real elderly people
+TS3003b 1 spk0 2023.840 2027.340 i think that would be if we should do something like that
+TS3003b 1 spk0 2027.340 2031.840 i think it would be really good for the image of the company
+TS3003b 1 spk0 2033.480 2037.940 and i think there would be a good market for it
+TS3003b 1 spk0 2039.400 2042.100 to really bring an innovative product
+TS3003b 1 spk0 2042.580 2045.080 you're talking about 60 to 80 for example
+TS3003b 1 spk0 2045.280 2046.160 yeah to really
+TS3003b 1 spk0 2048.700 2049.040 60
+TS3003b 1 spk0 2050.280 2052.000 i'd have to look into that a little more
+TS3003b 1 spk0 2053.760 2055.200 different cultures
+TS3003b 1 spk0 2057.240 2063.360 i don't think they have different television sets in every country
+TS3003b 1 spk0 2067.120 2068.940 he's got five minutes left
+TS3003b 1 spk0 2070.620 2074.220 and with the little screen which explains the buttons
+TS3003b 1 spk0 2075.660 2080.940 i think it would be a lot easier to adapt it to different cultures
+TS3003b 1 spk0 2080.940 2082.920 yeah in different languages
+TS3003b 1 spk0 2084.720 2087.920 or you have to put a language button in it
+TS3003b 1 spk0 2087.980 2088.900 but that would be
+TS3003b 1 spk1 2088.900 2090.420 a bit unnecessary i think
+TS3003b 1 spk1 2090.900 2092.560 it's better to put it on different markets
+TS3003b 1 spk1 2095.160 2097.300 so that's the target
+TS3003b 1 spk0 2099.420 2103.060 then a few small things
+TS3003b 1 spk0 2106.480 2107.000 okay
+TS3003b 1 spk0 2108.000 2110.200 i will put the minutes in the project
+TS3003b 1 spk1 2110.200 2111.060 document folder
+TS3003b 1 spk1 2113.920 2116.320 what we're going to do for the next meeting
+TS3003b 1 spk1 2117.120 2119.980 is the industrial designer will do the components concept
+TS3003b 1 spk1 2121.080 2123.100 user interface designer user interface concept
+TS3003b 1 spk1 2123.360 2124.060 and the trend watching
+TS3003b 1 spk1 2124.760 2126.420 so just keep in mind the things we've said
+TS3003b 1 spk1 2127.260 2130.300 about the target group requirements
+TS3003b 1 spk1 2130.980 2134.100 and the trends which are going on
+TS3003b 1 spk1 2135.380 2137.760 and specific instructions will be sent to you
+TS3003b 1 spk1 2137.760 2139.080 by the personal
+TS3003b 1 spk0 2139.080 2139.440 coach
+TS3003b 1 spk0 2141.080 2142.980 so i thank you for this meeting
+TS3003b 1 spk0 2143.920 2146.320 and i think we have a lunch break now
+TS3003b 1 spk0 2147.140 2147.500 that's good
+TS3003b 1 spk0 2147.840 2148.880 so that's a good thing
+TS3003b 1 spk0 2168.020 2170.440 now we're not allowed to talk about it
+TS3003b 1 spk0 2170.940 2171.320 oh my god
+TS3003b 1 spk0 2171.980 2172.800 that's going to be very hard
+TS3003b 1 spk0 2186.720 2187.320 thank you
+TS3003b 1 spk0 2208.880 2210.280 thank you

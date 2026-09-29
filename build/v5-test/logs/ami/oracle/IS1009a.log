@@ -1,0 +1,25 @@
+# 2026-09-28T07:21:38Z ami oracle IS1009a pipeline=oracle hint=0 n_active=4 params=
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/IS1009a/mix.wav
+# load average at start: { 2.44 2.30 2.51 }
+# swap at start: total = 8192.00M  used = 7277.00M  free = 915.00M  (encrypted)
+oracle: 195 segments, 4 speakers, 0.02s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/oracle/IS1009a.partial/hyp.json (+ .rttm, .stm)  [HARNESS SELF-TEST, not a system under test]
+        0.28 real         0.24 user         0.03 sys
+            70942720  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                7185  page reclaims
+                   0  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  30  involuntary context switches
+          2694184927  instructions retired
+           879805575  cycles elapsed
+            52331776  peak memory footprint
+# load average at end: { 2.44 2.30 2.51 }
+# exit 0

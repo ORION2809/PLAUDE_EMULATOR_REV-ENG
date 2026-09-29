@@ -1,0 +1,385 @@
+TS3003c 1 MTD009PM 21.260 36.020 okay uh good afternoon this is our third meeting already i hope you enjoyed your lunch i did anyway um let's see
+TS3003c 1 MTD012ME 24.090 24.640 good afternoon
+TS3003c 1 MTD009PM 39.620 60.950 presentation three okay this is um the second phase uh we're going to discuss today it's the conceptual design meeting and a few points of interest in this meeting um are the conceptual specification of components
+TS3003c 1 MTD009PM 61.250 75.800 uh conceptual specification of design and also trend watching um these are hopefully the points you addressed in uh your pre uh presentations you're going to show me in a few minutes
+TS3003c 1 MTD009PM 77.080 98.000 um but first i'll show you the agenda uh first the opening then we have three presentations uh after that we have to come to a decision on remote control concepts how we're going to make it and then we're closing we have about forty minutes
+TS3003c 1 MTD009PM 99.110 107.470 uh so i suggest let's get started uh did someone encounter any problems during the preparation
+TS3003c 1 MTD009PM 109.640 112.560 no everything fine that's nice
+TS3003c 1 MTD011UID 109.750 109.970 no
+TS3003c 1 MTD009PM 114.800 139.870 then a little uh thing about the last meeting uh these are the points um we agreed on the requirements and the target market uh requirements are uh teletext docking station audio signal small screen with some extras that uh button information and we are going to use default materials
+TS3003c 1 MTD009PM 141.370 157.550 um does somebody have any comments on these requirements maybe no these are just the the things we thought of so maybe if you figured something else or thought of something else just let me know and maybe we can uh work it out
+TS3003c 1 MTD009PM 158.440 163.340 and we're going to target uh sixty to to eighty year old customers
+TS3003c 1 MTD009PM 165.110 174.020 so now everybody knows what we're do we're doing um i suggest let's get started with the presentations
+TS3003c 1 MTD009PM 175.320 180.120 so shall we keep the same uh line up as uh last time
+TS3003c 1 MTD012ME 180.270 183.000 sure i'll start off then
+TS3003c 1 MTD009PM 180.890 181.240 okay
+TS3003c 1 MTD009PM 182.670 184.520 good luck
+TS3003c 1 MTD012ME 192.770 193.340 doh
+TS3003c 1 MTD012ME 203.970 216.100 kay i'm uh gonna inform you about the trend watching i've done over the past few days um we've done some market research we distributed some more enquetes questionnaires
+TS3003c 1 MTD012ME 216.700 235.250 and um besides that um i deployed some trend watchers to milan and paris to well get all of the newest trends and i've consulted some additional trend watch trend watchers after the original trend watchers return about what the
+TS3003c 1 MTD012ME 236.850 254.620 the best design would be um okay these are some overall findings um most important thing is the fancy design um the research indicated that that was by far the most important factor
+TS3003c 1 MTD012ME 255.100 267.760 um innovativeness was about half as important as the fancy design by innovativeness this means um functions which are not featured in other remote controls
+TS3003c 1 MTD012ME 268.970 291.930 um about half of half as important as the innovativeness was the was easy to use um for our um group we're focusing on the people of sixty to eighty y years old this is um these factors are slightly more equal
+TS3003c 1 MTD012ME 295.070 310.930 kay these are some more group specific findings uh the older people prefer dark colours uh they like recognisable shapes and familiar material and our surveys have indicated that especially wood is pretty much
+TS3003c 1 MTD012ME 312.000 327.640 the material for older people um this is this image will give you a little bit of an impression about um the look and feel that um the remote should have
+TS3003c 1 MTD012ME 331.070 339.330 um this leads us to some personal preferences uh the remote control and the docking station should uh blend in in the
+TS3003c 1 MTD012ME 340.450 362.700 in the room um so this would mean no uh eye catching designs just keep it simple and well the docking station and small screen would be our main points of interest because this would be the these would uh be the innovativeness in the remote control
+TS3003c 1 MTD012ME 363.930 384.700 so this would be very important that we at least include these features um well the trend watchers i consulted advised that it b should be the remote control and the docking station should be telephone shaped so you could imagine that uh the remote control will be standing up straight in the docking station
+TS3003c 1 MTD012ME 385.500 401.700 this is not really this is pretty much a new shape to uh older people so they would prefer uh a design where the remote control just lies flat in the docking station so it would be kinda more telephone shaped
+TS3003c 1 MTD012ME 402.660 422.270 um besides that we would advise um to bring two editions one with a wood like colour and maybe feel and one with a grey black colour the wood like for the more uh exclusive people people with more money uh the grey black colour for well
+TS3003c 1 MTD012ME 425.330 427.300 people with less means
+TS3003c 1 MTD012ME 430.970 432.030 that would be all
+TS3003c 1 MTD009PM 432.550 437.580 okay thank you any questions about the the trends mayb
+TS3003c 1 MTD012ME 436.350 437.110 any questions
+TS3003c 1 MTD011UID 438.380 439.430 mm no
+TS3003c 1 MTD009PM 440.590 443.650 no okay we go on to the next one
+TS3003c 1 MTD011UID 464.170 485.340 um kay um yeah uh some uh research uh a about um designing of an interface um the uh last meeting uh we had a about um uh using a f few buttons so uh um uh that's w what i what i want to uh
+TS3003c 1 MTD011UID 486.810 509.170 uh to do in uh our design so um finding an attractive uh way to control uh the remote control um the uh i found some uh something about uh speech uh recognition so maybe uh we can uh use uh that um
+TS3003c 1 MTD011UID 509.390 522.630 uh and uh using a little uh display so um findings um yeah just um we have just to focus on the primary um functions
+TS3003c 1 MTD011UID 522.800 539.200 so uh only uh buttons uh for uh sound um for uh on off um uh shifting u up uh sa uh ca channel or uh down shifting down um uh let's see um yeah and
+TS3003c 1 MTD011UID 540.530 562.470 uh we uh need some uh new a attractive functions uh uh which attract uh uh people for using it so uh it's uh like a speak uh speech uh recognition and um a special button for selecting uh subtitles just uh what we uh mentioned uh last uh meeting
+TS3003c 1 MTD011UID 563.400 571.700 um and yeah overall um user friendly so uh using uh large large buttons um
+TS3003c 1 MTD011UID 574.590 593.150 it's uh possible to uh uh to make um quite cheap uh system for uh speech uh recognition um you can think about um uh when you lost your um remote control you can uh call it and um it gives an um sig signal so uh uh yeah
+TS3003c 1 MTD011UID 593.560 609.380 and and uh for uh shifting up a sen uh c ch channel or uh for um uh putting out uh sound or something you can uh just give a sign uh say um sound off or
+TS3003c 1 MTD011UID 610.350 617.860 a and uh yeah television uh put the sound off uh put the sound off uh um
+TS3003c 1 MTD011UID 619.800 631.870 let's see uh yeah i was thinking about the special uh button for uh subtitles um just one button to keep it uh simple uh one push on the button uh you get uh uh small uh subtitles
+TS3003c 1 MTD011UID 632.530 642.040 um double push push um if double click um so uh you get uh big uh subtitles for uh people uh
+TS3003c 1 MTD011UID 643.280 651.360 um uh which c f uh who can't uh read small uh subtitles so uh um
+TS3003c 1 MTD011UID 653.000 666.080 yeah and w we have to keep uh in general buttons uh so um we've got um the buttons we have to use the on off sound on off sound higher or lower um the numbers uh zero to uh uh nine
+TS3003c 1 MTD011UID 667.220 685.470 um the general buttons m more general b one button for shifting up and shifting down uh channel um also we want to uh use a little d display uh for um for displaying the uh the functions of the buttons
+TS3003c 1 MTD011UID 686.090 702.200 and um we can uh build in a function f which uh shows the channel or some uh which the t television is on so um made a little uh picture of uh it um
+TS3003c 1 MTD011UID 703.620 704.290 see
+TS3003c 1 MTD011UID 709.750 734.130 um yeah just um we can put uh the on off button uh over in this uh corner um almost uh e all uh remote controls uh are using a on off button on that place um so uh people uh will uh recognise uh um the button so um
+TS3003c 1 MTD011UID 735.380 746.150 d display uh of it it's uh just a small display uh um you can put it uh on top um it's uh most uh
+TS3003c 1 MTD011UID 747.880 765.770 uh place where people uh most of looks at so uh um and a special uh button for shifting up uh and uh shifting down uh channel um it's uh on place where um the thumb of of the
+TS3003c 1 MTD011UID 767.210 774.040 so you you can uh easily uh shift up or shift down um it's uh quite uh
+TS3003c 1 MTD011UID 775.600 783.080 handy place so um and uh all the f functions for subtitle uh one button uh for sound uh
+TS3003c 1 MTD011UID 784.710 792.870 uh and uh for our design um uh we have to discuss about it uh i think uh so uh the form of it so
+TS3003c 1 MTD009PM 794.240 794.550 okay
+TS3003c 1 MTD011UID 794.710 795.730 and that's it
+TS3003c 1 MTD009PM 796.330 797.870 uh thank you
+TS3003c 1 MTD0010ID 807.710 808.330 okay
+TS3003c 1 MTD0010ID 814.380 836.010 about the components design um for the energy source we can use a basic battery or a as an optional thing a kinetic energy like in a watch which you just shake and it produces energy but if we choose for that option the docking station would c become obsolete so i don't think it's really an option
+TS3003c 1 MTD0010ID 836.870 853.470 uh for the casing uh the uh manufacturing department can deliver uh a flat casing single or double curved casing it's really up the the design that we're gonna use it's uh doesn't uh imply any technical restrictions
+TS3003c 1 MTD0010ID 854.240 861.530 uh as a case supplement we could um i thought of that l later uh a rubber uh belt like a anti slip
+TS3003c 1 MTD0010ID 863.410 873.260 uh for the b buttons we can use plastic or rubber and the chip set um it says simple here but it should be advanced because we're using an l c d uh screen
+TS3003c 1 MTD0010ID 874.180 889.130 and as uh the trend watcher presentation showed um people like wood but it raises the price and it doesn't really fit the image unless we would start two product lines form should follow function overall
+TS3003c 1 MTD0010ID 889.700 915.760 um well the kinetic energy source is rather fancy but depends on what we want i think we should disc discuss that um for the case uh the supplement and the buttons it really depends on the designer and the chip set uh really should be advanced because otherwise uh it would really be a simple uh remote control and that's it
+TS3003c 1 MTD009PM 916.210 917.840 okay thank you
+TS3003c 1 MTD009PM 920.090 924.320 so that brings us to the discussion about our concepts
+TS3003c 1 MTD009PM 926.950 927.810 mm
+TS3003c 1 MTD009PM 934.630 934.940 kay
+TS3003c 1 MTD009PM 945.060 948.250 so these are the points we have to discuss
+TS3003c 1 MTD009PM 949.600 953.180 um first
+TS3003c 1 MTD009PM 955.540 960.210 i think we can talk about the energy source since that's um
+TS3003c 1 MTD009PM 961.650 970.110 has a pretty big influence on production price uh and image uh so
+TS3003c 1 MTD009PM 971.250 979.270 uh f i think first of all we have to see uh it is possible to introduce kinetic energy in our budget i think
+TS3003c 1 MTD0010ID 977.980 997.670 yes w there there are four options we could use the basic normal battery uh a hand dynamo but i don't think that's really an option you don't wanna swing before you can watch television uh solar cells but not every room is very light so it's not a very good option or the kinetic energy
+TS3003c 1 MTD009PM 982.320 982.660 yeah
+TS3003c 1 MTD009PM 986.240 987.780 okay
+TS3003c 1 MTD009PM 990.660 991.030 yeah
+TS3003c 1 MTD011UID 994.400 994.850 mm
+TS3003c 1 MTD009PM 995.590 996.160 no
+TS3003c 1 MTD009PM 999.410 1001.060 yeah okay
+TS3003c 1 MTD012ME 1000.750 1004.090 and how exactly does the kinetic energy work you just
+TS3003c 1 MTD0010ID 1003.600 1007.880 well y you basically shake your remote and then it powers up yeah
+TS3003c 1 MTD012ME 1005.160 1007.470 you use it and it works
+TS3003c 1 MTD009PM 1008.480 1008.840 yeah
+TS3003c 1 MTD012ME 1009.020 1017.060 okay well personally i don't think that older people like to shake their remote control before they use it
+TS3003c 1 MTD011UID 1009.070 1009.400 nah
+TS3003c 1 MTD0010ID 1017.240 1018.160 yeah that's true
+TS3003c 1 MTD012ME 1019.230 1032.670 and besides that you mentioned it would make the docking station obsolete and i think our docking station could be one of the marketing issues with which we can um
+TS3003c 1 MTD0010ID 1023.660 1023.760 oh
+TS3003c 1 MTD012ME 1033.720 1035.600 get great popularity for our product
+TS3003c 1 MTD009PM 1037.680 1038.130 yeah
+TS3003c 1 MTD011UID 1038.000 1038.510 but
+TS3003c 1 MTD012ME 1038.440 1040.070 um wel
+TS3003c 1 MTD011UID 1039.730 1043.740 what's the function yeah f for loading up uh the batteries
+TS3003c 1 MTD012ME 1044.230 1051.960 yeah you could load up the batteries you could um insert the find the lost remote control function in there
+TS3003c 1 MTD011UID 1045.020 1045.410 b b
+TS3003c 1 MTD011UID 1052.800 1073.290 okay but uh it won't use uh much e energy uh i i believe uh it's uh just a small display so i believe uh it will run on one battery for um six months or f or or more so i believe one battery uh is just enough uh so
+TS3003c 1 MTD009PM 1068.730 1069.120 uh
+TS3003c 1 MTD009PM 1073.990 1091.570 uh well i think uh elderly people just like to have everything in place and i don't think they they like uh remotes just laying everywhere in their rooms so maybe a docking station will help them give the remote a place
+TS3003c 1 MTD012ME 1074.900 1077.200 that's true
+TS3003c 1 MTD011UID 1087.180 1087.630 okay
+TS3003c 1 MTD011UID 1090.920 1092.030 yeah that's true yeah
+TS3003c 1 MTD009PM 1092.410 1114.410 and also what you said um you can introduce voice recognition by uh finding back your remote but i think it's um more efficient and cheaper to put it in the docking station so you have a but button on your docking station which you can push and then it starts beeping
+TS3003c 1 MTD011UID 1100.480 1100.700 mm hmm
+TS3003c 1 MTD011UID 1101.700 1102.130 yeah
+TS3003c 1 MTD011UID 1114.800 1115.650 okay
+TS3003c 1 MTD009PM 1116.260 1122.140 and then we can we can still use the voice recognition but maybe then for only the the channels
+TS3003c 1 MTD011UID 1117.930 1118.590 yeah
+TS3003c 1 MTD011UID 1122.650 1123.010 uh
+TS3003c 1 MTD009PM 1123.230 1123.960 that's safe
+TS3003c 1 MTD012ME 1123.340 1129.540 i'm wondering um what will the voice recognition mean for the production price
+TS3003c 1 MTD009PM 1130.240 1131.980 yeah that's a good point
+TS3003c 1 MTD0010ID 1131.380 1136.320 mm i don't have any information on pricing so i'll have to ask the manufacturing department
+TS3003c 1 MTD011UID 1136.650 1136.960 mm
+TS3003c 1 MTD012ME 1137.340 1145.570 cause in our earlier um market research if you'd allow me to go to the flat board smartboard
+TS3003c 1 MTD009PM 1142.650 1144.770 yeah sure go ahead
+TS3003c 1 MTD012ME 1150.590 1152.360 um so it was open here
+TS3003c 1 MTD012ME 1153.620 1155.940 um we also um
+TS3003c 1 MTD012ME 1159.130 1172.290 asked if w they would if people would pay more for speech recognition in a remote control well you can see here our target group would not do that so if that would increase the price for which we're selling our remote control
+TS3003c 1 MTD009PM 1167.870 1168.270 no
+TS3003c 1 MTD011UID 1173.230 1173.370 mm
+TS3003c 1 MTD012ME 1173.920 1181.750 i would greatly advise not to do it i think that would be better to uh insert in our other product that is meant for the
+TS3003c 1 MTD009PM 1176.470 1176.900 yeah
+TS3003c 1 MTD009PM 1183.130 1183.300 yeah
+TS3003c 1 MTD012ME 1183.210 1183.910 younger people
+TS3003c 1 MTD0010ID 1185.320 1188.110 but that would also go for the l c d screen then i guess
+TS3003c 1 MTD011UID 1185.630 1186.210 kay
+TS3003c 1 MTD0010ID 1189.470 1191.370 it's a bit higher percentage but
+TS3003c 1 MTD012ME 1193.120 1209.700 um well this is yeah but this is here the question was would you prefer it so that doesn't really mean they wouldn't pay extra for it and on top of that the l c d screen would um help in making the remote control easier to use
+TS3003c 1 MTD011UID 1210.700 1210.910 yeah
+TS3003c 1 MTD009PM 1211.950 1212.660 yeah
+TS3003c 1 MTD012ME 1212.140 1217.730 and i think a voice recognition function would not make the remote control much easier to use
+TS3003c 1 MTD0010ID 1212.300 1212.670 okay
+TS3003c 1 MTD009PM 1216.950 1219.620 easier to use no i think that's a good point
+TS3003c 1 MTD011UID 1220.110 1230.740 but uh is uh our uh research um about um bi large uh l c d sh uh display or uh just a small one uh we want to uh use
+TS3003c 1 MTD012ME 1230.630 1237.440 um well this was for like an l c d screen like you would have on a on the the most advanced mobile phones
+TS3003c 1 MTD011UID 1237.710 1238.200 okay
+TS3003c 1 MTD012ME 1238.480 1239.710 so pretty large
+TS3003c 1 MTD011UID 1240.020 1240.260 yeah
+TS3003c 1 MTD009PM 1240.360 1240.690 yeah
+TS3003c 1 MTD009PM 1243.480 1257.570 i personally think the l c d screen we wanna use with the extra information i think nobody has anything against it because it's just uh some extra information and it's easy to ignore as well so if you don't wanna use it you just don't use it
+TS3003c 1 MTD011UID 1250.600 1250.820 no
+TS3003c 1 MTD011UID 1254.680 1254.920 yeah
+TS3003c 1 MTD009PM 1258.420 1279.460 and um yeah i think the um maybe we have to uh discard the voice recognition because it will increase cost uh signifi uh significantly and i don't think the i don't think it will be a lot easier to use as well
+TS3003c 1 MTD011UID 1280.080 1280.510 yeah
+TS3003c 1 MTD009PM 1281.220 1292.240 so that brings us back to the energy if we don't have the voice recognition it will it won't use a lot of energy to use um
+TS3003c 1 MTD011UID 1289.740 1290.030 mm hmm
+TS3003c 1 MTD009PM 1293.490 1304.660 so in that case we could use kinetic uh energy but i think just a simple battery which you can reload on a docking station is just as good and much cheaper as well
+TS3003c 1 MTD011UID 1304.780 1305.000 yeah
+TS3003c 1 MTD009PM 1305.860 1306.320 so
+TS3003c 1 MTD0010ID 1305.900 1307.140 and that's the best choice
+TS3003c 1 MTD009PM 1307.700 1314.840 okay let me just choose for the battery that brings us to the chip
+TS3003c 1 MTD0010ID 1315.520 1321.000 well there isn't any choice there because we're using the the the the display so it's gotta be advanced
+TS3003c 1 MTD009PM 1317.500 1318.470 just the advanced
+TS3003c 1 MTD009PM 1321.270 1324.650 okay advanced chip
+TS3003c 1 MTD012ME 1321.920 1322.250 kay
+TS3003c 1 MTD009PM 1330.090 1347.320 and then we get to the point of the case um which brings us a little bit back to marketing as well uh if we wanna choose for wood or the black and grey or both
+TS3003c 1 MTD009PM 1349.080 1372.660 um as we saw there is not yeah wood is a lot more expensive to produce um but i think it will attract elderly people who wanna have something exclusive which they can show off to their grandkids look i've got a new remote control and uh
+TS3003c 1 MTD012ME 1355.350 1355.720 mm hmm
+TS3003c 1 MTD012ME 1368.870 1369.360 mm hmm
+TS3003c 1 MTD012ME 1371.390 1381.360 well and i think most important factor there is the wooden colour so it wouldn't actually have to be wood if it's just
+TS3003c 1 MTD011UID 1371.880 1373.590 uh i dunno
+TS3003c 1 MTD009PM 1380.500 1380.850 yeah
+TS3003c 1 MTD009PM 1383.510 1383.990 that's right
+TS3003c 1 MTD012ME 1384.850 1385.580 wood coloured
+TS3003c 1 MTD011UID 1385.060 1385.490 mm
+TS3003c 1 MTD009PM 1386.170 1389.040 but with colour was a lot more expensive or
+TS3003c 1 MTD0010ID 1389.250 1393.050 mm i dunno i'll have to uh research
+TS3003c 1 MTD009PM 1389.870 1390.380 you don't know
+TS3003c 1 MTD009PM 1392.120 1400.640 i think so because yeah it's a lot more difficult to to handle and to to get in the right shape
+TS3003c 1 MTD012ME 1394.590 1395.600 probably
+TS3003c 1 MTD011UID 1395.110 1395.440 mm
+TS3003c 1 MTD011UID 1400.790 1418.070 uh is it possible uh to make um changeable uh case so um uh you cause uh yeah with uh mobile phones uh uh so uh like the nokia mobile phones uh when you can change the case of it so
+TS3003c 1 MTD009PM 1413.870 1414.210 yeah
+TS3003c 1 MTD009PM 1417.830 1419.390 change the cases yeah
+TS3003c 1 MTD011UID 1419.300 1433.820 maybe it's possible uh possibility so um um you have just to make one um standard um remote control and um yeah you can sell uh few uh yeah
+TS3003c 1 MTD009PM 1432.610 1447.680 you can sell the cases yeah i think that's a very good option because um then you can advertise as well with the give your grandfather a new case for his remote control or whatever
+TS3003c 1 MTD011UID 1444.430 1444.740 yeah
+TS3003c 1 MTD009PM 1448.130 1461.450 because that's a it's something extra it's something other remotes don't have which we can get a great advantage point so and then you can make them with colour black and grey other colours as well
+TS3003c 1 MTD011UID 1452.670 1452.960 yeah
+TS3003c 1 MTD012ME 1453.950 1455.740 yeah that is true
+TS3003c 1 MTD011UID 1460.620 1461.080 yeah
+TS3003c 1 MTD012ME 1461.800 1466.700 yeah we would have to look carefully into the design though
+TS3003c 1 MTD009PM 1466.050 1466.740 costs
+TS3003c 1 MTD012ME 1468.870 1475.170 cause we would have to make one w uh control which would fit in with a wooden cover and a
+TS3003c 1 MTD012ME 1476.460 1481.530 plastic cover the more original one or the more standard one
+TS3003c 1 MTD009PM 1477.960 1478.200 yeah
+TS3003c 1 MTD009PM 1482.940 1487.700 yeah so you suggest we should design two different telephones
+TS3003c 1 MTD012ME 1483.000 1483.430 so that would
+TS3003c 1 MTD009PM 1488.930 1498.300 on which you can apply yeah remote controls on which you can apply different case covers for example
+TS3003c 1 MTD012ME 1489.010 1491.650 well i wouldn't design a telephone but
+TS3003c 1 MTD012ME 1496.550 1500.940 well no i think w we should just we should then just design one um
+TS3003c 1 MTD009PM 1502.180 1502.590 remote
+TS3003c 1 MTD012ME 1502.370 1508.670 one remote but it would have to be fancy with either the wood cover or the plastic one
+TS3003c 1 MTD009PM 1507.790 1508.120 yeah
+TS3003c 1 MTD009PM 1509.860 1510.360 okay
+TS3003c 1 MTD012ME 1510.650 1513.050 so but that shouldn't be too much of a problem
+TS3003c 1 MTD009PM 1514.240 1517.670 so everybody's okay with the changing covers
+TS3003c 1 MTD0010ID 1518.390 1518.620 yes
+TS3003c 1 MTD009PM 1518.530 1520.590 i think that's a good uh good option
+TS3003c 1 MTD011UID 1518.570 1518.940 yeah
+TS3003c 1 MTD009PM 1523.880 1525.550 changing case covers
+TS3003c 1 MTD012ME 1524.940 1533.120 um i heard our industrial designer talk about uh flat single and double curved could you explain that a little more
+TS3003c 1 MTD0010ID 1530.810 1531.230 yes
+TS3003c 1 MTD009PM 1531.230 1531.580 yeah
+TS3003c 1 MTD0010ID 1533.410 1546.990 well the the general like most older remotes are flat just straight and uh our d manufacturing department can also deliver single curved or double curved ca curved cases
+TS3003c 1 MTD012ME 1540.010 1540.340 mm hmm
+TS3003c 1 MTD012ME 1547.270 1549.540 and what would single curved and double curved mean
+TS3003c 1 MTD0010ID 1550.070 1562.360 um it would just only affect the form for as far as i know so it's j really just up to the design department what we're gonna use it doesn't really matter for the price or the functionality
+TS3003c 1 MTD012ME 1559.920 1560.330 okay
+TS3003c 1 MTD012ME 1562.640 1565.390 so we can pretty much just do whatever we want
+TS3003c 1 MTD0010ID 1564.120 1565.370 pick one you like yes
+TS3003c 1 MTD009PM 1566.620 1567.610 mm okay
+TS3003c 1 MTD012ME 1566.640 1566.880 kay
+TS3003c 1 MTD012ME 1567.880 1568.230 that's good
+TS3003c 1 MTD009PM 1569.320 1573.080 uh but the form has to be um it has to
+TS3003c 1 MTD009PM 1574.410 1579.120 it's has to be possible to stand up or just only to lie down
+TS3003c 1 MTD012ME 1578.460 1579.670 no just to lie down
+TS3003c 1 MTD011UID 1580.210 1580.710 okay
+TS3003c 1 MTD009PM 1580.500 1584.160 and the the cover of the the docking station is also
+TS3003c 1 MTD012ME 1581.250 1582.290 we'll go for that
+TS3003c 1 MTD009PM 1585.250 1587.920 on top of the television then or not
+TS3003c 1 MTD012ME 1587.870 1588.890 well or besides it
+TS3003c 1 MTD009PM 1589.910 1600.480 and you can just yeah then click it in that's okay um so the interface what type of interface do we want to use
+TS3003c 1 MTD009PM 1601.880 1607.090 um maybe you can make a little drawing of it on the
+TS3003c 1 MTD012ME 1607.830 1608.320 mm hmm
+TS3003c 1 MTD009PM 1609.010 1613.810 on the the board does somebody have ideas for a form or
+TS3003c 1 MTD011UID 1610.900 1611.310 mm
+TS3003c 1 MTD011UID 1615.370 1621.930 uh we can just use the regular form of it but it's um not quite uh fancy so um
+TS3003c 1 MTD011UID 1623.270 1623.650 yeah
+TS3003c 1 MTD012ME 1624.570 1649.000 um you uh said you wanted to put the um changing channels button on the right side so you could so your thumb would be easily well uh i think that was a very good point cause i pointed out earlier that a lot of remotes cause r s i so that would be great for that um i thought maybe we could just make one of those buttons on both the left and the right side
+TS3003c 1 MTD011UID 1631.830 1633.140 yeah yeah
+TS3003c 1 MTD011UID 1650.670 1653.240 for uh uh for yeah yeah
+TS3003c 1 MTD012ME 1650.950 1653.550 for left handed users also
+TS3003c 1 MTD009PM 1653.430 1653.760 yep
+TS3003c 1 MTD011UID 1654.260 1654.490 mm
+TS3003c 1 MTD011UID 1655.760 1656.710 yeah we um
+TS3003c 1 MTD011UID 1658.290 1679.290 is it possible to um program it s so uh you got on the left side uh or on the right side uh buttons for for shifting u up and shifting up and on the uh other uh uh o other side uh buttons for uh shifting uh for for the sound or or isn't it
+TS3003c 1 MTD012ME 1676.540 1679.850 for the volume um well that could
+TS3003c 1 MTD009PM 1679.160 1679.890 mm
+TS3003c 1 MTD012ME 1681.790 1687.210 yeah we could do that but i'm not sure if that would be very good for the easy ease of use
+TS3003c 1 MTD009PM 1686.810 1692.400 usabili yeah ease of use will be a lot more difficult and then it's
+TS3003c 1 MTD011UID 1687.840 1688.510 yeah okay
+TS3003c 1 MTD011UID 1692.630 1692.960 uh
+TS3003c 1 MTD012ME 1693.960 1705.270 but if we would make um a changing channels and changing volume button on both sides that would certainly yield great options for the design of the remote
+TS3003c 1 MTD011UID 1706.790 1707.350 mm
+TS3003c 1 MTD012ME 1707.130 1709.400 cause it could be made all symmetrical and stuff
+TS3003c 1 MTD011UID 1710.790 1711.490 yeah but
+TS3003c 1 MTD009PM 1711.510 1714.950 but you have extra buttons so people can get confused
+TS3003c 1 MTD011UID 1713.340 1713.690 yeah
+TS3003c 1 MTD011UID 1714.890 1715.290 yeah
+TS3003c 1 MTD012ME 1715.520 1716.170 that is true
+TS3003c 1 MTD011UID 1716.460 1716.700 yeah
+TS3003c 1 MTD009PM 1717.730 1720.860 especially if they have the same writings on it
+TS3003c 1 MTD011UID 1722.360 1727.730 see um yeah or we have to make a left uh for lefties and
+TS3003c 1 MTD009PM 1726.410 1732.340 can't we make uh can't we make a remote which you can flip over and use
+TS3003c 1 MTD009PM 1733.400 1734.170 on the same
+TS3003c 1 MTD011UID 1735.090 1735.730 um
+TS3003c 1 MTD009PM 1735.720 1737.890 functions as the normal one
+TS3003c 1 MTD011UID 1738.540 1739.750 you mean um
+TS3003c 1 MTD009PM 1740.290 1741.600 then you have to
+TS3003c 1 MTD011UID 1740.740 1741.520 yeah if
+TS3003c 1 MTD009PM 1742.910 1743.980 let's see if i ca
+TS3003c 1 MTD009PM 1746.210 1747.480 a blank one
+TS3003c 1 MTD009PM 1750.680 1752.810 and then you get
+TS3003c 1 MTD009PM 1772.700 1774.820 here's a little l c d screen
+TS3003c 1 MTD009PM 1777.720 1781.070 uh now i have to think
+TS3003c 1 MTD009PM 1804.340 1805.530 it's a plus and a min
+TS3003c 1 MTD009PM 1808.610 1814.950 no it's not very handy i think because the plus and the min will be opposite and all kinds of
+TS3003c 1 MTD011UID 1810.300 1810.880 mm no
+TS3003c 1 MTD011UID 1813.070 1813.450 yeah
+TS3003c 1 MTD012ME 1813.200 1813.510 yeah
+TS3003c 1 MTD009PM 1816.980 1818.130 no that's not gonna work
+TS3003c 1 MTD009PM 1819.820 1832.620 i guess maybe we should yeah but is it a problem that left handed persons use a different hand i think the functions are
+TS3003c 1 MTD011UID 1821.310 1822.310 um
+TS3003c 1 MTD009PM 1833.890 1839.590 that basic that nobody should have any problems with uh choosing a channel or
+TS3003c 1 MTD012ME 1837.990 1840.020 yeah that is true
+TS3003c 1 MTD011UID 1839.730 1840.200 yeah
+TS3003c 1 MTD011UID 1841.790 1846.780 it's just uh u using uh your thumb so um it's
+TS3003c 1 MTD009PM 1844.600 1849.610 y yeah yeah i think we could just uh leave it a normal shape
+TS3003c 1 MTD011UID 1849.580 1849.920 yeah
+TS3003c 1 MTD0010ID 1849.990 1850.350 yeah
+TS3003c 1 MTD009PM 1851.920 1853.650 uh but maybe we have to
+TS3003c 1 MTD009PM 1855.660 1859.880 make it a l a bit more fancy in one or ano another way
+TS3003c 1 MTD011UID 1860.060 1860.820 yeah um
+TS3003c 1 MTD0010ID 1861.940 1867.850 i think we should start by by choosing a case because that's the basis you're building on
+TS3003c 1 MTD011UID 1866.910 1868.320 yeah yeah
+TS3003c 1 MTD009PM 1868.740 1869.140 yeah
+TS3003c 1 MTD012ME 1869.230 1869.370 yeah
+TS3003c 1 MTD009PM 1871.440 1873.870 um yeah just
+TS3003c 1 MTD0010ID 1871.760 1874.450 so i could draw them out
+TS3003c 1 MTD0010ID 1880.240 1881.510 let's look at the flat case
+TS3003c 1 MTD0010ID 1882.710 1883.300 oh
+TS3003c 1 MTD0010ID 1889.730 1899.930 it's from the side so it's rather normal the the single curved so i'm not really sure what they're gonna look like but i think it's something like this
+TS3003c 1 MTD011UID 1891.380 1892.050 mm hmm
+TS3003c 1 MTD012ME 1891.820 1892.100 mm hmm
+TS3003c 1 MTD009PM 1892.550 1892.910 yeah
+TS3003c 1 MTD0010ID 1907.360 1916.320 so this type should be better for you or better should prevent repetitive strain injury a bit
+TS3003c 1 MTD009PM 1911.990 1912.480 easier
+TS3003c 1 MTD0010ID 1918.550 1922.740 and the double curved s looks something like this i guess
+TS3003c 1 MTD011UID 1933.150 1933.410 mm
+TS3003c 1 MTD0010ID 1933.160 1936.000 so th those are the three options we have
+TS3003c 1 MTD009PM 1936.230 1957.590 kay i suggest um the single curved because maybe the curve is pretty good to put the the screen in uh so that elderly people can uh use the remote control and at the same time look easily at the screen because it's a bit it has a bit of a angle
+TS3003c 1 MTD012ME 1936.990 1937.190 mm
+TS3003c 1 MTD011UID 1955.790 1956.470 so um
+TS3003c 1 MTD011UID 1958.760 1960.130 do you say this um
+TS3003c 1 MTD011UID 1963.280 1963.930 s uh
+TS3003c 1 MTD011UID 1967.670 1972.660 uh you got like uh sort of a i believe there
+TS3003c 1 MTD012ME 1972.520 1972.770 mm hmm
+TS3003c 1 MTD011UID 1974.000 1979.800 so um you want to put a display over here or not yeah
+TS3003c 1 MTD009PM 1979.090 1980.560 yeah i think so yeah
+TS3003c 1 MTD011UID 1981.410 1982.210 um
+TS3003c 1 MTD011UID 1983.620 2000.930 yeah uh we can make it um mm that's the top so uh this top this down um maybe it's possible to uh make this side like um let's see um
+TS3003c 1 MTD009PM 1984.970 1985.690 but now it's
+TS3003c 1 MTD009PM 1986.880 1991.530 do you have it upside down or do you have it this that's top
+TS3003c 1 MTD009PM 1992.490 1992.900 okay
+TS3003c 1 MTD011UID 2001.960 2004.280 colour uh okay
+TS3003c 1 MTD011UID 2010.750 2014.250 uh to make this side um like mm
+TS3003c 1 MTD011UID 2016.700 2022.910 the right colour um bit like so uh um in the form of your hand so um
+TS3003c 1 MTD011UID 2024.460 2025.420 uh it's an
+TS3003c 1 MTD009PM 2025.820 2026.220 yeah
+TS3003c 1 MTD011UID 2026.950 2035.360 so so the remote control have to um lay in your hand so uh it's possib um yeah for s so and
+TS3003c 1 MTD009PM 2034.610 2036.180 so get your mouse yeah
+TS3003c 1 MTD011UID 2037.140 2041.510 and to put uh the the buttons for um
+TS3003c 1 MTD011UID 2042.860 2046.010 changing uh the channel uh over here uh
+TS3003c 1 MTD009PM 2046.920 2053.860 yeah that's a good one but i think it's better to put the screen uh on top
+TS3003c 1 MTD011UID 2049.460 2049.690 yeah
+TS3003c 1 MTD0010ID 2049.540 2049.690 yeah
+TS3003c 1 MTD011UID 2055.080 2056.450 uh rem
+TS3003c 1 MTD009PM 2055.630 2067.610 so just flip it a hundred and eighty degrees around then you get here if you can have this one you turn it like this and then flip it upside down
+TS3003c 1 MTD011UID 2059.110 2061.210 yeah but this place um
+TS3003c 1 MTD011UID 2068.380 2070.420 uh it's yeah i dunno um
+TS3003c 1 MTD009PM 2070.430 2074.900 because uh maybe your hand is in the way if you have the display here
+TS3003c 1 MTD011UID 2074.030 2074.360 yeah
+TS3003c 1 MTD012ME 2074.300 2074.620 mm hmm
+TS3003c 1 MTD0010ID 2076.520 2081.850 it's more logical to have it on top as well because like on your mobile phone it's always above
+TS3003c 1 MTD009PM 2078.600 2079.000 i think i
+TS3003c 1 MTD011UID 2079.050 2080.510 yeah so
+TS3003c 1 MTD012ME 2081.370 2081.790 yeah
+TS3003c 1 MTD009PM 2081.510 2081.880 on top
+TS3003c 1 MTD011UID 2086.190 2086.440 so
+TS3003c 1 MTD009PM 2086.930 2087.910 yeah
+TS3003c 1 MTD0010ID 2088.030 2090.300 oh maybe you should just s start on a blank page
+TS3003c 1 MTD012ME 2090.560 2091.190 yeah
+TS3003c 1 MTD009PM 2091.800 2092.680 so then we get
+TS3003c 1 MTD009PM 2106.360 2108.380 here's that's the curve
+TS3003c 1 MTD011UID 2117.250 2118.750 five minutes
+TS3003c 1 MTD009PM 2122.810 2134.210 here the display and then buttons yeah and then we can have a little bit off here and here maybe just that's for left hand and right hand users
+TS3003c 1 MTD011UID 2134.140 2134.890 yeah
+TS3003c 1 MTD012ME 2134.490 2134.800 mm hmm
+TS3003c 1 MTD009PM 2136.080 2139.580 and then h the rest of the buttons over here
+TS3003c 1 MTD011UID 2138.920 2144.630 yeah but um the on off button um still on the top uh yeah
+TS3003c 1 MTD009PM 2143.600 2144.990 yeah still here jus
+TS3003c 1 MTD011UID 2145.840 2146.110 yeah
+TS3003c 1 MTD009PM 2146.530 2146.860 that's
+TS3003c 1 MTD012ME 2146.730 2149.200 and i'd prefer the corners to be round
+TS3003c 1 MTD009PM 2149.450 2149.850 yeah
+TS3003c 1 MTD011UID 2149.900 2151.010 yeah kay
+TS3003c 1 MTD012ME 2151.010 2151.910 think that would be better
+TS3003c 1 MTD009PM 2151.210 2153.450 should be more bit more friendly yeah
+TS3003c 1 MTD012ME 2154.350 2155.160 friendly on the eye
+TS3003c 1 MTD009PM 2155.720 2156.250 kay
+TS3003c 1 MTD009PM 2157.590 2160.310 supplements that's okay
+TS3003c 1 MTD009PM 2161.880 2164.750 where's my mouse then
+TS3003c 1 MTD009PM 2169.540 2188.200 we've got a general idea of the concepts and the materials we're going to use so now for the next meeting uh we'll have to look at the look and feel design it's important that the corporate design image uh is going to be in the remote so check out the corporate website maybe
+TS3003c 1 MTD009PM 2188.910 2207.710 the user interface design it's the same story and product evaluation so the industrial designer and user interface designer are going to work together on this one but you're going to get your instructions i think sended by the coach
+TS3003c 1 MTD009PM 2208.540 2216.430 so just um i will put these um minutes on the in the folder
+TS3003c 1 MTD0010ID 2217.590 2217.830 okay
+TS3003c 1 MTD009PM 2218.600 2243.610 and then we're going to uh try to finish our project and uh make a good design for all the grandfathers and grandmothers i think which are uh let's see i'm not sure if you're going to start right away to work together or i think you're going to fill in the questionnaires first and then you'll get a message
+TS3003c 1 MTD011UID 2241.490 2241.810 yeah
+TS3003c 1 MTD012ME 2242.050 2242.540 yeah
+TS3003c 1 MTD011UID 2243.540 2243.780 yeah
+TS3003c 1 MTD009PM 2244.810 2252.400 so that's uh basically it maybe this one then we can save this one in the
+TS3003c 1 MTD009PM 2255.930 2256.850 folders group
+TS3003c 1 MTD009PM 2261.730 2272.350 uh yes it's here smartboard there it it so if you wanna have a look at it it's over there in the projects folder
+TS3003c 1 MTD012ME 2263.600 2263.820 yeah
+TS3003c 1 MTD011UID 2272.210 2272.380 yeah
+TS3003c 1 MTD009PM 2274.520 2277.640 and then i guess we'll start in thirty minutes again
+TS3003c 1 MTD009PM 2279.260 2280.110 thank you
+TS3003c 1 MTD012ME 2279.460 2279.880 very good
+TS3003c 1 MTD0010ID 2279.990 2280.280 okay
+TS3003c 1 MTD011UID 2280.010 2280.360 okay

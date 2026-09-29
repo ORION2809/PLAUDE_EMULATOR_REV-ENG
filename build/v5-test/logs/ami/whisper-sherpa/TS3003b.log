@@ -1,0 +1,25 @@
+# 2026-09-28T12:13:34Z ami whisper-sherpa TS3003b pipeline=whisper-sherpa hint=0 n_active=4 params=--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/TS3003b/mix.wav
+# load average at start: { 16.61 25.04 31.45 }
+# swap at start: total = 10240.00M  used = 8739.00M  free = 1501.00M  (encrypted)
+whisper-sherpa: 534 segments, 50 speakers, 1557.12s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/whisper-sherpa/TS3003b.partial/hyp.json (+ .rttm, .stm)
+     1562.04 real      4751.77 user       222.06 sys
+          1314242560  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+            19669442  page reclaims
+                2867  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+               13782  voluntary context switches
+            14575737  involuntary context switches
+      19435046810792  instructions retired
+       7814348020612  cycles elapsed
+          2611388672  peak memory footprint
+# load average at end: { 11.67 25.49 33.78 }
+# exit 0

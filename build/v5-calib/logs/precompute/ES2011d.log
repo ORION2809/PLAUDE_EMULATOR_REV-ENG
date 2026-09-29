@@ -1,0 +1,20 @@
+# 2026-09-28T09:23:37Z precompute ES2011d; load: { 108.81 80.45 67.31 }
+{"meeting_dir": "/Users/mivi/Desktop/plaud-harness/data/corpora/ami/dev/ES2011d", "n": 31717206, "chunks": 1974, "embeddings": [2842, 512]}
+      849.57 real      1969.39 user        11.24 sys
+           312459264  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              223071  page reclaims
+                2912  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                2837  voluntary context switches
+             1294996  involuntary context switches
+      12679140315121  instructions retired
+       3454953906990  cycles elapsed
+           474581824  peak memory footprint

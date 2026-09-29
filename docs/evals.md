@@ -1,7 +1,9 @@
 # Layer 3 — evaluation harness (`evals/`)
 
-Status 2026-09-25: **implemented, reviewed, and run on generator output; no
-real pipeline or AMI numbers yet.** The package scores a pipeline hypothesis
+Status 2026-09-29: **implemented, reviewed, run on generator output and on
+all 16 AMI test meetings** (V5 on 28 Sep: `ami-headset` FAILS;
+[`docs/v5-test-split.md`](v5-test-split.md)). The 25 Sep status below said
+there were no real pipeline or AMI numbers yet. The package scores a pipeline hypothesis
 against a meeting directory's ground truth, applies named CI gates and
 aggregates across a corpus. Generator output is scored end to end by
 `tests/test_v4_e2e.py` (generator → oracle / perturbed-oracle pipeline →
@@ -296,7 +298,7 @@ result names every failing metric with its value and bound, e.g.
 | `oracle` | DER = 0, JER = 0, cpWER = 0, tcpWER = 0, concat WER = 0, speaker-count error = 0 | reference (or a lossless round-trip) scored against itself — the V4 rung |
 | `synthetic-clean` | DER ≤ 0.05, cpWER ≤ 0.10, JER ≤ 0.10, speaker-count error = 0 | Layer 2 meetings, no noise |
 | `synthetic-noisy` | DER ≤ 0.15, cpWER ≤ 0.25, speaker-count error ≤ 1 | Layer 2 meetings with reverberation and noise |
-| `ami-headset` | DER ≤ 0.20, cpWER ≤ 0.30 | V5 placeholder, never exercised |
+| `ami-headset` | DER ≤ 0.20, cpWER ≤ 0.30 | the V5 target; exercised on the full test split on 28 Sep, where it fails |
 
 All thresholds are HARNESS_POLICY. The four suites above are uncalibrated placeholders.
 Two regression suites calibrated on a measured run, `ami-subset-whisper-sherpa` and
@@ -658,17 +660,16 @@ local-only input never provided in CI.
 
 ### Not done
 
-* Only 4 of the 16 test-split meetings, and no dev or train meeting, have
-  audio here. `convert` picks up every `<ID>.Mix-Headset.wav` present, and
-  the crosscheck shows the other 12 test meetings' turns equal BUT's. Their
-  words and self-scores have not been checked here, because that needs their
-  audio.
+* Since 28 Sep all 16 test-split and all 18 dev meetings have audio here
+  (headset mix, sha256-pinned in `scripts/run-v5.sh` and
+  `scripts/calibrate-sherpa.sh`); no train meeting does.
 * Other microphone conditions (SDM, MDM, individual headsets) are not wired;
   the contract's `mix.wav` is the headset mix.
-* The full AMI test split has not been scored. A four-meeting subset was scored
-  on 25 Sep ([`docs/v5-results.md`](v5-results.md)); the `ami-headset` gate is still
-  an uncalibrated placeholder, and the new `ami-subset-*` gates are regression
-  gates set from those measurements, not quality targets.
+* The full AMI test split was scored on 28 Sep
+  ([`docs/v5-test-split.md`](v5-test-split.md)); `ami-headset` fails. Its
+  thresholds are HARNESS_POLICY targets, not calibrated. The `ami-subset-*` and
+  `ami-test-*` gates are regression gates set from measurements, not quality
+  targets.
 * The overlap fraction and speech statistics come from the forced-alignment
   word times. They inherit that alignment's errors, and no manual check
   against the audio was made.
@@ -776,10 +777,11 @@ integration tests named in the status line.
 
 ## What is not done
 
-* **V5 is not met.** Only 4 of the 16 AMI test meetings were scored (25 Sep,
-  [`docs/v5-results.md`](v5-results.md)), and the results are poor. The converter
-  exists and four test-split meetings are converted locally (see
-  [AMI](#ami-the-v5-reference)). The inputs stay local-only under the
+* **V5 is not met.** All 16 AMI test meetings were scored on 28 Sep
+  ([`docs/v5-test-split.md`](v5-test-split.md)); the best realistic system
+  scores macro DER 0.6472 and cpWER 0.8428. The 25 Sep subset is in
+  [`docs/v5-results.md`](v5-results.md). The converter is described in
+  [AMI](#ami-the-v5-reference). The inputs stay local-only under the
   gitignored `data/corpora/ami/`, and CI never has them. The layout is:
 
   ```
@@ -794,18 +796,21 @@ integration tests named in the status line.
       --gates evals/gates.yaml --suite ami-headset --report out/ami/report.json
   ```
   On a checkout without the converted corpus that command exits `3` and
-  prints this layout. The `ami-headset` thresholds are placeholders. Only 4
-  of the 16 test-split meetings have audio here.
+  prints this layout. The `ami-headset` thresholds are HARNESS_POLICY targets.
+  `scripts/run-v5.sh` (`V5_AMI_ROOT`) uses `data/corpora/ami/test/` for the full
+  split.
 * **Generator output is scored almost only through oracles.**
   `tests/test_v4_e2e.py`, `tests/test_integration_mockcloud_roundtrip.py` and
   `docker/job.sh` score generator meetings with an oracle, a perturbed oracle
   or the mock cloud's copy of the ground truth. The one exception is
   `tests/test_integration_emulator_serves_generator.py`. It scores the
   model-free `energy-vad-cluster` diarizer, and only with loose DER bounds
-  (no words, so no WER). `docker/job.sh` ran under Docker once, on 25 Sep
-  (`build/v6/compose-smoke-2026-09-25.log`).
-* **One transcribing system has been scored**, `whisper-sherpa`, on the AMI
-  subset and a synthetic Piper set ([`docs/v5-results.md`](v5-results.md)). Its
+  (no words, so no WER). `docker/job.sh` ran under Docker on 25 Sep
+  (`build/v6/compose-smoke-2026-09-25.log`) and on a GitHub x86_64 runner on
+  28 Sep (the `compose` workflow).
+* **One transcribing system has been scored**, `whisper-sherpa`, on the full AMI
+  test split ([`docs/v5-test-split.md`](v5-test-split.md)) and on a synthetic
+  Piper set ([`docs/v5-results.md`](v5-results.md)). Its
   numbers are poor, and the gates calibrated from them only catch regressions.
 * **CI.** `.github/workflows/evals.yml` runs every `tests/test_evals_*.py`
   (the glob, so `tests/test_evals_docs.py` is included and a new evals test
@@ -832,10 +837,14 @@ integration tests named in the status line.
   2 collars): 62 of 64 per-meeting DERs are identical to md-eval's printed
   precision (1e-4), including the overlap-aware sherpa turns and the
   model-free baseline. The two that differ are un-hinted sherpa turns with
-  30-95 hypothesis speakers at collar 0.25: EN2002a 0.7517 against 0.7545,
+  95 and 47 hypothesis speakers at collar 0.25: EN2002a 0.7517 against 0.7545,
   TS3003a 0.7756 against 0.7759. There the two tools' speaker mappings and
-  collar handling can diverge; the cause was not traced further. The
-  full-split run's cross-check is in `docs/v5-results.md`.
+  collar handling can diverge; the cause was not traced further. On the full
+  AMI test split (28 Sep; 14 systems and views × 16 meetings): at collar 0 all
+  224 per-meeting DERs are identical; at collar 0.25, 213 of 224 are, and the
+  other 11 differ by at most 0.0054, 7 of them over-clustered default sherpa
+  turns (`build/v5-test/md-eval-crosscheck.json`,
+  [`docs/v5-test-split.md`](v5-test-split.md) §8).
   * A meeting with an undefined rate drops out of that metric's macro mean
     (see [CLI](#cli)).
   * `hyp.rttm`/`hyp.stm` carry field-safe speaker labels (`Speaker_1`), not

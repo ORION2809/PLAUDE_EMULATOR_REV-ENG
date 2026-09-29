@@ -1,0 +1,19 @@
+EN2002a [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.5831  JER 0.7504
+EN2002b [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.5987  JER 0.6554
+EN2002c [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.6029  JER 0.6189
+EN2002d [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.6529  JER 0.7007
+ES2004a [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.7466  JER 0.6723
+ES2004b [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.5350  JER 0.6505
+ES2004c [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.5716  JER 0.6452
+ES2004d [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.5599  JER 0.6874
+IS1009a [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.6649  JER 0.7821
+IS1009b [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.5481  JER 0.6411
+IS1009c [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.4856  JER 0.6421
+IS1009d [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.6240  JER 0.6979
+TS3003a [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.6446  JER 0.8414
+TS3003b [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.5534  JER 0.7204
+TS3003c [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.6973  JER 0.6872
+TS3003d [energy-vad-cluster]  cpWER 1.0000  tcpWER 1.0000  DER 0.6946  JER 0.7596
+macro  n=16  cpWER 1.0000  tcpWER 1.0000  DER 0.6102  JER 0.6970
+micro  n=16  cpWER 1.0000  tcpWER 1.0000  DER 0.6031  JER 0.6983
+# exit 0

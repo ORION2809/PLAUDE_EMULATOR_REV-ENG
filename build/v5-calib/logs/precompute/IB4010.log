@@ -1,0 +1,20 @@
+# 2026-09-28T10:41:20Z precompute IB4010; load: { 62.95 61.80 65.01 }
+{"meeting_dir": "/Users/mivi/Desktop/plaud-harness/data/corpora/ami/dev/IB4010", "n": 47368875, "chunks": 2952, "embeddings": [4941, 512]}
+      635.92 real      2222.08 user        12.23 sys
+           400015360  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              203958  page reclaims
+                3108  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                5865  voluntary context switches
+             1444307  involuntary context switches
+      13291274666439  instructions retired
+       3828158257208  cycles elapsed
+           620530880  peak memory footprint

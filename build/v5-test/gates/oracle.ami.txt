@@ -1,0 +1,36 @@
+$ python -m evals batch --refs data/corpora/ami/test --hyps build/v5-test/hyp/ami/oracle --gates evals/gates.yaml --suite oracle --gate-on each --report build/v5-test/gates/oracle.ami.json
+EN2002a [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+EN2002b [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+EN2002c [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+EN2002d [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+ES2004a [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+ES2004b [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+ES2004c [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+ES2004d [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+IS1009a [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+IS1009b [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+IS1009c [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+IS1009d [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+TS3003a [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+TS3003b [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+TS3003c [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+TS3003d [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+macro  n=16  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+micro  n=16  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+[PASS] suite 'oracle' on EN2002a (6 checks)
+[PASS] suite 'oracle' on EN2002b (6 checks)
+[PASS] suite 'oracle' on EN2002c (6 checks)
+[PASS] suite 'oracle' on EN2002d (6 checks)
+[PASS] suite 'oracle' on ES2004a (6 checks)
+[PASS] suite 'oracle' on ES2004b (6 checks)
+[PASS] suite 'oracle' on ES2004c (6 checks)
+[PASS] suite 'oracle' on ES2004d (6 checks)
+[PASS] suite 'oracle' on IS1009a (6 checks)
+[PASS] suite 'oracle' on IS1009b (6 checks)
+[PASS] suite 'oracle' on IS1009c (6 checks)
+[PASS] suite 'oracle' on IS1009d (6 checks)
+[PASS] suite 'oracle' on TS3003a (6 checks)
+[PASS] suite 'oracle' on TS3003b (6 checks)
+[PASS] suite 'oracle' on TS3003c (6 checks)
+[PASS] suite 'oracle' on TS3003d (6 checks)
+exit 0

@@ -1,0 +1,19 @@
+EN2002a [whisper-sherpa:reassigned:floor]  cpWER 0.9771  tcpWER 1.0599  DER 0.7620  JER 0.8587
+EN2002b [whisper-sherpa:reassigned:floor]  cpWER 0.9206  tcpWER 1.1087  DER 0.7873  JER 0.8714
+EN2002c [whisper-sherpa:reassigned:floor]  cpWER 0.9693  tcpWER 1.0213  DER 0.6942  JER 0.7650
+EN2002d [whisper-sherpa:reassigned:floor]  cpWER 0.9643  tcpWER 1.0287  DER 0.7480  JER 0.8496
+ES2004a [whisper-sherpa:reassigned:floor]  cpWER 0.9284  tcpWER 1.0577  DER 0.7099  JER 0.8419
+ES2004b [whisper-sherpa:reassigned:floor]  cpWER 0.7476  tcpWER 0.8302  DER 0.5541  JER 0.6861
+ES2004c [whisper-sherpa:reassigned:floor]  cpWER 0.7955  tcpWER 0.8463  DER 0.5371  JER 0.6342
+ES2004d [whisper-sherpa:reassigned:floor]  cpWER 0.9160  tcpWER 1.0193  DER 0.6982  JER 0.8025
+IS1009a [whisper-sherpa:reassigned:floor]  cpWER 0.6640  tcpWER 0.7953  DER 0.5760  JER 0.7797
+IS1009b [whisper-sherpa:reassigned:floor]  cpWER 0.8387  tcpWER 0.9122  DER 0.5614  JER 0.6451
+IS1009c [whisper-sherpa:reassigned:floor]  cpWER 1.0026  tcpWER 1.0429  DER 0.6924  JER 0.7503
+IS1009d [whisper-sherpa:reassigned:floor]  cpWER 0.8581  tcpWER 0.9925  DER 0.6789  JER 0.7987
+TS3003a [whisper-sherpa:reassigned:floor]  cpWER 0.9112  tcpWER 0.9195  DER 0.6649  JER 0.8625
+TS3003b [whisper-sherpa:reassigned:floor]  cpWER 0.8034  tcpWER 1.0137  DER 0.6717  JER 0.6634
+TS3003c [whisper-sherpa:reassigned:floor]  cpWER 0.8094  tcpWER 1.0217  DER 0.6660  JER 0.7020
+TS3003d [whisper-sherpa:reassigned:floor]  cpWER 0.8085  tcpWER 1.0590  DER 0.7503  JER 0.8230
+macro  n=16  cpWER 0.8697  tcpWER 0.9831  DER 0.6720  JER 0.7709
+micro  n=16  cpWER 0.8823  tcpWER 0.9897  DER 0.6769  JER 0.7710
+# exit 0

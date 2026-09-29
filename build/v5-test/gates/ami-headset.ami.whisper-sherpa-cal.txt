@@ -1,0 +1,21 @@
+$ python -m evals batch --refs data/corpora/ami/test --hyps build/v5-test/hyp/ami/whisper-sherpa-cal --gates evals/gates.yaml --suite ami-headset --gate-on macro --report build/v5-test/gates/ami-headset.ami.whisper-sherpa-cal.json
+EN2002a [whisper-sherpa]  cpWER 0.9256  tcpWER 1.0244  DER 0.7533  JER 0.8475
+EN2002b [whisper-sherpa]  cpWER 0.8765  tcpWER 1.0558  DER 0.7685  JER 0.8455
+EN2002c [whisper-sherpa]  cpWER 0.9377  tcpWER 1.0091  DER 0.6864  JER 0.7420
+EN2002d [whisper-sherpa]  cpWER 0.8795  tcpWER 0.9878  DER 0.7426  JER 0.8235
+ES2004a [whisper-sherpa]  cpWER 0.8922  tcpWER 1.0226  DER 0.6834  JER 0.8257
+ES2004b [whisper-sherpa]  cpWER 0.7329  tcpWER 0.8219  DER 0.5197  JER 0.6649
+ES2004c [whisper-sherpa]  cpWER 0.7470  tcpWER 0.8075  DER 0.5038  JER 0.6026
+ES2004d [whisper-sherpa]  cpWER 0.8807  tcpWER 1.0018  DER 0.6691  JER 0.7773
+IS1009a [whisper-sherpa]  cpWER 0.6715  tcpWER 0.8072  DER 0.5581  JER 0.7709
+IS1009b [whisper-sherpa]  cpWER 0.8130  tcpWER 0.8776  DER 0.5128  JER 0.6059
+IS1009c [whisper-sherpa]  cpWER 0.9910  tcpWER 1.0269  DER 0.6622  JER 0.7291
+IS1009d [whisper-sherpa]  cpWER 0.8165  tcpWER 0.9616  DER 0.6466  JER 0.7785
+TS3003a [whisper-sherpa]  cpWER 0.9073  tcpWER 0.9195  DER 0.6374  JER 0.8614
+TS3003b [whisper-sherpa]  cpWER 0.8014  tcpWER 1.0117  DER 0.6436  JER 0.6413
+TS3003c [whisper-sherpa]  cpWER 0.8008  tcpWER 1.0108  DER 0.6391  JER 0.6830
+TS3003d [whisper-sherpa]  cpWER 0.8110  tcpWER 1.0580  DER 0.7290  JER 0.8138
+macro  n=16  cpWER 0.8428  tcpWER 0.9628  DER 0.6472  JER 0.7508
+micro  n=16  cpWER 0.8505  tcpWER 0.9669  DER 0.6519  JER 0.7509
+[FAIL] suite 'ami-headset' on macro — failed: der.der <= 0.2 (got 0.6472308523024526: exceeds max 0.2); cpwer.error_rate <= 0.3 (got 0.8427863693662574: exceeds max 0.3)
+exit 1

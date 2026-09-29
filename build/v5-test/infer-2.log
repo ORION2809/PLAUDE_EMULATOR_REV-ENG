@@ -1,0 +1,86 @@
+[run-v5] output root: build/v5-test
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/EN2002a/hyp.json
+[run-v5] ami / oracle / EN2002b (no hint)
+[run-v5] ami / oracle / EN2002c (no hint)
+[run-v5] ami / oracle / EN2002d (no hint)
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/ES2004a/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/ES2004b/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/ES2004c/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/ES2004d/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/IS1009a/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/IS1009b/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/IS1009c/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/IS1009d/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/TS3003a/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/TS3003b/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/oracle/TS3003c/hyp.json
+[run-v5] ami / oracle / TS3003d (no hint)
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/EN2002a/hyp.json
+[run-v5] ami / energy-vad-cluster / EN2002b (no hint)
+[run-v5] ami / energy-vad-cluster / EN2002c (no hint)
+[run-v5] ami / energy-vad-cluster / EN2002d (no hint)
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/ES2004a/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/ES2004b/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/ES2004c/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/ES2004d/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/IS1009a/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/IS1009b/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/IS1009c/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/IS1009d/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/TS3003a/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/TS3003b/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster/TS3003c/hyp.json
+[run-v5] ami / energy-vad-cluster / TS3003d (no hint)
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/EN2002a/hyp.json
+[run-v5] ami / energy-vad-cluster-hint / EN2002b (--param num_speakers=4)
+[run-v5] ami / energy-vad-cluster-hint / EN2002c (--param num_speakers=3)
+[run-v5] ami / energy-vad-cluster-hint / EN2002d (--param num_speakers=4)
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/ES2004a/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/ES2004b/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/ES2004c/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/ES2004d/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/IS1009a/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/IS1009b/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/IS1009c/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/IS1009d/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/TS3003a/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/TS3003b/hyp.json
+[run-v5] exists, skipped: build/v5-test/hyp/ami/energy-vad-cluster-hint/TS3003c/hyp.json
+[run-v5] ami / energy-vad-cluster-hint / TS3003d (--param num_speakers=4)
+[run-v5] exists, skipped: build/v5-test/hyp/ami/whisper-sherpa/EN2002a/hyp.json
+[run-v5] ami / whisper-sherpa / EN2002b (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / EN2002c (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / EN2002d (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] exists, skipped: build/v5-test/hyp/ami/whisper-sherpa/ES2004a/hyp.json
+[run-v5] ami / whisper-sherpa / ES2004b (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / ES2004c (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / ES2004d (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / IS1009a (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / IS1009b (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / IS1009c (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / IS1009d (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / TS3003a (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / TS3003b (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / TS3003c (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa / TS3003d (--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / EN2002a (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / EN2002b (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / EN2002c (--param num_speakers=3 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / EN2002d (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / ES2004a (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / ES2004b (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / ES2004c (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / ES2004d (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / IS1009a (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / IS1009b (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / IS1009c (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / IS1009d (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / TS3003a (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / TS3003b (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / TS3003c (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-hint / TS3003d (--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] hypotheses: build/v5-test/hyp/<dataset>/<system>/<meeting_id>/hyp.json
+[run-v5] logs:       build/v5-test/logs/<dataset>/<system>/<meeting_id>.log
+[run-v5] reports:    build/v5-test/reports/<dataset>/<system>[.collar0|.norm|.lifted*].{json,md,txt}
+[run-v5] gates:      build/v5-test/gates/<suite>.<dataset>.{json,txt}
+[run-v5] summary:    build/v5-test/summary.{md,json}

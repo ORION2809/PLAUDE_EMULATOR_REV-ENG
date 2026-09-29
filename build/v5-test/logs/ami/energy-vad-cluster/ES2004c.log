@@ -1,0 +1,25 @@
+# 2026-09-28T07:21:56Z ami energy-vad-cluster ES2004c pipeline=energy-vad-cluster hint=0 n_active=4 params=
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/ES2004c/mix.wav
+# load average at start: { 2.49 2.31 2.51 }
+# swap at start: total = 8192.00M  used = 7277.00M  free = 915.00M  (encrypted)
+energy-vad-cluster: 1337 segments, 6 speakers, 5.84s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/energy-vad-cluster/ES2004c.partial/hyp.json (+ .rttm, .stm)
+        6.12 real         5.95 user         0.13 sys
+           434995200  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               39249  page reclaims
+                  32  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  10  voluntary context switches
+                3084  involuntary context switches
+         71592075919  instructions retired
+         18791550448  cycles elapsed
+           471107712  peak memory footprint
+# load average at end: { 2.77 2.38 2.53 }
+# exit 0

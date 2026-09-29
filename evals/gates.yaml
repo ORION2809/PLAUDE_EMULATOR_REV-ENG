@@ -53,12 +53,14 @@ suites:
   ami-headset:
     description: >
       V5 TARGET on the FULL AMI test split (all 16 meetings of the standard
-      full-corpus partition, headset mix).  It has not been measured: only 4
-      of the 16 test meetings have audio here.  The thresholds are an
-      uncalibrated target (HARNESS_POLICY), not derived from any run; the
-      4-meeting subset is measured and regression-gated by
-      ami-subset-whisper-sherpa (docs/v5-results.md), and on that subset the
-      measured DER and cpWER are far above these bounds.
+      full-corpus partition, headset mix).  Measured on 2026-09-28
+      (docs/v5-test-split.md) and FAILED: whisper-sherpa with the dev-calibrated
+      threshold and no hint gave macro DER 0.6472 and cpWER 0.8428; with the
+      speaker count given, 0.6396 and 0.8567.  The thresholds are an
+      uncalibrated target (HARNESS_POLICY), not derived from any run.  The
+      measured runs are regression-gated by ami-test-whisper-sherpa-cal and
+      ami-test-whisper-sherpa-hint (full split) and ami-subset-whisper-sherpa
+      (the 25 Sep 4-meeting subset, docs/v5-results.md).
     gates:
       - {metric: der.der,          max: 0.20}
       - {metric: cpwer.error_rate, max: 0.30}
@@ -85,6 +87,37 @@ suites:
       - {metric: cpwer.error_rate,        max: 0.884}
       - {metric: tcpwer.error_rate,       max: 1.001}
       - {metric: wer_concat.wer,          max: 0.356}
+      - {metric: speaker_count.abs_error, max: 0.25}
+
+  ami-test-whisper-sherpa-cal:
+    description: >
+      REGRESSION gate (HARNESS_POLICY), calibrated on one measured run:
+      whisper-sherpa with cluster_threshold=1.15 and
+      assignment_tie_break=latest_start (both chosen on the AMI dev split) and
+      NO speaker-count hint, on all 16 AMI test-split meetings (full length,
+      Mix-Headset), macro average, evals defaults.  Measured values and margin
+      in docs/v5-test-split.md.  Not the V5 target (that is ami-headset).
+    gates:
+      - {metric: der.der,                 max: 0.678}
+      - {metric: jer.jer,                 max: 0.781}
+      - {metric: cpwer.error_rate,        max: 0.873}
+      - {metric: tcpwer.error_rate,       max: 0.993}
+      - {metric: wer_concat.wer,          max: 0.353}
+      - {metric: speaker_count.abs_error, max: 0.688}
+
+  ami-test-whisper-sherpa-hint:
+    description: >
+      REGRESSION gate (HARNESS_POLICY), calibrated on one measured run:
+      whisper-sherpa with num_speakers = each meeting's reference speaker count
+      (default threshold and tie-break) on all 16 AMI test-split meetings,
+      macro average, evals defaults.  Measured values and margin in
+      docs/v5-test-split.md.  Not the V5 target (that is ami-headset).
+    gates:
+      - {metric: der.der,                 max: 0.67}
+      - {metric: jer.jer,                 max: 0.778}
+      - {metric: cpwer.error_rate,        max: 0.887}
+      - {metric: tcpwer.error_rate,       max: 1.011}
+      - {metric: wer_concat.wer,          max: 0.353}
       - {metric: speaker_count.abs_error, max: 0.25}
 
   synthetic-piper-whisper-sherpa:

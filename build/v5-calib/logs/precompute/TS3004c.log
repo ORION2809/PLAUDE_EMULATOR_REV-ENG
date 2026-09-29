@@ -1,0 +1,20 @@
+# 2026-09-28T09:37:46Z precompute TS3004c; load: { 105.47 133.95 123.17 }
+{"meeting_dir": "/Users/mivi/Desktop/plaud-harness/data/corpora/ami/dev/TS3004c", "n": 47520000, "chunks": 2961, "embeddings": [4399, 512]}
+     1548.04 real      3375.59 user        27.41 sys
+           416759808  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              484269  page reclaims
+                3058  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                7183  voluntary context switches
+             2961110  involuntary context switches
+      18278479731471  instructions retired
+       5300863929552  cycles elapsed
+           606948352  peak memory footprint

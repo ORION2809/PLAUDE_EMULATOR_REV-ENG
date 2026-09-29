@@ -1,0 +1,25 @@
+# 2026-09-28T15:58:57Z ami whisper-sherpa-hint IS1009c pipeline=whisper-sherpa hint=1 n_active=4 params=--param num_speakers=4 --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/IS1009c/mix.wav
+# load average at start: { 4.84 6.38 20.37 }
+# swap at start: total = 9216.00M  used = 7840.06M  free = 1375.94M  (encrypted)
+whisper-sherpa: 323 segments, 4 speakers, 336.35s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/whisper-sherpa-hint/IS1009c.partial/hyp.json (+ .rttm, .stm)
+      339.22 real      1334.02 user         4.07 sys
+           909869056  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              184768  page reclaims
+                3471  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                1523  voluntary context switches
+              234293  involuntary context switches
+       6386142467943  instructions retired
+       1472165403850  cycles elapsed
+          1010618432  peak memory footprint
+# load average at end: { 5.19 5.48 15.31 }
+# exit 0

@@ -34,15 +34,24 @@ sys.path.insert(0, str(REPO))
 from evals.gates import DEFAULT_GATES_PATH, evaluate, get_suite, load_gates  # noqa: E402
 
 DOC = REPO / "docs" / "v5-results.md"
+TEST_DOC = REPO / "docs" / "v5-test-split.md"
 SCRIPT = REPO / "scripts" / "run-v5.sh"
 V5_SUITES = ("ami-subset-whisper-sherpa", "synthetic-piper-whisper-sherpa")
+#: the 2026-09-28 full-test-split regression suites, calibrated in docs/v5-test-split.md
+V5_TEST_SUITES = ("ami-test-whisper-sherpa-cal", "ami-test-whisper-sherpa-hint")
 
 
-def calibration() -> dict:
-    text = DOC.read_text(encoding="utf-8")
-    m = re.search(r"```json v5-gate-calibration\n(.*?)\n```", text, re.S)
-    assert m, "docs/v5-results.md has no ```json v5-gate-calibration block"
+def calibration(doc: Path = DOC, tag: str = "v5-gate-calibration") -> dict:
+    text = doc.read_text(encoding="utf-8")
+    m = re.search(rf"```json {tag}\n(.*?)\n```", text, re.S)
+    assert m, f"{doc.name} has no ```json {tag} block"
     return json.loads(m.group(1))
+
+
+def suite_record(suite_name: str) -> tuple[dict, str]:
+    if suite_name in V5_TEST_SUITES:
+        return calibration(TEST_DOC, "v5-test-gate-calibration")["suites"][suite_name], "docs/v5-test-split.md"
+    return calibration()["suites"][suite_name], "docs/v5-results.md"
 
 
 def round_up(x: float, places: int = 3) -> float:
@@ -61,11 +70,19 @@ def test_calibration_block_names_both_suites_and_the_margin_policy() -> None:
         assert all(v > 0 for v in s["margin"].values()), name
 
 
-@pytest.mark.parametrize("suite_name", V5_SUITES)
+def test_test_split_calibration_block_names_its_suites() -> None:
+    cal = calibration(TEST_DOC, "v5-test-gate-calibration")
+    assert cal["schema"] == "plaud-harness/v5-gate-calibration/1" and "HARNESS_POLICY" in cal["margin_policy"]
+    assert set(cal["suites"]) == set(V5_TEST_SUITES)
+    for name, s in cal["suites"].items():
+        assert s["gate_on"] == "macro" and set(s["measured"]) == set(s["margin"]), name
+
+
+@pytest.mark.parametrize("suite_name", V5_SUITES + V5_TEST_SUITES)
 def test_v5_suite_thresholds_are_measured_plus_the_stated_margin(suite_name: str) -> None:
     suite = get_suite(load_gates(DEFAULT_GATES_PATH), suite_name)
-    rec = calibration()["suites"][suite_name]
-    assert "regression" in suite.description.lower() and "docs/v5-results.md" in suite.description
+    rec, doc = suite_record(suite_name)
+    assert "regression" in suite.description.lower() and doc in suite.description
     assert "HARNESS_POLICY" in suite.description
     metrics = {c.metric for c in suite.checks}
     assert metrics == set(rec["measured"]), (metrics, set(rec["measured"]))
@@ -76,10 +93,10 @@ def test_v5_suite_thresholds_are_measured_plus_the_stated_margin(suite_name: str
         assert c.max == pytest.approx(want, abs=1e-12), (c.metric, c.max, want)
 
 
-@pytest.mark.parametrize("suite_name", V5_SUITES)
+@pytest.mark.parametrize("suite_name", V5_SUITES + V5_TEST_SUITES)
 def test_v5_suite_passes_on_the_recorded_measurement(suite_name: str) -> None:
     suite = get_suite(load_gates(DEFAULT_GATES_PATH), suite_name)
-    rec = calibration()["suites"][suite_name]
+    rec, _ = suite_record(suite_name)
     res = evaluate(suite, rec["measured"], target="macro")
     assert res.passed, res.summary()
     # ... and it is a real bound: the measurement plus twice the margin fails every check.
@@ -87,11 +104,16 @@ def test_v5_suite_passes_on_the_recorded_measurement(suite_name: str) -> None:
     assert evaluate(suite, worse, target="macro").failed_metrics == [c.metric for c in suite.checks]
 
 
-def test_ami_headset_is_the_unmeasured_full_test_set_target() -> None:
+def test_ami_headset_is_the_full_test_set_target_and_records_that_it_was_missed() -> None:
     suite = get_suite(load_gates(DEFAULT_GATES_PATH), "ami-headset")
     desc = suite.description.lower()
-    assert "full" in desc and "16" in desc and "not been measured" in desc
-    assert "ami-subset-whisper-sherpa" in suite.description
+    assert "full" in desc and "16" in desc and "failed" in desc and "docs/v5-test-split.md" in suite.description
+    for name in ("ami-subset-whisper-sherpa", *V5_TEST_SUITES):
+        assert name in suite.description
+    # and it does fail on the recorded full-split measurements
+    for name in V5_TEST_SUITES:
+        rec, _ = suite_record(name)
+        assert not evaluate(suite, rec["measured"], target="macro").passed
 
 
 def test_run_v5_script_is_valid_bash_and_applies_both_suites() -> None:

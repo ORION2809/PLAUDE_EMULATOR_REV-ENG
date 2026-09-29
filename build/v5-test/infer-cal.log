@@ -1,0 +1,22 @@
+[run-v5] output root: build/v5-test
+[run-v5] ami / whisper-sherpa-cal / EN2002a (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / EN2002b (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / EN2002c (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / EN2002d (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / ES2004a (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / ES2004b (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / ES2004c (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / ES2004d (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / IS1009a (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / IS1009b (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / IS1009c (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / IS1009d (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / TS3003a (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / TS3003b (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / TS3003c (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-sherpa-cal / TS3003d (--param cluster_threshold=1.15 --param assignment_tie_break=latest_start --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] hypotheses: build/v5-test/hyp/<dataset>/<system>/<meeting_id>/hyp.json
+[run-v5] logs:       build/v5-test/logs/<dataset>/<system>/<meeting_id>.log
+[run-v5] reports:    build/v5-test/reports/<dataset>/<system>[.collar0|.norm|.lifted*].{json,md,txt}
+[run-v5] gates:      build/v5-test/gates/<suite>.<dataset>.{json,txt}
+[run-v5] summary:    build/v5-test/summary.{md,json}

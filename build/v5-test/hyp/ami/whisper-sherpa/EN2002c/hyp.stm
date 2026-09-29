@@ -1,0 +1,1626 @@
+EN2002c 1 spk0 20.040 20.880 oops
+EN2002c 1 spk2 22.360 24.760 does it squeeze in like that
+EN2002c 1 spk3 49.680 50.000 did
+EN2002c 1 spk4 50.000 54.700 we get a sound out of 10 for the other one
+EN2002c 1 spk4 54.700 55.160 yeah
+EN2002c 1 spk2 56.460 58.020 let's go in the what's he
+EN2002c 1 spk4 58.020 58.400 giving me
+EN2002c 1 spk4 60.680 61.980 oh okay
+EN2002c 1 spk0 64.530 64.920 excellent
+EN2002c 1 spk0 67.000 67.340 okay
+EN2002c 1 spk6 100.400 104.800 so how are we getting along
+EN2002c 1 spk0 107.080 107.600 not bad
+EN2002c 1 spk7 108.360 110.800 one thing that i was wondering is there standard
+EN2002c 1 spk8 110.800 114.420 control that you use to
+EN2002c 1 spk8 114.420 117.440 connect the different things like if you're on a topic and it goes and
+EN2002c 1 spk8 117.440 121.260 highlights the topic in the text or whatever is there a particular type of
+EN2002c 1 spk8 121.260 122.020 control that
+EN2002c 1 spk9 122.180 124.780 like is there one of these nxt
+EN2002c 1 spk9 124.780 127.080 i think
+EN2002c 1 spk11 127.080 127.920 there is
+EN2002c 1 spk11 128.380 136.600 just because the topic box and all this is based on what
+EN2002c 1 spk12 136.600 137.320 was it called
+EN2002c 1 spk12 137.320 143.320 non night text area or something in text areas i don't know what it is
+EN2002c 1 spk12 143.500 145.760 and it has some sort of highlighting stuff there
+EN2002c 1 spk12 146.300 147.960 so you should probably look at
+EN2002c 1 spk13 147.960 152.640 the
+EN2002c 1 spk12 155.140 157.080 i'm not sure if it's in built though to be honest
+EN2002c 1 spk10 158.200 164.320 you haven't had to build any new windows to do that sort of thing like other topics or
+EN2002c 1 spk10 164.320 166.560 we're going to do one for speaker i guess in all the rest right
+EN2002c 1 spk10 167.740 168.140 okay
+EN2002c 1 spk10 169.560 173.160 when we talk about speaker characterization how are we accessing the list of speakers
+EN2002c 1 spk10 173.580 174.780 i want to talk about that actually
+EN2002c 1 spk14 176.380 176.780 the
+EN2002c 1 spk9 176.780 178.000 data processing is
+EN2002c 1 spk4 178.000 182.160 fine but i don't particularly want to do the gui for it
+EN2002c 1 spk4 182.500 182.840 you don't
+EN2002c 1 spk4 183.040 183.180 no
+EN2002c 1 spk4 184.060 185.440 if you want to do that
+EN2002c 1 spk4 185.440 185.450 yeah
+EN2002c 1 spk15 185.620 186.640 i was thinking about
+EN2002c 1 spk4 186.640 188.960 then tell me how you want the data
+EN2002c 1 spk16 188.960 189.500 presented
+EN2002c 1 spk16 191.100 192.720 it's at the moment
+EN2002c 1 spk17 194.260 197.700 i've created two classes one that represents speakers
+EN2002c 1 spk17 197.800 199.080 one that represents the meetings
+EN2002c 1 spk18 199.840 202.800 and the information about both is contained within each object
+EN2002c 1 spk18 203.520 207.720 and then they write objects and the objects contain all the information about the meetings
+EN2002c 1 spk18 207.720 211.720 and the speakers so the speakers that are at the meetings and the amount they speak
+EN2002c 1 spk18 212.180 213.060 and then the averages are
+EN2002c 1 spk4 213.060 216.600 contained with the speakers so there's two separate classes
+EN2002c 1 spk4 217.040 217.880 okay yeah
+EN2002c 1 spk4 217.880 222.000 and they're two different objects and you can write the rights to the objects
+EN2002c 1 spk4 222.180 224.940 and then you call the objects back and those returned objects
+EN2002c 1 spk19 224.940 227.000 have all the information that they need
+EN2002c 1 spk18 227.140 227.940 and then you can call methods
+EN2002c 1 spk19 227.940 229.500 to return whatever you want
+EN2002c 1 spk20 229.860 231.260 okay yeah i see what you mean
+EN2002c 1 spk13 231.340 231.820 or everything
+EN2002c 1 spk18 232.000 234.960 but that's why i wanted to know what's the easiest way to have the data
+EN2002c 1 spk13 235.200 238.100 so have you already calculated all this data
+EN2002c 1 spk13 238.380 239.300 what are you supposed to do that
+EN2002c 1 spk13 239.420 240.300 yes basically all calculated
+EN2002c 1 spk4 240.300 242.920 data and all stored as
+EN2002c 1 spk19 242.920 244.340 objects so dot object files
+EN2002c 1 spk19 244.740 245.200 all right
+EN2002c 1 spk19 245.200 245.320 okay
+EN2002c 1 spk19 246.400 250.380 which means that you just call the and our null constructor and call the load thing
+EN2002c 1 spk18 250.480 252.900 and call it that and you can create a list of them or back to it
+EN2002c 1 spk18 253.040 253.840 and whatever you want to do
+EN2002c 1 spk18 254.580 256.940 and then we'll just call them one at a time to populate a window
+EN2002c 1 spk18 257.300 260.820 but that's what i wanted to know what format do you want the data to come back in
+EN2002c 1 spk18 261.540 263.680 because it can come back as almost anything
+EN2002c 1 spk18 264.560 264.740 okay
+EN2002c 1 spk0 266.020 267.340 what should it come back as
+EN2002c 1 spk0 267.920 268.800 what's easiest to display
+EN2002c 1 spk21 268.980 269.960 that might also help like
+EN2002c 1 spk10 270.060 270.920 when he was talking about like
+EN2002c 1 spk10 271.060 272.740 have an architecture that things are going to plug into
+EN2002c 1 spk10 273.100 273.320 yeah
+EN2002c 1 spk10 273.320 274.720 i mean so the things are all modular
+EN2002c 1 spk10 274.900 277.900 i mean it would be a good idea if we use that same idea for anything else we do
+EN2002c 1 spk10 277.940 278.780 or what else we're doing
+EN2002c 1 spk10 280.120 280.440 yeah
+EN2002c 1 spk10 280.800 281.720 even the searches or whatever
+EN2002c 1 spk10 282.140 283.400 and just any sort of thing
+EN2002c 1 spk10 283.500 284.980 i mean search results if they're all in a predictable
+EN2002c 1 spk4 284.980 285.820 thing with a name
+EN2002c 1 spk4 286.360 288.060 certain properties or a list of properties or whatever
+EN2002c 1 spk4 290.340 290.560 yeah
+EN2002c 1 spk4 292.520 294.100 so as i can have it so
+EN2002c 1 spk18 294.100 295.760 that it returns you a
+EN2002c 1 spk18 296.240 300.840 is at the moment the main data structures are hash tables for the meetings
+EN2002c 1 spk18 300.840 304.840 that say it's got one that says percent it's called percent talk
+EN2002c 1 spk18 305.780 307.860 one's percent noise and one is percent participation
+EN2002c 1 spk18 308.720 309.060 do you see what i mean
+EN2002c 1 spk18 309.260 310.980 so and then it's got inside it's got a link
+EN2002c 1 spk18 311.220 313.260 it's got a it's got the speaker's name
+EN2002c 1 spk19 313.820 316.060 and then it's got their percentage for that thing
+EN2002c 1 spk19 316.460 316.820 oh yeah
+EN2002c 1 spk19 316.980 318.940 so it can either come back as a you can have the hash table
+EN2002c 1 spk19 319.160 320.940 or you can have it returned as a vector
+EN2002c 1 spk18 321.340 325.440 and it will say noise it's just a string it's noise
+EN2002c 1 spk18 326.060 326.640 it works percent
+EN2002c 1 spk18 327.020 329.400 it will say a vector that's i don't know whatever
+EN2002c 1 spk18 329.400 331.840 you can either have it you can either have it
+EN2002c 1 spk18 331.880 335.060 you could have it like an embedded vector or array of strings
+EN2002c 1 spk18 335.260 336.680 and each one represents one person
+EN2002c 1 spk9 336.980 337.640 or whatever
+EN2002c 1 spk9 338.860 339.280 whatever
+EN2002c 1 spk9 339.540 342.300 whatever you give me i can do it
+EN2002c 1 spk9 342.740 342.920 whatever you give me i can do it
+EN2002c 1 spk9 343.500 343.920 just
+EN2002c 1 spk4 343.920 346.300 a matter of deciding what would be easiest
+EN2002c 1 spk4 346.420 346.920 yeah you get it
+EN2002c 1 spk4 347.060 347.480 all the way around
+EN2002c 1 spk4 347.840 347.850 thank
+EN2002c 1 spk9 347.840 348.320 you
+EN2002c 1 spk4 350.080 353.000 so what whenever we open a
+EN2002c 1 spk11 353.000 354.400 window for one speaker
+EN2002c 1 spk11 355.120 355.380 yeah
+EN2002c 1 spk23 359.400 360.220 see that's the key
+EN2002c 1 spk23 360.580 360.720 how did
+EN2002c 1 spk2 360.720 363.480 we can i have a look at that again
+EN2002c 1 spk2 366.980 369.620 if it's in that format it's speaker
+EN2002c 1 spk2 369.820 370.760 yeah that's pretty much all that's on
+EN2002c 1 spk2 370.960 373.180 it's speaker speaker is the controlling
+EN2002c 1 spk19 373.180 374.200 thing
+EN2002c 1 spk19 374.500 374.520 yeah
+EN2002c 1 spk19 374.720 377.120 yeah okay yeah yeah
+EN2002c 1 spk19 377.120 379.500 yeah so all of this all that's calculated as well
+EN2002c 1 spk19 379.640 380.480 still the speaker objects
+EN2002c 1 spk19 381.280 381.800 oh is it
+EN2002c 1 spk19 381.980 382.800 yeah that's easy
+EN2002c 1 spk4 383.660 384.680 so i'm quite amusing actually
+EN2002c 1 spk4 385.500 388.140 the influences are i lived in germany for six months
+EN2002c 1 spk4 388.140 389.380 i don't know if that had any effect
+EN2002c 1 spk4 389.540 389.940 i spent too
+EN2002c 1 spk25 389.940 391.140 much time talking to brits
+EN2002c 1 spk25 392.020 393.040 that was a bizarre thing
+EN2002c 1 spk4 393.600 394.520 where do these people go
+EN2002c 1 spk18 398.560 401.620 so then all that is calculated as well
+EN2002c 1 spk18 401.760 403.080 all i have to do is get the dialogue
+EN2002c 1 spk4 403.080 403.260 out
+EN2002c 1 spk4 403.360 404.200 so i don't think that would be difficult
+EN2002c 1 spk24 414.140 415.020 so then does
+EN2002c 1 spk4 415.020 415.660 this how
+EN2002c 1 spk24 415.660 417.100 is this box populated
+EN2002c 1 spk24 417.100 419.520 is it populated by the one present or the one highlighted
+EN2002c 1 spk26 420.960 422.180 the one present
+EN2002c 1 spk4 422.460 422.880 the one present
+EN2002c 1 spk27 423.360 423.920 although we could
+EN2002c 1 spk26 423.920 425.880 do we
+EN2002c 1 spk4 425.880 427.500 could do the one highlighted i suppose
+EN2002c 1 spk4 429.480 431.080 because at the moment i'm using there are
+EN2002c 1 spk17 431.080 431.960 methods that say
+EN2002c 1 spk17 433.460 435.000 for the fly using for
+EN2002c 1 spk18 435.000 435.420 other talks
+EN2002c 1 spk18 435.580 437.360 so i was pressing it and it says like get
+EN2002c 1 spk18 437.620 440.520 get talk time and you take the name
+EN2002c 1 spk18 440.760 442.340 so that would call that
+EN2002c 1 spk18 442.460 444.760 and call the meetings method that said return that
+EN2002c 1 spk18 444.800 445.040 and that would
+EN2002c 1 spk4 445.040 445.580 populate that
+EN2002c 1 spk4 445.580 447.500 which would be an easy thing to do
+EN2002c 1 spk4 448.840 449.560 and the same for that
+EN2002c 1 spk4 449.580 453.700 i mean that would be implementing what you said
+EN2002c 1 spk4 454.120 455.780 that you want to see per topic
+EN2002c 1 spk4 455.940 456.060 you want
+EN2002c 1 spk30 456.060 458.620 to see which one spoke in most something like that
+EN2002c 1 spk30 458.900 461.100 so you could zap through these topics
+EN2002c 1 spk30 462.000 462.360 meetings
+EN2002c 1 spk30 462.820 463.400 meetings sorry
+EN2002c 1 spk30 463.580 463.900 yeah yeah
+EN2002c 1 spk30 464.080 466.860 and it would come up with how much they spoke
+EN2002c 1 spk30 467.060 467.720 and you can pick the one
+EN2002c 1 spk4 467.720 469.040 that looks the most interesting
+EN2002c 1 spk4 469.040 470.400 yeah yeah that would be easy as well yeah
+EN2002c 1 spk0 470.720 471.540 so do you want to do that then
+EN2002c 1 spk0 471.840 472.140 yeah
+EN2002c 1 spk14 472.200 472.360 okay
+EN2002c 1 spk14 472.500 473.020 so i'll
+EN2002c 1 spk4 473.020 474.040 just leave in lots of
+EN2002c 1 spk18 474.040 474.400 methods
+EN2002c 1 spk18 474.400 475.020 that will
+EN2002c 1 spk4 475.020 477.580 just return one number at a time
+EN2002c 1 spk4 477.740 479.040 that would be the easiest way to do it yeah
+EN2002c 1 spk31 479.320 479.840 yeah definitely
+EN2002c 1 spk4 481.220 481.760 yeah that's fine
+EN2002c 1 spk4 481.760 485.080 so yeah random things like just return talking time
+EN2002c 1 spk4 485.520 485.800 yeah
+EN2002c 1 spk4 487.100 487.160 yeah
+EN2002c 1 spk4 487.260 487.880 get talk time i think
+EN2002c 1 spk4 488.380 488.780 yeah
+EN2002c 1 spk0 491.640 492.000 yeah
+EN2002c 1 spk0 492.240 492.360 so
+EN2002c 1 spk32 492.380 494.320 each time are you going straight to the xml files
+EN2002c 1 spk32 494.320 495.400 for the information
+EN2002c 1 spk32 495.780 496.520 no it's stored as
+EN2002c 1 spk0 496.520 496.880 an object
+EN2002c 1 spk33 496.880 497.140 file
+EN2002c 1 spk33 497.260 499.360 it prices a whole lot offline and stores it as an object
+EN2002c 1 spk33 499.820 499.920 okay okay
+EN2002c 1 spk33 500.080 500.940 and then they're much
+EN2002c 1 spk4 500.940 501.380 much smaller
+EN2002c 1 spk4 501.380 502.520 they're only like a one
+EN2002c 1 spk2 502.520 504.020 without one key
+EN2002c 1 spk2 504.360 505.720 so that's all just pre processed
+EN2002c 1 spk2 505.720 505.800 yeah
+EN2002c 1 spk4 505.900 506.640 it's all pre processed
+EN2002c 1 spk4 506.800 508.300 and then it's just each one of the objects
+EN2002c 1 spk4 508.300 509.860 got a return a bunch of return methods
+EN2002c 1 spk4 510.020 511.040 you have to recreate the object
+EN2002c 1 spk4 511.240 512.060 it's got a load method
+EN2002c 1 spk4 512.300 512.520 okay
+EN2002c 1 spk4 513.080 514.560 so what you do is you call the null constructor
+EN2002c 1 spk4 514.980 517.620 because if you call the proper constructor for each meeting
+EN2002c 1 spk4 517.720 519.340 it goes off and does all the processing and stores
+EN2002c 1 spk4 519.340 519.660 the own object
+EN2002c 1 spk4 519.660 520.340 yeah right
+EN2002c 1 spk4 520.580 521.020 and then
+EN2002c 1 spk2 521.020 522.940 if you call the null constructor
+EN2002c 1 spk2 523.500 526.280 then you call load and you can call load on whatever one
+EN2002c 1 spk2 526.280 527.880 or all of them or anything like that
+EN2002c 1 spk2 528.020 528.440 because is
+EN2002c 1 spk32 528.440 530.820 it for the entire corpus
+EN2002c 1 spk32 530.820 534.120 or is it just like individual ones like one object for each
+EN2002c 1 spk2 534.120 534.130 meeting
+EN2002c 1 spk2 534.120 535.080 one object for each meeting
+EN2002c 1 spk4 535.320 536.460 oh each meeting okay
+EN2002c 1 spk4 538.220 539.860 i wonder if that would be useful
+EN2002c 1 spk4 539.860 541.140 for some of the other stuff we're doing
+EN2002c 1 spk4 543.300 546.320 yeah it just tells you who participated at the moment
+EN2002c 1 spk4 546.400 547.280 it tells you who participated
+EN2002c 1 spk4 547.280 549.940 and the amounts they participated in percentages
+EN2002c 1 spk9 549.940 551.320 and in time as well
+EN2002c 1 spk4 551.340 553.540 can you put in there what topic we're speaking about as well
+EN2002c 1 spk14 553.940 554.640 yeah yeah that'd be
+EN2002c 1 spk9 554.640 555.380 pretty easy
+EN2002c 1 spk4 555.580 558.140 i could use that for the topic pop up window
+EN2002c 1 spk4 558.520 558.860 all right
+EN2002c 1 spk4 559.180 559.260 yeah
+EN2002c 1 spk4 559.260 559.660 so
+EN2002c 1 spk2 559.660 560.960 that
+EN2002c 1 spk4 560.960 562.760 would cause a problem with anything
+EN2002c 1 spk4 562.760 564.300 that wasn't annotated for topics
+EN2002c 1 spk0 565.260 565.900 that wasn't what
+EN2002c 1 spk4 566.220 568.040 or just return a null or a blank or a blank string
+EN2002c 1 spk4 568.040 568.920 oh yeah no topic specified
+EN2002c 1 spk4 569.120 569.940 you don't have a default yeah
+EN2002c 1 spk4 571.420 573.640 there are some default unknowns actually
+EN2002c 1 spk4 574.120 575.400 a lot of people don't give you range
+EN2002c 1 spk11 577.120 578.040 because at the moment
+EN2002c 1 spk11 578.080 580.100 if you right click on the topic window on
+EN2002c 1 spk12 580.100 580.700 one of the topics
+EN2002c 1 spk12 580.800 583.480 you have the option of popping open a window
+EN2002c 1 spk12 583.480 585.160 which gives you a list of all the meetings
+EN2002c 1 spk4 585.160 586.300 containing that topic
+EN2002c 1 spk4 586.840 587.060 yeah
+EN2002c 1 spk4 588.040 588.440 so
+EN2002c 1 spk4 588.440 589.200 okay right
+EN2002c 1 spk4 589.320 590.220 yeah that would be a problem
+EN2002c 1 spk4 590.380 592.040 and then you could do a search over
+EN2002c 1 spk18 592.040 592.460 the meetings
+EN2002c 1 spk18 592.820 593.400 over the objects
+EN2002c 1 spk18 593.580 594.040 because that's the thing
+EN2002c 1 spk18 594.420 596.480 these are so small that you can load each
+EN2002c 1 spk18 596.600 598.320 all of the whole lot up and do a search over the whole lot
+EN2002c 1 spk18 598.320 600.160 to find who passes by doing what no problem
+EN2002c 1 spk18 600.320 601.400 or what topics were in what
+EN2002c 1 spk18 602.120 602.920 so it doesn't crash the
+EN2002c 1 spk14 602.920 603.120 thing
+EN2002c 1 spk4 603.580 605.840 so how would you calculate that
+EN2002c 1 spk4 606.280 609.600 would you do the summarization as you populate it
+EN2002c 1 spk4 610.640 612.040 the global statistics come straight up for that
+EN2002c 1 spk4 612.040 612.180 yeah we've
+EN2002c 1 spk2 612.180 613.360 got
+EN2002c 1 spk2 613.360 614.300 because they're just for the meeting
+EN2002c 1 spk4 615.540 615.880 oh right
+EN2002c 1 spk4 616.200 618.380 so that is all stored together
+EN2002c 1 spk36 618.380 620.120 and the speaker class knows about all of that stuff
+EN2002c 1 spk36 620.220 620.800 oh right okay
+EN2002c 1 spk36 620.820 621.980 and the meeting class knows about all that
+EN2002c 1 spk4 621.980 622.320 stuff
+EN2002c 1 spk30 625.620 626.100 sounds good
+EN2002c 1 spk30 627.100 628.080 so have you done these yet
+EN2002c 1 spk30 628.540 629.000 no no
+EN2002c 1 spk30 629.180 629.340 i don't
+EN2002c 1 spk0 629.340 629.460 know
+EN2002c 1 spk0 629.620 629.900 we've just
+EN2002c 1 spk30 629.900 632.800 got to decide on what we want to do
+EN2002c 1 spk37 632.800 633.620 what we want yeah
+EN2002c 1 spk4 635.040 635.840 i thought the other
+EN2002c 1 spk37 635.840 636.660 stuff was more important
+EN2002c 1 spk4 637.000 637.220 yeah definitely
+EN2002c 1 spk4 637.220 637.920 so i did that first
+EN2002c 1 spk2 639.480 640.980 so it's all usable now
+EN2002c 1 spk2 641.160 642.000 can i do it tonight
+EN2002c 1 spk18 644.020 644.180 no
+EN2002c 1 spk18 644.640 645.260 design agree first
+EN2002c 1 spk18 645.260 647.920 because the problem is if you change the
+EN2002c 1 spk9 647.920 648.240 classes
+EN2002c 1 spk9 648.740 649.060 the
+EN2002c 1 spk18 649.060 650.300 objects serial numbers change
+EN2002c 1 spk18 650.440 651.340 and you can't reload the objects
+EN2002c 1 spk18 651.500 651.940 so all the processing
+EN2002c 1 spk9 651.940 652.800 has to be done over again
+EN2002c 1 spk9 653.100 654.260 and i haven't quite finished it yet so
+EN2002c 1 spk9 655.840 657.260 it would become out of sync
+EN2002c 1 spk9 657.680 658.360 it would get a bit funny
+EN2002c 1 spk9 659.420 660.320 if i gave you one
+EN2002c 1 spk4 661.200 662.900 if i gave you it now and you worked on it
+EN2002c 1 spk4 662.940 664.620 and then i changed it and ran the thing again
+EN2002c 1 spk4 664.700 666.340 you wouldn't ever be able to load the objects back up
+EN2002c 1 spk0 666.640 667.120 oh i see
+EN2002c 1 spk4 668.560 670.100 and then you'd have multiple copies of objects
+EN2002c 1 spk4 670.100 670.860 while replacing it
+EN2002c 1 spk13 672.940 675.920 well let me know when it's usable
+EN2002c 1 spk13 676.260 676.720 but if you
+EN2002c 1 spk34 676.720 677.800 want to make the picture
+EN2002c 1 spk34 678.540 679.720 you can do that without anything
+EN2002c 1 spk4 680.900 682.040 what do you mean a picture
+EN2002c 1 spk4 682.580 683.860 you mean just the
+EN2002c 1 spk4 684.840 684.900 yeah
+EN2002c 1 spk0 685.000 685.780 but it's not going to take very long
+EN2002c 1 spk0 685.780 686.780 that doesn't take long
+EN2002c 1 spk0 687.380 687.680 yeah
+EN2002c 1 spk2 690.980 692.460 well it won't take very long to do it
+EN2002c 1 spk10 694.280 696.320 but i'll need to have done all of this stuff too
+EN2002c 1 spk10 697.600 699.180 because otherwise the objects won't be the same
+EN2002c 1 spk28 702.520 703.120 sounds good
+EN2002c 1 spk28 703.840 705.040 so where's that is that stored
+EN2002c 1 spk9 705.040 706.360 in the
+EN2002c 1 spk9 706.360 706.860 that is
+EN2002c 1 spk4 706.860 707.720 somewhere in the home directory
+EN2002c 1 spk9 708.820 710.560 on your home directory not in there
+EN2002c 1 spk9 710.800 710.960 no
+EN2002c 1 spk0 711.300 711.340 no no
+EN2002c 1 spk38 712.160 713.100 well it's finished i'll put it there
+EN2002c 1 spk38 714.680 716.360 actually i can upload my stuff as well
+EN2002c 1 spk38 716.440 716.940 i just have to make
+EN2002c 1 spk10 716.940 718.620 one change to your file
+EN2002c 1 spk10 718.620 720.120 just to load this
+EN2002c 1 spk9 720.120 721.620 one instead of the default
+EN2002c 1 spk9 721.880 722.220 all right
+EN2002c 1 spk9 722.440 724.360 so it's two lines of code
+EN2002c 1 spk30 725.180 725.340 yeah
+EN2002c 1 spk30 725.660 728.800 well are you wanting to write that in directly
+EN2002c 1 spk30 728.920 729.120 or
+EN2002c 1 spk13 729.120 730.420 what do you want to do
+EN2002c 1 spk13 730.420 730.880 what
+EN2002c 1 spk10 730.880 731.600 do you mean
+EN2002c 1 spk13 732.120 733.120 if you want to change my code
+EN2002c 1 spk10 733.540 735.300 well yeah just the one thing that's like the action
+EN2002c 1 spk10 735.300 736.940 for loading up the search thing
+EN2002c 1 spk4 737.500 740.280 do you want to change the original mbrowser file then
+EN2002c 1 spk4 740.560 741.800 yeah well your version
+EN2002c 1 spk4 742.400 743.600 have you done that now
+EN2002c 1 spk4 743.900 745.120 no i do it in my directory
+EN2002c 1 spk4 745.760 748.400 oh okay so not the actual one but a copy of it
+EN2002c 1 spk4 750.060 751.360 i have a copy yes
+EN2002c 1 spk4 752.440 753.420 but i will
+EN2002c 1 spk38 753.420 754.000 i was
+EN2002c 1 spk10 754.000 754.940 going to update that one
+EN2002c 1 spk38 755.460 755.840 it
+EN2002c 1 spk10 755.840 756.880 just makes sense that
+EN2002c 1 spk0 756.880 758.900 well just tell me when because i usually
+EN2002c 1 spk4 759.520 760.160 work on
+EN2002c 1 spk39 760.160 760.920 my own copy
+EN2002c 1 spk4 760.920 762.400 for the
+EN2002c 1 spk30 762.400 762.600 day
+EN2002c 1 spk30 762.720 765.340 and then update it without checking if the one in the
+EN2002c 1 spk30 765.340 765.500 share
+EN2002c 1 spk4 765.500 765.660 has changed
+EN2002c 1 spk4 765.660 766.560 yeah i have a million
+EN2002c 1 spk0 766.560 767.440 changes to it yeah
+EN2002c 1 spk0 767.520 767.680 okay
+EN2002c 1 spk4 769.260 770.000 yeah i'll just
+EN2002c 1 spk10 770.000 771.900 make that one and let you know
+EN2002c 1 spk0 771.980 772.900 yeah let me know
+EN2002c 1 spk10 773.140 775.100 because yeah like i say two lines of code
+EN2002c 1 spk0 775.100 775.400 yeah
+EN2002c 1 spk10 778.580 779.140 and then you can play
+EN2002c 1 spk10 781.140 782.300 there's not much to do yet
+EN2002c 1 spk38 782.840 785.580 i have to get better results like better
+EN2002c 1 spk38 785.580 786.180 so is that
+EN2002c 1 spk13 786.180 787.280 what you're working on now then
+EN2002c 1 spk13 787.280 789.180 to represent the results
+EN2002c 1 spk38 790.140 792.580 and just to wire in the topics in
+EN2002c 1 spk9 792.580 794.340 some ways
+EN2002c 1 spk9 796.540 797.640 i mean the
+EN2002c 1 spk40 797.640 798.820 highlighting stuff
+EN2002c 1 spk9 799.180 799.980 well also yeah
+EN2002c 1 spk38 800.160 801.100 i like that as well
+EN2002c 1 spk38 802.540 804.740 so i'm just trying to find out what kind of objects
+EN2002c 1 spk38 804.740 808.180 those were for the other ones
+EN2002c 1 spk38 808.940 808.950 so
+EN2002c 1 spk41 808.940 811.740 it goes in and highlights because that's
+EN2002c 1 spk0 811.740 811.980 yeah
+EN2002c 1 spk41 812.740 813.040 i know
+EN2002c 1 spk4 813.040 816.200 actually for any text
+EN2002c 1 spk12 816.200 817.940 area whatever it is
+EN2002c 1 spk12 819.320 822.160 they define some handy highlights on
+EN2002c 1 spk11 822.160 822.420 that
+EN2002c 1 spk11 823.060 824.360 so you've got different highlights
+EN2002c 1 spk11 824.940 828.240 just look at what they wrote about it
+EN2002c 1 spk11 828.540 829.900 they've got user highlights
+EN2002c 1 spk4 831.140 832.100 selection highlights
+EN2002c 1 spk4 832.400 836.300 time highlights and something else
+EN2002c 1 spk4 838.620 842.460 so you can quite easily if your text area is called
+EN2002c 1 spk4 842.460 845.280 area sethighlights or something you know
+EN2002c 1 spk4 845.480 846.740 something like that
+EN2002c 1 spk4 849.020 851.780 that's the way i did it to cross highlight
+EN2002c 1 spk4 851.780 853.860 between topic and transcripts
+EN2002c 1 spk0 856.120 857.460 okay sounds good
+EN2002c 1 spk4 859.720 860.940 so there's a few more
+EN2002c 1 spk38 860.940 861.560 things to do with that
+EN2002c 1 spk38 861.760 864.960 and then once pinilla gets the index
+EN2002c 1 spk38 866.380 867.900 then that's going to be kind of fun
+EN2002c 1 spk38 868.280 869.780 i'm just wondering have you had to
+EN2002c 1 spk38 869.780 872.440 well the way you were doing it
+EN2002c 1 spk38 872.440 874.720 there's a new corpus each time for each meeting
+EN2002c 1 spk38 874.900 878.740 but you're doing the object so you don't need to
+EN2002c 1 spk38 878.740 881.160 because if we do have like the inverted search
+EN2002c 1 spk38 882.060 883.420 says that there's 10 documents
+EN2002c 1 spk38 883.520 886.320 are we going to have to load each of these 10 corpora
+EN2002c 1 spk38 886.320 889.860 just to do the individual next t search
+EN2002c 1 spk4 890.240 891.320 that way it doesn't crash
+EN2002c 1 spk4 891.520 892.940 if you try and load all 10 in one it crashes
+EN2002c 1 spk4 894.380 895.040 probably yeah
+EN2002c 1 spk4 895.100 896.500 it's a bit dumb if you can fool it
+EN2002c 1 spk4 896.820 900.040 if you load up 10 different engines simultaneously
+EN2002c 1 spk4 900.400 902.100 it can do that fine
+EN2002c 1 spk4 902.460 902.560 really
+EN2002c 1 spk4 903.280 905.700 you can't do them if it thinks they're one
+EN2002c 1 spk4 906.000 908.520 because it's about the amount that each
+EN2002c 1 spk4 908.520 910.220 you have to kind of call a new class
+EN2002c 1 spk4 910.440 911.320 and then it will do it fine
+EN2002c 1 spk4 911.540 911.760 but if you
+EN2002c 1 spk2 911.760 912.300 don't
+EN2002c 1 spk2 912.300 913.640 i'm like okay it's more dead as well
+EN2002c 1 spk2 913.880 916.020 yeah it says okay oh yeah i've got all this space
+EN2002c 1 spk2 916.360 916.760 you've got yourself
+EN2002c 1 spk2 918.020 918.900 otherwise it goes oh no
+EN2002c 1 spk2 921.580 922.980 does it talk to you now
+EN2002c 1 spk2 923.460 927.140 it's a nice machine i guess
+EN2002c 1 spk4 928.740 931.040 you've spent too much time in front of it i think
+EN2002c 1 spk4 932.820 935.600 all right well i've been doing some random pop up windows
+EN2002c 1 spk4 935.600 936.020 for the
+EN2002c 1 spk30 936.020 937.600 speaker characterization which is good
+EN2002c 1 spk30 937.860 938.900 so i can fill that in now
+EN2002c 1 spk4 939.520 942.220 the windows are all there now after lots really
+EN2002c 1 spk42 942.680 944.180 oh they're done are they okay cool
+EN2002c 1 spk4 944.480 946.400 well you know just a pop up window
+EN2002c 1 spk4 946.480 946.860 they pop up
+EN2002c 1 spk4 946.880 947.680 it was difficult yeah
+EN2002c 1 spk11 948.980 956.240 because it basically has to set up 10 pop up windows in memory
+EN2002c 1 spk11 956.240 958.360 as in already initialise
+EN2002c 1 spk29 958.360 958.520 them
+EN2002c 1 spk29 958.580 960.100 because there might be 10 speakers
+EN2002c 1 spk29 960.640 962.920 they all have to have different windows in
+EN2002c 1 spk29 965.540 966.960 and i'm working
+EN2002c 1 spk11 966.960 968.220 on when
+EN2002c 1 spk4 968.220 969.580 you click on a topic
+EN2002c 1 spk4 969.580 974.960 to see a list of the meetings that topic was mentioned in
+EN2002c 1 spk4 976.140 979.180 and i have a question about
+EN2002c 1 spk9 979.180 979.460 the
+EN2002c 1 spk9 979.920 979.930 it
+EN2002c 1 spk11 979.920 981.780 said we wanted a start screen
+EN2002c 1 spk11 983.620 985.660 what kind of start screen do we want
+EN2002c 1 spk11 986.580 989.620 i mean do we want some general blurb about welcome
+EN2002c 1 spk11 989.620 990.880 to the browser or
+EN2002c 1 spk0 990.880 991.100 something
+EN2002c 1 spk0 991.100 992.760 well it's an
+EN2002c 1 spk2 992.760 993.840 lsd browser
+EN2002c 1 spk2 995.280 996.160 some speeches
+EN2002c 1 spk44 996.160 996.900 and some music
+EN2002c 1 spk0 999.100 1001.060 it doesn't take too long though
+EN2002c 1 spk0 1002.040 1003.480 we have to you know while we're debugging
+EN2002c 1 spk0 1003.820 1005.720 we're probably getting sick of
+EN2002c 1 spk4 1005.720 1006.000 it
+EN2002c 1 spk4 1006.560 1008.400 but no or something that just sort of guides them
+EN2002c 1 spk4 1008.400 1009.480 to the most obvious things
+EN2002c 1 spk13 1010.280 1011.240 so do we want
+EN2002c 1 spk13 1011.940 1013.080 yeah maybe we could write on
+EN2002c 1 spk11 1013.080 1013.500 like
+EN2002c 1 spk11 1013.500 1014.220 whatever
+EN2002c 1 spk39 1014.220 1016.120 it's called the top of the window
+EN2002c 1 spk39 1016.360 1018.060 saying welcome to the meeting browser
+EN2002c 1 spk4 1019.000 1021.640 or a switchboard that comes up that's just a blank form
+EN2002c 1 spk4 1021.640 1022.060 like that
+EN2002c 1 spk46 1022.060 1022.600 with some buttons
+EN2002c 1 spk46 1023.680 1025.300 load me a meeting load me a search
+EN2002c 1 spk46 1025.500 1027.780 load me something else whistle a tune
+EN2002c 1 spk4 1029.220 1029.960 yeah but how
+EN2002c 1 spk4 1030.880 1032.520 i mean at the moment the way it is
+EN2002c 1 spk4 1032.680 1034.720 it's a drop down menu as you've seen
+EN2002c 1 spk4 1036.560 1037.500 with all the
+EN2002c 1 spk4 1038.480 1042.420 and that because it's the dialogue class
+EN2002c 1 spk4 1042.420 1044.380 that you use there
+EN2002c 1 spk38 1045.300 1046.540 i was just going to ask if we should assume
+EN2002c 1 spk38 1046.540 1048.120 that they'll want to load a meeting first
+EN2002c 1 spk38 1048.260 1048.880 but not necessarily
+EN2002c 1 spk38 1049.120 1051.060 i guess if we're doing a search on entire
+EN2002c 1 spk4 1051.060 1051.660 yeah
+EN2002c 1 spk4 1052.060 1053.680 i mean i think they should have two options
+EN2002c 1 spk43 1053.840 1055.160 either load up
+EN2002c 1 spk4 1055.160 1056.000 a meeting that they
+EN2002c 1 spk43 1056.000 1056.300 choose
+EN2002c 1 spk43 1056.660 1056.900 or
+EN2002c 1 spk4 1056.900 1057.440 do a search
+EN2002c 1 spk4 1058.260 1059.560 and for that once you've got the results
+EN2002c 1 spk4 1059.760 1060.660 you click on something and that way
+EN2002c 1 spk4 1060.660 1061.340 it's cheaper than hd
+EN2002c 1 spk47 1061.340 1061.600 search
+EN2002c 1 spk14 1062.060 1063.000 it would need you to have
+EN2002c 1 spk4 1063.000 1063.600 a meeting loaded
+EN2002c 1 spk4 1063.600 1063.980 before it
+EN2002c 1 spk14 1063.980 1064.760 will start doing any search
+EN2002c 1 spk14 1065.240 1067.380 well we can put the logic in
+EN2002c 1 spk10 1067.380 1067.600 there
+EN2002c 1 spk10 1068.040 1070.540 the only thing you can search is a night object model
+EN2002c 1 spk10 1070.540 1072.660 and the only time you get one of those is if you've loaded an observation
+EN2002c 1 spk10 1072.820 1073.540 i could probably even
+EN2002c 1 spk10 1073.960 1076.960 it shouldn't be too hard to put a check in there
+EN2002c 1 spk10 1077.220 1078.860 and if it hasn't loaded then of course you can load one
+EN2002c 1 spk4 1079.320 1079.380 yeah
+EN2002c 1 spk4 1079.680 1080.340 it doesn't
+EN2002c 1 spk4 1080.340 1082.420 you could use the inverted file search
+EN2002c 1 spk4 1082.420 1085.680 to return a list of meetings
+EN2002c 1 spk4 1085.700 1087.880 and then use one of those to load a search
+EN2002c 1 spk4 1089.460 1090.760 but you won't
+EN2002c 1 spk2 1090.760 1092.820 can you not get this non object
+EN2002c 1 spk4 1093.540 1094.640 it has to be an observation
+EN2002c 1 spk4 1095.020 1097.360 and even if you go and search the whole corpus from that
+EN2002c 1 spk4 1097.480 1097.780 you have
+EN2002c 1 spk16 1097.780 1099.760 to start with something
+EN2002c 1 spk16 1099.760 1100.780 for some bizarre reason
+EN2002c 1 spk16 1100.960 1101.300 the engine
+EN2002c 1 spk16 1101.300 1102.260 there's only one
+EN2002c 1 spk16 1102.260 1102.980 there's
+EN2002c 1 spk14 1102.980 1104.020 only one search method
+EN2002c 1 spk9 1104.020 1105.040 to the search
+EN2002c 1 spk14 1105.040 1105.360 engine
+EN2002c 1 spk14 1106.680 1108.440 the engine class only has one
+EN2002c 1 spk4 1108.440 1108.660 search method
+EN2002c 1 spk4 1108.680 1109.760 i suppose we wouldn't want to use
+EN2002c 1 spk4 1109.760 1112.380 yeah we wouldn't want to use nxt at the beginning anyway
+EN2002c 1 spk4 1112.380 1114.440 because we don't want to search locally
+EN2002c 1 spk4 1115.020 1115.500 yeah yeah globally
+EN2002c 1 spk9 1115.940 1117.820 so let's say
+EN2002c 1 spk9 1117.820 1118.820 unless they know what meeting it is
+EN2002c 1 spk9 1119.580 1120.020 well yeah
+EN2002c 1 spk4 1120.280 1120.680 well no
+EN2002c 1 spk4 1120.740 1122.440 then they would open the meeting first right
+EN2002c 1 spk4 1122.720 1122.940 yeah
+EN2002c 1 spk4 1123.780 1125.260 so let's say they have two options
+EN2002c 1 spk4 1125.260 1127.960 either pick one meeting or search globally
+EN2002c 1 spk4 1127.960 1130.700 to find a meeting that they like
+EN2002c 1 spk10 1135.280 1137.360 well the things that may just
+EN2002c 1 spk4 1137.360 1137.960 be looking for a
+EN2002c 1 spk38 1137.960 1138.180 word
+EN2002c 1 spk38 1138.440 1140.920 you know like if it shows up at ten different meetings
+EN2002c 1 spk38 1141.340 1143.500 then at that point they'll probably want to
+EN2002c 1 spk38 1143.620 1144.380 do we want to
+EN2002c 1 spk38 1144.380 1146.160 like if a dot by default goes with the first one
+EN2002c 1 spk38 1146.160 1146.920 and they want number
+EN2002c 1 spk4 1146.920 1148.600 five of the ones that are returned
+EN2002c 1 spk4 1148.760 1149.780 i mean then they have to go through the
+EN2002c 1 spk9 1149.780 1150.940 no but why do we want default
+EN2002c 1 spk9 1151.180 1151.900 i mean just
+EN2002c 1 spk9 1151.900 1152.120 well no
+EN2002c 1 spk9 1152.120 1152.300 like
+EN2002c 1 spk32 1152.300 1153.440 to load up
+EN2002c 1 spk32 1153.440 1155.120 like the thing is i think
+EN2002c 1 spk4 1156.000 1157.880 like when it loads up it'll load up the transcript
+EN2002c 1 spk8 1157.880 1158.300 window
+EN2002c 1 spk8 1158.300 1160.320 and the whatever other window right now
+EN2002c 1 spk8 1160.320 1161.400 i think just the topic one
+EN2002c 1 spk8 1163.060 1167.360 although the time is probably more caused by loading
+EN2002c 1 spk8 1167.360 1169.120 the actual data so
+EN2002c 1 spk8 1169.660 1171.480 i'm just thinking if it's kind of
+EN2002c 1 spk8 1171.480 1174.260 like you were saying you have to have a non object right
+EN2002c 1 spk8 1174.580 1174.820 i mean
+EN2002c 1 spk4 1174.920 1176.280 before you do a
+EN2002c 1 spk9 1176.280 1176.840 search at all
+EN2002c 1 spk9 1177.000 1177.920 yeah but local search
+EN2002c 1 spk9 1178.400 1178.500 yeah
+EN2002c 1 spk9 1178.700 1178.780 we
+EN2002c 1 spk0 1178.780 1180.140 can't do local search without anything
+EN2002c 1 spk37 1181.080 1182.540 it doesn't take long to load up anyway
+EN2002c 1 spk37 1183.000 1184.020 we can load the dumb one up
+EN2002c 1 spk37 1184.160 1184.740 it doesn't have any
+EN2002c 1 spk4 1184.740 1185.720 yeah but the
+EN2002c 1 spk4 1185.720 1187.040 okay the global one feeds into
+EN2002c 1 spk10 1187.040 1187.520 the local
+EN2002c 1 spk10 1189.000 1189.260 yeah i mean
+EN2002c 1 spk10 1189.260 1189.940 so if we're getting any
+EN2002c 1 spk9 1189.940 1190.560 usable
+EN2002c 1 spk4 1190.560 1190.880 data
+EN2002c 1 spk4 1191.060 1192.880 it's going to be doing a search on each of those files
+EN2002c 1 spk4 1193.140 1194.860 so it's going to be loading up each of those one at a
+EN2002c 1 spk48 1194.860 1195.140 time
+EN2002c 1 spk48 1195.140 1195.640 to get the
+EN2002c 1 spk4 1195.640 1196.400 data that we want
+EN2002c 1 spk4 1196.420 1199.440 but yeah the global inverted file search
+EN2002c 1 spk4 1200.740 1201.060 gives
+EN2002c 1 spk13 1201.060 1203.760 the non objects basically to the local search right
+EN2002c 1 spk38 1203.980 1204.380 yeah right
+EN2002c 1 spk38 1204.720 1206.060 but it could be time consuming
+EN2002c 1 spk38 1206.200 1206.940 like if there are ten
+EN2002c 1 spk4 1206.940 1208.140 documents that
+EN2002c 1 spk4 1208.140 1208.780 that's always going
+EN2002c 1 spk50 1208.780 1209.680 to be the case with search
+EN2002c 1 spk51 1210.960 1212.160 and it gives one at a time anyway
+EN2002c 1 spk51 1212.520 1213.820 otherwise it crests the thing
+EN2002c 1 spk10 1214.660 1217.100 yeah well i'm just thinking of some way we could
+EN2002c 1 spk10 1217.100 1218.000 you know cache
+EN2002c 1 spk8 1218.000 1220.120 the results in a nice little format
+EN2002c 1 spk8 1220.120 1223.100 that'll make things a bit easier
+EN2002c 1 spk8 1223.240 1224.320 but the thing is i mean if we've got that
+EN2002c 1 spk8 1224.400 1227.320 then it's going to be needing really to load
+EN2002c 1 spk8 1227.760 1229.500 the entire corpus for that meeting
+EN2002c 1 spk8 1230.560 1230.880 if
+EN2002c 1 spk38 1230.880 1232.540 it's trying to show us where those were
+EN2002c 1 spk38 1232.760 1234.040 if it's trying to highlight those in the text
+EN2002c 1 spk38 1234.200 1234.840 transcript whatever
+EN2002c 1 spk38 1235.360 1237.040 and we're going to have to have all that other data in there
+EN2002c 1 spk38 1237.560 1239.380 so each time when we have the search window
+EN2002c 1 spk38 1239.380 1241.240 and we have like you know ten different meetings
+EN2002c 1 spk38 1241.240 1242.800 you know the word wireless comes up
+EN2002c 1 spk38 1243.040 1246.060 go to meeting one and it has to reload the non
+EN2002c 1 spk10 1246.060 1246.380 object
+EN2002c 1 spk10 1246.980 1247.220 next one
+EN2002c 1 spk10 1248.400 1249.060 i mean that's going to
+EN2002c 1 spk0 1249.760 1251.360 yeah it's not too slow though i don't think
+EN2002c 1 spk2 1251.600 1252.920 it's not too bad on that
+EN2002c 1 spk2 1253.440 1254.860 i don't think that will be able to
+EN2002c 1 spk2 1254.860 1257.620 it always seems to be slow loading up the first time
+EN2002c 1 spk2 1257.640 1257.880 at least
+EN2002c 1 spk4 1258.040 1259.020 like that's all i'm thinking
+EN2002c 1 spk4 1259.380 1259.420 yeah yeah yeah
+EN2002c 1 spk4 1259.420 1261.000 it's just sort of loading it up test
+EN2002c 1 spk45 1261.000 1261.280 it
+EN2002c 1 spk45 1261.380 1262.980 try some analysis shut down
+EN2002c 1 spk38 1263.280 1263.780 load it up
+EN2002c 1 spk10 1265.120 1265.360 yeah
+EN2002c 1 spk10 1265.360 1265.440 okay
+EN2002c 1 spk32 1266.500 1267.000 so just
+EN2002c 1 spk10 1267.000 1267.840 sort of based on that isn't
+EN2002c 1 spk32 1267.840 1268.500 it
+EN2002c 1 spk10 1270.200 1272.120 but if it doesn't take that long each time
+EN2002c 1 spk10 1272.240 1274.780 then that should be all right
+EN2002c 1 spk0 1275.240 1275.940 i mean you
+EN2002c 1 spk4 1275.940 1277.340 can you know
+EN2002c 1 spk4 1277.360 1278.920 the option is to do a search in the way
+EN2002c 1 spk11 1278.920 1279.220 that
+EN2002c 1 spk11 1279.840 1281.060 if you do a global search
+EN2002c 1 spk11 1282.860 1284.700 first step only return the meetings
+EN2002c 1 spk11 1285.400 1287.560 not even the meetings but the name of the meetings
+EN2002c 1 spk11 1287.560 1287.700 yeah right
+EN2002c 1 spk11 1288.240 1290.720 so you know say you want to search for the word
+EN2002c 1 spk29 1290.720 1291.920 language
+EN2002c 1 spk29 1292.200 1293.200 then it gives
+EN2002c 1 spk13 1293.200 1293.920 you as a result
+EN2002c 1 spk13 1293.920 1296.080 all the meetings that contain the word
+EN2002c 1 spk9 1296.080 1296.400 language
+EN2002c 1 spk9 1296.580 1297.020 and then
+EN2002c 1 spk52 1297.020 1297.780 you can decide well
+EN2002c 1 spk52 1297.800 1299.440 i want to search on this and this and this meeting
+EN2002c 1 spk52 1299.760 1301.860 or only on this meeting or
+EN2002c 1 spk14 1301.860 1302.680 yeah yeah
+EN2002c 1 spk14 1302.760 1304.480 make it strings for as long as possible
+EN2002c 1 spk14 1304.820 1306.600 and then return the things that they actually need
+EN2002c 1 spk14 1306.700 1308.020 it needs to have to search
+EN2002c 1 spk14 1308.380 1309.140 that makes sense
+EN2002c 1 spk4 1310.560 1312.460 and that way if they know specifically which meeting it is
+EN2002c 1 spk10 1312.840 1313.620 they'll save the time
+EN2002c 1 spk10 1313.980 1317.000 because i'm sure they don't want to have the extra loading time
+EN2002c 1 spk10 1317.240 1318.460 either if they can avoid it
+EN2002c 1 spk10 1318.460 1318.760 definitely
+EN2002c 1 spk10 1319.220 1320.440 or they can check mark
+EN2002c 1 spk10 1320.760 1321.760 i think it's the ones they want to check
+EN2002c 1 spk10 1321.760 1322.960 did we think
+EN2002c 1 spk4 1322.960 1328.060 about better names for the meetings
+EN2002c 1 spk10 1329.920 1330.960 well i think they were in the text
+EN2002c 1 spk10 1331.140 1332.400 we can probably do that ourselves
+EN2002c 1 spk10 1332.780 1334.900 and just sort of bdb you don't just do a stream
+EN2002c 1 spk10 1334.900 1336.540 there is yeah
+EN2002c 1 spk4 1337.240 1338.720 in one of the papers
+EN2002c 1 spk54 1339.000 1342.000 they have names such as
+EN2002c 1 spk54 1342.000 1344.400 do they have better understanding or whatever
+EN2002c 1 spk54 1344.560 1345.380 like the working group
+EN2002c 1 spk55 1345.380 1346.000 that it's part of
+EN2002c 1 spk55 1346.300 1347.040 one of those okay
+EN2002c 1 spk55 1347.740 1350.180 one of those even better understanding or something
+EN2002c 1 spk2 1351.260 1353.260 that's a working group isn't it
+EN2002c 1 spk2 1354.580 1354.980 yeah i love that
+EN2002c 1 spk2 1355.000 1357.500 i want to see the meetings about even better understanding
+EN2002c 1 spk0 1360.860 1361.380 so
+EN2002c 1 spk4 1361.380 1363.560 i've put that in already too
+EN2002c 1 spk0 1364.600 1365.020 okay that's cool
+EN2002c 1 spk0 1365.280 1365.360 sort
+EN2002c 1 spk4 1365.360 1365.620 of
+EN2002c 1 spk4 1367.960 1370.620 so yeah again concretely to the startup
+EN2002c 1 spk4 1371.460 1373.460 startup whatever it is window
+EN2002c 1 spk4 1380.180 1382.960 so who would have the idfs
+EN2002c 1 spk4 1383.020 1385.080 i mean the dfs
+EN2002c 1 spk4 1385.340 1385.960 document frequencies
+EN2002c 1 spk14 1386.200 1386.700 for each word
+EN2002c 1 spk14 1387.520 1387.660 do you
+EN2002c 1 spk4 1387.660 1389.840 actually need the frequencies
+EN2002c 1 spk4 1390.600 1392.980 yeah to do what tskiv's talking about you do
+EN2002c 1 spk4 1393.400 1394.780 to do the topic label
+EN2002c 1 spk4 1395.060 1395.070 i'll
+EN2002c 1 spk56 1395.060 1395.840 write that okay
+EN2002c 1 spk4 1396.540 1397.420 yeah how is that
+EN2002c 1 spk4 1398.480 1400.740 do you think you would have time for that as well
+EN2002c 1 spk0 1401.600 1402.600 well the thing is if it's being done
+EN2002c 1 spk0 1402.600 1403.600 if somebody's done the key words
+EN2002c 1 spk4 1405.220 1407.260 the idfs already would be not too well
+EN2002c 1 spk4 1407.260 1409.920 there was a class she was trying to get to work on
+EN2002c 1 spk38 1409.920 1410.560 friday
+EN2002c 1 spk38 1412.040 1414.000 that did have all that and it was sort of built in
+EN2002c 1 spk38 1414.060 1416.740 and just had some trouble getting it running properly
+EN2002c 1 spk38 1417.720 1419.660 but it had sort of all that standard sort of stuff
+EN2002c 1 spk38 1419.840 1421.660 but at last i heard it wasn't working
+EN2002c 1 spk38 1422.220 1424.080 so she was going to look at a more
+EN2002c 1 spk8 1424.080 1425.160 straightforward sort of thing
+EN2002c 1 spk8 1425.160 1428.140 that really just fulfills what we needed to do
+EN2002c 1 spk8 1428.240 1429.140 but if we do
+EN2002c 1 spk38 1429.140 1430.640 need the frequencies
+EN2002c 1 spk9 1430.640 1432.820 how do you do an invested process without the tf idea
+EN2002c 1 spk9 1434.040 1434.760 i don't know
+EN2002c 1 spk16 1435.720 1437.380 i think you need to have that
+EN2002c 1 spk16 1438.260 1440.220 well what does the tf idea stand for
+EN2002c 1 spk16 1440.540 1443.000 the amount that they occur over term documents basically
+EN2002c 1 spk17 1443.420 1444.460 what does it stand for
+EN2002c 1 spk17 1444.520 1445.880 the tf is the document frequencies
+EN2002c 1 spk17 1446.080 1447.360 the amount that each word occurs
+EN2002c 1 spk4 1449.020 1450.220 no what is it
+EN2002c 1 spk4 1450.560 1453.560 term frequency is the amount that it occurs
+EN2002c 1 spk4 1455.560 1457.480 one of them is the amount that occurs in each document
+EN2002c 1 spk4 1457.900 1460.880 and the other one is the amount that occurs generally
+EN2002c 1 spk4 1462.240 1465.020 so the more it occurs in specific documents
+EN2002c 1 spk4 1465.440 1466.740 compared to its general score
+EN2002c 1 spk4 1467.080 1468.880 the better more informative it is about a certain
+EN2002c 1 spk9 1468.880 1472.140 so the general score would that be for the whole language
+EN2002c 1 spk9 1472.400 1473.900 or for the whole corpus
+EN2002c 1 spk9 1473.900 1474.840 the whole corpus of data
+EN2002c 1 spk0 1475.780 1475.790 well
+EN2002c 1 spk4 1476.580 1476.740 you know
+EN2002c 1 spk4 1478.100 1479.100 general frequencies
+EN2002c 1 spk4 1479.740 1482.680 but classes plist so you remove stuff that doesn't like that
+EN2002c 1 spk18 1483.220 1485.360 which is going to have basically an equal score
+EN2002c 1 spk4 1485.780 1488.220 so if we had these fake topics
+EN2002c 1 spk2 1488.460 1489.360 what would they look like
+EN2002c 1 spk2 1489.360 1489.680 a
+EN2002c 1 spk18 1489.680 1490.340 bunch of key words
+EN2002c 1 spk2 1491.020 1491.180 a bunch
+EN2002c 1 spk4 1492.260 1492.940 yeah it'd probably be easy
+EN2002c 1 spk4 1493.000 1494.960 just a list of key words or something
+EN2002c 1 spk4 1495.420 1495.620 key words
+EN2002c 1 spk10 1496.740 1498.120 what's the i in tf idea
+EN2002c 1 spk10 1498.560 1499.320 inverse com
+EN2002c 1 spk10 1499.840 1501.320 term figures inverse com
+EN2002c 1 spk23 1503.820 1504.980 i did do it once
+EN2002c 1 spk23 1505.120 1506.880 i do have a java class that does it for something
+EN2002c 1 spk23 1507.160 1508.180 i don't know whether it will work or not
+EN2002c 1 spk4 1508.760 1510.180 because that would be really handy then
+EN2002c 1 spk4 1510.300 1513.260 we can actually test it on the user
+EN2002c 1 spk4 1514.160 1516.840 as opposed to just doing it and not using it
+EN2002c 1 spk4 1517.240 1518.720 because if you just have the segmentation
+EN2002c 1 spk4 1518.720 1519.340 that's great
+EN2002c 1 spk4 1519.760 1524.180 but we can't compare it to the hand annotated
+EN2002c 1 spk4 1524.300 1526.120 you know the hand segmented tool
+EN2002c 1 spk4 1527.240 1529.840 also a key word gives you a whole new type of search
+EN2002c 1 spk18 1530.160 1531.080 you have the key word search
+EN2002c 1 spk18 1531.220 1533.100 but the key word search could be topic search
+EN2002c 1 spk18 1533.360 1534.120 it could be the same thing
+EN2002c 1 spk18 1534.620 1536.140 instead it would just search for key words
+EN2002c 1 spk18 1536.560 1538.000 when you tell them that
+EN2002c 1 spk4 1538.000 1538.300 type of search
+EN2002c 1 spk4 1538.420 1539.020 it would be topic search
+EN2002c 1 spk4 1540.040 1540.320 key word
+EN2002c 1 spk4 1541.580 1543.320 which is in there
+EN2002c 1 spk4 1546.140 1549.140 yeah that would work
+EN2002c 1 spk4 1549.420 1549.960 that would be really nice
+EN2002c 1 spk57 1553.420 1554.820 i suppose even
+EN2002c 1 spk4 1554.820 1558.140 calculating the
+EN2002c 1 spk4 1558.140 1559.920 what's its faces themselves
+EN2002c 1 spk4 1560.500 1561.660 the two two one
+EN2002c 1 spk17 1562.260 1564.480 the easy bit it's probably easier to calculate them
+EN2002c 1 spk17 1564.480 1566.000 based upon in their
+EN2002c 1 spk4 1566.000 1566.840 whole occurrences
+EN2002c 1 spk17 1566.840 1568.140 in the
+EN2002c 1 spk4 1568.140 1568.500 corpus
+EN2002c 1 spk4 1568.500 1571.520 than it is to calculate them per topic
+EN2002c 1 spk4 1571.980 1573.820 because you don't have to integrate as much
+EN2002c 1 spk4 1573.980 1574.800 yeah definitely
+EN2002c 1 spk4 1576.980 1581.680 no you can do search without tfidf
+EN2002c 1 spk14 1582.360 1583.440 you just can't rank the search
+EN2002c 1 spk0 1584.960 1585.200 yeah
+EN2002c 1 spk15 1585.280 1586.280 that's what i'm thinking too
+EN2002c 1 spk15 1586.280 1586.720 do we need to
+EN2002c 1 spk15 1587.260 1589.740 i mean we're just looking for your stuff i guess
+EN2002c 1 spk4 1589.740 1590.400 no no no
+EN2002c 1 spk4 1590.980 1592.380 isn't that what the idea was in the first place
+EN2002c 1 spk4 1592.580 1593.660 to rank the results
+EN2002c 1 spk4 1594.800 1595.600 sort of
+EN2002c 1 spk4 1595.760 1598.040 but then the main idea was more like to speed it up
+EN2002c 1 spk4 1598.040 1599.740 speed the search up because nxt
+EN2002c 1 spk13 1599.740 1600.340 wasn't
+EN2002c 1 spk13 1600.780 1602.020 the whole of the corpus was just not
+EN2002c 1 spk2 1602.020 1602.300 feasible
+EN2002c 1 spk2 1602.820 1604.080 yeah but that whites lie
+EN2002c 1 spk59 1604.080 1604.460 down
+EN2002c 1 spk59 1604.900 1606.160 ranking it whites lie down
+EN2002c 1 spk2 1607.160 1608.180 no but the
+EN2002c 1 spk9 1608.180 1609.460 general inverted file
+EN2002c 1 spk2 1610.540 1611.840 yeah it still uses an
+EN2002c 1 spk9 1611.840 1612.020 inverted
+EN2002c 1 spk60 1612.020 1612.260 file
+EN2002c 1 spk60 1612.360 1613.880 but it ranks the results by the amount
+EN2002c 1 spk61 1614.280 1615.240 that would just be a nice extra
+EN2002c 1 spk2 1615.640 1617.000 yeah i thought that was part of it
+EN2002c 1 spk2 1617.060 1617.820 but yeah okay it doesn't matter
+EN2002c 1 spk61 1618.180 1619.240 yeah i wasn't sure
+EN2002c 1 spk61 1620.180 1620.500 i don't think
+EN2002c 1 spk4 1620.500 1621.680 we had that in the document
+EN2002c 1 spk4 1622.300 1622.340 true
+EN2002c 1 spk0 1622.560 1623.040 no we didn't
+EN2002c 1 spk4 1624.600 1626.000 so what it's only interim
+EN2002c 1 spk4 1626.500 1626.820 yeah exactly
+EN2002c 1 spk4 1626.820 1627.020 oh yeah
+EN2002c 1 spk4 1629.660 1632.780 but yeah i guess if that's not part of it
+EN2002c 1 spk4 1632.860 1633.360 don't worry about it
+EN2002c 1 spk15 1633.660 1635.020 yeah i mean if you have time
+EN2002c 1 spk4 1635.760 1640.260 because i mean then then it would give you
+EN2002c 1 spk4 1640.460 1640.900 like if you
+EN2002c 1 spk13 1640.900 1641.640 search for a word
+EN2002c 1 spk13 1641.740 1643.240 it would give you the meetings
+EN2002c 1 spk13 1643.540 1643.640 but
+EN2002c 1 spk4 1643.640 1646.500 also how often that word occurred in that meeting
+EN2002c 1 spk4 1646.500 1647.320 that would be so useful
+EN2002c 1 spk62 1647.460 1648.080 it would just give you a rank
+EN2002c 1 spk4 1648.620 1649.520 that was the whole point
+EN2002c 1 spk4 1649.860 1650.000 i don't
+EN2002c 1 spk48 1650.000 1651.160 know actually because i mean
+EN2002c 1 spk48 1651.340 1652.060 this is your top one
+EN2002c 1 spk48 1652.160 1652.680 this is your bottom
+EN2002c 1 spk48 1653.000 1653.280 yeah yeah
+EN2002c 1 spk48 1653.560 1654.900 but the thing is
+EN2002c 1 spk48 1654.900 1656.920 we're just looking for when it happens in a meeting
+EN2002c 1 spk48 1657.100 1658.640 if they're looking for a particular term or something
+EN2002c 1 spk48 1658.960 1660.640 they just want to know if that term exists there
+EN2002c 1 spk48 1660.720 1661.080 and where
+EN2002c 1 spk4 1661.080 1662.360 does it exist and i want to see it
+EN2002c 1 spk4 1662.580 1663.840 yeah but it will be useful if you
+EN2002c 1 spk4 1663.840 1663.850 but it's
+EN2002c 1 spk2 1663.840 1664.660 how informative
+EN2002c 1 spk2 1665.400 1667.180 tfidf is an informative school isn't it
+EN2002c 1 spk2 1667.220 1667.230 you know
+EN2002c 1 spk4 1667.640 1669.580 if you have if you search for language
+EN2002c 1 spk4 1669.580 1670.080 and you
+EN2002c 1 spk52 1670.080 1670.960 return like you
+EN2002c 1 spk4 1670.960 1671.100 know
+EN2002c 1 spk4 1671.320 1672.400 basically all of the meetings
+EN2002c 1 spk4 1672.780 1673.940 you want to see where they
+EN2002c 1 spk52 1673.940 1674.840 actually spoke about it
+EN2002c 1 spk52 1674.840 1675.040 and where
+EN2002c 1 spk4 1675.040 1676.200 they just mentioned it once
+EN2002c 1 spk10 1676.400 1677.600 but if it's like a two word term
+EN2002c 1 spk10 1677.960 1678.100 does
+EN2002c 1 spk9 1678.100 1680.040 the tfidf handle that
+EN2002c 1 spk9 1680.200 1681.060 it'll treat you compound nouns
+EN2002c 1 spk9 1681.740 1682.760 it's not a compound noun
+EN2002c 1 spk9 1682.840 1683.720 it's just two words together
+EN2002c 1 spk9 1685.760 1686.240 um
+EN2002c 1 spk9 1686.240 1687.980 i don't know
+EN2002c 1 spk10 1688.360 1688.780 i don't know
+EN2002c 1 spk10 1689.260 1689.940 just something like
+EN2002c 1 spk10 1690.760 1691.720 language and
+EN2002c 1 spk10 1691.720 1692.340 edinburgh university
+EN2002c 1 spk2 1693.200 1693.820 has it come down there
+EN2002c 1 spk2 1695.940 1697.280 it's like edinburgh and language
+EN2002c 1 spk2 1697.280 1697.740 sunny day
+EN2002c 1 spk2 1698.100 1698.700 sunny day yeah
+EN2002c 1 spk2 1699.060 1699.720 and i can add it to
+EN2002c 1 spk4 1699.720 1700.240 the
+EN2002c 1 spk4 1700.980 1704.140 and it's my simple form
+EN2002c 1 spk4 1704.320 1705.940 it would do a separate rank for each
+EN2002c 1 spk22 1705.940 1706.980 one each term
+EN2002c 1 spk4 1707.820 1709.500 you could make it more complicated and make it
+EN2002c 1 spk4 1709.500 1710.620 let's not make it more complicated
+EN2002c 1 spk4 1711.420 1711.440 and
+EN2002c 1 spk9 1711.440 1713.280 then add those up or something
+EN2002c 1 spk9 1713.700 1715.280 because the thing is the thing is that
+EN2002c 1 spk9 1715.280 1716.300 the way we were doing it
+EN2002c 1 spk9 1716.360 1716.580 we were just
+EN2002c 1 spk4 1716.580 1716.800 looking
+EN2002c 1 spk48 1716.800 1717.660 for the words period
+EN2002c 1 spk48 1717.820 1720.100 each word in the index
+EN2002c 1 spk48 1720.560 1721.580 well that's the way we were thinking about it
+EN2002c 1 spk48 1721.580 1721.920 yeah you don't want to start
+EN2002c 1 spk48 1721.920 1722.800 and then it's
+EN2002c 1 spk10 1722.800 1723.100 just saying
+EN2002c 1 spk10 1723.320 1724.980 were these two words in any of these documents
+EN2002c 1 spk10 1725.160 1726.420 and then if it was then we'd go closer
+EN2002c 1 spk10 1726.420 1726.940 and do the
+EN2002c 1 spk32 1726.940 1727.580 nxt search
+EN2002c 1 spk48 1728.460 1728.780 yeah
+EN2002c 1 spk32 1729.600 1732.260 to look for the exact term or the regular expression or whatever
+EN2002c 1 spk32 1732.320 1732.660 i guess you
+EN2002c 1 spk4 1732.660 1734.280 just do some of the
+EN2002c 1 spk4 1736.460 1737.100 the individual
+EN2002c 1 spk17 1737.100 1739.780 tfidf for each term returned
+EN2002c 1 spk4 1740.160 1742.260 and that generally will be a bit crude
+EN2002c 1 spk4 1742.260 1743.720 but it will give you a score
+EN2002c 1 spk4 1744.220 1744.740 and the higher
+EN2002c 1 spk4 1744.740 1746.960 the more informative each term is for each thing
+EN2002c 1 spk4 1747.100 1748.260 it'll give you a
+EN2002c 1 spk4 1750.040 1750.960 it's pretty crude anyway
+EN2002c 1 spk4 1751.120 1752.260 it's just looking for
+EN2002c 1 spk4 1753.900 1756.040 if it's all it's going to do is look for separate
+EN2002c 1 spk4 1756.040 1757.860 oh because then it's going to go into the nxt search
+EN2002c 1 spk4 1758.740 1760.240 or we choose the list of meetings
+EN2002c 1 spk4 1760.240 1761.440 and we want it to search to do that
+EN2002c 1 spk4 1761.860 1762.340 yeah yeah yeah
+EN2002c 1 spk4 1762.360 1762.600 that's true
+EN2002c 1 spk38 1765.820 1766.640 i'm just wondering
+EN2002c 1 spk38 1766.820 1768.060 if it's going to give us something cool
+EN2002c 1 spk38 1768.320 1769.040 then yeah absolutely
+EN2002c 1 spk38 1769.540 1770.580 but if it's sort of like
+EN2002c 1 spk38 1770.580 1772.900 if the nxt search has still got to be run
+EN2002c 1 spk38 1772.900 1774.580 to find these terms or these
+EN2002c 1 spk10 1775.260 1775.540 groups of terms
+EN2002c 1 spk10 1776.080 1776.400 yeah without
+EN2002c 1 spk4 1776.400 1777.580 doing any like
+EN2002c 1 spk4 1779.540 1781.440 or also like do wildcards
+EN2002c 1 spk45 1781.440 1782.940 work for something like that
+EN2002c 1 spk4 1783.340 1785.060 so if you're looking for wireless wired
+EN2002c 1 spk4 1785.480 1786.800 blah blah blah you do wire with the star
+EN2002c 1 spk4 1787.640 1787.800 no
+EN2002c 1 spk4 1788.560 1789.660 yeah i don't know how
+EN2002c 1 spk0 1789.660 1790.040 that works
+EN2002c 1 spk0 1790.700 1791.200 actually that's
+EN2002c 1 spk4 1791.200 1791.920 a problem for me too
+EN2002c 1 spk4 1793.340 1793.780 so
+EN2002c 1 spk4 1793.780 1799.300 but the idea is that gives you an informative score
+EN2002c 1 spk4 1799.300 1802.100 or how you combine that is up to you
+EN2002c 1 spk4 1802.240 1802.960 i guess there's lots
+EN2002c 1 spk58 1802.960 1803.340 in the list
+EN2002c 1 spk58 1803.680 1804.580 it should work yeah
+EN2002c 1 spk58 1805.440 1806.700 if you were
+EN2002c 1 spk58 1806.700 1808.020 there's a whole load
+EN2002c 1 spk34 1808.020 1808.780 about it in
+EN2002c 1 spk58 1808.780 1809.720 manning & schutz
+EN2002c 1 spk4 1810.740 1812.460 they've got a whole chunk about it
+EN2002c 1 spk4 1812.680 1813.680 so just ir isn't it
+EN2002c 1 spk4 1813.780 1814.640 it's basically information
+EN2002c 1 spk4 1815.840 1816.940 they've got a good chapter
+EN2002c 1 spk9 1816.940 1817.260 on it
+EN2002c 1 spk9 1817.320 1818.380 if you haven't got it it's on cognit
+EN2002c 1 spk9 1818.840 1818.980 yeah
+EN2002c 1 spk4 1819.220 1820.300 i've got
+EN2002c 1 spk4 1820.980 1821.420 somewhere
+EN2002c 1 spk64 1824.380 1825.360 yeah me too
+EN2002c 1 spk64 1825.900 1827.140 hundreds of pdfs
+EN2002c 1 spk64 1827.140 1829.480 do the pdfs
+EN2002c 1 spk64 1829.540 1830.060 switch it to postscript
+EN2002c 1 spk64 1830.220 1830.840 switch it back to pdf
+EN2002c 1 spk10 1836.040 1836.600 okay
+EN2002c 1 spk10 1838.260 1838.820 that's
+EN2002c 1 spk10 1841.680 1842.020 okay
+EN2002c 1 spk9 1842.780 1845.040 so to come back to the stop screen
+EN2002c 1 spk9 1845.240 1845.980 oh okay
+EN2002c 1 spk9 1846.640 1847.600 what sort of decisions
+EN2002c 1 spk9 1848.320 1848.880 i'm
+EN2002c 1 spk4 1848.880 1850.640 very unsure about what that should look like
+EN2002c 1 spk4 1851.980 1855.440 for the part where you can choose the meeting
+EN2002c 1 spk4 1855.440 1857.220 what kind of information do you want to have about meeting
+EN2002c 1 spk4 1857.440 1859.080 i mean the longer name
+EN2002c 1 spk11 1859.160 1859.400 obviously
+EN2002c 1 spk11 1860.200 1860.720 if there is one
+EN2002c 1 spk11 1861.220 1862.240 because they don't all have a longer name
+EN2002c 1 spk11 1863.200 1864.600 what the users that spoke
+EN2002c 1 spk11 1866.560 1867.140 users that took part
+EN2002c 1 spk11 1867.720 1867.780 yeah
+EN2002c 1 spk11 1867.860 1871.100 then that's probably pretty much the same for the same
+EN2002c 1 spk4 1871.100 1871.380 group
+EN2002c 1 spk4 1872.940 1874.100 probably for the most part
+EN2002c 1 spk4 1874.260 1876.540 i mean there will be a set of people that do a
+EN2002c 1 spk10 1876.540 1877.720 subset
+EN2002c 1 spk10 1877.720 1877.840 yeah
+EN2002c 1 spk30 1879.100 1881.540 just to give them an idea general idea what there is
+EN2002c 1 spk30 1881.780 1883.440 so they can pick a
+EN2002c 1 spk30 1884.000 1884.400 search
+EN2002c 1 spk4 1884.400 1885.020 for stuff
+EN2002c 1 spk4 1885.880 1886.540 start working
+EN2002c 1 spk4 1887.040 1888.540 yeah i guess that's huge
+EN2002c 1 spk45 1889.260 1890.540 okay like search browse
+EN2002c 1 spk9 1893.400 1894.640 like if you're looking for something specific
+EN2002c 1 spk9 1895.240 1895.840 is that what you're thinking
+EN2002c 1 spk38 1896.060 1897.060 like if they know
+EN2002c 1 spk10 1897.060 1897.900 exactly where they want to go
+EN2002c 1 spk10 1897.940 1900.160 they want to go to that meeting on december 3rd
+EN2002c 1 spk10 1900.220 1901.460 and they just want to go there and see stuff
+EN2002c 1 spk10 1901.620 1902.780 then they can immediately go and
+EN2002c 1 spk4 1902.780 1903.240 browse that
+EN2002c 1 spk4 1903.240 1903.440 yeah
+EN2002c 1 spk4 1903.620 1906.420 i want to look at the meeting where so and so spoke
+EN2002c 1 spk4 1907.340 1910.480 of that you know some sort of research group
+EN2002c 1 spk4 1911.140 1913.800 i want that first meeting look at that
+EN2002c 1 spk38 1919.920 1920.860 browse by meeting browse by
+EN2002c 1 spk10 1920.860 1922.560 law browse by speaker
+EN2002c 1 spk10 1923.140 1925.580 like no i'm just thinking of different ways we can do that
+EN2002c 1 spk10 1925.740 1926.700 like different buttons on the top
+EN2002c 1 spk10 1926.960 1928.420 like if they're looking for a particular person
+EN2002c 1 spk10 1928.640 1930.200 particular working group particular whatever
+EN2002c 1 spk10 1930.840 1931.480 then we just
+EN2002c 1 spk10 1932.420 1934.960 we could break things down like that to that level
+EN2002c 1 spk48 1934.960 1935.440 of detail
+EN2002c 1 spk48 1935.440 1938.040 that we want or we could give
+EN2002c 1 spk10 1938.040 1938.520 it more general
+EN2002c 1 spk10 1938.560 1938.700 i don't think we need that
+EN2002c 1 spk4 1938.880 1939.160 yeah
+EN2002c 1 spk4 1939.160 1943.460 because we just want to have a way of you know
+EN2002c 1 spk4 1943.460 1946.260 because as soon as they've got loaded their first meeting
+EN2002c 1 spk4 1946.840 1950.600 they can browse through that quite nicely
+EN2002c 1 spk10 1952.480 1954.180 yeah but i'm just thinking like initially
+EN2002c 1 spk10 1954.260 1955.040 when they load up
+EN2002c 1 spk10 1955.960 1957.740 what are the range of things that they'd want to do
+EN2002c 1 spk10 1958.280 1958.540 yeah
+EN2002c 1 spk10 1959.100 1960.860 like if they're part of the next working group
+EN2002c 1 spk10 1961.040 1962.180 they'll want to get in there
+EN2002c 1 spk10 1963.200 1964.360 do we want to say preferences
+EN2002c 1 spk0 1966.760 1967.420 what do you mean
+EN2002c 1 spk10 1967.420 1969.740 well if they're part of bdb working group
+EN2002c 1 spk10 1969.740 1971.580 they're going to want to look at the bdb ones
+EN2002c 1 spk10 1971.780 1972.860 and so we default to that
+EN2002c 1 spk65 1973.800 1975.060 oh how are we going to know that
+EN2002c 1 spk10 1975.920 1977.440 based on what they did the last time
+EN2002c 1 spk2 1978.940 1978.980 have a nice environment
+EN2002c 1 spk2 1978.980 1980.180 you can have a safe preferences
+EN2002c 1 spk2 1981.120 1982.760 you could have a safe present preferences i guess
+EN2002c 1 spk66 1984.040 1986.060 but that would defy the whole point of browsing right
+EN2002c 1 spk66 1986.900 1988.500 if you only wanted to look at it or find
+EN2002c 1 spk66 1988.500 1989.780 all right call it favorites then
+EN2002c 1 spk0 1992.980 1993.900 you can have a
+EN2002c 1 spk2 1993.900 1994.060 favorite
+EN2002c 1 spk2 1994.540 1994.840 well you just
+EN2002c 1 spk4 1994.840 1995.600 scroll down the list
+EN2002c 1 spk4 1995.600 1997.080 and find your favorite one i mean
+EN2002c 1 spk4 1997.080 1997.900 yeah it's not
+EN2002c 1 spk0 1997.900 1998.560 in relation
+EN2002c 1 spk67 1998.800 1999.400 it's not like they
+EN2002c 1 spk4 1999.400 2000.440 come back every day
+EN2002c 1 spk4 2000.440 2001.760 and do the same browsing
+EN2002c 1 spk4 2002.980 2003.780 let's see what's changed
+EN2002c 1 spk68 2003.780 2004.240 today
+EN2002c 1 spk68 2005.780 2006.420 i forgot
+EN2002c 1 spk10 2009.220 2012.080 okay well no i'm just getting back to the sort of
+EN2002c 1 spk10 2012.080 2013.060 what could be on the
+EN2002c 1 spk45 2013.060 2014.540 startup screen
+EN2002c 1 spk45 2015.460 2017.160 like there's just a range of things we could do
+EN2002c 1 spk45 2017.260 2019.060 we could have like search options browse options
+EN2002c 1 spk45 2019.200 2020.500 i mean just
+EN2002c 1 spk45 2020.500 2020.980 i don't know just
+EN2002c 1 spk2 2020.980 2023.140 playing around with ideas
+EN2002c 1 spk38 2025.520 2028.520 and then we can tie
+EN2002c 1 spk10 2028.520 2030.140 this into our evaluation tasks
+EN2002c 1 spk10 2030.720 2031.080 and
+EN2002c 1 spk38 2031.080 2033.280 say well if you want to search for a meeting
+EN2002c 1 spk38 2033.280 2034.000 or search for
+EN2002c 1 spk10 2034.000 2034.860 a user in a particular
+EN2002c 1 spk38 2034.860 2035.180 meeting
+EN2002c 1 spk38 2035.380 2035.900 then do this blah
+EN2002c 1 spk4 2035.960 2036.160 blah blah
+EN2002c 1 spk4 2036.420 2039.480 so we can sort of guide them
+EN2002c 1 spk4 2039.760 2041.620 it's just like hey my task is to do this
+EN2002c 1 spk4 2041.620 2042.660 and there's a button for it
+EN2002c 1 spk4 2042.960 2044.200 perfect you know
+EN2002c 1 spk4 2044.460 2044.800 no
+EN2002c 1 spk69 2047.280 2049.540 yeah it would be quite good if it has yeah
+EN2002c 1 spk4 2050.140 2051.080 i wasn't going to put
+EN2002c 1 spk43 2051.080 2053.180 any help in there
+EN2002c 1 spk43 2053.320 2053.680 any sort
+EN2002c 1 spk4 2053.680 2056.320 of explanation of how the browser works
+EN2002c 1 spk4 2056.400 2056.720 to be honest
+EN2002c 1 spk4 2056.900 2058.440 no that's not what i'm suggesting
+EN2002c 1 spk10 2058.800 2060.680 i'm just saying like these are just
+EN2002c 1 spk10 2060.680 2063.880 like a lot of programs well kind of lame programs
+EN2002c 1 spk10 2064.040 2065.020 do have that sort
+EN2002c 1 spk9 2065.020 2065.500 of thing first
+EN2002c 1 spk9 2065.500 2065.920 just because they
+EN2002c 1 spk10 2065.920 2066.840 don't want people to have to go
+EN2002c 1 spk10 2066.840 2066.960 through
+EN2002c 1 spk4 2066.960 2068.320 all the menus and search themselves
+EN2002c 1 spk4 2068.320 2070.980 and just like do commonly use tasks
+EN2002c 1 spk4 2070.980 2074.860 or just exit and just let me use the program yeah as well
+EN2002c 1 spk4 2076.240 2076.320 but i
+EN2002c 1 spk13 2076.320 2077.700 mean the main thing what you want to do
+EN2002c 1 spk13 2077.700 2079.280 is to view a meeting right
+EN2002c 1 spk0 2079.980 2080.140 probably
+EN2002c 1 spk0 2080.340 2081.020 or search something
+EN2002c 1 spk2 2081.580 2082.280 yeah or search yeah
+EN2002c 1 spk13 2082.660 2084.060 so even if it just had two
+EN2002c 1 spk18 2084.060 2084.760 things you said
+EN2002c 1 spk18 2084.920 2087.220 one said take me straight to this meeting
+EN2002c 1 spk18 2087.220 2088.620 and have a text box you can enter it
+EN2002c 1 spk18 2088.640 2089.480 or drop down maybe
+EN2002c 1 spk18 2089.980 2090.020 and
+EN2002c 1 spk4 2090.020 2090.760 then another one that said
+EN2002c 1 spk4 2090.800 2092.740 search that allowed you to instantly find out the search
+EN2002c 1 spk4 2092.900 2094.140 like find a specific meeting
+EN2002c 1 spk0 2095.040 2095.820 yeah that's an easy sort of thing
+EN2002c 1 spk4 2096.060 2096.300 yeah yeah
+EN2002c 1 spk4 2096.560 2097.760 or one that yeah
+EN2002c 1 spk4 2098.240 2100.620 yeah that all happens through the search basically
+EN2002c 1 spk4 2101.440 2104.000 basically either the user knows which meeting
+EN2002c 1 spk4 2104.000 2105.920 he wants to look at and he just clicks on it
+EN2002c 1 spk4 2105.920 2108.040 or he doesn't and then he searches for one
+EN2002c 1 spk4 2108.500 2108.840 that sort
+EN2002c 1 spk0 2108.840 2110.100 of microphone
+EN2002c 1 spk0 2110.580 2110.700 well the other thing
+EN2002c 1 spk22 2110.700 2111.840 to do is just have searches
+EN2002c 1 spk22 2111.840 2113.100 the default just it opens
+EN2002c 1 spk4 2113.100 2114.200 and the search window opens
+EN2002c 1 spk4 2114.800 2115.760 and that's the interface
+EN2002c 1 spk4 2116.580 2117.960 and you just go from there
+EN2002c 1 spk0 2118.760 2119.000 yeah
+EN2002c 1 spk4 2121.180 2122.020 and then that brings up
+EN2002c 1 spk2 2122.020 2122.400 the browser
+EN2002c 1 spk2 2122.400 2123.960 after you've searched for something
+EN2002c 1 spk4 2125.380 2125.940 or the
+EN2002c 1 spk14 2125.940 2127.800 search window could have on it
+EN2002c 1 spk14 2127.800 2128.900 something that said just
+EN2002c 1 spk14 2129.200 2130.380 has a drop down menu that says
+EN2002c 1 spk14 2130.380 2132.380 just and a go button that said take me to this
+EN2002c 1 spk14 2132.540 2132.820 oh
+EN2002c 1 spk28 2132.940 2133.480 i see what you mean
+EN2002c 1 spk28 2134.420 2135.380 inside the search window yeah
+EN2002c 1 spk14 2135.380 2136.980 yeah so the only thing that comes up
+EN2002c 1 spk70 2136.980 2137.520 when you finish
+EN2002c 1 spk70 2137.520 2141.180 is a when you start it's just one window like that
+EN2002c 1 spk70 2141.620 2143.820 and it's got all the search stuff right down there
+EN2002c 1 spk70 2144.220 2145.040 so this is your search
+EN2002c 1 spk70 2145.320 2145.660 mm hmm
+EN2002c 1 spk70 2146.140 2146.860 just all here
+EN2002c 1 spk70 2147.160 2148.980 and here it's just go to wherever
+EN2002c 1 spk4 2150.240 2150.720 and the go button
+EN2002c 1 spk4 2151.640 2153.320 and then from there it takes you to where the rest of it goes
+EN2002c 1 spk4 2153.320 2153.440 yeah
+EN2002c 1 spk71 2153.600 2154.620 that's what yeah
+EN2002c 1 spk71 2155.140 2155.320 yeah
+EN2002c 1 spk37 2156.920 2158.680 and the other topic says welcome to
+EN2002c 1 spk37 2158.680 2160.260 welcome to our browser
+EN2002c 1 spk72 2160.840 2161.980 yeah that one's about right
+EN2002c 1 spk72 2163.820 2164.140 but
+EN2002c 1 spk4 2164.140 2165.720 i'm unsure about how to
+EN2002c 1 spk4 2166.180 2167.080 how to put all the
+EN2002c 1 spk2 2167.080 2168.080 information in there
+EN2002c 1 spk2 2168.940 2169.800 drop down menu
+EN2002c 1 spk2 2170.180 2172.920 but we want all the information about the name
+EN2002c 1 spk13 2173.240 2173.420 the longer
+EN2002c 1 spk4 2173.420 2173.840 the name
+EN2002c 1 spk9 2173.840 2174.780 is and the users
+EN2002c 1 spk9 2175.880 2176.240 well we don't
+EN2002c 1 spk4 2176.240 2177.500 actually have user names do we
+EN2002c 1 spk4 2177.660 2178.120 aren't there all these
+EN2002c 1 spk10 2178.120 2178.360 codes
+EN2002c 1 spk13 2178.880 2179.860 oh it was the codes i mean at
+EN2002c 1 spk68 2179.860 2180.380 least
+EN2002c 1 spk68 2180.700 2181.680 maybe if they know the codes
+EN2002c 1 spk68 2182.060 2184.380 and in other in other
+EN2002c 1 spk68 2184.380 2185.000 yeah that's two
+EN2002c 1 spk2 2185.220 2186.520 in case like that we do want drop down
+EN2002c 1 spk2 2186.600 2187.860 we don't want them to type them do we
+EN2002c 1 spk73 2189.560 2189.880 yeah
+EN2002c 1 spk73 2190.860 2192.260 drop down is definitely not
+EN2002c 1 spk74 2194.200 2194.800 and allow multiple
+EN2002c 1 spk74 2195.460 2197.000 no okay you're just looking for one specific
+EN2002c 1 spk74 2197.240 2197.720 this is good
+EN2002c 1 spk74 2197.920 2198.840 do you want to search your search
+EN2002c 1 spk74 2199.120 2200.120 if you want to look for one meeting
+EN2002c 1 spk74 2200.300 2200.740 and just look at it
+EN2002c 1 spk4 2201.320 2201.540 okay
+EN2002c 1 spk4 2202.520 2202.840 but
+EN2002c 1 spk75 2202.840 2204.440 then yeah as i said how do you do it
+EN2002c 1 spk4 2204.480 2204.900 that's two
+EN2002c 1 spk34 2205.080 2205.880 that's
+EN2002c 1 spk34 2206.500 2206.660 oh yes
+EN2002c 1 spk14 2206.700 2207.080 you have two
+EN2002c 1 spk4 2207.360 2208.040 one there's
+EN2002c 1 spk14 2208.040 2209.300 one there
+EN2002c 1 spk14 2209.560 2211.560 but when you got two one meeting one for speaker
+EN2002c 1 spk14 2211.800 2213.000 and you can choose you can go for
+EN2002c 1 spk4 2213.000 2213.200 go
+EN2002c 1 spk4 2213.300 2213.840 or go for the other
+EN2002c 1 spk4 2214.220 2214.800 you can't go for both
+EN2002c 1 spk4 2215.120 2215.840 no no no
+EN2002c 1 spk54 2216.180 2218.220 i'm not saying you can pick
+EN2002c 1 spk39 2218.220 2218.740 a user
+EN2002c 1 spk39 2218.740 2221.020 but it should come up with some list
+EN2002c 1 spk39 2221.340 2223.480 but an extended list of the meeting
+EN2002c 1 spk39 2223.840 2225.960 so you know you have bdr whatever it was called
+EN2002c 1 spk39 2226.760 2230.060 one and then it gives you the longer name blah
+EN2002c 1 spk4 2230.760 2233.020 and then it gives you the you know the participants
+EN2002c 1 spk9 2233.620 2235.620 you could do microsoft style and hold it over it
+EN2002c 1 spk9 2235.640 2236.760 and it pops up a thing
+EN2002c 1 spk9 2237.720 2239.060 i was thinking that yeah
+EN2002c 1 spk9 2239.780 2239.790 short
+EN2002c 1 spk2 2239.780 2240.100 tip
+EN2002c 1 spk2 2241.480 2242.040 but then
+EN2002c 1 spk2 2242.040 2242.640 is that complicated
+EN2002c 1 spk4 2243.160 2244.460 no it's not at all i think
+EN2002c 1 spk4 2244.980 2245.360 at all tip
+EN2002c 1 spk4 2245.560 2246.220 at all tip yeah
+EN2002c 1 spk4 2246.740 2248.840 i've not tried that yet but i was going to do that
+EN2002c 1 spk4 2248.840 2250.220 now it's over isn't it
+EN2002c 1 spk0 2251.480 2252.360 well let's do that then
+EN2002c 1 spk0 2253.140 2253.780 yeah i'm
+EN2002c 1 spk2 2253.780 2254.080 not sure
+EN2002c 1 spk2 2254.460 2255.980 is that very
+EN2002c 1 spk2 2255.980 2256.700 is that not annoying
+EN2002c 1 spk2 2257.340 2258.180 if you have to
+EN2002c 1 spk2 2258.180 2259.300 get out of the bloody way
+EN2002c 1 spk2 2259.560 2260.460 i'm trying to test it out
+EN2002c 1 spk2 2261.460 2261.780 yes
+EN2002c 1 spk13 2262.520 2263.680 they do that a lot don't they
+EN2002c 1 spk13 2263.900 2265.000 no but you know to
+EN2002c 1 spk4 2265.000 2266.100 search for
+EN2002c 1 spk30 2266.100 2268.200 a specific user
+EN2002c 1 spk30 2268.360 2269.000 you have to hold
+EN2002c 1 spk72 2269.000 2269.880 your mouse over that one
+EN2002c 1 spk72 2270.000 2270.780 wait for it to pop up
+EN2002c 1 spk72 2271.280 2271.700 yeah that's
+EN2002c 1 spk0 2271.700 2272.360 annoying
+EN2002c 1 spk16 2273.660 2275.480 but that's why you could just have a list of your users
+EN2002c 1 spk16 2275.480 2278.740 and you just say i want to look for this user
+EN2002c 1 spk16 2279.560 2279.620 go
+EN2002c 1 spk16 2280.540 2280.700 come in
+EN2002c 1 spk16 2281.120 2283.200 find me and then it pulls up a list of all the ones
+EN2002c 1 spk16 2283.200 2284.260 who've got that user
+EN2002c 1 spk17 2284.700 2285.740 and then you search for them
+EN2002c 1 spk17 2286.080 2286.720 but then you're doing search
+EN2002c 1 spk17 2286.980 2287.720 maybe just leave it
+EN2002c 1 spk17 2287.900 2289.280 just have them leaving names there
+EN2002c 1 spk17 2289.840 2291.060 and don't worry about the speakers
+EN2002c 1 spk17 2291.880 2293.000 if they're doing speakers they're doing
+EN2002c 1 spk18 2293.000 2293.320 search
+EN2002c 1 spk18 2293.780 2295.680 it's not the same as doing a quick access
+EN2002c 1 spk4 2296.180 2296.420 yeah
+EN2002c 1 spk4 2298.840 2301.160 it would just be nice to have some basic information on them
+EN2002c 1 spk4 2301.180 2301.340 yeah
+EN2002c 1 spk4 2301.500 2302.860 or you could have a text box there
+EN2002c 1 spk4 2302.920 2304.220 yeah i'm thinking that updates
+EN2002c 1 spk4 2304.220 2306.100 yeah as you go over there
+EN2002c 1 spk4 2306.500 2307.600 then that doesn't get in the way
+EN2002c 1 spk4 2308.360 2309.320 maybe that's the best idea then
+EN2002c 1 spk4 2309.640 2310.820 so you've got a drop down menu
+EN2002c 1 spk39 2312.560 2312.640 search
+EN2002c 1 spk39 2313.040 2313.640 search button
+EN2002c 1 spk39 2313.940 2314.260 not search
+EN2002c 1 spk39 2314.460 2314.800 go button
+EN2002c 1 spk4 2317.040 2320.200 and then some
+EN2002c 1 spk39 2320.200 2320.840 sort of fields
+EN2002c 1 spk4 2320.840 2322.200 which updates dynamically
+EN2002c 1 spk2 2322.300 2323.020 depending on what you've
+EN2002c 1 spk4 2323.020 2323.400 highlighted
+EN2002c 1 spk4 2323.980 2324.060 yeah
+EN2002c 1 spk4 2324.740 2325.960 the full name and the speakers
+EN2002c 1 spk2 2326.460 2326.520 yeah
+EN2002c 1 spk2 2327.560 2327.920 that sounds good
+EN2002c 1 spk2 2328.480 2328.880 mm hmm
+EN2002c 1 spk4 2330.120 2331.120 we can do all of that without
+EN2002c 1 spk76 2331.120 2332.220 even ever going anywhere near
+EN2002c 1 spk76 2332.220 2334.660 loading up
+EN2002c 1 spk0 2334.660 2336.660 i think
+EN2002c 1 spk4 2337.160 2338.280 i think
+EN2002c 1 spk4 2338.360 2338.600 i think
+EN2002c 1 spk4 2338.780 2339.020 nom
+EN2002c 1 spk4 2339.340 2339.980 i'm eating a nom
+EN2002c 1 spk78 2343.160 2344.960 what does nom actually stand for
+EN2002c 1 spk9 2345.480 2346.660 i think it's a night object model
+EN2002c 1 spk9 2347.020 2347.640 night oh yeah
+EN2002c 1 spk9 2348.820 2351.240 i think in our case it's the right corpus
+EN2002c 1 spk10 2351.580 2351.620 is that
+EN2002c 1 spk0 2351.620 2352.120 what it is
+EN2002c 1 spk79 2352.180 2352.880 night yeah is your right
+EN2002c 1 spk79 2352.940 2353.160 it's the
+EN2002c 1 spk2 2353.160 2353.640 right corpus
+EN2002c 1 spk2 2355.160 2356.040 the right corpus
+EN2002c 1 spk2 2356.300 2357.360 and then you've got night right elements
+EN2002c 1 spk2 2357.880 2359.000 you've got night right actually
+EN2002c 1 spk80 2359.520 2361.340 you've got lots of nom something
+EN2002c 1 spk80 2361.340 2362.340 and then night something
+EN2002c 1 spk80 2362.520 2363.400 and then end something
+EN2002c 1 spk80 2363.760 2363.860 yeah
+EN2002c 1 spk14 2364.080 2365.720 i think end ones are interfaces
+EN2002c 1 spk14 2366.000 2367.500 and the night one one of the ways around
+EN2002c 1 spk14 2367.640 2367.880 one's an
+EN2002c 1 spk16 2367.880 2368.160 interface
+EN2002c 1 spk16 2368.340 2370.100 and one's actually an implemented course
+EN2002c 1 spk0 2370.580 2370.880 oh great
+EN2002c 1 spk2 2372.000 2373.040 because if you go back enough
+EN2002c 1 spk2 2373.240 2373.320 i think
+EN2002c 1 spk2 2373.780 2374.460 what's his name
+EN2002c 1 spk2 2374.680 2375.880 the api's all right
+EN2002c 1 spk2 2375.960 2377.500 but there's not a lot of description in it
+EN2002c 1 spk2 2377.920 2378.080 yeah
+EN2002c 1 spk2 2378.560 2379.000 it's very clear
+EN2002c 1 spk2 2379.020 2379.280 no
+EN2002c 1 spk4 2380.720 2383.560 and most of the descriptions are hints to each other saying
+EN2002c 1 spk4 2383.940 2385.000 you've got to update this jonathan
+EN2002c 1 spk4 2386.180 2388.240 this is unintelligible
+EN2002c 1 spk4 2388.660 2388.900 right
+EN2002c 1 spk4 2389.480 2389.920 yeah
+EN2002c 1 spk4 2391.040 2391.380 so you end
+EN2002c 1 spk19 2391.380 2392.040 up just say
+EN2002c 1 spk2 2392.040 2393.940 returns a n text
+EN2002c 1 spk19 2393.940 2394.620 box
+EN2002c 1 spk4 2395.160 2395.760 what's that though
+EN2002c 1 spk25 2395.920 2397.120 it's a implementation
+EN2002c 1 spk4 2397.120 2397.960 of an n
+EN2002c 1 spk25 2397.960 2398.840 text
+EN2002c 1 spk25 2399.080 2399.440 yeah
+EN2002c 1 spk25 2400.740 2401.560 what's that
+EN2002c 1 spk25 2401.840 2402.900 oh it's a extended
+EN2002c 1 spk2 2402.900 2403.600 version of it
+EN2002c 1 spk2 2404.140 2405.680 oh stop it
+EN2002c 1 spk4 2408.700 2409.360 no definitely
+EN2002c 1 spk4 2410.860 2411.260 right
+EN2002c 1 spk4 2414.020 2416.520 so anyone else got anything to say
+EN2002c 1 spk4 2417.080 2417.860 not really
+EN2002c 1 spk4 2417.860 2419.340 just going to keep on going
+EN2002c 1 spk4 2420.940 2421.580 do we
+EN2002c 1 spk4 2421.660 2421.900 yeah
+EN2002c 1 spk30 2422.060 2424.300 do we want another meeting at the end of the week
+EN2002c 1 spk4 2425.220 2428.280 we might be useful
+EN2002c 1 spk4 2428.460 2428.800 yeah
+EN2002c 1 spk4 2429.180 2430.200 like friday afternoon or something
+EN2002c 1 spk81 2430.440 2430.580 yeah
+EN2002c 1 spk81 2430.940 2434.220 i mean i think i'm going to do quite a bit of work this week
+EN2002c 1 spk81 2434.480 2436.300 so i'll have probably more to talk about
+EN2002c 1 spk4 2436.960 2437.200 yeah
+EN2002c 1 spk4 2437.480 2438.400 i think
+EN2002c 1 spk4 2438.840 2440.080 and we won't have to have the meeting with steve
+EN2002c 1 spk10 2440.080 2441.260 on tuesday or at
+EN2002c 1 spk10 2441.260 2441.560 all
+EN2002c 1 spk10 2441.680 2441.760 yeah
+EN2002c 1 spk38 2442.620 2445.600 so do we want to arrange this and get this one earlier
+EN2002c 1 spk4 2445.600 2445.980 maybe
+EN2002c 1 spk38 2445.980 2446.740 three years
+EN2002c 1 spk4 2448.180 2448.920 if you like
+EN2002c 1 spk4 2449.160 2451.020 well we can just discuss on friday if we have
+EN2002c 1 spk0 2451.020 2451.180 one
+EN2002c 1 spk0 2451.360 2451.680 that's true
+EN2002c 1 spk0 2455.740 2456.720 yeah sure
+EN2002c 1 spk0 2457.100 2457.520 what time
+EN2002c 1 spk4 2462.160 2463.740 just after spt
+EN2002c 1 spk48 2465.920 2466.320 possibly
+EN2002c 1 spk48 2466.760 2466.960 i don't know
+EN2002c 1 spk48 2467.260 2467.620 usually by then
+EN2002c 1 spk48 2468.640 2469.020 need a
+EN2002c 1 spk4 2469.020 2469.220 break
+EN2002c 1 spk4 2470.320 2471.040 although right
+EN2002c 1 spk4 2471.360 2471.660 well i don't know
+EN2002c 1 spk4 2471.760 2472.000 cause it's
+EN2002c 1 spk48 2472.000 2473.860 the lab and try and get some work done
+EN2002c 1 spk48 2473.860 2474.780 yeah
+EN2002c 1 spk4 2475.040 2475.580 yeah
+EN2002c 1 spk4 2477.440 2480.620 i've got a doctor's appointment at 10 to two
+EN2002c 1 spk0 2484.560 2485.500 what morning
+EN2002c 1 spk4 2487.520 2488.580 three o clock
+EN2002c 1 spk4 2489.580 2489.590 or
+EN2002c 1 spk0 2489.580 2490.380 you want to get
+EN2002c 1 spk2 2491.380 2492.080 i don't know
+EN2002c 1 spk2 2492.200 2492.720 maybe i do
+EN2002c 1 spk2 2492.860 2493.440 i'm not sure
+EN2002c 1 spk10 2497.980 2499.260 she's got a class at all
+EN2002c 1 spk10 2504.440 2504.880 11
+EN2002c 1 spk10 2504.880 2504.890 we say
+EN2002c 1 spk0 2504.880 2505.760 three
+EN2002c 1 spk4 2505.760 2505.980 o clock
+EN2002c 1 spk4 2506.220 2507.400 and then if there's a series
+EN2002c 1 spk4 2507.600 2508.180 we could
+EN2002c 1 spk10 2508.180 2508.880 try one
+EN2002c 1 spk10 2509.060 2509.880 we could try shortly after
+EN2002c 1 spk10 2510.140 2510.380 well yeah
+EN2002c 1 spk10 2511.040 2511.240 well yeah
+EN2002c 1 spk10 2511.540 2512.380 well wouldn't be a long meeting
+EN2002c 1 spk10 2513.200 2515.080 would you want to know
+EN2002c 1 spk48 2516.740 2518.000 if one's bad for you
+EN2002c 1 spk2 2518.240 2518.250 then
+EN2002c 1 spk2 2518.640 2518.900 no no
+EN2002c 1 spk2 2519.060 2520.260 that would only give us like
+EN2002c 1 spk2 2523.140 2523.580 well
+EN2002c 1 spk9 2524.000 2524.010 what
+EN2002c 1 spk0 2525.640 2526.080 like
+EN2002c 1 spk4 2526.080 2527.520 you know five or six
+EN2002c 1 spk0 2527.520 2528.940 three's better than five or six
+EN2002c 1 spk0 2530.940 2531.700 well three o clock
+EN2002c 1 spk0 2531.920 2532.420 let's say three o clock
+EN2002c 1 spk0 2532.420 2533.140 say three
+EN2002c 1 spk18 2533.140 2533.420 o clock
+EN2002c 1 spk18 2533.660 2533.860 and then
+EN2002c 1 spk18 2535.220 2535.860 if there's a
+EN2002c 1 spk4 2535.860 2537.480 problem with that then it's three o clock
+EN2002c 1 spk4 2537.580 2537.860 it's a problem
+EN2002c 1 spk4 2538.060 2539.040 five or six will be a problem
+EN2002c 1 spk4 2540.440 2541.200 cause i might be here
+EN2002c 1 spk4 2541.740 2542.780 but i don't think that will be
+EN2002c 1 spk4 2543.160 2543.460 i'm not sure
+EN2002c 1 spk31 2545.140 2545.560 all right
+EN2002c 1 spk4 2546.060 2546.560 all right
+EN2002c 1 spk4 2546.700 2548.000 this meeting up and i'll send it to
+EN2002c 1 spk4 2548.580 2548.940 okay
+EN2002c 1 spk2 2549.740 2549.920 is
+EN2002c 1 spk4 2549.920 2550.640 she collecting them
+EN2002c 1 spk4 2551.540 2551.680 no
+EN2002c 1 spk0 2553.360 2554.560 because she's not here
+EN2002c 1 spk2 2555.440 2556.160 she collected
+EN2002c 1 spk2 2556.160 2557.020 oh right
+EN2002c 1 spk2 2557.300 2557.520 oh yeah
+EN2002c 1 spk2 2559.780 2560.340 it's cool
+EN2002c 1 spk4 2560.560 2561.060 i collect
+EN2002c 1 spk4 2561.240 2564.760 i thought somebody was collecting them
+EN2002c 1 spk4 2565.080 2565.920 well that's what i thought
+EN2002c 1 spk4 2566.280 2567.880 we should probably do that at the end
+EN2002c 1 spk82 2568.360 2568.580 yeah
+EN2002c 1 spk82 2568.940 2570.140 then we'd know who's missed them
+EN2002c 1 spk4 2570.280 2570.480 so
+EN2002c 1 spk39 2570.480 2571.640 can we just
+EN2002c 1 spk39 2571.700 2573.960 can we just repeat briefly what
+EN2002c 1 spk11 2573.960 2574.620 we've spoken about
+EN2002c 1 spk11 2575.000 2578.280 so we didn't done a progress on the speaker characterization
+EN2002c 1 spk11 2579.040 2580.340 who does the speaker characterization
+EN2002c 1 spk11 2581.740 2582.260 we
+EN2002c 1 spk81 2582.260 2585.540 mentioned topic labeling with keywords
+EN2002c 1 spk81 2586.160 2586.340 yeah
+EN2002c 1 spk81 2587.240 2590.300 um we discussed if the search should be ranked
+EN2002c 1 spk81 2592.120 2593.000 and michael
+EN2002c 1 spk83 2593.180 2594.700 did you have anything else
+EN2002c 1 spk10 2595.240 2598.040 um there's just sort of the basic implementation stuff that i was
+EN2002c 1 spk10 2598.040 2600.620 wondering about but it should be fine
+EN2002c 1 spk10 2601.100 2602.120 um it's just progressing
+EN2002c 1 spk0 2604.440 2605.300 did we
+EN2002c 1 spk84 2605.300 2606.000 decide whether
+EN2002c 1 spk10 2606.000 2606.500 it should be ranked
+EN2002c 1 spk10 2607.060 2607.100 no
+EN2002c 1 spk10 2608.100 2608.140 for
+EN2002c 1 spk2 2608.140 2608.280 now
+EN2002c 1 spk52 2608.480 2610.880 well basically not
+EN2002c 1 spk52 2611.780 2613.860 not unless you've got time for it at the end
+EN2002c 1 spk2 2614.360 2614.540 well i
+EN2002c 1 spk4 2614.540 2615.960 kind of think you would
+EN2002c 1 spk4 2616.800 2617.960 complicate things quite a
+EN2002c 1 spk38 2617.960 2619.760 bit and not bring us
+EN2002c 1 spk38 2619.840 2620.500 a lot
+EN2002c 1 spk38 2621.440 2624.920 just because if it is like independently doing the words for a particular
+EN2002c 1 spk38 2624.920 2625.920 documents it's not
+EN2002c 1 spk38 2626.660 2627.920 it's not really getting them together
+EN2002c 1 spk38 2628.420 2630.120 like if someone's looking for a particular term
+EN2002c 1 spk38 2630.820 2632.340 um i don't know
+EN2002c 1 spk38 2632.460 2632.580 just
+EN2002c 1 spk38 2633.900 2635.260 just don't know if it would bring us that much
+EN2002c 1 spk0 2635.600 2636.120 i think it would
+EN2002c 1 spk38 2636.660 2636.920 also
+EN2002c 1 spk4 2638.580 2640.120 i think i think it would
+EN2002c 1 spk4 2640.720 2642.200 it would give you the most relevant result
+EN2002c 1 spk10 2642.760 2643.000 if they're
+EN2002c 1 spk38 2643.000 2644.520 looking for like i say sunny day
+EN2002c 1 spk38 2644.520 2647.820 and you know sunny shows up in this document day shows up
+EN2002c 1 spk38 2647.860 2648.520 but they're not together
+EN2002c 1 spk38 2649.220 2652.760 um or if they're i don't know it just doesn't
+EN2002c 1 spk38 2653.000 2655.120 you're looking for that term and relevance is
+EN2002c 1 spk45 2655.120 2655.800 kind of irrelevant
+EN2002c 1 spk9 2655.800 2658.120 because if the term shows up it shows up
+EN2002c 1 spk4 2658.120 2660.180 no but for things like if you search for language
+EN2002c 1 spk11 2661.120 2663.940 then you might have you have some topics which have
+EN2002c 1 spk11 2664.080 2665.720 as a you know some some meetings
+EN2002c 1 spk11 2665.720 2667.520 which have as a topic language
+EN2002c 1 spk11 2667.700 2670.680 they specifically speak about language and they use that word like
+EN2002c 1 spk11 2670.680 2671.760 in every sentence
+EN2002c 1 spk11 2671.940 2673.760 and then you've got those that just mentioned
+EN2002c 1 spk11 2673.760 2676.940 you know mentioned it briefly like once or twice saying you know
+EN2002c 1 spk11 2677.040 2680.260 my language is german or something stupid that you don't really want
+EN2002c 1 spk11 2680.740 2680.920 so you
+EN2002c 1 spk4 2680.920 2682.120 want to distinguish that somehow
+EN2002c 1 spk85 2682.940 2683.700 oh nice anyway
+EN2002c 1 spk0 2684.300 2684.900 yeah that would help
+EN2002c 1 spk4 2685.340 2687.620 for single for single terms it would be very useful
+EN2002c 1 spk22 2687.620 2688.880 for multiple
+EN2002c 1 spk22 2688.880 2692.080 terms unless you want to do something that will be a way of doing
+EN2002c 1 spk22 2692.080 2693.160 it for multiple terms
+EN2002c 1 spk86 2693.640 2695.540 for multiple terms we can just do something really
+EN2002c 1 spk0 2695.540 2696.000 simple
+EN2002c 1 spk0 2696.380 2696.560 i mean
+EN2002c 1 spk86 2697.420 2697.480 yeah
+EN2002c 1 spk86 2697.740 2700.060 well you could do it and override it by the
+EN2002c 1 spk86 2700.060 2700.740 you
+EN2002c 1 spk4 2700.740 2704.860 could just ignore the ranking if it doesn't show up together
+EN2002c 1 spk34 2706.680 2707.540 or you could have you
+EN2002c 1 spk4 2707.540 2708.260 penalize it
+EN2002c 1 spk4 2708.360 2708.640 you could just
+EN2002c 1 spk4 2708.800 2709.760 but you still have to do the search
+EN2002c 1 spk4 2709.940 2711.480 you still have to do the nxt search then
+EN2002c 1 spk4 2711.860 2713.200 yeah you do the nxt search
+EN2002c 1 spk4 2713.340 2714.060 so it doesn't show up together
+EN2002c 1 spk4 2714.320 2714.400 yeah
+EN2002c 1 spk4 2714.740 2714.750 either
+EN2002c 1 spk2 2714.740 2715.240 disregard
+EN2002c 1 spk87 2715.240 2716.320 it or put a weighting
+EN2002c 1 spk4 2716.320 2716.800 against it
+EN2002c 1 spk87 2717.500 2718.640 if you how many pairs you get
+EN2002c 1 spk87 2718.660 2720.120 it wouldn't show up on the search results
+EN2002c 1 spk0 2721.320 2721.480 yeah
+EN2002c 1 spk0 2721.840 2723.380 just disregard it
+EN2002c 1 spk0 2724.020 2724.140 yeah
+EN2002c 1 spk0 2724.200 2724.300 i mean
+EN2002c 1 spk4 2724.680 2726.300 you just do it really simply you know
+EN2002c 1 spk4 2726.760 2726.880 yeah
+EN2002c 1 spk4 2727.660 2728.440 you'll have the results
+EN2002c 1 spk4 2728.440 2728.860 we'll have to talk
+EN2002c 1 spk0 2728.860 2729.660 to pernilla about this
+EN2002c 1 spk0 2730.200 2730.480 yeah
+EN2002c 1 spk10 2730.860 2732.260 see how she's doing this
+EN2002c 1 spk10 2732.360 2733.060 we are using that
+EN2002c 1 spk10 2733.140 2734.660 i mean it does make sense for that
+EN2002c 1 spk0 2736.540 2736.860 actually
+EN2002c 1 spk0 2738.680 2739.000 yeah
+EN2002c 1 spk88 2740.080 2741.480 it doesn't have to be all intelligent
+EN2002c 1 spk4 2742.640 2742.680 yeah
+EN2002c 1 spk4 2743.000 2744.560 it's something you're going to get a lot of results
+EN2002c 1 spk4 2744.900 2745.180 yeah
+EN2002c 1 spk4 2745.440 2747.360 and if the one that you got just happened to be at the bottom
+EN2002c 1 spk4 2747.360 2748.700 and it was actually the most relevant one
+EN2002c 1 spk4 2748.800 2749.540 something that was also
+EN2002c 1 spk15 2750.020 2750.880 i mean if it's well
+EN2002c 1 spk38 2751.240 2751.480 yeah
+EN2002c 1 spk38 2752.500 2752.580 yeah
+EN2002c 1 spk38 2752.700 2752.820 okay
+EN2002c 1 spk38 2752.920 2753.400 i see what you mean
+EN2002c 1 spk38 2755.200 2757.720 and then we can actually put that like on the list of meetings
+EN2002c 1 spk38 2757.720 2758.500 that get returned
+EN2002c 1 spk38 2758.680 2760.760 if there were 15 meetings with languages in there
+EN2002c 1 spk38 2761.120 2762.560 it's going to show you those and
+EN2002c 1 spk10 2762.560 2763.160 rank
+EN2002c 1 spk89 2763.160 2763.540 them
+EN2002c 1 spk89 2763.860 2764.380 which is the highest
+EN2002c 1 spk89 2764.540 2765.140 which is the highest
+EN2002c 1 spk89 2765.240 2765.560 okay
+EN2002c 1 spk89 2765.860 2765.960 i see
+EN2002c 1 spk58 2765.960 2766.140 that
+EN2002c 1 spk58 2766.340 2770.440 and also if there's something like sunny day the
+EN2002c 1 spk58 2772.680 2773.980 if sunny and day aren't
+EN2002c 1 spk18 2773.980 2774.900 mentioned together a lot
+EN2002c 1 spk18 2775.040 2776.080 but sunny just happens to be mentioned at
+EN2002c 1 spk4 2776.080 2776.360 once
+EN2002c 1 spk4 2776.580 2778.720 its term will be low and it will push down the other one
+EN2002c 1 spk4 2778.720 2779.400 if you combine them
+EN2002c 1 spk4 2779.480 2780.500 if you just add them together
+EN2002c 1 spk4 2780.680 2781.100 well the thing is i mean
+EN2002c 1 spk4 2781.120 2781.840 that'll be exactly
+EN2002c 1 spk10 2781.840 2782.980 how we're doing it now
+EN2002c 1 spk10 2783.180 2784.720 like we're just looking for the two words separately
+EN2002c 1 spk10 2784.900 2786.080 see if they exist in the same document
+EN2002c 1 spk10 2786.080 2786.640 i mean if they do them
+EN2002c 1 spk10 2786.680 2788.380 there's possibility that they occur together
+EN2002c 1 spk10 2789.060 2791.020 and then we do the nxt search on that document
+EN2002c 1 spk10 2791.620 2791.660 yeah
+EN2002c 1 spk4 2791.740 2793.260 but you have no ranking system at the moment
+EN2002c 1 spk4 2793.560 2795.020 so if something's in an amazing
+EN2002c 1 spk4 2795.500 2797.240 highly ranked thing from tfid
+EN2002c 1 spk16 2797.240 2799.980 i think could just be ignored because it falls off the bottom of the
+EN2002c 1 spk16 2800.940 2801.700 i'm assuming you only have
+EN2002c 1 spk16 2802.040 2804.760 do you return all results for all
+EN2002c 1 spk16 2805.180 2807.900 say you type language and it returned 75 meetings
+EN2002c 1 spk34 2808.880 2809.900 well right now it's not doing anything
+EN2002c 1 spk34 2810.120 2811.820 so i don't know what it's
+EN2002c 1 spk0 2811.820 2812.040 doing
+EN2002c 1 spk0 2812.060 2812.360 well it's not that many meetings
+EN2002c 1 spk0 2812.760 2813.000 but yeah
+EN2002c 1 spk0 2814.220 2814.820 but there are 75
+EN2002c 1 spk14 2814.820 2815.360 meetings
+EN2002c 1 spk14 2815.360 2816.000 is there really
+EN2002c 1 spk9 2819.220 2819.300 yeah
+EN2002c 1 spk9 2819.960 2820.320 save it
+EN2002c 1 spk9 2820.500 2820.920 so yeah
+EN2002c 1 spk4 2821.020 2822.020 if you return 75
+EN2002c 1 spk4 2822.420 2823.020 why where do you stop
+EN2002c 1 spk4 2824.120 2825.520 how do you rank them or something
+EN2002c 1 spk4 2825.660 2826.380 or if it turns 20
+EN2002c 1 spk4 2826.480 2827.160 even if it turns 20
+EN2002c 1 spk4 2827.260 2827.980 do you cut it off at 10
+EN2002c 1 spk4 2828.180 2828.680 do you rank them
+EN2002c 1 spk4 2828.920 2829.360 yeah that's true
+EN2002c 1 spk4 2830.460 2830.940 what's the threshold
+EN2002c 1 spk4 2831.540 2831.550 yeah
+EN2002c 1 spk0 2832.180 2832.480 it's true
+EN2002c 1 spk0 2833.000 2833.540 look through them
+EN2002c 1 spk2 2833.540 2833.820 all
+EN2002c 1 spk9 2834.240 2835.040 look through them all
+EN2002c 1 spk9 2835.580 2837.360 it would be useful as well for
+EN2002c 1 spk11 2837.360 2839.340 a word like language that might occur
+EN2002c 1 spk11 2839.340 2840.100 in all of them
+EN2002c 1 spk11 2840.560 2843.160 but you want to find the one that
+EN2002c 1 spk52 2843.160 2844.560 actually contains it
+EN2002c 1 spk52 2844.560 2844.960 usefully
+EN2002c 1 spk11 2844.960 2845.540 somehow
+EN2002c 1 spk0 2848.020 2848.060 you know
+EN2002c 1 spk85 2849.260 2851.960 you still want to be able to search for the word language
+EN2002c 1 spk4 2853.740 2855.680 in a sensible way
+EN2002c 1 spk4 2858.200 2858.840 well we'll
+EN2002c 1 spk90 2858.840 2859.900 discuss it again on friday
+EN2002c 1 spk2 2874.560 2875.680 so is that it
+EN2002c 1 spk2 2876.800 2876.880 sure
+EN2002c 1 spk2 2877.380 2877.460 yeah
+EN2002c 1 spk2 2878.640 2878.660 tick
+EN2002c 1 spk2 2879.340 2879.600 tick
+EN2002c 1 spk2 2880.140 2880.440 okay
+EN2002c 1 spk10 2880.940 2881.560 that's lined up already
+EN2002c 1 spk2 2928.300 2929.700 okay
+EN2002c 1 spk0 2959.460 2960.860 okay
+EN2002c 1 spk0 2970.820 2972.220 okay

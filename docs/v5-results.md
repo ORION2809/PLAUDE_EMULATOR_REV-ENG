@@ -1,5 +1,12 @@
 # V5-style results: the first real numbers (2026-09-25)
 
+> **Superseded for AMI, 28 Sep 2026.** V5 was measured on all 16 AMI test meetings,
+> with settings calibrated on the dev split: [`docs/v5-test-split.md`](v5-test-split.md).
+> The hinted configuration here scores DER 0.6396 and cpWER 0.8567 on all 16 meetings,
+> against 0.6557 and 0.8533 on the 4 below. Since 28 Sep, `evals` keeps DER/JER/WER for
+> a meeting whose cpWER meeteval refuses, and ASR decoding is seeded. The Piper results
+> below have not been re-run. This document is otherwise kept as measured.
+
 **Read this first.** This is one measured run of the only real composed pipeline
 here, `whisper-sherpa` (Whisper small.en through faster-whisper, plus sherpa-onnx
 diarization). It is **not** the V5 verdict of PROJECT.md. The AMI part covers
@@ -9,7 +16,8 @@ The synthetic part is clean, word-salad Piper speech with one TTS voice per
 speaker. Every harness choice below is HARNESS_POLICY, and every number is quoted
 as measured, including the bad ones. Inference, scoring, gates and
 the summary tables are reproduced by `scripts/run-v5.sh` (section 10); its outputs
-are under the git-ignored `build/v5/`. The diagnostics in sections 8.1, 8.3 and 8.4,
+are under `build/v5/` (git-ignored when this was written; committed evidence since 28 Sep,
+see `build/v5/README.md`). The diagnostics in sections 8.1, 8.3 and 8.4,
 including the EN2002a table in section 8.3, used scratch scripts that are not in the
 repository.
 
@@ -467,7 +475,7 @@ differ, not an error.
   data that includes AMI (section 3). Whisper's training data is unpublished. A
   better score would not prove generalisation.
 * **The hint is an oracle.** The configuration closest to a product is the no-hint
-  one, and it is unusable as it stands (31-95 clusters on AMI).
+  one, and it is unusable as it stands (35-95 clusters on AMI).
 * **Synthetic Piper speech is not meeting speech.** It is clean read speech, one TTS
   voice per speaker, and word-salad text with no language-model help. The room is
   simulated and there are no disfluencies or backchannels. Its ASR WER says little

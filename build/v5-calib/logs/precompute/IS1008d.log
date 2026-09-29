@@ -1,0 +1,20 @@
+# 2026-09-28T08:57:50Z precompute IS1008d; load: { 71.75 55.57 44.27 }
+{"meeting_dir": "/Users/mivi/Desktop/plaud-harness/data/corpora/ami/dev/IS1008d", "n": 23693333, "chunks": 1472, "embeddings": [2239, 512]}
+      857.08 real      1779.15 user        17.61 sys
+           302120960  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              535298  page reclaims
+                2711  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                8021  voluntary context switches
+             1825250  involuntary context switches
+      10952450376097  instructions retired
+       3084530484123  cycles elapsed
+           416385792  peak memory footprint

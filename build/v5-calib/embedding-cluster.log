@@ -1,0 +1,75 @@
+embedded ES2011a: 1680 cells
+embedded ES2011b: 2568 cells
+embedded ES2011c: 2896 cells
+embedded ES2011d: 2910 cells
+embedded IB4001: 2534 cells
+embedded IB4002: 2361 cells
+embedded IB4003: 3538 cells
+embedded IB4004: 4139 cells
+embedded IB4010: 5052 cells
+--- resumed 2026-09-29 09:36:58
+embedded IB4011: 4160 cells
+embedded IS1008a: 1478 cells
+embedded IS1008b: 2661 cells
+embedded IS1008c: 2445 cells
+embedded IS1008d: 2353 cells
+embedded TS3004a: 1591 cells
+embedded TS3004b: 3368 cells
+embedded TS3004c: 4010 cells
+embedded TS3004d: 3744 cells
+replay vs real embedding-cluster at 0.5 on IS1008a: identical=True
+threshold 0.1: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.125: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.15: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.175: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+exit=143
+--- stopped 2026-09-29 09:57:40 to widen the grid (0.1-0.6 misses the range where the threshold acts)
+--- resumed 2026-09-29 10:00:05 with the 0.100-1.200 grid
+replay vs real embedding-cluster at 0.5 on IS1008a: identical=True
+threshold 0.1: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.125: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.15: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.175: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.2: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.225: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.25: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.275: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.3: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.325: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.35: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.375: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.4: macro DER 0.6950, speakers [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.425: macro DER 0.6948, speakers [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1]
+threshold 0.45: macro DER 0.6836, speakers [2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 1, 1, 1]
+threshold 0.475: macro DER 0.5969, speakers [2, 3, 2, 2, 1, 1, 1, 1, 1, 5, 2, 2, 3, 4, 1, 1, 1, 1]
+threshold 0.5: macro DER 0.5409, speakers [2, 5, 2, 2, 1, 1, 1, 1, 1, 5, 4, 5, 3, 5, 1, 1, 1, 1]
+threshold 0.525: macro DER 0.5373, speakers [2, 4, 2, 2, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.55: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.575: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.6: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.625: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.65: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.675: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.7: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.725: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.75: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.775: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.8: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.825: macro DER 0.5295, speakers [2, 5, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.85: macro DER 0.5486, speakers [2, 3, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.875: macro DER 0.5486, speakers [2, 3, 2, 2, 1, 2, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.9: macro DER 0.5705, speakers [2, 2, 2, 2, 1, 2, 1, 1, 1, 4, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.925: macro DER 0.5705, speakers [2, 2, 2, 2, 1, 2, 1, 1, 1, 4, 5, 5, 5, 5, 1, 1, 1, 1]
+threshold 0.95: macro DER 0.6219, speakers [1, 1, 1, 1, 1, 2, 1, 1, 1, 3, 4, 3, 3, 3, 1, 1, 1, 1]
+threshold 0.975: macro DER 0.6858, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 1, 1]
+threshold 1: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 1.025: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 1.05: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 1.075: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 1.1: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 1.125: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 1.15: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 1.175: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+threshold 1.2: macro DER 0.7037, speakers [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+selected distance_threshold = 0.55 (macro DER 0.5295)
+exit=0

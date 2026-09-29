@@ -1,0 +1,8 @@
+[run-v5] output root: build/v5-test
+[run-v5] ami / embedding-cluster / EN2002a (no hint)
+[run-v5] ami / embedding-cluster / EN2002b (no hint)
+[run-v5] ami / embedding-cluster / EN2002c (no hint)
+[run-v5] ami / embedding-cluster / EN2002d (no hint)
+scripts/run-v5.sh: line 291: 57907 Terminated: 15          /usr/bin/time -l "$PY" -m pipeline run --pipeline "$pipe" --audio "$audio" --meeting-dir "$md" --out "$dest.partial/hyp.json" ${params[@]+"${params[@]}"} >> "$log" 2>&1
+[run-v5] FAILED (143): see build/v5-test/logs/ami/embedding-cluster/EN2002d.log
+[run-v5] ami / embedding-cluster / ES2004a (no hint)

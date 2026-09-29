@@ -1,0 +1,27 @@
+{
+  "schema": "plaud-harness/embedding-cluster-replay-check/1",
+  "date": "2026-09-29",
+  "note": "real `python -m pipeline run --pipeline embedding-cluster` (torch 2.14.0, speechbrain 1.1.1, NNPACK off) against the replayed test hypotheses, for the two paths test-replay.json does not cover (the hint, and the calibrated threshold)",
+  "checks": [
+    {
+      "path": "hint",
+      "meeting": "IS1009a",
+      "real_param": "num_speakers=4",
+      "real": "build/v5-calib/embedding-cluster/validation-test/real-hint/IS1009a/hyp.json",
+      "replayed": "build/v5-test/hyp/ami/embedding-cluster-hint/IS1009a/hyp.json",
+      "turns": 243,
+      "speakers": 4,
+      "identical": true
+    },
+    {
+      "path": "calibrated",
+      "meeting": "EN2002b",
+      "real_param": "distance_threshold=0.55",
+      "real": "build/v5-calib/embedding-cluster/validation-test/real-cal/EN2002b/hyp.json",
+      "replayed": "build/v5-test/hyp/ami/embedding-cluster-cal/EN2002b/hyp.json",
+      "turns": 493,
+      "speakers": 2,
+      "identical": true
+    }
+  ]
+}

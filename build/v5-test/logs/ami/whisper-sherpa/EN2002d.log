@@ -1,0 +1,25 @@
+# 2026-09-28T08:50:36Z ami whisper-sherpa EN2002d pipeline=whisper-sherpa hint=0 n_active=4 params=--param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/EN2002d/mix.wav
+# load average at start: { 39.01 26.58 32.72 }
+# swap at start: total = 10240.00M  used = 8925.12M  free = 1314.88M  (encrypted)
+whisper-sherpa: 1187 segments, 95 speakers, 2531.03s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/whisper-sherpa/EN2002d.partial/hyp.json (+ .rttm, .stm)
+     2535.79 real      5902.21 user       208.35 sys
+          1729642496  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+            15775999  page reclaims
+                3042  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+               26764  voluntary context switches
+            24087087  involuntary context switches
+      29310784553216  instructions retired
+      11034167640049  cycles elapsed
+          4101073600  peak memory footprint
+# load average at end: { 145.80 165.72 125.20 }
+# exit 0

@@ -1,0 +1,126 @@
+[run-v5] output root: build/v5-test
+[run-v5] scored ami/oracle: exit 0 -> build/v5-test/reports/ami/oracle.{json,md,txt}
+[run-v5] scored ami/oracle (collar0): exit 0 -> build/v5-test/reports/ami/oracle.collar0.{json,md,txt}
+[run-v5] scored ami/energy-vad-cluster: exit 0 -> build/v5-test/reports/ami/energy-vad-cluster.{json,md,txt}
+[run-v5] scored ami/energy-vad-cluster (collar0): exit 0 -> build/v5-test/reports/ami/energy-vad-cluster.collar0.{json,md,txt}
+[run-v5] scored ami/energy-vad-cluster-hint: exit 0 -> build/v5-test/reports/ami/energy-vad-cluster-hint.{json,md,txt}
+[run-v5] scored ami/energy-vad-cluster-hint (collar0): exit 0 -> build/v5-test/reports/ami/energy-vad-cluster-hint.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa: exit 0 -> build/v5-test/reports/ami/whisper-sherpa.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa with the meeteval speaker guard lifted: exit 2 -> build/v5-test/reports/ami/whisper-sherpa.lifted.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa with the meeteval speaker guard lifted (collar0): exit 2 -> build/v5-test/reports/ami/whisper-sherpa.lifted.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint with the meeteval speaker guard lifted (control): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint.lifted.control.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal with the meeteval speaker guard lifted (control): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal.lifted.control.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal with the meeteval speaker guard lifted (control): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal.lifted.control.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint-lt: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint-lt.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint-lt (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint-lt.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal-floor: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal-floor.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal-floor (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal-floor.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-wordruns: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-wordruns.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-wordruns (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-wordruns.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-turns: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-turns.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-turns (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-turns.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint-wordruns: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint-wordruns.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint-wordruns (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint-wordruns.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint-turns: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint-turns.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint-turns (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint-turns.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal-wordruns: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal-wordruns.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal-wordruns (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal-wordruns.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal-turns: exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal-turns.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal-turns (collar0): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal-turns.collar0.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa (norm): exit 0 -> build/v5-test/reports/ami/whisper-sherpa.norm.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint (norm): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint.norm.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal (norm): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal.norm.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-hint-lt (norm): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-hint-lt.norm.{json,md,txt}
+[run-v5] scored ami/whisper-sherpa-cal-floor (norm): exit 0 -> build/v5-test/reports/ami/whisper-sherpa-cal-floor.norm.{json,md,txt}
+$ python -m evals batch --refs data/corpora/ami/test --hyps build/v5-test/hyp/ami/oracle --gates evals/gates.yaml --suite oracle --gate-on each --report build/v5-test/gates/oracle.ami.json
+EN2002a [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+EN2002b [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+EN2002c [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+EN2002d [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+ES2004a [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+ES2004b [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+ES2004c [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+ES2004d [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+IS1009a [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+IS1009b [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+IS1009c [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+IS1009d [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+TS3003a [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+TS3003b [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+TS3003c [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+TS3003d [oracle]  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+macro  n=16  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+micro  n=16  cpWER 0.0000  tcpWER 0.0000  DER 0.0000  JER 0.0000
+[PASS] suite 'oracle' on EN2002a (6 checks)
+[PASS] suite 'oracle' on EN2002b (6 checks)
+[PASS] suite 'oracle' on EN2002c (6 checks)
+[PASS] suite 'oracle' on EN2002d (6 checks)
+[PASS] suite 'oracle' on ES2004a (6 checks)
+[PASS] suite 'oracle' on ES2004b (6 checks)
+[PASS] suite 'oracle' on ES2004c (6 checks)
+[PASS] suite 'oracle' on ES2004d (6 checks)
+[PASS] suite 'oracle' on IS1009a (6 checks)
+[PASS] suite 'oracle' on IS1009b (6 checks)
+[PASS] suite 'oracle' on IS1009c (6 checks)
+[PASS] suite 'oracle' on IS1009d (6 checks)
+[PASS] suite 'oracle' on TS3003a (6 checks)
+[PASS] suite 'oracle' on TS3003b (6 checks)
+[PASS] suite 'oracle' on TS3003c (6 checks)
+[PASS] suite 'oracle' on TS3003d (6 checks)
+exit 0
+$ python -m evals batch --refs data/corpora/ami/test --hyps build/v5-test/hyp/ami/whisper-sherpa-hint --gates evals/gates.yaml --suite ami-headset --gate-on macro --report build/v5-test/gates/ami-headset.ami.json
+EN2002a [whisper-sherpa]  cpWER 0.9674  tcpWER 1.0426  DER 0.7286  JER 0.8370
+EN2002b [whisper-sherpa]  cpWER 0.9195  tcpWER 1.1034  DER 0.7650  JER 0.8604
+EN2002c [whisper-sherpa]  cpWER 0.9179  tcpWER 1.0470  DER 0.6794  JER 0.7593
+EN2002d [whisper-sherpa]  cpWER 0.9643  tcpWER 1.0287  DER 0.7301  JER 0.8422
+ES2004a [whisper-sherpa]  cpWER 0.9239  tcpWER 1.0241  DER 0.6649  JER 0.7793
+ES2004b [whisper-sherpa]  cpWER 0.7476  tcpWER 0.8302  DER 0.5173  JER 0.6665
+ES2004c [whisper-sherpa]  cpWER 0.7955  tcpWER 0.8463  DER 0.5017  JER 0.6095
+ES2004d [whisper-sherpa]  cpWER 0.9160  tcpWER 1.0193  DER 0.6633  JER 0.7866
+IS1009a [whisper-sherpa]  cpWER 0.6640  tcpWER 0.7953  DER 0.5444  JER 0.7680
+IS1009b [whisper-sherpa]  cpWER 0.8387  tcpWER 0.9122  DER 0.5214  JER 0.6157
+IS1009c [whisper-sherpa]  cpWER 0.9080  tcpWER 0.9283  DER 0.5731  JER 0.6277
+IS1009d [whisper-sherpa]  cpWER 0.8581  tcpWER 0.9925  DER 0.6454  JER 0.7834
+TS3003a [whisper-sherpa]  cpWER 0.8646  tcpWER 1.0276  DER 0.6846  JER 0.8741
+TS3003b [whisper-sherpa]  cpWER 0.8034  tcpWER 1.0137  DER 0.6465  JER 0.6451
+TS3003c [whisper-sherpa]  cpWER 0.8094  tcpWER 1.0217  DER 0.6401  JER 0.6867
+TS3003d [whisper-sherpa]  cpWER 0.8085  tcpWER 1.0590  DER 0.7271  JER 0.8153
+macro  n=16  cpWER 0.8567  tcpWER 0.9808  DER 0.6396  JER 0.7473
+micro  n=16  cpWER 0.8690  tcpWER 0.9872  DER 0.6438  JER 0.7471
+[FAIL] suite 'ami-headset' on macro — failed: der.der <= 0.2 (got 0.6395526662080258: exceeds max 0.2); cpwer.error_rate <= 0.3 (got 0.8566687494957568: exceeds max 0.3)
+exit 1
+$ python -m evals batch --refs data/corpora/ami/test --hyps build/v5-test/hyp/ami/whisper-sherpa-cal --gates evals/gates.yaml --suite ami-headset --gate-on macro --report build/v5-test/gates/ami-headset.ami.whisper-sherpa-cal.json
+EN2002a [whisper-sherpa]  cpWER 0.9256  tcpWER 1.0244  DER 0.7533  JER 0.8475
+EN2002b [whisper-sherpa]  cpWER 0.8765  tcpWER 1.0558  DER 0.7685  JER 0.8455
+EN2002c [whisper-sherpa]  cpWER 0.9377  tcpWER 1.0091  DER 0.6864  JER 0.7420
+EN2002d [whisper-sherpa]  cpWER 0.8795  tcpWER 0.9878  DER 0.7426  JER 0.8235
+ES2004a [whisper-sherpa]  cpWER 0.8922  tcpWER 1.0226  DER 0.6834  JER 0.8257
+ES2004b [whisper-sherpa]  cpWER 0.7329  tcpWER 0.8219  DER 0.5197  JER 0.6649
+ES2004c [whisper-sherpa]  cpWER 0.7470  tcpWER 0.8075  DER 0.5038  JER 0.6026
+ES2004d [whisper-sherpa]  cpWER 0.8807  tcpWER 1.0018  DER 0.6691  JER 0.7773
+IS1009a [whisper-sherpa]  cpWER 0.6715  tcpWER 0.8072  DER 0.5581  JER 0.7709
+IS1009b [whisper-sherpa]  cpWER 0.8130  tcpWER 0.8776  DER 0.5128  JER 0.6059
+IS1009c [whisper-sherpa]  cpWER 0.9910  tcpWER 1.0269  DER 0.6622  JER 0.7291
+IS1009d [whisper-sherpa]  cpWER 0.8165  tcpWER 0.9616  DER 0.6466  JER 0.7785
+TS3003a [whisper-sherpa]  cpWER 0.9073  tcpWER 0.9195  DER 0.6374  JER 0.8614
+TS3003b [whisper-sherpa]  cpWER 0.8014  tcpWER 1.0117  DER 0.6436  JER 0.6413
+TS3003c [whisper-sherpa]  cpWER 0.8008  tcpWER 1.0108  DER 0.6391  JER 0.6830
+TS3003d [whisper-sherpa]  cpWER 0.8110  tcpWER 1.0580  DER 0.7290  JER 0.8138
+macro  n=16  cpWER 0.8428  tcpWER 0.9628  DER 0.6472  JER 0.7508
+micro  n=16  cpWER 0.8505  tcpWER 0.9669  DER 0.6519  JER 0.7509
+[FAIL] suite 'ami-headset' on macro — failed: der.der <= 0.2 (got 0.6472308523024526: exceeds max 0.2); cpwer.error_rate <= 0.3 (got 0.8427863693662574: exceeds max 0.3)
+exit 1
+[run-v5] summary -> /Users/mivi/Desktop/plaud-harness/build/v5-test/summary.md and /Users/mivi/Desktop/plaud-harness/build/v5-test/summary.json
+[run-v5] hypotheses: build/v5-test/hyp/<dataset>/<system>/<meeting_id>/hyp.json
+[run-v5] logs:       build/v5-test/logs/<dataset>/<system>/<meeting_id>.log
+[run-v5] reports:    build/v5-test/reports/<dataset>/<system>[.collar0|.norm|.lifted*].{json,md,txt}
+[run-v5] gates:      build/v5-test/gates/<suite>.<dataset>.{json,txt}
+[run-v5] summary:    build/v5-test/summary.{md,json}
+error: 2 gate suite(s) failed

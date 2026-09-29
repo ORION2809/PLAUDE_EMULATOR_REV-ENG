@@ -9,6 +9,19 @@ reference/
 # The documents cite these paths; see build/v5/README.md for attribution.
 !/build/v5/
 !/build/v6/
+# The 28-29 Sep full test split and the dev-split calibrations (build/v5-test/README.md,
+# build/v5-calib/README.md).  Not published: the cached segmentation/embeddings and the
+# per-threshold hypotheses other than the selected ones (large, regenerable).
+!/build/v5-test/
+!/build/v5-calib/
+/build/v5-calib/pre/
+/build/v5-calib/hyp/*
+!/build/v5-calib/hyp/1.15/
+/build/v5-calib/embedding-cluster/pre/
+/build/v5-calib/embedding-cluster/pre-test/
+/build/v5-calib/embedding-cluster/hyp/*
+!/build/v5-calib/embedding-cluster/hyp/0.55/
+*.partial.npz
 # Any NESTED build directory stays ignored: Gradle/Android outputs (e.g. r7/android-app/app/build)
 # contain a dexed copy of the proprietary Plaud SDK and must never be committed.
 */**/build/

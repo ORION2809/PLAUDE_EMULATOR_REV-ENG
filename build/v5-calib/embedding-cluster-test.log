@@ -1,0 +1,20 @@
+embedded test EN2002a: 3599 cells
+embedded test EN2002b: 2841 cells
+embedded test EN2002c: 4824 cells
+embedded test EN2002d: 3783 cells
+embedded test ES2004a: 1752 cells
+--- resumed 2026-09-29 09:36:58
+embedded test ES2004b: 4202 cells
+embedded test ES2004c: 3888 cells
+embedded test ES2004d: 3551 cells
+embedded test IS1009a: 1248 cells
+embedded test IS1009b: 3380 cells
+embedded test IS1009c: 2846 cells
+embedded test IS1009d: 3009 cells
+embedded test TS3003a: 1651 cells
+embedded test TS3003b: 3025 cells
+embedded test TS3003c: 3785 cells
+embedded test TS3003d: 3956 cells
+replay vs real embedding-cluster on the test split: {'EN2002a': True, 'EN2002b': True, 'EN2002c': True}
+wrote embedding-cluster, -hint, -cal for 16 test meetings
+exit=0

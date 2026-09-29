@@ -1,0 +1,432 @@
+TS3003c 1 spk0 6.240 12.800 i just received a little beep i don't know what it was
+TS3003c 1 spk0 20.860 23.300 okay good afternoon
+TS3003c 1 spk0 24.060 24.480 good afternoon
+TS3003c 1 spk0 25.160 26.700 this is our third meeting already
+TS3003c 1 spk0 26.700 29.760 i hope you enjoyed your lunch
+TS3003c 1 spk0 30.980 32.700 i did anyway
+TS3003c 1 spk0 39.560 41.280 presentation 3
+TS3003c 1 spk0 42.660 45.020 okay this is the
+TS3003c 1 spk1 45.020 48.000 second phase we're going to discuss today
+TS3003c 1 spk1 48.000 50.460 that's the conceptual design meeting
+TS3003c 1 spk1 51.460 60.700 and a few points of interest in this meeting are the conceptual specification of components
+TS3003c 1 spk1 61.860 65.280 conceptual specification of design and also trend watching
+TS3003c 1 spk1 67.060 72.700 these are hopefully the points you addressed in your presentations
+TS3003c 1 spk1 73.200 75.600 you're going to show me in a few minutes
+TS3003c 1 spk1 77.340 81.080 but first i'll show you the agenda
+TS3003c 1 spk1 82.120 83.080 first the opening
+TS3003c 1 spk1 84.020 85.540 then we have three presentations
+TS3003c 1 spk1 86.460 90.680 after that we have to come to a decision on remote control concepts
+TS3003c 1 spk1 91.400 92.940 how are we going to make
+TS3003c 1 spk0 92.940 93.180 it
+TS3003c 1 spk0 93.960 95.560 and then we're closing
+TS3003c 1 spk0 96.000 97.060 we have about 40 minutes
+TS3003c 1 spk0 99.140 101.360 so i suggest let's get started
+TS3003c 1 spk0 102.000 104.920 did someone encounter any problems
+TS3003c 1 spk1 104.920 107.060 during the preparation
+TS3003c 1 spk1 109.780 109.940 no
+TS3003c 1 spk0 110.420 111.160 everything's fine
+TS3003c 1 spk0 111.880 112.540 it's nice
+TS3003c 1 spk0 115.040 120.960 then a little thing about the last meeting
+TS3003c 1 spk0 122.000 122.820 these are the points
+TS3003c 1 spk1 122.820 126.620 we agreed on the requirements and the target market
+TS3003c 1 spk1 127.200 133.780 the requirements are data text docking station audio signal small screen
+TS3003c 1 spk1 134.220 134.740 with some extra
+TS3003c 1 spk0 134.740 139.660 button information and we're going to use default materials
+TS3003c 1 spk0 142.160 145.400 does somebody have any comments on these requirements
+TS3003c 1 spk0 146.460 147.020 no
+TS3003c 1 spk1 148.500 150.680 these are just the things we thought of
+TS3003c 1 spk1 150.820 155.780 so maybe if you figured something else or thought of something else just let me know
+TS3003c 1 spk1 155.780 157.680 maybe you can work it out
+TS3003c 1 spk1 158.200 159.100 and we're
+TS3003c 1 spk0 159.100 163.140 going to target 60 to 80 year old customers
+TS3003c 1 spk0 165.400 167.780 so now everybody knows what we're doing
+TS3003c 1 spk1 170.160 170.760 i
+TS3003c 1 spk0 170.760 171.940 suggest let's get
+TS3003c 1 spk1 171.940 173.500 started with the presentations
+TS3003c 1 spk0 175.300 179.960 so should we keep the same lineup as last time
+TS3003c 1 spk0 180.380 180.480 sure
+TS3003c 1 spk0 180.920 181.120 okay
+TS3003c 1 spk0 181.760 182.660 i'll start off then
+TS3003c 1 spk0 182.720 183.000 good luck
+TS3003c 1 spk0 203.660 208.100 okay i'm going to inform you about the trend watching i've done over the past few days
+TS3003c 1 spk0 210.460 211.980 we've done some market research
+TS3003c 1 spk0 212.460 214.040 we distributed some more
+TS3003c 1 spk2 214.040 214.420 on cad
+TS3003c 1 spk2 215.420 216.060 questionnaires
+TS3003c 1 spk2 217.200 226.480 besides that i deployed some trend watchers to milan in paris to get ahold of the news trends
+TS3003c 1 spk2 227.560 233.820 i've consulted some additional trend watchers after the original trend watchers returned
+TS3003c 1 spk2 234.230 235.340 about what the
+TS3003c 1 spk0 235.340 238.420 best design would be
+TS3003c 1 spk2 241.480 244.040 okay these are some overall findings
+TS3003c 1 spk2 246.320 248.780 the most important thing is the fancy design
+TS3003c 1 spk2 250.160 254.560 the research indicated that that was by far the most important factor
+TS3003c 1 spk2 256.980 261.500 innovativeness was about half as important as the fancy design
+TS3003c 1 spk2 262.380 263.060 by innovativeness
+TS3003c 1 spk0 263.240 267.640 this means functions which are not featured in other remote controls
+TS3003c 1 spk0 269.140 273.060 about half as important as the
+TS3003c 1 spk2 273.060 277.980 innovativeness was easy to use
+TS3003c 1 spk2 278.880 285.340 for our group we're focusing on the people of 60 to 80 years old
+TS3003c 1 spk0 288.680 291.840 these factors are slightly more equal
+TS3003c 1 spk0 294.500 297.060 these are some more group specific findings
+TS3003c 1 spk0 298.580 299.820 the older people prefer dark
+TS3003c 1 spk2 299.820 300.200 colors
+TS3003c 1 spk2 301.120 302.600 they like recognizable shapes
+TS3003c 1 spk2 304.160 313.540 familiar material and our surveys have indicated that especially wood is pretty much the material
+TS3003c 1 spk0 313.540 315.560 for older people
+TS3003c 1 spk0 316.640 327.600 this image will give you a little bit of an impression about the look and feel that the remote should have
+TS3003c 1 spk0 331.760 334.240 this leads us to some personal preferences
+TS3003c 1 spk0 335.400 336.140 the remote control
+TS3003c 1 spk2 336.140 340.880 and the docking station should blend in in the room
+TS3003c 1 spk2 342.660 343.280 this
+TS3003c 1 spk0 343.280 347.540 would mean no eye catching designs
+TS3003c 1 spk0 351.120 355.900 the docking station and the small screen would be our main points of interest because
+TS3003c 1 spk2 355.900 362.600 these would be the innovativeness in the remote control
+TS3003c 1 spk0 364.080 366.930 this would be very important that we at least include these features
+TS3003c 1 spk0 370.880 375.940 the trend watchers i consulted advised that the remote
+TS3003c 1 spk2 375.940 378.160 control and the docking station should be telephone shaped
+TS3003c 1 spk2 379.140 384.440 you could imagine that the remote control would be standing up straight in the docking station
+TS3003c 1 spk2 386.760 398.360 this is pretty much a new shape to older people so they would prefer a design where the remote control just lies flat in the docking station
+TS3003c 1 spk2 399.280 401.580 so it would be kind of more telephone shaped
+TS3003c 1 spk2 403.120 412.800 besides that we would advise to bring two editions one with a wood like color and maybe feel and one with a grey black color
+TS3003c 1 spk2 413.220 417.380 the wood like for the more exclusive people
+TS3003c 1 spk0 417.960 419.100 people with more money
+TS3003c 1 spk0 419.880 427.200 the grey black color for people with less means
+TS3003c 1 spk0 431.000 431.920 that would be all
+TS3003c 1 spk0 432.840 436.700 okay thank you any questions about the trend
+TS3003c 1 spk0 440.480 443.560 okay we're going to the next one
+TS3003c 1 spk0 463.260 466.820 okay yeah i
+TS3003c 1 spk3 466.820 472.160 did some research about the design of interface
+TS3003c 1 spk3 474.200 479.940 last meeting we had about using a few buttons so
+TS3003c 1 spk0 479.940 490.620 that's what i want to do in our design
+TS3003c 1 spk3 491.620 496.820 finding an attractive way to control the remote control
+TS3003c 1 spk3 498.100 503.000 i found something about speech
+TS3003c 1 spk0 503.000 507.080 recognition so maybe we can use that
+TS3003c 1 spk0 509.660 511.620 and using a little display
+TS3003c 1 spk3 514.740 515.780 findings
+TS3003c 1 spk3 517.980 530.120 just to focus on the primary functions so only buttons for sound for on off shifting up
+TS3003c 1 spk0 530.120 533.860 the channel or down shifting down
+TS3003c 1 spk0 536.400 537.960 let's see
+TS3003c 1 spk3 541.420 550.800 we need some new attractive functions which attract people for using it
+TS3003c 1 spk3 551.980 562.300 it's like speech recognition and a special button for selecting subtitles just as we mentioned last meeting
+TS3003c 1 spk3 564.540 568.100 overall user friendly so using
+TS3003c 1 spk0 568.100 569.740 large buttons
+TS3003c 1 spk0 573.980 576.980 it's possible to make
+TS3003c 1 spk3 576.980 581.020 a quite cheap system for speech recognition
+TS3003c 1 spk3 582.540 590.580 you can think about when you lost your remote control you can call it and it gives a signal
+TS3003c 1 spk3 591.580 603.200 and for shifting up a channel or for putting out a sound
+TS3003c 1 spk0 603.980 608.480 you can just give a sound off
+TS3003c 1 spk0 610.220 615.120 and yeah television put the sound off
+TS3003c 1 spk3 619.400 627.380 let's see i was thinking about a special button for subtitles just one button to keep it simple
+TS3003c 1 spk3 627.660 631.600 one push on the button you get small subtitles
+TS3003c 1 spk3 632.600 645.820 double push push double click so you get big subtitles for people who
+TS3003c 1 spk0 645.820 649.580 can read small subtitles
+TS3003c 1 spk0 652.660 659.080 we have to keep in general buttons so the buttons we
+TS3003c 1 spk3 659.080 665.980 have to use the on off sound on off sound higher lower the numbers 0 to 9
+TS3003c 1 spk3 668.900 674.260 the general button more general one button for shifting down a channel
+TS3003c 1 spk3 675.640 685.240 also we want to use a little display for displaying the functions of the buttons
+TS3003c 1 spk3 686.240 695.440 we can build in a function which shows the channel or which the television is on
+TS3003c 1 spk3 696.440 699.280 i made
+TS3003c 1 spk0 699.280 701.640 a little picture of it
+TS3003c 1 spk0 712.020 716.940 we can put an on off button over here in this
+TS3003c 1 spk3 716.940 718.120 corner
+TS3003c 1 spk3 718.650 732.640 almost all remote controls are using on off buttons on that place so people will recognize the buttons
+TS3003c 1 spk3 735.000 739.140 display of it it's just a small display
+TS3003c 1 spk3 740.500 742.240 we can put it
+TS3003c 1 spk0 742.240 751.840 on top it's a place where people most often look at
+TS3003c 1 spk3 753.960 760.300 and a special button for shifting up and shifting down a channel
+TS3003c 1 spk0 766.560 776.180 you can easily shift up or shift down to quite any place
+TS3003c 1 spk0 777.180 782.520 and a lot of functions for subtitles one button for sound
+TS3003c 1 spk0 784.800 792.560 and overall design we have to discuss about the form of it
+TS3003c 1 spk0 793.920 795.660 and that's it
+TS3003c 1 spk0 813.500 814.780 about the
+TS3003c 1 spk2 814.780 828.220 components design for the energy source we can use a basic battery or as an optional thing kinetic energy like in a watch which you just shake and it produces energy
+TS3003c 1 spk2 828.220 835.940 but if we choose for that option the docking station would become obsolete so i don't think it's really an option
+TS3003c 1 spk2 837.300 848.220 for the casing the manufacturing department can deliver a flat casing single or double curved casing it's really up to the design that we're going to use
+TS3003c 1 spk2 848.640 852.960 it doesn't imply any technical restrictions
+TS3003c 1 spk2 853.940 861.520 as a case supplement we could i thought of that later a rubber belt like anti slip
+TS3003c 1 spk2 863.200 865.980 for the buttons we can use plastic or rubber
+TS3003c 1 spk2 866.860 873.120 and the chipset it's as simple here but it should be advanced because we're using an lcd screen
+TS3003c 1 spk2 873.780 886.060 and as the trend watch presentation showed people like wood but it raises the price and it doesn't really fit the image unless we would start two product lines
+TS3003c 1 spk2 887.260 888.580 the form should follow function overall
+TS3003c 1 spk2 891.100 899.500 well the kinetic energy source is rather fancy but it depends on what we want i think we should discuss that
+TS3003c 1 spk2 901.300 906.140 for the case the supplement and the buttons really depends on the designer
+TS3003c 1 spk2 907.140 914.000 and the chipset really should be advanced because otherwise it would really be a simple remote control
+TS3003c 1 spk2 915.240 915.700 and that's it
+TS3003c 1 spk0 916.440 917.800 okay thank you
+TS3003c 1 spk0 919.980 923.920 so that brings us to the discussion about our concepts
+TS3003c 1 spk0 933.860 934.720 okay
+TS3003c 1 spk1 944.560 947.060 so these are the points
+TS3003c 1 spk0 947.060 947.900 we have to discuss
+TS3003c 1 spk0 953.700 966.980 first i think we can talk about the energy source since it has a pretty big influence on production price and image
+TS3003c 1 spk0 971.180 977.840 so i think first of all we have to see it is possible to introduce kinetic energy
+TS3003c 1 spk0 978.040 986.440 there are four options we could use the basic normal battery a hand dynamo but i don't think that's really an option
+TS3003c 1 spk0 987.280 990.420 you don't want to swing before you can watch television
+TS3003c 1 spk0 991.280 997.640 solar shells but not every room is very light so it's not a very good option or the kinetic energy
+TS3003c 1 spk0 1000.340 1003.140 how exactly does the kinetic energy work
+TS3003c 1 spk0 1004.060 1007.540 you basically shake your remote and then it powers up
+TS3003c 1 spk0 1011.040 1013.940 personally i don't think that older people like to
+TS3003c 1 spk2 1013.940 1016.940 shake their remote control before they use it
+TS3003c 1 spk0 1017.300 1017.780 yeah that's true
+TS3003c 1 spk0 1018.840 1023.240 and besides that you mentioned it would make the docking station obsolete
+TS3003c 1 spk0 1024.760 1029.860 and i think our docking station could be one of the marketing
+TS3003c 1 spk2 1029.860 1035.500 issues with which we could get great popularity for our product
+TS3003c 1 spk0 1038.780 1043.300 what's the function for loading up the batteries
+TS3003c 1 spk0 1043.990 1045.780 yeah you could load up the batteries you
+TS3003c 1 spk2 1045.780 1052.580 could insert find a lost remote control function in there
+TS3003c 1 spk0 1053.660 1057.220 i won't use much energy
+TS3003c 1 spk3 1057.940 1067.980 i believe it's just a small display so i believe it will run on one battery for six months or more
+TS3003c 1 spk3 1067.980 1072.800 i believe one battery is just enough
+TS3003c 1 spk0 1073.700 1078.760 well i think elderly people just like to have everything
+TS3003c 1 spk1 1078.760 1079.780 in place
+TS3003c 1 spk1 1081.020 1087.160 and i don't think they like a remote just laying everywhere in their rooms
+TS3003c 1 spk1 1087.920 1091.500 so maybe a docking station will help them give the remote a place
+TS3003c 1 spk1 1092.250 1101.120 and also what you said you can introduce voice recognition by finding back your remote
+TS3003c 1 spk1 1101.740 1109.300 but i think it's more efficient and cheaper to put it in the docking station
+TS3003c 1 spk1 1109.760 1110.080 so you have
+TS3003c 1 spk0 1110.080 1114.320 a button on your docking station which you can push and then it starts beeping
+TS3003c 1 spk0 1115.160 1121.860 and then we can still use the voice recognition but maybe then for only the channels
+TS3003c 1 spk0 1122.940 1125.980 i'm wondering what
+TS3003c 1 spk2 1125.980 1129.400 will the voice recognition mean for the production price
+TS3003c 1 spk0 1130.440 1131.780 yeah that's a good point
+TS3003c 1 spk0 1132.000 1136.160 i don't have any information on pricing so i'll have to ask the manufacturing department
+TS3003c 1 spk0 1136.960 1143.800 because in our earlier market research if you would allow me to push on the flat board
+TS3003c 1 spk0 1152.980 1163.140 we also asked if people would pay more for speech recognition in a remote control
+TS3003c 1 spk2 1163.140 1167.160 well you can see here our target group would not
+TS3003c 1 spk0 1167.160 1167.700 do that
+TS3003c 1 spk0 1168.440 1175.560 so if that would increase the price for which we're selling our remote control i would greatly advise not to do it
+TS3003c 1 spk0 1176.580 1183.820 i think it would be better to insert in our other product that is meant for the younger people
+TS3003c 1 spk2 1185.240 1188.040 but that would also go for the lcd screen then i guess
+TS3003c 1 spk2 1189.480 1190.880 it's a bit higher percentage
+TS3003c 1 spk0 1195.660 1197.920 here the question was would you prefer
+TS3003c 1 spk2 1197.920 1198.180 it
+TS3003c 1 spk2 1199.220 1202.120 so that doesn't really mean they wouldn't pay extra for it
+TS3003c 1 spk2 1202.940 1205.280 on top of that the lcd screen would
+TS3003c 1 spk0 1205.280 1209.840 help in making the remote control easier to use
+TS3003c 1 spk0 1212.180 1217.720 i think the voice recognition function would not make the remote control much easier to use
+TS3003c 1 spk0 1218.220 1219.480 i think that's a good point
+TS3003c 1 spk0 1219.480 1220.740 but is there
+TS3003c 1 spk3 1220.740 1227.900 a research about a bit of a large lcd display or just
+TS3003c 1 spk0 1227.900 1230.660 a small one we want to use
+TS3003c 1 spk0 1231.740 1237.360 well this was for like an lcd screen like you would have on the most advanced mobile phones
+TS3003c 1 spk0 1238.660 1239.540 so pretty large
+TS3003c 1 spk0 1243.200 1244.940 i personally think the
+TS3003c 1 spk1 1244.940 1249.760 lcd screen we want to use with the extra information i think nobody has anything against it
+TS3003c 1 spk1 1250.540 1254.440 because it's just some extra information and it's easy to ignore as well
+TS3003c 1 spk1 1255.140 1257.540 so if you don't want to use it you just don't use it
+TS3003c 1 spk1 1258.520 1273.060 and yeah i think maybe we have to discard the voice recognition because it will increase cost significantly
+TS3003c 1 spk1 1274.520 1275.080 and i don't think
+TS3003c 1 spk0 1275.080 1279.440 it will be a lot easier to use as well
+TS3003c 1 spk0 1281.060 1283.220 so that brings us back to the energy
+TS3003c 1 spk0 1283.220 1289.380 if we don't have voice recognition it won't use a lot of energy to use
+TS3003c 1 spk0 1293.280 1297.460 so in that case we could use kinetic energy
+TS3003c 1 spk0 1297.940 1304.740 but i think just a simple battery which you can reload on a docking station is just as good and much cheaper as well
+TS3003c 1 spk0 1305.900 1306.880 and that's the best choice
+TS3003c 1 spk0 1307.860 1310.640 okay let me just choose for the battery
+TS3003c 1 spk0 1313.220 1314.720 that brings us to the chip
+TS3003c 1 spk0 1315.620 1320.860 well there isn't any choice there because we're using the display so it's got to be advanced
+TS3003c 1 spk0 1321.680 1324.600 okay advanced chip
+TS3003c 1 spk0 1329.980 1338.260 and then we get to the point of the case which brings us a little bit back to
+TS3003c 1 spk1 1338.260 1340.060 marketing as well
+TS3003c 1 spk1 1341.380 1344.460 if you want to choose for wood or
+TS3003c 1 spk0 1344.460 1347.060 the black and gray or both
+TS3003c 1 spk0 1350.380 1355.680 as we saw there is not...wood is a lot more expensive to produce
+TS3003c 1 spk0 1358.420 1363.040 but i think it will attract elderly people who want to
+TS3003c 1 spk1 1363.040 1364.130 have something exclusive
+TS3003c 1 spk1 1364.130 1367.430 which they can show
+TS3003c 1 spk0 1367.430 1369.130 off to their grandkids
+TS3003c 1 spk0 1370.450 1371.910 look i've got a new remote control
+TS3003c 1 spk0 1373.870 1377.670 i think the most important factor there is the wooden color
+TS3003c 1 spk0 1378.250 1381.330 so it wouldn't actually have to be wood if it's just
+TS3003c 1 spk0 1383.190 1383.970 that's right
+TS3003c 1 spk0 1384.870 1385.450 wood colored
+TS3003c 1 spk0 1386.030 1387.910 but wood color was a lot more expensive
+TS3003c 1 spk0 1389.050 1389.890 i don't know
+TS3003c 1 spk0 1390.570 1391.090 i'll have to
+TS3003c 1 spk2 1391.090 1392.910 make sure
+TS3003c 1 spk0 1392.910 1400.610 because it's a lot more difficult to handle and to get in the right shape
+TS3003c 1 spk0 1400.790 1402.570 is it possible to make
+TS3003c 1 spk3 1402.570 1404.870 a changeable case
+TS3003c 1 spk3 1408.290 1417.850 with mobile phones like nokia mobile phones when you can change the case of it
+TS3003c 1 spk3 1418.030 1420.370 maybe it's a possibility
+TS3003c 1 spk3 1423.610 1424.250 you
+TS3003c 1 spk0 1424.250 1431.950 have just to make one standard remote control and you can sell a few
+TS3003c 1 spk0 1432.570 1433.450 you can sell the case
+TS3003c 1 spk0 1434.350 1436.730 i think that's a very good option
+TS3003c 1 spk0 1438.430 1441.910 because then you can advertise as well with the
+TS3003c 1 spk0 1442.830 1444.990 give your grandfather a new case for his
+TS3003c 1 spk1 1444.990 1446.750 remote control or whatever
+TS3003c 1 spk1 1448.690 1450.590 because it's something extra
+TS3003c 1 spk1 1450.590 1452.030 because it's something other remotes
+TS3003c 1 spk0 1452.030 1452.670 don't have
+TS3003c 1 spk0 1453.470 1456.390 which we can get a greater vantage point
+TS3003c 1 spk0 1458.230 1461.330 and then you can make a wood color black and gray other colors as well
+TS3003c 1 spk0 1462.090 1466.790 we would have to look carefully into the design though
+TS3003c 1 spk0 1468.870 1477.190 because we would have to make one control which would fit in with a wooden cover and a plastic cover
+TS3003c 1 spk0 1477.190 1478.990 or a original one
+TS3003c 1 spk0 1479.390 1481.090 or a standard one
+TS3003c 1 spk0 1483.170 1487.590 so you suggest we should design two different telephones
+TS3003c 1 spk0 1489.110 1492.370 or which you can apply remote control
+TS3003c 1 spk0 1493.010 1495.610 or which you can apply different case covers
+TS3003c 1 spk0 1496.610 1497.430 well no for example
+TS3003c 1 spk0 1498.630 1502.190 we should then just design one remote
+TS3003c 1 spk0 1502.190 1509.090 one remote but it would have to be fancy with either the wood cover or the plastic one
+TS3003c 1 spk0 1510.090 1513.010 but that shouldn't be too much of a problem
+TS3003c 1 spk0 1514.330 1517.450 so everybody is okay with changing covers
+TS3003c 1 spk0 1518.470 1520.150 i think that's a good option
+TS3003c 1 spk0 1523.970 1524.950 changing case covers
+TS3003c 1 spk0 1526.090 1530.430 i heard our industrial designer talk about flat single and double curved
+TS3003c 1 spk0 1530.430 1533.250 could you explain that a little more
+TS3003c 1 spk0 1534.270 1538.650 the general like most older remotes are flat just
+TS3003c 1 spk2 1538.650 1539.490 straight
+TS3003c 1 spk2 1540.850 1543.950 and the manufacturing department can also deliver
+TS3003c 1 spk0 1543.950 1546.830 single curved or double curved cases
+TS3003c 1 spk0 1547.410 1549.410 and what would single curved and double curved mean
+TS3003c 1 spk0 1551.690 1553.890 it would just only affect the
+TS3003c 1 spk2 1553.890 1555.430 form for a designer
+TS3003c 1 spk2 1556.190 1559.270 so it's really just up to the design department what we're going to use
+TS3003c 1 spk0 1560.430 1562.150 it doesn't really matter for the price or the functionality
+TS3003c 1 spk0 1562.770 1564.990 so we can pretty much just pick one you like
+TS3003c 1 spk0 1566.270 1568.210 okay that's good
+TS3003c 1 spk0 1569.630 1579.550 but the form has to be possible to stand up or just only to lay down
+TS3003c 1 spk0 1580.630 1586.690 and the cover of the docking station is also on top of the television then
+TS3003c 1 spk0 1587.870 1588.830 well or besides it
+TS3003c 1 spk0 1589.750 1592.670 and you can just click it in that's okay
+TS3003c 1 spk0 1594.850 1595.610 so the interface
+TS3003c 1 spk1 1596.770 1600.310 what type of interface do we want to use
+TS3003c 1 spk0 1603.450 1610.110 maybe we can make a little drawing of it on the board
+TS3003c 1 spk0 1611.550 1613.250 does somebody have ideas for a form
+TS3003c 1 spk0 1613.250 1621.250 we can just use the regular form of it but it's not quite fancy
+TS3003c 1 spk0 1625.430 1633.250 you said you wanted to put the changing channels button on the right side so your thumb would be easily
+TS3003c 1 spk0 1634.130 1637.090 well i think that's a very good point because i pointed out earlier
+TS3003c 1 spk2 1637.090 1640.450 that a lot of remotes cause rsi
+TS3003c 1 spk2 1641.050 1642.990 so that would be great for that
+TS3003c 1 spk2 1644.210 1648.050 i thought maybe we could just make one of those buttons on both the left
+TS3003c 1 spk0 1648.050 1649.230 and the right side
+TS3003c 1 spk0 1650.510 1653.430 for left handed users also
+TS3003c 1 spk0 1657.390 1660.830 is it possible to program
+TS3003c 1 spk3 1660.830 1666.190 it so you got on the left side or on the right side buttons for shifting up
+TS3003c 1 spk3 1666.190 1675.990 and on the other side buttons for shifting for the
+TS3003c 1 spk0 1675.990 1676.290 sound
+TS3003c 1 spk0 1678.630 1687.110 yeah we could do that but i'm not sure if that would be very good for the ease of use
+TS3003c 1 spk0 1687.510 1691.930 ease of use will be a lot more difficult than that
+TS3003c 1 spk0 1693.530 1705.190 but if we would make changing channels and changing volume buttons on both sides that would certainly yield great options for the design of the remote
+TS3003c 1 spk0 1707.170 1709.130 cause it could be made all symmetrical and stuff
+TS3003c 1 spk0 1710.670 1714.730 yeah but you have extra buttons so people can get confused
+TS3003c 1 spk0 1715.410 1716.070 that is true
+TS3003c 1 spk0 1717.470 1720.810 especially if they have the same writings on it
+TS3003c 1 spk0 1722.770 1726.200 or you have to make a left connection
+TS3003c 1 spk0 1727.910 1738.130 can't we make a remote which you can flip over and use on the same functions as the normal one
+TS3003c 1 spk0 1738.710 1741.530 you mean a blank one
+TS3003c 1 spk0 1754.830 1763.370 then you get
+TS3003c 1 spk0 1771.850 1774.650 here is a little lcd screen
+TS3003c 1 spk0 1777.350 1780.710 now i have to think
+TS3003c 1 spk0 1804.070 1805.410 it's a plus and a min
+TS3003c 1 spk0 1808.270 1810.210 no it's not very handy i think
+TS3003c 1 spk0 1811.050 1815.410 because the plus and the min will be opposite and all kinds of
+TS3003c 1 spk0 1816.870 1817.990 no that's not gonna work
+TS3003c 1 spk0 1819.970 1820.230 i guess
+TS3003c 1 spk0 1821.090 1821.650 maybe we should
+TS3003c 1 spk0 1823.170 1830.070 but is it a problem that left handed persons use a different hand
+TS3003c 1 spk0 1831.010 1832.490 i think the functions are
+TS3003c 1 spk1 1832.490 1834.090 that
+TS3003c 1 spk0 1834.090 1839.230 basic that nobody should have any problems with choosing a channel
+TS3003c 1 spk3 1841.230 1844.870 it's just using your thumbs
+TS3003c 1 spk0 1845.810 1849.570 i think we can just leave it in normal shape
+TS3003c 1 spk0 1851.790 1857.150 but maybe we have to make it a bit more fancy
+TS3003c 1 spk0 1859.510 1860.790 i think
+TS3003c 1 spk2 1860.790 1862.990 we should start
+TS3003c 1 spk0 1862.990 1864.490 by choosing a case
+TS3003c 1 spk0 1865.570 1865.930 because that's
+TS3003c 1 spk2 1865.930 1868.150 the basis you're building on
+TS3003c 1 spk0 1871.150 1874.170 so i could draw them out
+TS3003c 1 spk0 1879.630 1881.290 let's get this flat case
+TS3003c 1 spk0 1889.250 1892.530 it's from the side so this is rather normal
+TS3003c 1 spk0 1893.150 1897.870 the single curve so i'm not really sure what they're gonna
+TS3003c 1 spk2 1897.870 1898.990 look like but i think it's
+TS3003c 1 spk0 1898.990 1900.610 something like this
+TS3003c 1 spk0 1906.870 1915.630 so this type should be better for you or better should prevent repetitive strain injury a bit
+TS3003c 1 spk0 1918.130 1922.790 and the double curved looks something like this i guess
+TS3003c 1 spk0 1932.850 1935.830 so those are the three options we have
+TS3003c 1 spk1 1937.450 1945.730 i suggest the single curve because maybe the curve is pretty good to put the screen in
+TS3003c 1 spk1 1947.150 1954.190 so that elderly people can use the remote control and at the same time look
+TS3003c 1 spk0 1954.190 1958.250 easily at the screen because it has a bit of an angle
+TS3003c 1 spk0 1958.390 1959.410 you say this
+TS3003c 1 spk0 1967.550 1970.870 you've got a curve here
+TS3003c 1 spk0 1971.870 1978.870 so you want to put a display over here or not
+TS3003c 1 spk0 1982.890 1988.510 but now it's upside down or
+TS3003c 1 spk0 1992.690 1997.930 maybe it's possible to make this side like
+TS3003c 1 spk0 2006.430 2007.230 color
+TS3003c 1 spk3 2007.230 2013.870 to make this side like
+TS3003c 1 spk0 2016.530 2022.150 a bit like so in the form of your hand
+TS3003c 1 spk0 2022.150 2031.750 so the remote control i have to lay in your hand so
+TS3003c 1 spk3 2031.750 2032.650 it's possible
+TS3003c 1 spk3 2034.430 2035.490 so get your mouse
+TS3003c 1 spk0 2037.110 2045.690 and to put the buttons for changing the channel over here
+TS3003c 1 spk0 2047.530 2049.110 yeah that's a good one
+TS3003c 1 spk0 2049.630 2053.650 but i think it's better to put the screen on top
+TS3003c 1 spk0 2055.290 2058.750 so just flip it 180 degrees around
+TS3003c 1 spk0 2060.970 2062.450 that's about here
+TS3003c 1 spk0 2063.350 2067.970 if you can have this one you turn it like this and then flip it upside down
+TS3003c 1 spk0 2070.470 2074.670 because maybe your hand is in the way if you have to display here
+TS3003c 1 spk0 2076.230 2081.590 it's more logical to have it on top as well because like on your mobile phone it's always above
+TS3003c 1 spk0 2087.470 2090.030 maybe you should just start on a blank page
+TS3003c 1 spk0 2091.570 2093.690 so then we get
+TS3003c 1 spk0 2107.030 2108.690 that's the curve
+TS3003c 1 spk0 2121.870 2124.890 here the display and then buttons
+TS3003c 1 spk0 2125.370 2128.190 and then we can have a little bit
+TS3003c 1 spk1 2128.190 2130.830 of here and here maybe
+TS3003c 1 spk1 2131.670 2133.930 just that's for left hand and right hand users
+TS3003c 1 spk0 2135.850 2139.690 and then the rest of the buttons over here
+TS3003c 1 spk0 2140.330 2143.590 but on off button still on the top
+TS3003c 1 spk0 2143.830 2144.550 yeah still here
+TS3003c 1 spk0 2145.910 2149.070 and i prefer the corners to be round
+TS3003c 1 spk0 2149.590 2149.670 yeah
+TS3003c 1 spk0 2151.030 2152.870 just a bit more friendly
+TS3003c 1 spk0 2154.210 2155.090 friendly on the eye
+TS3003c 1 spk0 2155.870 2155.970 okay
+TS3003c 1 spk0 2157.830 2158.310 supplements
+TS3003c 1 spk0 2159.690 2160.170 that's okay
+TS3003c 1 spk0 2161.830 2162.470 where's my mouse
+TS3003c 1 spk0 2167.810 2168.330 then
+TS3003c 1 spk0 2169.230 2173.670 we've got a general idea of the concepts and the materials we're going to use
+TS3003c 1 spk1 2175.350 2180.630 so now for the next meeting we'll have to look at a field design
+TS3003c 1 spk1 2180.850 2185.670 it's important that the corporate design image is going to be in the remote
+TS3003c 1 spk1 2186.050 2188.050 so check out the corporate website maybe
+TS3003c 1 spk1 2188.760 2190.250 the user interface design
+TS3003c 1 spk1 2190.930 2192.070 it's the same story
+TS3003c 1 spk1 2193.150 2194.070 and product evaluation
+TS3003c 1 spk1 2195.310 2200.830 so the industrial designer and user interface designer are going to work together on this one
+TS3003c 1 spk1 2201.930 2207.090 but you're going to get your instructions i think sent by
+TS3003c 1 spk0 2207.090 2207.470 the coach
+TS3003c 1 spk0 2210.730 2216.230 i will put these minutes in the folder
+TS3003c 1 spk0 2218.210 2219.790 and then we're going to
+TS3003c 1 spk1 2219.790 2221.550 try
+TS3003c 1 spk0 2221.550 2222.030 to finish
+TS3003c 1 spk1 2222.030 2226.010 our project and make a good design for all
+TS3003c 1 spk0 2226.010 2229.050 the grandfathers and grandmothers
+TS3003c 1 spk0 2232.790 2233.630 let's see
+TS3003c 1 spk0 2233.990 2237.870 i'm not sure if you're going to start right away to work together
+TS3003c 1 spk0 2238.610 2243.370 i think you're going to fill in the questionnaires first and then you'll get a message
+TS3003c 1 spk0 2244.530 2247.510 so that's basically it
+TS3003c 1 spk0 2248.010 2248.570 maybe this one
+TS3003c 1 spk0 2250.150 2256.560 and we can save this one in the folders group
+TS3003c 1 spk0 2266.330 2267.110 smart board
+TS3003c 1 spk0 2267.570 2267.850 there it is
+TS3003c 1 spk0 2268.050 2269.630 so if you want to have a look at it
+TS3003c 1 spk0 2269.630 2271.990 it's over there in the project folder
+TS3003c 1 spk1 2274.630 2276.090 and then i guess we'll start in
+TS3003c 1 spk0 2276.090 2277.490 30 minutes again
+TS3003c 1 spk0 2279.210 2279.650 thank you
+TS3003c 1 spk0 2286.350 2287.750 right on time
+TS3003c 1 spk0 2315.070 2316.470 okay
+TS3003c 1 spk0 2346.890 2348.290 okay
+TS3003c 1 spk0 2368.110 2369.510 okay
+TS3003c 1 spk0 2414.490 2415.890 okay
+TS3003c 1 spk0 2448.210 2449.610 okay
+TS3003c 1 spk0 2464.450 2465.850 okay
+TS3003c 1 spk0 2496.170 2497.570 okay
+TS3003c 1 spk0 2532.170 2533.570 okay
+TS3003c 1 spk0 2544.110 2545.510 okay
+TS3003c 1 spk0 2560.730 2562.130 okay
+TS3003c 1 spk0 2565.850 2566.210 it's good
+TS3003c 1 spk0 2569.630 2569.950 okay

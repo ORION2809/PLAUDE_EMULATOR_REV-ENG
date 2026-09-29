@@ -1,0 +1,25 @@
+# 2026-09-28T17:41:38Z ami embedding-cluster EN2002b pipeline=embedding-cluster hint=0 n_active=4 params=
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/EN2002b/mix.wav
+# load average at start: { 5.65 9.92 9.42 }
+# swap at start: total = 10240.00M  used = 9317.31M  free = 922.69M  (encrypted)
+embedding-cluster: 325 segments, 1 speakers, 113.46s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/embedding-cluster/EN2002b.partial/hyp.json (+ .rttm, .stm)
+      120.19 real       313.22 user         8.35 sys
+          1234485248  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              199043  page reclaims
+                  59  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                2299  voluntary context switches
+              559018  involuntary context switches
+        772829111241  instructions retired
+        435514729309  cycles elapsed
+          1427509760  peak memory footprint
+# load average at end: { 6.06 8.48 8.90 }
+# exit 0
