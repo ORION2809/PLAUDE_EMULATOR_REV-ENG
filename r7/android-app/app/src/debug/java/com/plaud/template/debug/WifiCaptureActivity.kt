@@ -135,7 +135,7 @@ class WifiCaptureActivity : Activity() {
         // Plaud's server ("Partner API: Token 可用，正在获取 RSA 密钥对...",
         // build/evidence/javap/sdk/NiceBuildSdk.txt initSdk, isBlank branch). Earlier
         // runs passed a synthetic JWT here and so sent that request once per app start;
-        // every one was rejected with 401. A blank token takes the clearPartnerData()
+        // of 22 logged, 19 were answered 401 and 3 failed at DNS. A blank token takes the clearPartnerData()
         // branch instead, and nothing on the legacy recovery path needs a token.
         val initToken = ""
         try {

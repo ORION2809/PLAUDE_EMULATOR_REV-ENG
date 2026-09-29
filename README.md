@@ -12,9 +12,10 @@ the R7 runtime runs (R7-S13 and R7-S14 logged it; R7-S12 very likely did too) th
 official SDK, initialised with a synthetic token,
 sent an automatic key-generation request to Plaud's partner server once per app
 start; every response in the logs was a rejection (HTTP 401). The drivers now
-pass a blank token. In one offline re-run of the recording-pull driver this
-stopped the request; the other two drivers have not been re-run (`r7/r7-s14-wifi-real-sdk.md`, finding D7;
-[progress report §8.6](docs/progress-report.md#8-25-september--review-fixes-and-first-measurements)).
+pass a blank token. Offline re-runs of all three drivers (25 and 28 September)
+sent no request (`r7/r7-s14-wifi-real-sdk.md`, finding D7;
+`r7/r7-s14-evidence/blank-token-drivers-check/`;
+[progress report §8.6](docs/progress-report.md#86-correction-the-sdk-contacted-plauds-partner-server)).
 It is not affiliated with Plaud (see [Notice](#notice)).
 
 **Start here: [`docs/project-state.md`](docs/project-state.md)**, the one document
@@ -22,7 +23,7 @@ that says where the project stands: what works, what does not, what is unknown,
 the measured numbers, and how each was proven. [`docs/progress-report.md`](docs/progress-report.md)
 is the dated account of the work, and [`PROJECT.md`](PROJECT.md) is the long-running plan and history.
 
-## Status (as of 25 September 2026)
+## Status (as of 29 September 2026)
 
 The strongest result: on an Android emulator, Plaud's unmodified Android SDK
 (`plaud-sdk.aar`) bound to the emulated recorder, listed a served recording
@@ -35,25 +36,26 @@ which is now corrected.
 | Rung | Claim | Status | What it does not show |
 |---|---|---|---|
 | V1 | Emulator is discovered and completes a session | Done | The central is our own Python code. |
-| V2 | Survives fault injection without corrupting a transfer | Done: 60 counted cells plus 2 content-fault rows ([`docs/v2-fault-matrix.md`](docs/v2-fault-matrix.md)) | The receiver is a Python model of the SDK derived from bytecode; six of its behaviours were cross-checked against the real-SDK runs (docs/v2-fault-matrix.md). "No silent corruption" holds by construction in the counted cells, so the matrix tests completion, not content integrity. One cell is a documented corruption risk; payload bit-flips are undetectable by design. |
+| V2 | Survives fault injection without corrupting a transfer | Done: 62 counted cells plus 2 content-fault rows ([`docs/v2-fault-matrix.md`](docs/v2-fault-matrix.md)) | The receiver is a Python model of the SDK derived from bytecode; six of its behaviours were cross-checked against the real-SDK runs (docs/v2-fault-matrix.md). "No silent corruption" holds by construction in the counted cells, so the matrix tests completion, not content integrity. One cell is a documented corruption risk; payload bit-flips are undetectable by design. |
 | V3 | Plaud's own SDK connects and pulls a recording | Done (Android, Bluetooth, legacy protocol) | Nothing about real devices. Not iOS, not the encrypted protocol. Not Wi-Fi: the SDK's Wi-Fi transfer stopped at the hotspot join ([`r7/r7-s14-wifi-real-sdk.md`](r7/r7-s14-wifi-real-sdk.md)). |
 | V4 | Synthetic ground truth round-trips at DER 0 | Done | Plumbing and metric direction only. The oracle returns the ground truth by construction. |
-| V5 | A full pipeline hits target cpWER/DER on AMI | Not done (a subset was measured) | `whisper-sherpa` (Whisper small.en plus sherpa-onnx) ran on 4 of the 16 AMI test-split meetings at full length. With the reference speaker count as a hint: macro DER 0.6557, cpWER 0.8533. These numbers are poor, and the hint is an oracle value; without it the standard scoring path could score none of the AMI meetings. The V5 target needs all 16 meetings and is unmeasured ([`docs/v5-results.md`](docs/v5-results.md)). |
-| V6 | `docker compose up` is live in under 60 s | Done (one run) | One run on 25 September on an Apple Silicon Mac in a Linux arm64 VM: services healthy in 6.58 s, job exit 0; image build (121.38 s) excluded from the window by design ([`docs/compose.md`](docs/compose.md)). Not run on x86_64 or on a GitHub runner. |
+| V5 | A full pipeline hits target cpWER/DER on AMI | Measured; **failed** | `whisper-sherpa` (Whisper small.en plus sherpa-onnx) on all 16 AMI test-split meetings (9.06 h), with settings calibrated on the 18 dev meetings and no speaker-count hint: macro DER 0.6472, cpWER 0.8428, against a target of 0.20 and 0.30. Speaker attribution is the main error ([`docs/v5-test-split.md`](docs/v5-test-split.md)). |
+| V6 | `docker compose up` is live in under 60 s | Done | Healthy in 6.58 s on an Apple Silicon Mac in a Linux arm64 VM (25 September), and in 5.81 s on a GitHub x86_64 runner from a cold cache (28 September); job exit 0 both times. The job never pulls a recording over Bluetooth ([`docs/compose.md`](docs/compose.md)). |
 
-Full suite on 25 September 2026:
-`1365 passed, 4 skipped, 11 warnings in 339.00s (0:05:38)`. The count
-includes parametrised cases; 978 passed on 24 September. The 4 skips are
-tests that apply only when faster-whisper or piper is absent. On GitHub, the
-`tests` workflow failed on the pushed commit `70249ba`. The fix is uncommitted
-and has passed only in local clean-clone simulations.
+Full suite on 29 September 2026:
+`1420 passed, 5 skipped, 11 warnings in 244.15s (0:04:04)`. The count includes
+parametrised cases; the 5 skips are tests that apply only when faster-whisper
+or piper is absent, or that need a named real model. On GitHub the `tests` workflow runs on x86_64 Linux, arm64
+Linux and macOS; the tests that need the decompiled SDK skip there by design
+([`docs/project-state.md`](docs/project-state.md) §5.13).
 
 ### What does not work, or is not established
 
-- V5 is not met. The only real system measured, on 4 AMI test meetings and 4
-  synthetic Piper meetings, scores poorly; its diarizer over-clusters without
-  a speaker-count hint, and its ASR was not reproducible on one long meeting
-  ([`docs/v5-results.md`](docs/v5-results.md)).
+- V5 is not met. On all 16 AMI test meetings the real system scores about
+  three times the target error rates, even with its speaker-count setting
+  calibrated on the dev split ([`docs/v5-test-split.md`](docs/v5-test-split.md)).
+  pyannote-based systems have not run: their models are gated behind a
+  Hugging Face account.
 - The encrypted protocol used at `portVersion` 20 and above is modelled as
   structure and exercised only with synthetic keys, never with the real SDK.
 - The iOS SDK has never been executed; this machine has no Xcode. The real
@@ -75,9 +77,10 @@ and has passed only in local clean-clone simulations.
   ([`docs/final-uncertainty-matrix.json`](docs/final-uncertainty-matrix.json)).
 - Most code was written by delegated agents. An independent review of the
   phase-3 layers on 25 September found 71 problems (69 confirmed, 2
-  plausible); each was fixed or narrowed. The phase-1 protocol code
-  was not part of that review
-  ([progress report §10](docs/progress-report.md#10-how-the-work-was-checked-and-what-was-not)).
+  plausible); each was fixed or narrowed. A review of the phase-1 protocol
+  code on 28 September found 28; the confirmed defects are fixed. The Android
+  runtime rigs were not reviewed line by line
+  ([progress report §11](docs/progress-report.md#11-how-the-work-was-checked-and-what-was-not)).
 
 ## What the emulator does
 
@@ -127,7 +130,7 @@ code, and they cover Android, Bluetooth and the legacy protocol only.
 | `docker/`, `docker-compose.yml`, `scripts/local-up.sh` | The whole topology, with or without Docker ([`docs/compose.md`](docs/compose.md)) |
 | `r4-*` … `r7/` | Milestone spikes and the real-SDK runtime runs, with their logs and captures |
 | `reference/` | Fetched source corpus. Git-ignored and treated as immutable evidence |
-| `build/` | Everything derived (decompiled SDK, archived docs, generated audio). Git-ignored, except the published V5 and V6 evidence in `build/v5/` and `build/v6/` |
+| `build/` | Everything derived (decompiled SDK, archived docs, generated audio). Git-ignored, except the published V5 and V6 evidence in `build/v5/`, `build/v6/`, `build/v5-test/` and `build/v5-calib/` |
 
 ## Quick start
 
@@ -175,7 +178,8 @@ toolchain of the machine they ran on; substitute your own paths.
 | [`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md) | The product above the radio: mobile, cloud, lifecycle, AI, web ([`docs/product-ledger.md`](docs/product-ledger.md), [`docs/architecture/`](docs/architecture/), [`docs/source-map.md`](docs/source-map.md)) |
 | [`r7/r7-s13-recording-pull.md`](r7/r7-s13-recording-pull.md) | The real SDK pulling a recording, and what it corrected |
 | [`r7/r7-s14-wifi-real-sdk.md`](r7/r7-s14-wifi-real-sdk.md) | The real SDK's Wi-Fi transfer, blocked at the hotspot join; the cloud-contact finding (D7) |
-| [`docs/v5-results.md`](docs/v5-results.md) | The first real-model numbers (4 AMI test meetings, 4 Piper meetings), and why they are not V5 |
+| [`docs/v5-test-split.md`](docs/v5-test-split.md) | V5 on the full AMI test split: the dev-split calibration, 16 meetings, and why the target is missed |
+| [`docs/v5-results.md`](docs/v5-results.md) | The first real-model numbers (4 AMI test meetings, 4 Piper meetings, 25 September) |
 | [`docs/integration.md`](docs/integration.md) | Cross-layer proofs |
 
 The project convention is that device, SDK and cloud claims cite their

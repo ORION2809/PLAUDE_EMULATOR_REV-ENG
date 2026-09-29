@@ -133,14 +133,15 @@ Each rung is a test that either passes or fails. Nothing subjective.
   the real SDK's own k3 was later captured against the emulator over
   android-netsim (V3-partial, R7-S12).
 - [x] **V2** Emulator survives a fault-injection suite without corrupting a transfer —
-  60 counted cells plus 2 content-fault rows over Bumble (`tests/test_v2_fault_matrix.py`,
-  `docs/v2-fault-matrix.md`; 61 rows on 2026-09-24, when the bit-flip row was counted):
+  62 counted cells plus 2 content-fault rows over Bumble (`tests/test_v2_fault_matrix.py`,
+  `docs/v2-fault-matrix.md`; 61 rows on 2026-09-24, when the bit-flip row was counted; 60
+  counted cells on 2026-09-25; two rows added on 2026-09-28 for the new emulator defaults):
   drops, duplicates, reorder, truncation, wrong session, TAIL/HEAD faults, disconnect and
   resume, stopSync mid-transfer, MTU 23–517, CCCD modes, delete during sync, back-to-back
   syncs, and the R7-S13 sentinel cases; every cell is byte-exact or a detected failure,
   scored by a bytecode-derived receiver model (`tests/fault_support.py`) that was
-  corrected against the runtime facts. Outcomes: 38 recovered, 6 recovered by app resume,
-  15 detected, 1 corruption-risk (the run-6 device that never abandons its stream).
+  corrected against the runtime facts. Outcomes: 39 recovered, 6 recovered by app resume,
+  16 detected, 1 corruption-risk (the run-6 device that never abandons its stream).
   Outside the count: a payload bit-flip (undetectable by the SDK: no CRC on DATA) and a
   restart serving another file revision; the harness's invariant check flags both. The
   2026-09-25 review (T10) showed that "no silent corruption" holds by construction in
@@ -163,24 +164,24 @@ Each rung is a test that either passes or fails. Nothing subjective.
   `tests/test_v4_e2e.py` (generator → oracle pipeline on the device Ogg → evals: DER, JER,
   cpWER, tcpWER all 0.0; perturbations move every metric the right way; a speaker swap
   leaves cpWER at 0 while literal WER lies — the decision-log rationale, asserted).
-- [ ] **V5** Full pipeline hits target cpWER / DER on held-out AMI — **NOT MET; a subset
-  was measured (2026-09-25).** `whisper-sherpa` (faster-whisper small.en + sherpa-onnx
-  diarization, weights sha256-pinned) ran at full length on 4 of the 16 AMI test-split
-  meetings (EN2002a, ES2004a, IS1009a, TS3003a; the only ones with audio here) and on a
-  4-meeting synthetic Piper set (`docs/v5-results.md`, `scripts/run-v5.sh`). With the
-  reference speaker count as a hint (an oracle value): AMI macro DER 0.6557, cpWER 0.8533,
-  WER 0.3250; Piper `mix.wav` DER 0.6149, cpWER 1.0993, WER 0.2501. These numbers are
-  poor. Without the hint sherpa found 95/35/36/47 clusters on the 4-speaker AMI meetings,
-  and `evals batch` could score none of them (meeteval refuses > 20 speakers). Two
-  regression-gate suites are calibrated on the hinted runs. The V5 target — the full
-  16-meeting test split, suite `ami-headset` — remains unmeasured.
+- [ ] **V5** Full pipeline hits target cpWER / DER on held-out AMI — **MEASURED 2026-09-28;
+  NOT MET.** `whisper-sherpa` (faster-whisper small.en + sherpa-onnx diarization, weights
+  sha256-pinned) on all 16 AMI test-split meetings (9.06 h), with sherpa's
+  `cluster_threshold` (1.15) and the word-assignment tie-break (`latest_start`) chosen on
+  the 18 AMI dev meetings and no speaker-count hint: macro DER 0.6472, cpWER 0.8428, WER
+  0.3221 (`docs/v5-test-split.md`). With the oracle speaker count: 0.6396 / 0.8567. Suite
+  `ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30) FAILS for both. Speaker attribution is the main
+  error (confusion 0.34 of reference time). The 2026-09-25 subset (4 meetings plus a
+  4-meeting Piper set) is in `docs/v5-results.md`.
 - [x] **V6** `docker compose up` brings the whole system live in under 60 seconds —
-  **executed under Docker once (2026-09-25).** `scripts/compose-smoke.sh` on this M1 with
-  Colima (Linux arm64 VM, Docker daemon 29.5.2): images built in 121.38 s (excluded from the
-  timed window by design), `up -d --wait` healthy in **6.58 s** (target 60 s), job exit 0 in
-  11.34 s — probes, scan, 2 generated meetings, oracle pipeline + evals, and a mock-cloud
-  round trip (`build/v6/compose-smoke-2026-09-25.log`, `docs/compose.md`). Not run on
-  x86_64 or on a GitHub runner. The job's zeros are harness self-tests, not system scores.
+  **executed under Docker on 2026-09-25 and on GitHub on 2026-09-28.** `scripts/compose-smoke.sh`
+  on this M1 with Colima (Linux arm64 VM, Docker daemon 29.5.2): images built in 121.38 s
+  (excluded from the timed window by design), `up -d --wait` healthy in **6.58 s** (target
+  60 s), job exit 0 in 11.34 s — probes, scan, 2 generated meetings, oracle pipeline + evals,
+  and a mock-cloud round trip (`build/v6/compose-smoke-2026-09-25.log`, `docs/compose.md`).
+  On a GitHub x86_64 runner from a cold cache (`compose` workflow, run 36396859985): healthy
+  in **5.81 s**, job exit 0 in 14.66 s. The job's zeros are harness self-tests, not system
+  scores.
 
 ---
 
@@ -364,10 +365,33 @@ numbered register (U1–U18), each with what would settle it.
 | 2026-09-22 | Protocol facts are extracted mechanically into a committed digest, and the tests assert against *that* | Fixture-based tests are circular by construction. Three real bugs shipped green under the old regime. |
 | 2026-09-22 | The emulator declares portVersion 7 and refuses to construct at ≥ 20 | Above 20 the SDK encrypts every frame. A cleartext peripheral claiming a modern portVersion would be lying about what it speaks. |
 | 2026-09-22 | The emulator accepts any handshake token, labelled HARNESS POLICY | On the legacy path the device decides. Being a device to their client is a different problem from being a client to their device, and only the latter needs credentials. |
+| 2026-09-28 | Tune V5 settings on the AMI dev split only; the test split is scored, never tuned on | A threshold chosen on the test meetings would make the V5 numbers optimistic by construction |
+| 2026-09-28 | Keep sherpa's and the tie-break's library defaults; the calibrated values are passed explicitly | Changing a default would silently change every earlier result; the calibrated system is a named configuration |
+| 2026-09-28 | Seed ASR decoding by default (seed 0) | faster-whisper's sampled temperature fallback made one meeting's transcript differ between runs; a seed makes results repeatable without disabling the fallback |
+| 2026-09-28 | The emulator sizes frames to the MTU and fails an empty transfer at the HEAD (HARNESS POLICY) | The old device behaviours leave the real SDK stuck; they stay available and are measured in the V2 matrix |
 
 ---
 
 ## 8. STATUS
+
+**Phase 5 — CI, the phase-1 review and V5 on the full test split, 2026-09-28.** Full
+account: [`docs/progress-report.md`](docs/progress-report.md) §9; current state in one
+document: [`docs/project-state.md`](docs/project-state.md). The 25 Sep work was committed
+(`8b72dda`) and pushed. **CI:** the `tests` workflow first passed on `5a3d2ff` after a
+platform-dependent diarizer result (R-CI-1) was fixed, and now runs on x86_64 Linux, arm64
+Linux and macOS; a `compose` workflow runs V6 on an x86_64 runner. **Phase-1 code review:**
+28 findings; the confirmed defects are fixed with tests (`advertise()` now fits the legacy
+limit, frames are sized to the MTU, an empty transfer fails at the HEAD instead of looping,
+`u4.a` parity; V2 matrix 64 rows). **V5 on all 16 AMI test meetings:** seeded, repeatable
+ASR; a transcript cache; word-assignment tie-breaks; `evals` keeps DER/JER/WER when meeteval
+refuses; sherpa's threshold and the tie-break calibrated on the dev split through a
+bit-identical replay of sherpa-onnx; macro DER 0.6472 / cpWER 0.8428 — V5 NOT MET.
+**Cross-checks:** DER agrees with NIST md-eval (EV-4 closed); GoReplay replays the mock's
+export exactly (MC-3 closed). **Android rig:** the debug drivers moved to the debug source
+set; the K3 and Wi-Fi drivers re-run with a blank token, offline — no `gen-key` request.
+**embedding-cluster** ran against its real model (ECAPA; NNPACK disabled on CPU). Rung
+status: V1 ✅ V2 ✅ V3 ✅ (BLE transfer path) V4 ✅ V5 ◻ (measured on the full split; target
+missed) V6 ✅ (arm64 Mac and x86_64 GitHub runner).
 
 **Phase 4 — review, fixes and first measurements, 2026-09-25.** Full account:
 [`docs/progress-report.md`](docs/progress-report.md) §8.
@@ -391,7 +415,7 @@ app start; the request is visible in 22 archived R7-S13/R7-S14 logs, and every v
 response (19) was 401. The drivers now pass a blank token; an offline re-run pulled the
 file byte-exact with no `gen-key` line. Suite: `1365 passed, 4 skipped, 11 warnings in 339.00s (0:05:38)`. Rung status: V1 ✅ V2 ✅ V3 ✅
 (BLE transfer path) V4 ✅ V5 ◻ (subset measured, target unmeasured) V6 ✅ (one Docker run,
-arm64).
+arm64). *(As of 2026-09-25; see Phase 5 above.)*
 
 **Phase 3 — the remaining layers, completed 2026-09-24.** Everything PROJECT.md
 listed as "not started" or partial now exists and is tested: the V2 fault matrix,
@@ -473,16 +497,18 @@ device to their client, not a client to their device.
 
 ### Next, in order
 
-(Refreshed 2026-09-25. The 2026-09-24 items "V6 under Docker", "Wi-Fi ↔ BLE handoff" and
-"mock-cloud round trip in the compose job" are done.)
+(Refreshed 2026-09-29. Done on 2026-09-28: committing and the first GitHub runs, CI on
+three platforms, V5 on the full test split with a dev-split calibration, repeatable ASR,
+DER/JER kept on meeteval refusals, Piper metadata, the phase-1 code review, the
+blank-token K3 and Wi-Fi re-runs. `docs/project-state.md` §11 is the maintained list.)
 
-1. **Commit, then read the first GitHub run** of the fixed `tests` workflow (Linux x86_64
-   has never run it; the diarizer's speaker-count tests are the likeliest to differ).
-2. **V5 for real.** Fetch the other 12 AMI test-split headset-mix WAVs (CC BY 4.0) and
-   convert them (`python -m evals.ami`). Before scoring the test split: calibrate
-   sherpa's `cluster_threshold` on the AMI dev split (never on test meetings), make
-   `evals` report DER/JER when meeteval refuses > 20 speakers, and seed or pin the ASR
-   decode (EN2002a was not reproducible). Then `scripts/run-v5.sh` and suite `ami-headset`.
+1. **Speaker attribution**, the main V5 error. Candidates, none built or measured as a
+   system: report sherpa's own turns as the diarization output (they already score DER
+   0.5263 calibrated, against 0.6472 for the word runs) while keeping the words for
+   cpWER; overlap-aware word assignment; a stronger embedding model; calibrating
+   `min_duration_on/off` on the dev split.
+2. **pyannote-based systems** (`pyannote-audio`, `faster-whisper+pyannote`, `whisperx`)
+   need a Hugging Face account that has accepted the gated models' terms.
 3. **Wi-Fi with the real SDK**: a hotspot the AVD can join, or a physical phone; raise
    the pen's dial attempts for that run (the phone's server starts only after the join).
 4. **U1 (with U18 merged into it), U15 and U17 need a device**: one scan capture settles the advertising branch;
@@ -560,7 +586,7 @@ Then read, in this order:
 4. [`docs/reconstruction-log.md`](docs/reconstruction-log.md) — what earlier work got wrong
 5. [`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md) — the whole product above the radio
 6. [`r7/r7-s13-recording-pull.md`](r7/r7-s13-recording-pull.md) — the real SDK pulling a recording, and what it corrected; [`r7/r7-s14-wifi-real-sdk.md`](r7/r7-s14-wifi-real-sdk.md) — its Wi-Fi transfer, blocked at the join
-7. The layer docs: `docs/v2-fault-matrix.md`, `docs/wifi-transport.md`, `docs/generator.md`, `docs/evals.md`, `docs/pipeline.md`, `docs/mockcloud.md`, `docs/integration.md`, `docs/compose.md`, and `docs/v5-results.md`
+7. The layer docs: `docs/v2-fault-matrix.md`, `docs/wifi-transport.md`, `docs/generator.md`, `docs/evals.md`, `docs/pipeline.md`, `docs/mockcloud.md`, `docs/integration.md`, `docs/compose.md`, `docs/v5-test-split.md` and `docs/v5-results.md`
 8. §8 above — what is next
 
 **Two rules that are not negotiable.** `reference/**` is immutable evidence; every

@@ -1,13 +1,15 @@
 # Project state
 
-**As of 28 September 2026.** Branch `main`, published at
+**As of 29 September 2026.** Branch `main`, published at
 `github.com/ORION2809/PLAUDE_EMULATOR_REV-ENG` (public). This document is
-committed together with the 25–28 September work it describes. On GitHub the
-`tests` workflow failed on `70249ba` (missing dependencies and fixtures). With
-the fixed workflow, `8b72dda` and `7d01b1f` ran the whole suite on Linux x86_64
-and failed on exactly one test, which exposed a platform-dependent choice in the
-baseline diarizer (R-CI-1, [§5.13](#513-ci)). The fix, `5a3d2ff`, is the first
-commit whose `tests` run passed on GitHub (run 36386441732, 28 Sep).
+committed together with the 25–29 September work it describes. The `tests`
+workflow failed on `70249ba`, the first pushed commit that carries it, and first passed on
+`5a3d2ff` (run 36386441732, 28 Sep, x86_64 Linux). From `d566d43` it runs on
+x86_64 Linux, arm64 Linux and macOS. The first runs there exposed portability
+faults in four tests (two in the first run, two in the next), which were
+fixed. Since `c0be32e`, every
+pushed commit has passed on all three platforms except `3e46ad9`, whose arm64
+job failed while installing dependencies ([§5.13](#513-ci)).
 
 **Summary.** plaud-harness is a hardware-free test harness for Plaud's
 Bluetooth LE voice recorders. It rebuilds the recorder's protocol from Plaud's
@@ -17,28 +19,32 @@ partner cloud. The strongest result: Plaud's unmodified Android SDK, running on
 an Android emulator, bound to the emulated recorder and pulled a recording whose
 bytes hash identically to the served file. Most other checks compare our own
 components with each other or with models we derived from the SDK's bytecode.
-The first real ASR and diarization numbers are poor and cover 4 of the 16 AMI
-test meetings. The SDK's Wi-Fi transfer stopped at the hotspot join. No real
-Plaud device, account, credential or iOS runtime has been used. The official
-SDK did send automatic `gen-key` requests to Plaud's server during the runtime
-runs, because our drivers gave it a synthetic token
+Real ASR and diarization were measured on all 16 AMI test meetings (9.06 h).
+The V5 target (DER ≤ 0.20, cpWER ≤ 0.30) is missed by a wide margin: macro DER
+0.6472 and cpWER 0.8428 with settings calibrated on the AMI dev split. The SDK's
+Wi-Fi transfer stopped at the hotspot join. No real Plaud device, account,
+credential or iOS runtime has been used. The official SDK did send automatic
+`gen-key` requests to Plaud's server during the runtime runs, because our
+drivers gave it a synthetic token. All three drivers now pass a blank token,
+and each has been re-run offline without a request
 ([§8](#8-rules-and-how-they-held)).
 
 **Verdict in plain words:** on an Android emulator, Plaud's real Android SDK
 bound to our Bluetooth emulator and pulled one 11 271-byte synthetic file
 byte-exact, on the legacy (unencrypted) protocol. It never used getStorage,
 resume or delete against the emulator. Its Wi-Fi transfer stopped at the
-hotspot join. The speech side runs end to end but has not met its target.
-Nothing here shows how real hardware behaves.
+hotspot join. The speech side runs end to end on nine hours of real meetings,
+at about three times the target error rates. Nothing here shows how real
+hardware behaves.
 
 This document is meant to replace reading README, PROJECT.md, the progress
 report and the layer documents together. Those stay as history and detail, and
 are linked below. `README.md` and `PROJECT.md` point here. Numbers were taken
 as follows:
 
-| Re-measured for this document on 28 Sep | Read from saved outputs (not re-run) |
+| Measured or re-measured for this document on 28–29 Sep | Read from saved outputs (not re-run) |
 |---|---|
-| Full test suite and per-file counts; the 12 protocol verifiers; 33 reference pins and the AAR hash; the fault-matrix JSON (rewritten by the suite run); the R7-S13 evidence checksums; the `gen-key` counts in the runtime logs; the GitHub Actions status and the repository licence (public API); the `git status` counts and what `.gitignore` now excludes | V5 measurements (`build/v5/`, 25 Sep); the V6 Docker log (25 Sep); the Android runtime logs (23–25 Sep); review and verifier records (25 Sep journals) |
+| Full test suite and per-file counts; the 12 protocol verifiers; 33 reference pins and the AAR hash; the fault-matrix JSON (rewritten by the suite run); the R7-S13 evidence checksums; the `gen-key` counts in the runtime logs; V5 on the full AMI test split, its dev-split calibration and the md-eval cross-check (`build/v5-test/`, `build/v5-calib/`); the GoReplay replay of the mock cloud's export; the blank-token re-runs of the K3 and Wi-Fi drivers; the GitHub Actions status (public API); the `git status` counts and what `.gitignore` excludes | The 25 Sep V5 subset and the Piper numbers (`build/v5/`); the V6 Docker log (25 Sep); the GitHub V6 timings (check-run notices, 28 Sep); the Android runtime logs (23–25 Sep); review and verifier records (25 and 28 Sep journals) |
 
 ## Contents
 
@@ -109,7 +115,7 @@ code. **Not done** = never attempted or never run.
 | Component | Status | Strongest evidence | Proven by | Main limitation |
 |---|---|---|---|---|
 | BLE protocol, legacy message set | Works | BYTECODE_PROVEN. RUNTIME_PROVEN for the requests the real SDK sent: opcodes 1, 3, 4, 8, 9, 26 (file list), 28 (syncFile) and 29 (stopSync) in R7-S12/S13, and 10 and 13 in R7-S14 | [`docs/protocol-ledger.md`](protocol-ledger.md), [`docs/evidence-digest.json`](evidence-digest.json), `tests/test_evidence_conformance.py`; opcode tallies of `r7/r7-s12-k3-capture-*.json` and `r7/r7-s1[34]-evidence/capture-*.json` | 24 open questions; 15 need a device ([§6.1](#61-open-questions-24)). The real SDK never sent getStorage (6), resumeRecord (22) or deleteFile (30), and never saw a file list longer than one entry |
-| BLE device emulator | Works | RUNTIME_PROVEN (the real SDK used it) | [`r7/r7-s13-recording-pull.md`](../r7/r7-s13-recording-pull.md) | Device-side values the SDK does not fix are HARNESS_POLICY |
+| BLE device emulator | Works | RUNTIME_PROVEN (the real SDK used it) | [`r7/r7-s13-recording-pull.md`](../r7/r7-s13-recording-pull.md); the phase-1 code review and its fixes (28 Sep, `tests/test_review_phase1.py`) | Device-side values the SDK does not fix are HARNESS_POLICY |
 | Legacy handshake (portVersion < 20) | Works | RUNTIME_PROVEN | [`r7/r7-s12-k3-runtime-capture.md`](../r7/r7-s12-k3-runtime-capture.md) | The emulator accepts any token (HARNESS_POLICY) |
 | Encrypted path (portVersion ≥ 20) | Partial | BYTECODE_PROVEN layouts; EMULATOR_INTEGRATION with synthetic keys | `r5-s5/` … `r5-s11/` verifiers; `tests/test_r5_s*.py` | Never run with the real SDK; keys are cloud-issued (CRED-1) |
 | BLE file transfer | Works | RUNTIME_PROVEN | [`r7/r7-s13-evidence/DELIVERED-OUTPUTS.sha256.txt`](../r7/r7-s13-evidence/DELIVERED-OUTPUTS.sha256.txt) | Real firmware's end-of-transfer behaviour unknown (U15, U17) |
@@ -120,15 +126,15 @@ code. **Not done** = never attempted or never run.
 | Fault-injection matrix (V2) | Works (completion only) | EMULATOR_INTEGRATION, scored by a bytecode-derived receiver model | [`docs/v2-fault-matrix.md`](v2-fault-matrix.md), `build/v2-fault-matrix.json` (git-ignored) | Tests completion, not content integrity |
 | Product reconstruction | Partial: done as documents, with external-evidence blockers (the phase-2 verdict) | OFFICIAL_DOC, BYTECODE_PROVEN, CLOUD_OBSERVED | [`docs/final-product-reconstruction.md`](final-product-reconstruction.md) | The consumer cloud is seen only through third-party clients |
 | Generator, formant voice | Works | EMULATOR_INTEGRATION | [`docs/generator.md`](generator.md) | Not intelligible speech |
-| Generator, Piper voice | Works (locally) | EMULATOR_INTEGRATION | `generator/tts/piper.py`, `tests/test_generator_piper.py` | Not in CI; voice licence unresolved |
-| Evals | Works | EMULATOR_INTEGRATION (V4) | [`docs/evals.md`](evals.md), `tests/test_evals_*.py` | Drops a whole meeting when meeteval refuses > 20 speakers |
+| Generator, Piper voice | Works (locally) | EMULATOR_INTEGRATION | `generator/tts/piper.py`, `tests/test_generator_piper.py`; `meeting.json` carries the voice hashes, timing method and attribution | Not in CI; voice licence unresolved |
+| Evals | Works | EMULATOR_INTEGRATION (V4); MEASURED agreement with NIST md-eval (224 of 224 per-meeting DERs at collar 0) | [`docs/evals.md`](evals.md), `tests/test_evals_*.py`, `build/v5-test/md-eval-crosscheck.json` | Above 20 speakers meeteval refuses cpWER/tcpWER; the meeting is kept with DER, JER and WER, and a gate on the refused metric fails |
 | Pipeline baselines | Works | EMULATOR_INTEGRATION | [`docs/pipeline.md`](pipeline.md) | `energy-vad-cluster` is tuned to synthetic voices |
-| Real ASR + diarization (`whisper-sherpa`) | Partial | MEASURED | [`docs/v5-results.md`](v5-results.md) | Poor numbers; over-clusters without a hint; ASR not repeatable on one long meeting |
-| Other model adapters | Not done | – | `python -m pipeline list` | pyannote-audio, faster-whisper+pyannote, whisperx, embedding-cluster never ran against a model |
-| AMI converter | Works | MEASURED (cross-check against BUT RTTMs) | `evals/ami.py`, `tests/test_ami_converter.py` | Audio for 4 of 16 test meetings only |
-| Mock cloud | Works (as a contract mock) | EMULATOR_INTEGRATION; contract from OFFICIAL_DOC (OpenAPI pages, template-app source) and BYTECODE_PROVEN (SDK-internal routes) | [`docs/mockcloud.md`](mockcloud.md) | Never compared with real responses |
-| Compose / V6 | Works (one run) | EMULATOR_INTEGRATION | `build/v6/compose-smoke-2026-09-25.log` (committed evidence), [`docs/compose.md`](compose.md) | One run, arm64 VM on a Mac |
-| CI on GitHub | Works: `tests` passed on `5a3d2ff` (run 36386441732) after failing on `70249ba`, `8b72dda` and `7d01b1f` | – | GitHub Actions runs 36093783853 (`tests`: failure in step `Tests`, exit code 2) and 36093783882 (`evals`: success) on `70249ba` | The `tests` run skipped its "Reference tree is pristine" step, so CI has never checked `reference/`. Linux x86_64 only (ubuntu-latest); the decompiled-SDK tests skip there by design (§4.1) |
+| Real ASR + diarization (`whisper-sherpa`) | Partial: measured on all 16 AMI test meetings; target missed | MEASURED | [`docs/v5-test-split.md`](v5-test-split.md), [`docs/v5-results.md`](v5-results.md) | Macro DER 0.6472, cpWER 0.8428 with dev-calibrated settings and no hint (target 0.20, 0.30). Speaker attribution is the main error |
+| Other model adapters | Partial | MEASURED for `embedding-cluster` (SpeechBrain ECAPA, in a separate torch environment) | [`docs/v5-test-split.md`](v5-test-split.md) §7; `python -m pipeline list` | `pyannote-audio`, `faster-whisper+pyannote` and `whisperx` never ran against a model: pyannote's models are gated behind a Hugging Face account |
+| AMI converter | Works | MEASURED (cross-check against BUT RTTMs) | `evals/ami.py`, `tests/test_ami_converter.py` | Audio here for all 16 test and 18 dev meetings, headset mix only |
+| Mock cloud | Works (as a contract mock) | EMULATOR_INTEGRATION; contract from OFFICIAL_DOC (OpenAPI pages, template-app source) and BYTECODE_PROVEN (SDK-internal routes). GoReplay replays its traffic export exactly (14 of 14 requests) | [`docs/mockcloud.md`](mockcloud.md), `scripts/crosscheck-goreplay.sh` | Never compared with real responses |
+| Compose / V6 | Works (arm64 on a Mac; x86_64 on GitHub) | EMULATOR_INTEGRATION | `build/v6/compose-smoke-2026-09-25.log` (committed evidence); the `compose` workflow (first run 36396859985); [`docs/compose.md`](compose.md) | The job never pulls a recording over BLE, and no container runs the Android SDK |
+| CI on GitHub | Works: `tests` on x86_64 Linux, arm64 Linux and macOS; `compose` (V6) and `evals` | – | [§5.13](#513-ci): runs from 36093783853 (the first failure, `70249ba`) to 36418829234 (`92146bf`, green on all three) | The decompiled-SDK tests skip in CI by design (§4.1). Job logs need a token; failures are read through check-run annotations |
 | iOS SDK | Not done | – | – | No Xcode on this machine |
 | Real hardware | Not done | – | – | None used |
 
@@ -139,33 +145,34 @@ The rungs are defined in [`PROJECT.md`](../PROJECT.md) §4b.
 | Rung | Claim | Status | What it shows | What it does not show | Proven by |
 |---|---|---|---|---|---|
 | V1 | Emulator is discovered and completes a session | Done | A Bumble central scans, parses the advertisement with the SDK's parse rules, connects, sets MTU, discovers, subscribes and runs the control and file-sync messages | The central is our Python code; V1 passed while the transfer sequence was still wrong | `tests/test_v1_discovery_session.py` and the phase-1 tests |
-| V2 | Survives fault injection without corrupting a transfer | Done | 59 of the 60 counted cells end byte-exact (38 directly, 6 after an app resume) or with a detected failure (15); the 60th, `old_stream_not_abandoned[atomic]`, is a documented corruption risk. 2 content-fault rows show the harness's corruption check fires | The receiver is our model of the SDK. "No silent corruption" holds by construction in the counted cells (review finding T10) | `tests/test_v2_fault_matrix.py`, [§4.7](#47-fault-injection-matrix-v2) |
+| V2 | Survives fault injection without corrupting a transfer | Done | 61 of the 62 counted cells end byte-exact (39 directly, 6 after an app resume) or with a detected failure (16); the 62nd, `old_stream_not_abandoned[atomic]`, is a documented corruption risk. 2 content-fault rows show the harness's corruption check fires | The receiver is our model of the SDK. "No silent corruption" holds by construction in the counted cells (review finding T10) | `tests/test_v2_fault_matrix.py`, [§4.7](#47-fault-injection-matrix-v2) |
 | V3 | Plaud's own SDK connects and pulls a recording | Done (Android, BLE, legacy protocol) | Bind, file list, and byte-exact download through `syncFile` and `exportAudio(OPUS)`; gap recovery converged byte-exact | Real devices, iOS, the encrypted protocol, Wi-Fi | [`r7/r7-s13-recording-pull.md`](../r7/r7-s13-recording-pull.md) |
 | V4 | Synthetic ground truth round-trips at DER 0 | Done | Reference vs itself and vs a mask-rebuilt copy: DER = JER = 0.0; generator → oracle → evals gives DER, JER, cpWER, tcpWER all 0.0; perturbations raise each metric | Plumbing and metric direction only; the oracle returns the truth by construction | `tests/test_v4_der_roundtrip.py`, `tests/test_v4_e2e.py` |
-| V5 | A full pipeline hits target cpWER/DER on held-out AMI | Not done (a subset was measured) | `whisper-sherpa` ran on 4 of 16 AMI test meetings at full length; hinted macro DER 0.6557, cpWER 0.8533 | The target: all 16 meetings, suite `ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30, uncalibrated HARNESS_POLICY bounds) is unmeasured | [`docs/v5-results.md`](v5-results.md), `evals/gates.yaml` |
-| V6 | `docker compose up` is live in under 60 s | Done (one run) | Healthy in 6.58 s; job exit 0 | x86_64, a GitHub runner, a cold cache that pulls the base image | `build/v6/compose-smoke-2026-09-25.log` |
+| V5 | A full pipeline hits target cpWER/DER on held-out AMI | Measured; **failed** | `whisper-sherpa` on all 16 AMI test meetings (9.06 h), settings chosen on the 18 dev meetings, no hint: macro DER 0.6472, cpWER 0.8428. With the oracle speaker count: 0.6396, 0.8567. Suite `ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30, HARNESS_POLICY bounds) fails for both | Any configuration near the target; pyannote-based systems (gated models) | [`docs/v5-test-split.md`](v5-test-split.md), `build/v5-test/gates/`, `evals/gates.yaml` |
+| V6 | `docker compose up` is live in under 60 s | Done (arm64 on a Mac; x86_64 on a GitHub runner) | Healthy in 6.58 s (Colima, 25 Sep) and 5.81 s (GitHub, cold cache, 28 Sep); job exit 0 both times | A BLE pull inside the topology; the real SDK | `build/v6/compose-smoke-2026-09-25.log`; `compose` run 36396859985 |
 
 ## 4. Measured numbers
 
 ### 4.1 Tests
 
-Full suite, run on 28 September 2026:
+Full suite, run on 29 September 2026:
 
 ```
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ -q -p no:cacheprovider --timeout=120 -rs
-1377 passed, 4 skipped, 11 warnings in 242.22s (0:04:02)
+1420 passed, 5 skipped, 11 warnings in 244.15s (0:04:04)
 ```
 
 - Counts include parametrised cases.
-- All 4 skips fall under the documented `optional-engine-installed` gate
+- All 5 skips fall under the documented `optional-engine-installed` gate
   (`tests/conftest.py`).
 - Three of them test the branch for an absent faster-whisper or piper. Both
   packages are installed here.
-- The fourth, `test_real_faster_whisper_on_a_generator_clip`
-  (`tests/test_pipeline_adapters.py:420`), is the suite's only test that runs
-  the `faster-whisper` adapter against a real model. It runs only when
-  `PLAUD_HARNESS_FW_MODEL` names a model. It was skipped, and no journal or
-  document records a run with that variable set.
+- The other two, `test_real_faster_whisper_on_a_generator_clip` and
+  `test_real_faster_whisper_seeded_sampling_repeats_across_processes`
+  (`tests/test_pipeline_adapters.py:438`, `:471`), run the faster-whisper
+  adapter against a real model. They run only when `PLAUD_HARNESS_FW_MODEL`
+  names a model. With it set to the pinned `small.en` they passed on 29 Sep
+  (2 passed in 67.01 s; [§6.4](#64-never-run)).
 - The 11 warnings are pyannote.metrics' "uem was approximated" notices.
 - The suite rewrites `docs/evidence-digest.json` in place (same bytes; only the
   file's modification time changes) and the git-ignored
@@ -173,31 +180,32 @@ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ -q -p no:cacheprovid
 - Pytest must be pointed at `tests/`. Run from the repository root without a
   path, it collects `reference/` and stops with an error.
 
-Per area, from `pytest tests/ --collect-only` on 28 Sep. 73 of the 74
+Per area, from `pytest tests/ --collect-only` on 29 Sep. 74 of the 75
 `test_*.py` modules yield tests; `test_mockcloud_helpers.py` holds shared
-helpers only. `tests/` holds 80 Python files, including `conftest.py` and 5
+helpers only. `tests/` holds 81 Python files, including `conftest.py` and 5
 support modules:
 
 | Area | Files | Tests |
 |---|---|---:|
-| Phase-1 protocol and emulator | `test_r1*`–`test_r7_*` (except `test_r7_s13_*`), `test_evidence_conformance.py`, `test_v1_discovery_session.py` | 301 |
+| Phase-1 protocol and emulator | `test_r1*`–`test_r7_*` (except `test_r7_s13_*`), `test_evidence_conformance.py`, `test_v1_discovery_session.py`, `test_review_phase1.py` (21) | 325 |
 | End-of-transfer frame and stream abort (R7-S13) | `test_r7_s13_transfer_close.py` | 20 |
-| V2 fault matrix and receiver model | `test_v2_*.py` | 115 |
+| V2 fault matrix and receiver model | `test_v2_*.py` | 118 |
 | Wi-Fi transfer | `test_wifi_*.py` (75 of them pin constants to bytecode) | 156 |
-| Generator and V4 round trip | `test_generator_*.py`, `test_v4_der_roundtrip.py` | 136 |
-| Evals | `test_evals_*.py` | 198 |
+| Generator and V4 round trip | `test_generator_*.py`, `test_v4_der_roundtrip.py` | 137 |
+| Evals | `test_evals_*.py` | 200 |
 | AMI converter | `test_ami_converter.py` | 51 |
-| V5 gate calibration | `test_v5_gates.py` | 8 |
-| Pipeline | `test_pipeline_*.py` | 240 |
+| V5 gate calibration | `test_v5_gates.py` | 13 |
+| Pipeline | `test_pipeline_*.py` | 249 |
 | Mock cloud | `test_mockcloud_*.py` | 76 |
 | Cross-layer integration and V4 end to end | `test_integration_*.py`, `test_v4_e2e.py` | 21 |
 | Compose | `test_compose_*.py` | 59 |
-| **Total collected** | | **1381** |
+| **Total collected** | | **1425** |
 
-History: 301 tests after phase 1; 978 on 24 Sep; 1365 passed on 25 Sep; 1377 on 28 Sep (12 added for R-CI-1).
+History: 301 tests after phase 1; 978 on 24 Sep; 1365 passed on 25 Sep; 1377
+on 28 Sep before the day's changes (12 added for R-CI-1); 1420 on 29 Sep.
 
-CI-like runs (never on GitHub; both on macOS arm64 on 25 Sep; from the
-follow-up and stage-2 journals):
+Before GitHub ran the workflow, two CI-like runs were made on macOS arm64 on
+25 Sep (from the follow-up and stage-2 journals):
 
 1. Follow-up simulation. The workflow steps were replayed on a clean clone,
    with a fresh install from `requirements/ci.txt`. Bumble was fetched from the
@@ -209,13 +217,14 @@ follow-up and stage-2 journals):
    Result: `1253 passed, 116 skipped, 11 warnings in 160.26s`, every skip a
    documented gate.
 
-The workflow's fetch of Bumble from GitHub has never run. In CI the decompiled
-SDK is absent, so those tests skip by design.
+Since 28 Sep the workflow runs on GitHub, fetching Bumble from GitHub at its pin
+([§5.13](#513-ci)). In CI the decompiled SDK is absent, so those tests skip by
+design.
 
 ### 4.2 Protocol verifiers
 
-Twelve standalone verifier scripts. On 28 Sep all 12 printed
-`ALL CHECKS PASSED` with exit 0 (last run 10:25 IST with the loop in §9;
+Twelve standalone verifier scripts. On 29 Sep all 12 printed
+`ALL CHECKS PASSED` with exit 0 (last run 09:53 IST with the loop in §9;
 r5-s7 and r5-s8 print `(0 skipped)`).
 
 | Group | Scripts | Reads `build/evidence/` (not in git) |
@@ -227,17 +236,90 @@ r5-s7 and r5-s8 print `(0 skipped)`).
 
 - 33 of 33 repositories under `reference/` are at the commit pinned in
   [`docs/reference-pins.txt`](reference-pins.txt), with no modified or
-  untracked files. Checked on 28 Sep before and after the test run.
+  untracked files. Checked on 28 Sep before and after the test run, and on
+  29 Sep.
 - The SDK archive `reference/plaud-org/plaud-sdk-public/sdk/android/plaud-sdk.aar`
   hashes to `041a6f8814d350dbc8bcd4a515487136529bb8bb4368fc88c9b36c9a386aedce`,
   the value `scripts/build-evidence.sh` and `docs/evidence-digest.json` pin.
 
-### 4.4 V5 subset (25 September)
+### 4.4 V5: the full AMI test split (28 September) and the 25 September subset
 
-Source: `build/v5/reports/` and `build/v5/summary.md` (committed evidence; see `build/v5/README.md`), quoted in
-[`docs/v5-results.md`](v5-results.md). Macro means over 4 meetings per set.
-"Hint" = the reference speaker count passed to the diarizer; that is an oracle
-value a recorder does not have.
+**Full test split.** Source: `build/v5-test/summary.md` and
+`build/v5-test/reports/`, written up in
+[`docs/v5-test-split.md`](v5-test-split.md). The split has 16 meetings (9.06 h,
+90 149 reference words, headset mix). Numbers are macro means. "Hint" means the
+reference speaker count was passed to the diarizer, an oracle value a recorder
+does not have. "Calibrated" means `cluster_threshold=1.15` and
+`assignment_tie_break=latest_start` for whisper-sherpa, and
+`distance_threshold=0.55` for embedding-cluster, all chosen on the 18 AMI dev
+meetings. Nothing was tuned on the test split.
+
+| System | DER | JER | cpWER | tcpWER | WER (speaker-agnostic) | Mean speaker-count error |
+|---|---:|---:|---:|---:|---:|---:|
+| whisper-sherpa, calibrated, no hint | 0.6472 | 0.7508 | 0.8428 | 0.9628 | 0.3221 | −0.31 |
+| whisper-sherpa, hint | 0.6396 | 0.7473 | 0.8567 | 0.9808 | 0.3221 | 0.00 |
+| whisper-sherpa, defaults, no hint | 0.7632 | 0.7600 | not scored (meeteval refused 16 of 16) | not scored | 0.3221 | +51.25 |
+| sherpa's own turns, calibrated (words not used) | 0.5263 | 0.6949 | n/a | n/a | n/a | −0.31 |
+| sherpa's own turns, hint (words not used) | 0.5192 | 0.6779 | n/a | n/a | n/a | 0.00 |
+| energy-vad-cluster, no hint (no ASR) | 0.5871 | 0.6842 | n/a | n/a | n/a | +0.94 |
+| embedding-cluster, calibrated, no hint (no ASR) | 0.4967 | 0.6506 | n/a | n/a | n/a | −1.50 |
+| embedding-cluster, hint (no ASR) | 0.3708 | 0.4548 | n/a | n/a | n/a | 0.00 |
+| oracle (self-test) | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.00 |
+
+- `ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30) fails for the calibrated and the
+  hinted system (`build/v5-test/gates/`).
+- **Calibration** (`scripts/calibrate-sherpa.sh`, `build/v5-calib/`,
+  [`docs/pipeline.md`](pipeline.md) §11.8). The threshold 1.15 gave sherpa's
+  own turns the lowest dev macro DER without a hint (0.5431) over 25 values
+  from 0.800 to 1.400.
+  The sweep replays sherpa-onnx from cached segmentation and embeddings
+  (`pipeline/sherpa_sweep.py`). The replay is bit-identical to real sherpa-onnx
+  at every threshold checked (five on IS1008a; 1.15 on IS1008a and TS3004a).
+  The tie-break `latest_start` gave the dev reference words a macro cpWER of
+  0.9344, against 1.0075 for `floor`.
+- **Calibration fixes the speaker count, not the attribution.** With the
+  defaults, sherpa finds 35–108 clusters per meeting (31–95 of them receive
+  words). Calibrated, it finds 2–4:
+  10 meetings get the right count, 5 too few and 1 too many. DER is then within
+  0.008 of the hinted run.
+- **The tie-break is worth about 0.03 cpWER on test**, less than half the dev
+  proxy's 0.07. Re-assigning the same
+  words and turns, `latest_start` lowers cpWER from 0.8697 to 0.8428 on the
+  calibrated turns and from 0.8567 to 0.8279 on the hinted ones.
+- **Diarization dominates.** Speaker confusion is 0.34 of the reference time
+  for the word runs and 0.42 for sherpa's own turns. Word runs also miss 0.26
+  of the speech, against 0.07 for the turns. This is why sherpa's own turns
+  score a lower DER than the words attributed to them.
+- **ASR is repeatable.** Decoding is seeded, and one transcript per meeting is
+  shared through a cache. All three whisper-sherpa systems score the same
+  68 632 words. 79 of 9 221 segments used faster-whisper's sampled fallback. A
+  fresh process reproduced EN2002a's 5 120 words exactly.
+- **Pretrained speaker embeddings attribute better.** `embedding-cluster`
+  (the harness's VAD and cells with SpeechBrain ECAPA embeddings; no ASR)
+  scores DER 0.3708 with the hint, against 0.5192 for sherpa's own hinted
+  turns, lower on 15 of 16 meetings. Its distance threshold was calibrated on
+  the dev split (0.55). Without a hint it collapses to one speaker on 8 of 16
+  meetings; its macro DER, 0.4967, mixes those with meetings where it finds 4–5
+  speakers and scores 0.16–0.40 ([`docs/v5-test-split.md`](v5-test-split.md) §7).
+- **Checks.** The oracle scores 0 everywhere. NIST md-eval gives the same DER
+  for all 224 per-meeting values at collar 0. At collar 0.25, 213 of 224 agree
+  and 11 differ by at most 0.0054.
+- **Regression gates.** `ami-test-whisper-sherpa-cal` and
+  `ami-test-whisper-sherpa-hint` are the measured macro values plus 0.03 (0.25
+  on the speaker-count error), rounded up. Passing them means "no worse than
+  on 28 Sep", not "good".
+- **Timing is not a speed measurement.** Up to four heavy jobs shared the 8 GB
+  M1. RTF was 0.319–1.145 for runs that decoded speech, and 0.160–0.682 for
+  diarization-only runs.
+- **Against the 25 Sep subset.** On all 16 meetings the hinted configuration
+  scores DER 0.6396 and cpWER 0.8567; the 4-meeting subset scored 0.6557 and
+  0.8533.
+
+**The 25 September subset, and the only Piper numbers.** Source:
+`build/v5/reports/` and `build/v5/summary.md` (committed evidence; see
+`build/v5/README.md`), quoted in [`docs/v5-results.md`](v5-results.md). These
+are macro means over 4 meetings per set. The AMI rows are superseded by the
+table above. The Piper rows have not been re-run.
 
 | Data | System | DER | JER | cpWER | tcpWER | WER (speaker-agnostic) |
 |---|---|---:|---:|---:|---:|---:|
@@ -255,44 +337,25 @@ value a recorder does not have.
 | Piper device Ogg/Opus | whisper-sherpa, no hint | 0.6819 | 0.7335 | 1.0242 | 1.0722 | 0.2764 |
 | All 8 meetings | oracle (self-test) | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
 
-Per AMI meeting, `whisper-sherpa`:
-
-| Meeting | Length (s) | DER, hint | cpWER, hint | WER, hint | Clusters, no hint | Speakers with words, no hint |
-|---|---:|---:|---:|---:|---:|---:|
-| EN2002a | 2142.709 | 0.7289 | 0.9608 | 0.4371 | 95 | 83 |
-| ES2004a | 1049.355 | 0.6649 | 0.9239 | 0.2759 | 35 | 31 |
-| IS1009a | 838.833 | 0.5444 | 0.6640 | 0.3266 | 36 | 34 |
-| TS3003a | 1505.643 | 0.6846 | 0.8646 | 0.2605 | 47 | 41 |
-
-- Every AMI meeting has 4 speakers.
-- The AMI audio is the headset mix, not a far-field recording.
+- The "not scorable" row reflects the evals of 25 Sep, which dropped a meeting
+  when meeteval refused. Evals now keep DER, JER and WER for such a meeting;
+  the full-split table above shows the result.
 - The segmentation model (pyannote segmentation-3.0) was trained on data that
   includes AMI, per its model card. Whether the AMI test split was held out
-  cannot be verified here, so the AMI numbers may be optimistic.
-- whisper-sherpa's DER is scored on its word-assigned output. With the hint,
-  sherpa's own turns on AMI score DER 0.5324 (missed speech 0.0873), against
-  0.6557 (missed speech 0.3124) for the word-level output. The model-free
-  baseline (0.6445) beats the word-level output, not sherpa's own turns.
-- The hint was honoured on all 4 AMI meetings. On
-  `synth-piper-3spk-reverb-noise-s0103` a hint of 3 was not honoured: the
+  cannot be verified here, so every AMI number may be optimistic.
+- On `synth-piper-3spk-reverb-noise-s0103` a hint of 3 was not honoured: the
   diarizer returned 2 speakers, on both `mix.wav` and the device Ogg. That
   meeting has the highest hinted cpWER on `mix.wav` (1.3401). The hinted Piper
   rows' macro speaker-count error is −0.25, not 0.
 - Two regression-gate suites, `ami-subset-whisper-sherpa` and
-  `synthetic-piper-whisper-sherpa`, are the measured macro values plus 0.03
-  (0.25 on speaker-count error), rounded up. Both passed on 25 Sep. Passing means
-  "no worse than 25 Sep", not "good".
-- A separate verifier (25 Sep, stage-2 journal) re-scored four configurations
-  from the stored hypotheses: AMI hint, Piper `mix.wav` no hint, AMI
-  energy-vad-cluster and Piper device hint. It also re-scored two AMI-hint
-  variants (collar 0; normalised numbers and contractions). Each report was
-  identical to the stored one. It compared all 896 numeric table cells of
-  `docs/v5-results.md` (656 in §6.1–6.4, 240 in §4) with the saved outputs and
-  found no mismatch. One fresh Piper inference (s0101, hint) reproduced the
-  stored segments, turns and scores exactly; only its timing differed (RTF
-  0.2216 against 0.2684 stored).
+  `synthetic-piper-whisper-sherpa`, are the 25 Sep macro values plus 0.03
+  (0.25 on speaker-count error), rounded up. Both passed on 25 Sep.
+- A separate verifier (25 Sep, stage-2 journal) re-scored six configurations
+  from the stored hypotheses, and each report was identical to the stored one.
+  It also compared all 896 numeric table cells of `docs/v5-results.md` with the
+  saved outputs and found no mismatch.
 
-### 4.5 V6 Docker run (25 September)
+### 4.5 V6 Docker runs (25 and 28 September)
 
 From `build/v6/compose-smoke-2026-09-25.log`, on an Apple M1 with Colima (Linux
 arm64 VM):
@@ -305,6 +368,13 @@ arm64 VM):
 | Job, timed inside the container | 10.09 s |
 | Mock-cloud round trip | 49 161 bytes in 3 parts, byte-exact download, task states PENDING, STARTED, SUCCESS |
 | Colima VM (from `build/v6/docker-env-2026-09-28.txt`, captured 28 Sep, not during the run) | 2 CPUs, 3 039 588 352 bytes of memory, Docker daemon 29.5.2 |
+
+On 28 Sep the `compose` workflow ran the same script on a GitHub
+`ubuntu-latest` runner (x86_64), with a cold cache. The numbers below are from
+run 36396859985 (`94de5c9`), read from its check-run notices. The image build
+took 102.56 s and pulled the base image. `up -d --wait` was healthy in
+**5.81 s**. The job exited 0 in 14.66 s. The workflow has run again on later
+commits that touch the images.
 
 The job's zero scores come from the oracle self-test, not from a system.
 
@@ -328,25 +398,32 @@ The job's zero scores come from the oracle self-test, not from a system.
 
 ### 4.7 Fault-injection matrix (V2)
 
-From `build/v2-fault-matrix.json` as written by the 28 Sep suite runs: 62 rows.
+From `build/v2-fault-matrix.json` as written by the 29 Sep suite run: 64 rows.
 
 | Outcome | Rows |
 |---|---:|
-| Recovered byte-exact | 38 |
+| Recovered byte-exact | 39 |
 | Recovered after the app resumes from its cursor | 6 |
-| Failure detected, no corrupted output | 15 |
+| Failure detected, no corrupted output | 16 |
 | Corruption risk (`old_stream_not_abandoned[atomic]`: a device that never abandons its stream) | 1 |
-| **Counted cells** | **60** |
+| **Counted cells** | **62** |
 | Outside the count: `restart_serves_other_revision[paced]` (silent corruption; the harness check flags it) | 1 |
 | Outside the count: `data_payload_bitflip[atomic]` (undetectable: DATA frames carry no checksum) | 1 |
 
-Every row's outcome is one of its accepted outcomes. For 61 rows that is a
+Two rows were added on 28 Sep for two new emulator defaults from the phase-1
+code review ([§5.2](#52-ble-emulator-and-legacy-handshake)):
+`mtu_23_sized_frames[paced]` (recovered) and
+`zero_length_file_head_failure[atomic]` (detected, with no restarts). The rows
+for the old device behaviours stay, with those behaviours switched on
+explicitly.
+
+Every row's outcome is one of its accepted outcomes. For 63 rows that is a
 single value. `old_stream_not_abandoned[paced]` accepts `corruption_risk` or
 `detected` and gave `detected` (9 restarts, `restart_cap_exceeded`). The test
 asserts membership in the accepted set (`tests/test_v2_fault_matrix.py`,
-`record`). 26 rows stream unpaced
-("atomic"), 34 paced, and 2 file-list rows have no transfer mode; several faults
-appear in both an unpaced and a paced row.
+`record`). By transfer mode: 27 rows stream unpaced ("atomic"), 35 are paced
+(19 of them streamed from a task, 1 without abort), and 2 file-list rows have
+no transfer mode. Several faults appear in both an unpaced and a paced row.
 
 ### 4.8 Plaud cloud contact in the runtime logs
 
@@ -359,7 +436,8 @@ Recounted on 28 Sep with `grep -a` over the archived logs:
 | … of which never reached the server: `UnknownHostException` for `platform-jp.plaud.ai` (R7-S13 runs 11, 12, 13) | 3 |
 | R7-S14 run 1 (log truncated by the ring buffer; request inferred) | 1 more, not in the 22 |
 | Other Plaud URLs requested | 0 (the other `plaud.ai` lines are base-URL configuration) |
-| `gen-key` lines in the blank-token offline check, counted in the archived `logcat.filtered.log` (133 lines). That filter keeps the `PlaudSdk_SourceFile` tag, which logged every earlier request, and it shows the Partner API base-URL lines. The unfiltered logcat, which `run.sh` counted, was not archived | 0 |
+| `gen-key` lines in the blank-token offline check of the pull driver (25 Sep), counted in the archived `logcat.filtered.log` (133 lines). That filter keeps the `PlaudSdk_SourceFile` tag, which logged every earlier request, and it shows the Partner API base-URL lines. The unfiltered logcat, which `run.sh` counted, was not archived | 0 |
+| `gen-key` lines in the blank-token offline re-runs of the K3 driver and the Wi-Fi driver (modes open and transfer), 28 Sep. The full logcats are archived (gzip; 4 846, 1 492 and 1 479 lines) in [`r7/r7-s14-evidence/blank-token-drivers-check/`](../r7/r7-s14-evidence/blank-token-drivers-check/) | 0 |
 
 The R7-S12 logs were filtered to other log tags, so they cannot show whether
 the request was sent; that driver passed the same synthetic token. The R4-S3
@@ -380,8 +458,11 @@ Each entry: what exists; how it was proven; what is not proven; where to read mo
   `docs/evidence-digest.json`, pinned to the AAR hash;
   `tests/test_evidence_conformance.py` asserts the emulator against it. The iOS
   `.swiftinterface` supplies names.
-- **Not proven.** Any device-side fact ([§6.1](#61-open-questions-24)). The
-  phase-1 code was not in the 25 Sep review.
+- **Reviewed.** An independent review of the phase-1 code on 28 Sep reported
+  28 findings. The confirmed defects were fixed in `3fb2d27`, each with a
+  test (`tests/test_review_phase1.py`, 21 tests, or the existing suites)
+  ([§5.2](#52-ble-emulator-and-legacy-handshake)).
+- **Not proven.** Any device-side fact ([§6.1](#61-open-questions-24)).
 - **More.** [`docs/protocol-ledger.md`](protocol-ledger.md),
   [`docs/reconstruction-log.md`](reconstruction-log.md),
   [`docs/final-closure-report.md`](final-closure-report.md).
@@ -394,6 +475,21 @@ Each entry: what exists; how it was proven; what is not proven; where to read mo
   resume, delete; transfers HEAD · DATA · EMPTY_PACKAGE(0) · TAIL.
   `for_real_sdk()` adds task streaming and 4 ms pacing; the plain constructor
   is inline and unpaced.
+- **Changed by the phase-1 review (28 Sep).**
+  - `advertise()` now sends the layout the runtime rigs used: 29 bytes of
+    Flags plus manufacturer data under company id 0xFFFF, with the name and
+    service UUID in the scan response. Before, it sent the blob without a
+    company id, in 42–44 bytes, over the legacy limit.
+  - The serial scrub, `versionCode` narrowing and the projectCode override
+    now follow the SDK's `u4.a`.
+  - The handshake checks lengths before reading, and treats the FE12 count
+    and the receive counter as signed.
+  - The file list is paged, and DATA payloads are capped, to fit ATT_MTU − 3.
+  - A transfer with nothing to send is answered by one HEAD with status 1.
+    The old HEAD · EMPTY_PACKAGE · TAIL made the SDK restart forever.
+  - The advertised and served portVersion must agree.
+  - Both new defaults are HARNESS_POLICY. The old behaviours stay available
+    and are measured in the V2 matrix ([§4.7](#47-fault-injection-matrix-v2)).
 - **Proven.** RUNTIME_PROVEN in R7-S12 and R7-S13 for connect and MTU, the
   legacy handshake, getState, syncTime, battery, settings (opcode 8), a
   one-entry file list, syncFile, stopSync and the transfer frames
@@ -404,8 +500,8 @@ Each entry: what exists; how it was proven; what is not proven; where to read mo
   rejects extended advertising, so they published a 29-byte legacy payload
   (flags plus the emulator's manufacturer data) instead
   (`r4-s3/plaud_netsim_peripheral.py:88-107`,
-  `r7/pull_capture_peripheral.py:200-204`). The real SDK never scanned the
-  emulator's own advertisement.
+  `r7/pull_capture_peripheral.py:200-204`). `advertise()` has sent that
+  layout since 28 Sep, but the real SDK has not scanned it.
 - **Not proven.** Accepting any token, EMPTY_PACKAGE code 0, 4 ms pacing and the
   32-byte DATA payload are HARNESS_POLICY. The constructor refuses
   portVersion ≥ 20 on purpose: at that level the SDK seals every frame.
@@ -431,6 +527,7 @@ Each entry: what exists; how it was proven; what is not proven; where to read mo
 | R7-S13 | 23–24 Sep | File list and byte-exact pull through `syncFile` and `exportAudio(OPUS)`; gap recovery converged byte-exact in all four runs where the emulator abandoned the old stream (6b, 6c, 6d, 13). 17 runs have archived logs | [`r7/r7-s13-recording-pull.md`](../r7/r7-s13-recording-pull.md) |
 | R7-S14 | 25 Sep | 6 runs. Bind, OpenWiFi (opcode 10) and its answer worked. In the 4 transfer runs (1, 1b, 2, 5) the SDK asked Android to join `PLAUD0001`, and the request timed out after 30 s. In 1b, 2 and 5 the log shows `onError(1003)` (at +30.124 s, +30.051 s and +30.155 s); run 1's log is truncated. Runs 3 and 4 drove `setDeviceWiFi` open and close only and requested no join. In runs 1 and 1b the pre-fix emulator answered opcode 10 without a passphrase and started no Wi-Fi device (D1, fixed). The SDK never started its server on port 8081, and no Wi-Fi message went either way in any run | [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) |
 | Blank-token check | 25 Sep | Export re-run with the phone's Wi-Fi and mobile data off and a blank SDK token: byte-exact, no `gen-key` line | [`r7/r7-s14-evidence/blank-token-offline-check/`](../r7/r7-s14-evidence/blank-token-offline-check/) |
+| Blank-token drivers | 28 Sep | The K3 driver and the Wi-Fi driver (modes open and transfer), from the debug build with the drivers in the debug source set, offline, with a blank token. K3 and Wi-Fi bind with status 0. OpenWiFi answers 0. With the phone's Wi-Fi off, the transfer's join fails at once (`onError(1003)` at +151 ms). No `gen-key` line in any full logcat | [`r7/r7-s14-evidence/blank-token-drivers-check/`](../r7/r7-s14-evidence/blank-token-drivers-check/) |
 
 What only the real SDK could show (R7-S13): completion needs the EMPTY_PACKAGE
 before the TAIL. On a gap the SDK sends stop at once and restarts from its
@@ -456,16 +553,18 @@ a byte-for-byte passthrough.
 
 ### 5.6 Fault-injection matrix (V2)
 
-- **Exists.** A fault-injecting peripheral and 62 rows: drops, duplicates,
+- **Exists.** A fault-injecting peripheral and 64 rows: drops, duplicates,
   reordering, truncation, wrong session, HEAD/TAIL faults, disconnect and
   resume, stop mid-transfer, MTU 23–517, both CCCD modes, delete during sync,
-  back-to-back syncs, the R7-S13 sentinel cases.
+  back-to-back syncs, the R7-S13 sentinel cases, and the two device behaviours
+  the emulator stopped using on 28 Sep (unsized frames, HEAD · EMPTY · TAIL for
+  an empty transfer).
 - **Proven.** Scored by `tests/fault_support.py`, a model of the SDK's `q$a`
   receiver derived from bytecode. Six of its rules were cross-checked against
-  the R7-S13 logs ([`docs/v2-fault-matrix.md`](v2-fault-matrix.md) §3, lines
-  191-196): R2 completion, R9/R10 TAIL-only non-completion, the R12 after-TAIL
+  the R7-S13 logs ([`docs/v2-fault-matrix.md`](v2-fault-matrix.md) §3,
+  "Runtime cross-checks of the model"): R2 completion, R9/R10 TAIL-only non-completion, the R12 after-TAIL
   sentinel, R6 immediate stop and the ~35 ms restart, R2 while recovering, and
-  R13 CRC ignored. README and the progress report say four.
+  R13 CRC ignored.
 - **Not proven.** The real SDK never ran this matrix.
 
 ### 5.7 Product reconstruction (phase 2, 23 Sep)
@@ -494,8 +593,11 @@ a byte-for-byte passthrough.
   (default, offline) and Piper `en_US-libritts_r-medium` (optional).
 - **Not proven.** Formant speech is not intelligible (small.en WER 0.9615).
   Piper text is seeded word salad; its byte-determinism was checked on one M1
-  with one onnxruntime version. A Piper `meeting.json` lacks the voice hash and
-  timing method and still says `timing_exact: true`. Kokoro is untested.
+  with one onnxruntime version. Since 28 Sep a Piper `meeting.json` carries
+  `generator.tts`: the timing method, phonemization and noise settings, the
+  voice and config sha256, and the LibriTTS-R CC BY 4.0 attribution. Its
+  `timing_exact: true` means exact against the voice's own alignment
+  ([`docs/generator.md`](generator.md) §6.2). Kokoro is untested.
 - **More.** [`docs/generator.md`](generator.md) §6.2, §8.
 
 ### 5.9 Evals and the AMI converter
@@ -505,27 +607,64 @@ a byte-for-byte passthrough.
   `python -m evals.ami` (AMI NXT → harness format).
 - **Proven.** V4. The converter's speech turns equal the BUT `only_words` RTTMs
   line for line on 168 of 170 meetings, including all 18 dev and 16 test
-  meetings ([`docs/evals.md`](evals.md), "AMI").
-- **Not done.** Audio for 12 of the 16 test meetings is not here. When meeteval
-  refuses more than 20 speakers, `evals batch` drops the meeting, DER included.
+  meetings ([`docs/evals.md`](evals.md), "AMI"). The DER agrees with NIST
+  md-eval (`scripts/crosscheck-md-eval.sh`). On the full V5 test split, 224 of
+  224 per-meeting values agree at collar 0 and 213 of 224 at collar 0.25 (the
+  other 11 by at most 0.0054). This closes review finding EV-4.
+- **Refusals.** meeteval 0.4.3 refuses cpWER above 20 hypothesis speakers.
+  Since 28 Sep the meeting is kept: its DER, JER and WER are reported, and
+  cpWER and tcpWER are marked not scored, with the reason. Aggregates leave the
+  meeting out of those two pools and count it, and a gate on a refused metric
+  fails. With the guard lifted, meeteval fails for another reason above about
+  56 speakers ("too few fallback keys").
+- **Data here.** The headset-mix audio and references of all 16 test and 18
+  dev meetings (CC BY 4.0), sha256-pinned in `scripts/run-v5.sh` and
+  `scripts/calibrate-sherpa.sh`.
 
 ### 5.10 Pipeline
 
-- **Exists.** `python -m pipeline list` (28 Sep) shows 10 entries. Available: `oracle`,
-  `perturbed-oracle`, `energy-vad-cluster`, `faster-whisper`,
-  `sherpa-onnx-diarization`, `whisper-sherpa`. Unavailable here (no torch):
-  `pyannote-audio`, `faster-whisper+pyannote`, `whisperx`, `embedding-cluster`.
+- **Exists.** `python -m pipeline list` (29 Sep) shows 10 entries. Available in
+  `.venv`: `oracle`, `perturbed-oracle`, `energy-vad-cluster`,
+  `faster-whisper`, `sherpa-onnx-diarization`, `whisper-sherpa`.
+  `embedding-cluster` is available in a separate environment with torch 2.14.0
+  and SpeechBrain 1.1.1 (`.venv-torch`, git-ignored). `pyannote-audio`,
+  `faster-whisper+pyannote` and `whisperx` are unavailable here.
 - **`whisper-sherpa`.** faster-whisper 1.2.1 (`small.en`) plus sherpa-onnx
   1.13.8 (pyannote segmentation-3.0 ONNX, 3D-Speaker CAM++). Weights pinned by
   sha256 in `pipeline/model_store.py`; packages in the optional
-  `requirements/models.txt`, which CI does not install.
-- **Not proven.** The four unavailable adapters were tested only against
-  stand-in modules. `energy-vad-cluster`'s pitch feature is tuned to synthetic voices.
+  `requirements/models.txt`, which CI does not install. Since 28 Sep:
+  - Decoding is seeded (`--param seed`, default 0). CTranslate2 is seeded
+    before the model is built, which makes faster-whisper's sampled
+    temperature fallback repeat across processes. The run records how many
+    segments each temperature produced.
+  - `--param asr_cache=DIR` shares one transcript per meeting between
+    diarization settings.
+  - `--param assignment_tie_break` picks the speaker of a word whose largest
+    overlap is tied: `floor` (the default), `latest_start`, `first_seen` or
+    `previous_word`.
+  - `pipeline/sherpa_sweep.py` replays sherpa-onnx's clustering and
+    reconstruction from cached segmentation and embeddings, bit-identical to
+    the real library at every threshold checked. A brute-force sweep, one
+    sherpa-onnx pass per threshold over the dev split, would have taken most
+    of a day on this machine.
+- **`embedding-cluster`.** Energy VAD, SpeechBrain ECAPA embeddings (ungated)
+  and the model-free clustering. It first ran against the real model on
+  28 Sep. PyTorch's NNPACK convolution made one ECAPA batch take 114.94 s on
+  this M1, against 3.39 s without it, so the adapter disables NNPACK on CPU.
+  Its distance threshold, 0.55, was calibrated on the dev split (29 Sep)
+  through a replay that equals real runs at the default threshold (IS1008a;
+  EN2002a–c), with the hint (IS1009a) and at 0.55 (EN2002b). On the test split it
+  scores DER 0.3708 with the hint and 0.4967 without
+  ([§4.4](#44-v5-the-full-ami-test-split-28-september-and-the-25-september-subset)).
+- **Not proven.** The three unavailable adapters were tested only against
+  stand-in modules (review finding PIPE-05). `energy-vad-cluster`'s pitch
+  feature is tuned to synthetic voices.
 - **Before V5.** Sanity checks on one AMI test meeting (ES2004a): a 60 s clip
   and excerpts ([`docs/pipeline.md`](pipeline.md) §11.4–§11.5). Across 19 runs
   of the 60 s clip, under varying machine load, RTF ranged from 0.291 to 1.273.
   They show the stack works; they are not a benchmark.
-- **More.** [`docs/pipeline.md`](pipeline.md) §2, §8, §11; [`docs/v5-results.md`](v5-results.md).
+- **More.** [`docs/pipeline.md`](pipeline.md) §2, §8, §11;
+  [`docs/v5-test-split.md`](v5-test-split.md); [`docs/v5-results.md`](v5-results.md).
 
 ### 5.11 Mock cloud
 
@@ -541,7 +680,11 @@ a byte-for-byte passthrough.
 - **Not proven.** Built from Plaud's OpenAPI documentation, template-app source
   and SDK bytecode; never compared with real
   responses; never driven by the real template app (that needs a TLS proxy).
-  The GoReplay export was checked with h11, not with GoReplay.
+- **GoReplay.** `scripts/crosscheck-goreplay.sh` builds `gor` (GoReplay 2.0.0)
+  from the pinned `reference/upstream/goreplay` commit, out of tree. It then
+  exports the mock's traffic log as `?format=gor` and replays it into a
+  recording server. All 14 logged requests arrive with identical method,
+  target and body (28 Sep; closes review finding MC-3).
 - **More.** [`docs/mockcloud.md`](mockcloud.md).
 
 ### 5.12 Compose (V6)
@@ -551,44 +694,47 @@ a byte-for-byte passthrough.
   Docker). The job probes both services, scans the emulator, generates 2
   meetings, runs the oracle pipeline and evals, and round-trips one meeting
   through the mock cloud.
-- **Not proven.** One Docker run on arm64. The job does not pull the recording
+- **Runs.** Colima on arm64 (25 Sep) and GitHub `ubuntu-latest` on x86_64 from
+  a cold cache (28 Sep, the `compose` workflow; [§4.5](#45-v6-docker-runs-25-and-28-september)).
+- **Not proven.** The job does not pull the recording
   over BLE. No container runs the Android SDK.
 - **More.** [`docs/compose.md`](compose.md).
 
 ### 5.13 CI
 
-- On the pushed commit `70249ba`, `evals` passed and `tests` failed in its
-  `Tests` step: "Process completed with exit code 2" (check-run annotation, read
-  through the public API on 28 Sep). The job log was not read.
-- The next step, "Reference tree is pristine", was skipped. The pushed workflow
-  gave it no `if:`, so it did not run after the failure. CI has never checked
-  that `reference/` stays unchanged. The fix in this commit runs that step
-  whenever its snapshot step succeeded.
-- `evals.yml` runs only on pushes and pull requests that touch `evals/**`,
+Three workflows run on GitHub: `tests`, `compose` and `evals`.
+
+- **`tests`.** Runs on `ubuntu-latest` (x86_64), `ubuntu-24.04-arm` and
+  `macos-latest`. It installs `requirements/ci.txt`, fetches Bumble at its pin,
+  generates one meeting, runs the suite with `PLAUD_STRICT_SKIPS=1`, and
+  checks that `reference/` is unchanged. An "Annotate failures" step publishes
+  failing tests as check-run annotations, named by platform. The public API
+  returns those without a token; job logs need one.
+- **`compose`.** Runs `scripts/compose-smoke.sh` on an x86_64 runner and
+  publishes the V6 timings as notices
+  ([§4.5](#45-v6-docker-runs-25-and-28-september)). It runs when the images,
+  the compose file, the smoke script or the code the images carry changes.
+- **`evals`.** Runs only on pushes and pull requests that touch `evals/**`,
   `tests/test_evals_*.py`, `tests/conftest.py`, `docs/evals.md`,
-  `requirements/evals.txt` or the workflow itself, or on manual dispatch. It is
-  not a general check.
-- Cause, reconstructed locally on 25 Sep: the old workflow installed only
-  Bumble, pytest and pytest-asyncio ("640 tests collected, 31 errors"), and the
-  two synthetic Ogg fixtures were git-ignored.
-- The fix is in this commit. `tests.yml` installs `requirements/ci.txt` into
-  `.venv`, fetches Bumble at its pin, generates one meeting, runs with
-  `PLAUD_STRICT_SKIPS=1` and compares `reference/` before and after.
-  `.gitignore` lets `tests/fixtures/*.ogg` through.
-- On GitHub (28 Sep), the fixed workflow ran on `8b72dda` (run 36381797867) and
-  `7d01b1f` (run 36385278334). Install, Bumble fetch at the pin, meeting
-  generation and the reference-tree check all passed. The Tests step failed on one
-  test, `tests/test_pipeline_energy_vad.py::test_cluster_embeddings_absorbs_an_outlier_island`
-  (1 speaker instead of 2). `7d01b1f` added an "Annotate failures" step that
-  publishes failing tests as check-run annotations, which the public API returns
-  without a token; that is how the failure was read.
-- Cause (R-CI-1): three tied eigenvalues of 1.0, whose eigenvector basis differs
-  between LAPACK builds; the clusterer cut inside the tie. An x86_64 Linux
-  container on this Mac (Rosetta, with and without Docker) passed, so only the real
-  runner showed it. Fixed in `pipeline/energy_vad.py` with a rotation test; the
-  baseline's V5 outputs re-ran identical ([`docs/pipeline.md`](pipeline.md) §2).
-- `5a3d2ff` (the fix) passed: run 36386441732, every step green, including the
-  reference-tree check. This was the first green `tests` run on GitHub.
+  `requirements/evals.txt` or the workflow itself, or on manual dispatch. It
+  is not a general check.
+
+History, all on 28 Sep unless dated:
+
+| Commit | `tests` result | Cause and fix |
+|---|---|---|
+| `70249ba` (25 Sep) | Failed in `Tests` (exit code 2); the reference-tree check was skipped | The workflow installed only Bumble, pytest and pytest-asyncio, and the two synthetic Ogg fixtures were git-ignored. Fixed in `8b72dda`: install `requirements/ci.txt`, let `tests/fixtures/*.ogg` through `.gitignore`, and run the reference-tree check whenever its snapshot step succeeded |
+| `8b72dda`, `7d01b1f` | One test failed (runs 36381797867, 36385278334): `test_cluster_embeddings_absorbs_an_outlier_island` | R-CI-1: three tied eigenvalues of 1.0, whose eigenvector basis differs between LAPACK builds. The clusterer cut inside the tie. An x86_64 container on this Mac passed, so only the real runner showed it. Fixed in `5a3d2ff` with a rotation test; the baseline's V5 outputs re-ran identical |
+| `5a3d2ff` | Passed (run 36386441732): the first green run, x86_64 only | – |
+| `d566d43` … `94de5c9` | Passed on x86_64; failed on macOS and arm64 (run 36396859963) | macOS runners have no docker CLI, so the `docker-cli-absent` gate now requires docker only on Linux. On arm64 the MFCC block-size test compared bits that differ in the last place; it now allows 1e-9. Fixed in `097eb99` |
+| `097eb99` | Failed on macOS, two tests (run 36397868107) | The mock-cloud round trip can poll past STARTED on a slow runner; polled states must now be an ordered subset, and the mock's own history must hold STARTED then SUCCESS. The raw-Opus and Ogg decodes differed; the comparison was loosened to 1e-6. Fixed in `e9e73c8` |
+| `ef5fb8d` (with `e9e73c8`) | Failed on macOS (run 36399591653) | The two Opus decodes differ on macOS over one stretch (7 807 of 576 000 samples, up to 0.059). The test now checks the pre-skip alignment instead: ≥ 98 % agreement at the offset, < 50 % one sample off. The cause of the decode difference is not established. Fixed in `c0be32e` |
+| `c0be32e`, `ed03d14`, `853062b` | Passed on all three | – |
+| `3e46ad9` | Failed on arm64 in the Install step (exit 1); x86_64 and macOS passed | Not established: the job log needs a token, and the annotations say only "Process completed with exit code 1". The next commit installed cleanly |
+| `92146bf` | Passed on all three (run 36418829234) | – |
+
+The decompiled SDK is absent in CI, so the tests that read it skip there by
+design ([§4.1](#41-tests)).
 
 ### 5.14 Milestone spikes R4–R6
 
@@ -629,19 +775,24 @@ unresolved entries. U23 is marked `DUPLICATE_OF_U15`, which leaves 24.
 
 | Item | Detail | Evidence |
 |---|---|---|
-| Diarizer over-clusters without a hint | sherpa's default `cluster_threshold` 0.5 found 95/35/36/47 clusters on four 4-speaker AMI meetings, 7–11 on the Piper meetings | [`docs/v5-results.md`](v5-results.md) |
-| meeteval's 20-speaker limit | meeteval 0.4.3 refuses cpWER above 20 speakers; `evals batch` then drops the meeting, so no no-hint AMI meeting could be scored normally | `build/v5/reports/ami/whisper-sherpa.txt` |
-| ASR not repeatable on long audio | EN2002a gave 5504, 5118 and 5223 words across three runs (WER 0.4072, 0.4371, 0.4245). faster-whisper's unseeded temperature fallback is the likely cause; that is inferred, not proven. The other meetings repeated | [`docs/v5-results.md`](v5-results.md) §8.3 |
+| V5 target missed | On all 16 AMI test meetings the best realistic configuration scores macro DER 0.6472 and cpWER 0.8428 (target 0.20 and 0.30). Speaker confusion (0.34 of reference time) and words missing from overlapped speech dominate | [`docs/v5-test-split.md`](v5-test-split.md) |
+| sherpa's default threshold over-clusters | With `cluster_threshold` 0.5, sherpa finds 35–108 clusters on 3–4-speaker AMI meetings. The calibrated 1.15 is not the default: a caller must pass it | [`docs/v5-test-split.md`](v5-test-split.md) §5 |
+| meeteval's speaker limits | meeteval 0.4.3 refuses cpWER above 20 speakers; with the guard lifted it fails above about 56. Such meetings keep DER, JER and WER but have no cpWER | [`docs/evals.md`](evals.md) |
 | sherpa diarization near chance on Piper voices | confusion 0.50 of reference time even with the hint; not traced | [`docs/v5-results.md`](v5-results.md) §8.4 |
-| Timing under contention | RTF 0.215–0.380 on a shared 8 GB M1; no quiet-machine figure | [`docs/v5-results.md`](v5-results.md) §4 |
+| Timing under contention | V5 RTFs were measured on a shared 8 GB M1 (25 Sep: 0.215–0.380; 28 Sep: 0.160–1.145); no quiet-machine figure | [`docs/v5-results.md`](v5-results.md) §4, [`docs/v5-test-split.md`](v5-test-split.md) §4 |
+| Opus decode differs on macOS | On GitHub's macOS runner, FFmpeg's Opus decoder (same PyAV, same packets) gives different samples over one ~8-packet stretch of a test clip; Linux and this Mac agree bit for bit. Cause not established | `c0be32e`; [§5.13](#513-ci) |
 | Wi-Fi join | The Android emulator sees only `AndroidWifi`; nobody approved Android's network-request dialog, so a missing hotspot is sufficient to block the join but not shown to be the only cause | R7-S14 checker record (25 Sep journal) |
 | Pen dial default | The pen dials once by default; the real phone starts its server only after a join of up to 30 s. The runs used 90 attempts; the default is unchanged | [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) D4 |
 | SDK CloseWiFi quirk | The SDK waits for the close answer on opcode 10 but type-checks it as 13, so no close status reaches the app; an opcode-10 answer arrives as status −1 | same, D5 |
 | SDK after a failed join | The Wi-Fi agent stays CONNECTING, and `endWiFiTransfer` sends nothing over BLE | same, D6 |
 | V2 scoring | "No silent corruption" holds by construction in the counted cells; the matrix measures completion | review finding T10 |
-| Remaining narrowed review findings | GEN-1 overlap target still short on one preset (worst −0.043); EV-4 not compared with NIST md-eval; PIPE-05 checked only against stand-ins; PIPE-01 still miscounts two held-out smoke seeds without the hint; MC-3 checked with h11, not GoReplay | [`docs/progress-report.md`](progress-report.md) §8.1 |
-| Piper metadata | `meeting.json` lacks the voice hash, timing method and LibriTTS-R attribution | [`docs/generator.md`](generator.md) §8 |
-| Debug activities exported | `K3CaptureActivity`, `PullCaptureActivity` and `WifiCaptureActivity` are declared `android:exported="true"` in `src/main/AndroidManifest.xml`. So they are in every build type, release included, and other apps on the phone can start them. [`r7/README.md`](../r7/README.md) calls them "DEBUG-ONLY" | `r7/android-app/app/src/main/AndroidManifest.xml` lines 65-78 |
+| Remaining narrowed review findings | GEN-1 overlap target still short on one preset (worst −0.043); PIPE-05: the pyannote and whisperx adapters checked only against stand-ins; PIPE-01 still miscounts two held-out smoke seeds without the hint. EV-4 (md-eval) and MC-3 (GoReplay) were closed on 28 Sep | [`docs/progress-report.md`](progress-report.md) §8.1 |
+
+Fixed on 28 Sep and removed from this table: ASR not repeatable on long audio
+(now seeded); evals dropping a meeting that meeteval refused; Piper metadata
+missing from `meeting.json`; the three debug activities exported from
+`src/main` (now in the debug source set only; the merged release manifest has
+none of them).
 
 ### 6.3 Licence questions
 
@@ -655,40 +806,51 @@ GPL-3.0-or-later and optional.
 
 **The repository.** The working tree declares AGPL-3.0 (`LICENSE`) for
 everything except `r7/android-app/`, which is Apache-2.0
-(`r7/android-app/LICENSE` and `NOTICE-MODIFICATIONS.md`). All three files are
-added in this commit. The earlier public commit `70249ba` had no licence file, and the GitHub API
-reports `license: null`, so the published repository grants no licence. Its
-149 `r7/android-app/` files (147 copied from Plaud's Apache-2.0 template, plus
-our two debug drivers) are public without the Apache-2.0 text (section 4(a))
-or the notice of modifications (section 4(b)). Committing the three files
-closes that gap.
+(`r7/android-app/LICENSE` and `NOTICE-MODIFICATIONS.md`). All three files were
+added in `8b72dda`, and the GitHub API has reported AGPL-3.0 since (checked
+29 Sep). `70249ba`, the first push (with its parent scaffold `09c8922`), had no licence file. Its 149
+`r7/android-app/` files (147 copied from Plaud's Apache-2.0 template, plus our
+two debug drivers) stay public in that commit's history without the
+Apache-2.0 text (section 4(a)) or the notice of modifications (section 4(b)).
+`NOTICE-MODIFICATIONS.md` also records the move of the drivers into the debug
+source set (`7740153`).
 
 ### 6.4 Never run
 
 - The iOS SDK. This machine has only the Xcode command-line tools
   (`xcode-select -p` → `/Library/Developer/CommandLineTools`).
 - Any real Plaud device, account or credential.
-- CI on macOS or on arm64 Linux runners; GitHub runs only ubuntu-latest (x86_64).
-- V6 on x86_64, on a GitHub runner, or from a cold cache.
-- The four model adapters listed in §5.10.
-- V5 on the full 16-meeting test split; any AMI dev-split calibration.
-- The blank-token drivers for R7-S12 (`K3CaptureActivity`) and R7-S14
-  (`WifiCaptureActivity`). The code passes a blank token; only the pull driver
-  was re-run that way.
+- `pyannote-audio`, `faster-whisper+pyannote` and `whisperx` against a model
+  (pyannote's models are gated behind a Hugging Face account).
+- The Wi-Fi transfer with the real SDK beyond the join.
 - The mock cloud against the real template app.
-- The real-model faster-whisper test,
-  `test_real_faster_whisper_on_a_generator_clip` ([§4.1](#41-tests)).
-- The CI step that checks `reference/` ([§5.13](#513-ci)).
+- A V5 speed measurement on a quiet machine.
+
+Done on 28 Sep and removed from this list: CI on macOS and arm64 Linux; V6 on
+x86_64, on a GitHub runner, from a cold cache; `embedding-cluster` against its
+model; V5 on the full 16-meeting test split; the AMI dev-split calibration;
+the blank-token K3 and Wi-Fi drivers; the CI step that checks `reference/`.
+On 29 Sep, the two real-model faster-whisper tests passed with
+`PLAUD_HARNESS_FW_MODEL` set to the pinned `small.en` (2 passed in 67.01 s);
+they still skip in a default run ([§4.1](#41-tests)).
 
 ### 6.5 Review coverage
 
-An independent review of the phase-3 layers on 25 Sep produced 71 findings
-(23 major, 48 minor; 69 confirmed, 2 plausible, none refuted; IDs in the
-25 Sep stage-1 journal). Each was fixed or narrowed. The phase-1 protocol code
-and the Android rigs were not reviewed line by line. Most code, including the
-fixes, was written by delegated agents.
+- **Phase-3 layers (25 Sep).** An independent review produced 71 findings
+  (23 major, 48 minor; 69 confirmed, 2 plausible, none refuted; IDs in the
+  25 Sep stage-1 journal). Each was fixed or narrowed.
+- **Phase-1 protocol code (28 Sep).** A review of the advertising, handshake,
+  sealed path, transfer, file list, audio, peripheral and `serve.py` code
+  reported 28 findings. The confirmed defects were fixed in `3fb2d27`, each
+  with a test ([§5.2](#52-ble-emulator-and-legacy-handshake)). The same pass
+  withdrew one R6-S1 claim (the second witness for the 512-byte header) and
+  corrected four ledger passages (§6.3, §5.8, §5.9 and the opcode-138 entry).
+- **Not reviewed line by line.** The Android rigs, and the 28 Sep V5 and
+  calibration scripts, which were checked by their outputs (replay identity,
+  re-assignment identity, md-eval) rather than by a separate reviewer.
+- Most code, including the fixes, was written by delegated agents.
 
-### 6.6 Documents that disagreed with the evidence (fixed 28 Sep)
+### 6.6 Documents that disagreed with the evidence (fixed 28 and 29 Sep)
 
 A check of every document against the evidence on 28 Sep found 15 stale or wrong
 passages. All were corrected at the source before this commit:
@@ -711,6 +873,25 @@ passages. All were corrected at the source before this commit:
 - `docs/repository-map.md` (a 21 Sep snapshot) and `dump.md` (the raw research
   conversation, with claims later refuted) now carry notices at the top.
 
+**29 Sep.** Two more checks ran before this version was committed. Each used
+independent checkers, one per part, and a skeptic that tried to refute every
+finding against the evidence.
+
+- The first covered this document, the progress report, README, PROJECT.md and
+  the V5 documents: 708 claims checked, 32 findings.
+- The second covered the `embedding-cluster` write-ups, the day's code changes
+  and the consistency across documents: 464 claims checked, 24 findings.
+
+Every confirmed finding was fixed at the source, including passages older than
+this pass: `docs/evals.md` and `docs/pipeline.md` still said V5 had not run, and
+the gen-key comment in the three Kotlin drivers was wrong. The code review found
+one defect in recorded metadata. `hyp.extra.assignment.rule` described the
+`floor` tie-break whatever tie-break ran; it now names the one used
+(`pipeline/base.py` `assignment_rule`), and the 28 Sep hypotheses keep the old
+text. It also found robustness gaps in `scripts/calibrate-embedding-cluster.py`.
+Its 29 Sep reports were checked to be complete: all 45 cover 18 meetings with no
+error.
+
 No other disagreement was known when this commit was made. §12 says how to re-check.
 
 ## 7. Corrections that changed the picture
@@ -718,7 +899,7 @@ No other disagreement was known when this commit was made. §12 says how to re-c
 | What was believed | What is true | How it was found | Recorded in |
 |---|---|---|---|
 | A transfer ends HEAD · DATA · TAIL (phase-1 frozen claim) | The SDK completes only on an EMPTY_PACKAGE sent before the TAIL. TAIL alone, or EMPTY_PACKAGE after the TAIL, never completes | R7-S13 runtime (runs 1/1b/2/9 and 7 vs 3/4b/8) | Ledger §5.8, §15; U17 |
-| On a gap the SDK sends stopSync (original ledger); then, from bytecode at R7-S12: stopSync only after a 5 s stall | On a gap the SDK writes stopSync at once and restarts from its cursor about 35 ms later (run 6b: +1.720 s → +1.755 s) | R7-S13 runtime | Ledger §5.8; the matrix's resolved entry still has the R7-S12 wording |
+| On a gap the SDK sends stopSync (original ledger); then, from bytecode at R7-S12: stopSync only after a 5 s stall | On a gap the SDK writes stopSync at once and restarts from its cursor about 35 ms later (run 6b: +1.720 s → +1.755 s) | R7-S13 runtime | Ledger §5.8; the matrix's resolved entry (corrected in `8b72dda`) |
 | The opcode-10 byte is on/off, and 0 means "hotspot off" | `startWifiTransfer` sends 0 to open; `setDeviceWiFi(true)` sends 1; closing uses opcode 13. The emulator now opens on every opcode 10 and logs the byte as `mode`; its meaning is UNKNOWN. 4 tests fail against the old handler | R7-S14 (D1) | `emulator/plaudsim/profile.py`, ledger §7 |
 | SSID = `Plaud` + last 4 serial digits | SSID comes from `BleDevice.getWiFiName()`: for project 881 below portVersion 20 it is `PLAUD` + last 4 (`PLAUD0001` at runtime); the other rule is only a fallback | R7-S14 (D2): bytecode + runtime | [`docs/wifi-transport.md`](wifi-transport.md), ledger §7 |
 | Wi-Fi handshake token = BLE token, with the same padding | On the recovery path they differ (21 vs 13 characters at runtime). The Wi-Fi token uses `padEnd(…, 32, '0')`, which never truncates; k3 truncates | R7-S14 (D3); review T12 | same |
@@ -731,18 +912,25 @@ No other disagreement was known when this commit was made. §12 says how to re-c
 | The early research dump: the recorder is ESP32-class; `live-agent` derives from livekit/agents; xiaozhi is reference firmware for the recorder | All refuted, with others, in a 38-item audit | Phase-2 content comparison | [`docs/final-product-reconstruction.md`](final-product-reconstruction.md) §6 |
 | Evidence graph has 2 004 edges | 2 072 | Recount 24 Sep | PROJECT.md §8 |
 | 11 wording and precision points in `docs/v5-results.md` | Corrected; no table, threshold or conclusion changed | Stage-2 verifier | [`docs/v5-results.md`](v5-results.md) §12 |
+| `advertise()` sends what the SDK scans for | It sent the blob without a company id, in 42–44 bytes, over the 31-byte legacy limit. Since `3fb2d27` it sends the 29-byte layout the runtime rigs used | Phase-1 code review, 28 Sep | [§5.2](#52-ble-emulator-and-legacy-handshake); `tests/test_review_phase1.py` |
+| An empty transfer is HEAD · EMPTY_PACKAGE · TAIL (emulator policy) | By the receiver's rules R2 and R9 that makes the SDK restart forever. The emulator now answers with one failing HEAD (status 1) | Phase-1 code review, 28 Sep | [`docs/v2-fault-matrix.md`](v2-fault-matrix.md) §5a |
+| A file list longer than one notification reaches the SDK | Bumble truncated an oversized frame (a 25-entry list at MTU 255 arrived with 24 entries), and the SDK never completed getFileList. Frames are now sized to the MTU | Phase-1 code review, 28 Sep | same |
+| R6-S1 had two witnesses for the 512-byte audio header | One was an inference; `h4_payload_spans` is relabelled, and `h4_bytecode_payload_spans` models what `h4.a` executes | Phase-1 code review, 28 Sep | [`r6-s1/README.md`](../r6-s1/README.md) |
+| ASR non-repeatability was probably the unseeded temperature fallback (inferred, 25 Sep) | Consistent with it: CTranslate2 seeded before the model is built repeats sampled output across processes, and re-seeding inside a process does not. With seeding, a fresh process reproduced EN2002a exactly | 28 Sep | [`docs/pipeline.md`](pipeline.md) §11.8 |
+| sherpa's default `cluster_threshold` (0.5) is a usable default | On AMI it finds 35–108 clusters for 3–4 speakers. The dev split selects 1.15 | Dev-split calibration, 28 Sep | [`docs/v5-test-split.md`](v5-test-split.md) §3 |
+| The 4-meeting V5 subset might not represent the split | It did: hinted DER 0.6557 and cpWER 0.8533 on 4 meetings; 0.6396 and 0.8567 on 16 | Full split, 28 Sep | same, §6 |
 
 ## 8. Rules, and how they held
 
 | Rule | How it held | Evidence |
 |---|---|---|
-| `reference/**` is immutable | Held. 33/33 repositories clean and at their pins on 28 Sep, before and after the suite. The CI workflow compares the tree before and after | [§4.3](#43-reference-corpus); `.github/workflows/tests.yml` |
+| `reference/**` is immutable | Held for tracked content: 33/33 repositories clean and at their pins on 28 and 29 Sep, and CI compares the tree before and after the suite. One lapse in untracked files: on 28 Sep an unguarded `python -c` that imported Bumble wrote `__pycache__` directories into `reference/upstream/bumble`. They were git-ignored, so `git status` did not show them. They were removed, and every Python call now sets `PYTHONDONTWRITEBYTECODE=1`. Still present and ignored there: the documented editable install's `bumble.egg-info/` and `bumble/_version.py` (23 Sep), and a `tests/.pytest_cache/` from 21–22 Sep | [§4.3](#43-reference-corpus); `.github/workflows/tests.yml`; `git -C reference/upstream/bumble status --porcelain --ignored` |
 | `javap` beats jadx | Held; ledger §11 lists the traps | [`docs/protocol-ledger.md`](protocol-ledger.md) |
 | No Plaud device, account or credential | Held. None was used | – |
 | Identifiers are synthetic | Held for what this document checked: id `SYNTH-HIST-0001`, serial `8810000001`, session `1700000000`, a synthetic fixture file. The template app's `local.properties` holds a placeholder token per [`r7/README.md`](../r7/README.md); it was not opened for this document | R7 reports |
 | Evidence classes stay distinct | Held in the protocol and product documents; harness choices carry `HARNESS_POLICY` | Ledger, product ledger |
-| SDK binaries are not redistributed | Held. Neither pushed commit contains the SDK, and this commit adds none. Near miss, 28 Sep: a `.gitignore` edit that published `build/v5/` and `build/v6/` also un-ignored the nested Android build folders, one of which holds a dexed copy of the SDK (`r7/android-app/app/build/.../0_plaud-sdk-runtime.jar`). A fact-checker caught it before any commit; the rule `*/**/build/` now keeps every nested build folder ignored, and the would-be commit was scanned for jar/dex/zip/class content (none) | `.gitignore`; `git check-ignore -v` on the jar |
-| No contact with Plaud's cloud | **Not held.** We never called a Plaud endpoint from our own code. The official SDK did, because our drivers gave it a synthetic token. It sent one `gen-key` request per app start, logged in all 22 kept R7-S13 and R7-S14 logs that cover app start; R7-S14 run 1's truncated log does not cover it, so that request is inferred. 19 of the 22 logged requests were answered 401 and 3 failed at DNS. No response data was used. The 401 responses (status, Cloudflare headers, `x-request-id`) are archived in 14 of the 17 R7-S13 logs, which are public in `70249ba`. On 25 Sep the three drivers were changed to a blank token. Only the pull driver was re-run that way, once, offline. The template's own UI path still passes the `local.properties` token ([§9](#9-how-to-reproduce)) | [§4.8](#48-plaud-cloud-contact-in-the-runtime-logs); [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) D7; `r7/android-app/app/src/main/java/com/plaud/template/managers/DeviceManager.kt:177-181` |
+| SDK binaries are not redistributed | Held. No commit in the history contains an `.aar`, `.dex`, `.apk`, `.so` or `.class` file; its only jars are the two Gradle wrappers (checked 29 Sep with `git log --all --name-only`). Near miss, 28 Sep: a `.gitignore` edit that published `build/v5/` and `build/v6/` also un-ignored the nested Android build folders, one of which holds a dexed copy of the SDK (`r7/android-app/app/build/.../0_plaud-sdk-runtime.jar`). A fact-checker caught it before any commit; the rule `*/**/build/` now keeps every nested build folder ignored, and the would-be commit was scanned for jar/dex/zip/class content (none) | `.gitignore`; `git check-ignore -v` on the jar |
+| No contact with Plaud's cloud | **Not held.** We never called a Plaud endpoint from our own code. The official SDK did, because our drivers gave it a synthetic token. It sent one `gen-key` request per app start, logged in all 22 kept R7-S13 and R7-S14 logs that cover app start; R7-S14 run 1's truncated log does not cover it, so that request is inferred. 19 of the 22 logged requests were answered 401 and 3 failed at DNS. No response data was used. The 401 responses (status, Cloudflare headers, `x-request-id`) are archived in 14 of the 17 R7-S13 logs, which are public in `70249ba`. On 25 Sep the three drivers were changed to a blank token and the pull driver was re-run offline. On 28 Sep the K3 and Wi-Fi drivers were re-run the same way: no request in any full logcat. The template's own UI path still passes the `local.properties` token ([§9](#9-how-to-reproduce)) | [§4.8](#48-plaud-cloud-contact-in-the-runtime-logs); [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) D7; `r7/android-app/app/src/main/java/com/plaud/template/managers/DeviceManager.kt:177-181` |
 | Downloads of Plaud's public material (outside the rule above) | On 23 Sep, without authentication, the project downloaded 43 files from `docs.plaud.ai` (including the `llms.txt` index and 5 OpenAPI specs) into `build/docs-plaud-ai/`. It also fetched two official npm packages, `@plaud-ai/cli` 0.3.14 and `@plaud-ai/mcp` 0.3.13, from registry.npmjs.org into `build/npm-plaud/`. These are public downloads, not API calls. Both folders are git-ignored | `build/docs-plaud-ai/manifest.json`, `build/npm-plaud/manifest.json`, [`docs/source-map.md`](source-map.md) |
 
 ## 9. How to reproduce
@@ -790,6 +978,20 @@ The rescore line rewrites `build/v5/reports/`, `build/v5/gates/`,
 `build/v5/summary.md` and `build/v5/summary.json` in place. Since 28 Sep those
 files are meant to be published. To rescore without touching them, copy
 `build/v5/` elsewhere and point `V5_OUT` at the copy.
+
+The full test split and the calibrations. The complete command lines are in
+[`docs/v5-test-split.md`](v5-test-split.md) §11:
+
+```bash
+./scripts/calibrate-sherpa.sh                        # 18 dev meetings: threshold and tie-break (build/v5-calib/)
+V5_OUT=build/v5-test V5_AMI_ROOT=data/corpora/ami/test V5_AMI_MEETINGS="<16 ids>" ... ./scripts/run-v5.sh
+./scripts/crosscheck-md-eval.sh build/v5-test data/corpora/ami/test
+./scripts/crosscheck-goreplay.sh                     # mock cloud export replayed by gor
+# embedding-cluster needs torch and SpeechBrain; keep them out of .venv, and never install reference/ into it
+python3.11 -m venv .venv-torch && .venv-torch/bin/pip install -r requirements/all.txt torch==2.14.0 torchaudio==2.11.0 speechbrain==1.1.1   # the versions used
+PYTHONDONTWRITEBYTECODE=1 .venv-torch/bin/python scripts/calibrate-embedding-cluster.py              # dev split
+PYTHONDONTWRITEBYTECODE=1 .venv-torch/bin/python scripts/calibrate-embedding-cluster.py --test-root data/corpora/ami/test
+```
 
 Runtime rig (Android SDK, an API-34 AVD, JDK 17, Gradle 8.2; full steps in
 [`r7/r7-s12-k3-runtime-capture.md`](../r7/r7-s12-k3-runtime-capture.md)
@@ -840,11 +1042,11 @@ emulated phone offline as a second guard.
 | Plaud's cloud surfaces | [`r7/cloud-endpoint-inventory.md`](../r7/cloud-endpoint-inventory.md), [`docs/architecture/cloud.md`](architecture/cloud.md) |
 | The product above the radio | [`docs/final-product-reconstruction.md`](final-product-reconstruction.md), [`docs/product-ledger.md`](product-ledger.md), [`docs/architecture/`](architecture/), [`docs/source-map.md`](source-map.md), [`docs/evidence-graph.json`](evidence-graph.json) |
 | Harness layers | [`docs/v2-fault-matrix.md`](v2-fault-matrix.md), [`docs/wifi-transport.md`](wifi-transport.md), [`docs/generator.md`](generator.md), [`docs/evals.md`](evals.md), [`docs/pipeline.md`](pipeline.md), [`docs/mockcloud.md`](mockcloud.md), [`docs/integration.md`](integration.md), [`docs/compose.md`](compose.md) |
-| Real-model numbers | [`docs/v5-results.md`](v5-results.md); `build/v5/` (committed evidence; see `build/v5/README.md`) |
+| Real-model numbers | [`docs/v5-test-split.md`](v5-test-split.md) (full test split, 28 Sep); `build/v5-test/` and `build/v5-calib/` (committed evidence; see their `README.md`); [`docs/v5-results.md`](v5-results.md) (25 Sep subset); `build/v5/` (committed evidence; see `build/v5/README.md`) |
 | Docker run log | `build/v6/compose-smoke-2026-09-25.log`, and `build/v6/docker-env-2026-09-28.txt` for the VM size (both committed evidence) |
 | Reference corpus | [`docs/SOURCES.md`](SOURCES.md), [`docs/reference-pins.txt`](reference-pins.txt); `reference/` (git-ignored) |
-| Skip gates and CI | `tests/conftest.py`, `.github/workflows/tests.yml`, `.github/workflows/evals.yml` |
-| Scripts (`scripts/`) | `fetch-references.sh` (the 33 pinned repositories); `build-evidence.sh` (decompiles the SDK; checks the AAR sha256); `fetch-sdk.sh` (DEPRECATED shim; `PROJECT.md` line 40 still points to it); `fetch-datasets.sh` (`--list`, `--sample`, `--all`; never bulk-downloads by default); `make-synthetic-set.sh` (the CI `tests` workflow uses it); `generate_r6s2_fixture.py` (writes the two `tests/fixtures/r6s2_*.ogg` and their manifest); `extract_protocol.py` (writes `docs/protocol.json`); `extract_evidence_digest.py`; `build_evidence_graph.py`; `compose-smoke.sh`; `local-up.sh`; `run-v5.sh` |
+| Skip gates and CI | `tests/conftest.py`, `.github/workflows/tests.yml`, `.github/workflows/compose.yml`, `.github/workflows/evals.yml` |
+| Scripts (`scripts/`) | `fetch-references.sh` (the 33 pinned repositories); `build-evidence.sh` (decompiles the SDK; checks the AAR sha256); `fetch-sdk.sh` (DEPRECATED shim); `fetch-datasets.sh` (`--list`, `--sample`, `--all`; never bulk-downloads by default); `make-synthetic-set.sh` (the CI `tests` workflow uses it); `generate_r6s2_fixture.py` (writes the two `tests/fixtures/r6s2_*.ogg` and their manifest); `extract_protocol.py` (writes `docs/protocol.json`); `extract_evidence_digest.py`; `build_evidence_graph.py`; `compose-smoke.sh`; `local-up.sh`; `run-v5.sh` (V5 runs, any pinned AMI set); `calibrate-sherpa.sh` (sherpa threshold and tie-break on the dev split); `calibrate-embedding-cluster.py` (the same for `embedding-cluster`, and its test-split hypotheses); `crosscheck-md-eval.sh` (DER against NIST md-eval); `crosscheck-goreplay.sh` and `tools/http_recorder.py` (the mock's export replayed by GoReplay) |
 | Topology helpers | `docker/job.sh`; `docker/probe.py` (readiness probes); `docker/cloud_roundtrip.py` (the job's mock-cloud round trip); `docker/compose.host-ports.yml` (optional override that publishes the services on host loopback) |
 | Runtime-rig devices | `r4-s3/plaud_netsim_peripheral.py` (R4-S3); `r7/k3_capture_peripheral.py` (R7-S12); `r7/pull_capture_peripheral.py` (R7-S13 and the offline check); `r7/wifi_capture_device.py` (R7-S14). The last one's default capture path, `r7/wifi-capture.json`, is not git-ignored ([`r7/README.md`](../r7/README.md)) |
 | Test support and fixtures | `tests/conftest.py` (skip gates); `tests/fault_support.py` (the V2 receiver model); `tests/protocol_trace.py`, `sealed_support.py`, `support.py`, `wifi_support.py`; `tests/fixtures/r6s2_16k_mono.ogg`, `r6s2_16k_stereo.ogg` and `r6s2_manifest.json` (sha256 pins); `tests/fixtures/ami_tiny/` (a hand-made miniature, not AMI data) |
@@ -852,7 +1054,7 @@ emulated phone offline as a second guard.
 | Inputs to the evidence graph | `docs/product-evidence/` (8 JSON files). `scripts/build_evidence_graph.py` reads `agent-findings-2026-09-23.json` from it |
 | Early and superseded records (all public in `70249ba`) | `docs/forensics-report.md` (21 Sep inventory); `docs/protocol-spec.md` and `docs/protocol.json` (both marked "SUPERSEDED IN PART"; the JSON is the class census from `scripts/extract_protocol.py`); `docs/repository-map.md` (21 Sep; says the code directories are empty); `dump.md` (the raw research chat, with claims refuted in [`docs/final-product-reconstruction.md`](final-product-reconstruction.md) §6) |
 | Dependencies | `requirements/all.txt`, `requirements/ci.txt` (`-r all.txt`), `requirements/models.txt` (optional), and per-layer `evals.txt`, `faults.txt`, `generator.txt`, `mockcloud.txt`, `pipeline.txt`, `wifi.txt`. In `all.txt`, `cryptography`, `grpcio` and `protobuf` carry no version pin, and `websockets` is a range (`>=17,<18`) |
-| Code size (`wc -l`, 28 Sep) | `emulator/plaudsim/` 6 731; `generator/` 4 081; `evals/` 3 902; `pipeline/` 4 934; `mockcloud/` 2 766; tests 24 444 in 80 Python files (74 `test_*.py`); Kotlin drivers 678 |
+| Code size (lines of Python, 29 Sep) | `emulator/plaudsim/` 7 011; `generator/` 4 130; `evals/` 3 993; `pipeline/` 5 698; `mockcloud/` 2 766; tests 25 223 in 81 Python files (75 `test_*.py`); Kotlin drivers 678 (`r7/android-app/app/src/debug/`) |
 
 ## 11. What is next
 
@@ -860,21 +1062,22 @@ In order. Each item names what blocks it and what would unblock it.
 
 | # | Item | Blocked on | Unblocked by |
 |---|---|---|---|
-| 1 | Keep CI green | – | The "Annotate failures" step publishes any failing test through the public API ([§5.13](#513-ci)) |
-| 2 | Decide whether to keep absolute local paths in the published V5 evidence | Owner's call | 152 files in `build/v5/` contain `/Users/…` paths from the run; they are left byte-identical as produced |
-| 3 | Re-run the K3 and Wi-Fi drivers with the blank token, offline | An Android emulator session | One run each, as in the offline check |
-| 4 | Make `evals batch` report DER/JER when meeteval refuses > 20 speakers | Not started | A code change in `evals/` |
-| 5 | Calibrate sherpa's `cluster_threshold` and the word-assignment tie-break | No AMI dev-split audio here, and `scripts/run-v5.sh` covers only 4 test meetings. Test meetings must not be used for tuning | Fetch and convert the 18 dev meetings (CC BY 4.0) and sweep `--param cluster_threshold=` over them. The tie-break (`pipeline/base.py`, `SpeakerIndex`) has no parameter, so it needs a code change |
-| 6 | Make ASR decoding repeatable | faster-whisper's temperature fallback is unseeded, and the pipeline exposes no temperature or seed parameter | A code change in `pipeline/whisper_sherpa.py` or `pipeline/adapters.py`: decode at temperature 0 only, seed the fallback, or at least record per-segment temperatures |
-| 7 | V5 on the full test split | Audio for 12 of 16 test meetings is not here. `scripts/run-v5.sh` knows only the 4 pinned meetings, and its gates stage never runs `ami-headset` | Extend `AMI_MEETINGS` and the sha256 pins in `scripts/run-v5.sh`, or fetch the 12 Mix-Headset WAVs (CC BY 4.0) by hand. Run `python -m evals.ami convert --meeting <ID>` for each, then the script's infer and score stages. Then run `python -m evals batch --refs data/corpora/ami/meetings --hyps build/v5/hyp/ami/<system> --gates evals/gates.yaml --suite ami-headset` by hand |
-| 8 | Export Piper metadata into `meeting.json` | Not started | A code change in `generator/export.py`: carry `voice_sha256` and `timing_method` from the Piper backend (`generator/tts/piper.py:750`, `:860`) and the LibriTTS-R attribution. Today `timing_exact` is `true` in every Piper `meeting.json` |
-| 10 | Wi-Fi with the real SDK | The Android emulator cannot join `PLAUD0001` | A hotspot the emulated phone can join, or a physical phone and a real SoftAP; raise the pen's dial attempts for that run |
-| 11 | Device questions (U1, U15, U17, U2, U22 and the others in [§6.1](#61-open-questions-24)) | No hardware | One passive BLE scan capture and one transfer capture of any legacy Plaud recorder |
-| 12 | Real firmware's audio shape (U20) | No real recording | One recording the operator lawfully owns |
-| 13 | iOS SDK at runtime | No Xcode | Xcode with a simulator, plus a Bluetooth bridge |
-| 14 | Piper voice licence | Research-only base-voice licence | An owner's decision before redistributing Piper audio |
-| 15 | Encrypted protocol with the real SDK (CRED-1) | Cloud-issued key material | Legitimate partner credentials; deliberately not pursued |
-| 16 | Review the phase-1 protocol code | Not scheduled | An independent review like the 25 Sep one |
+| 1 | Keep CI green on all three platforms | – | The "Annotate failures" step publishes any failing test through the public API ([§5.13](#513-ci)). An install failure (as on `3e46ad9`) needs the job log, which needs a token |
+| 2 | Decide whether to keep absolute local paths in the published V5 evidence | Owner's call | 152 files in `build/v5/` contain `/Users/…` paths from the run; they are left byte-identical as produced. `build/v5-test/` and `build/v5-calib/` carry the same kind of paths |
+| 3 | Improve speaker attribution, the main V5 error | Engineering, not blocked | The strongest lead: `embedding-cluster`'s ECAPA turns score DER 0.3708 with the hint, against 0.5192 for sherpa's; attaching the transcript to them (no model run) should first be justified on the dev split, since this lead was found on test. Its unaided speaker count needs work (one speaker on 8 of 16 meetings). Other candidates, none built or measured as a system: report sherpa's own turns as the diarization output (they already score DER 0.5263 calibrated, against 0.6472 for the word runs) and keep the words for cpWER; overlap-aware word assignment; a stronger embedding model; calibrate `min_duration_on/off` on the dev split |
+| 4 | pyannote-based systems on the full split (`pyannote-audio`, `faster-whisper+pyannote`, `whisperx`) | pyannote's models are gated | A Hugging Face account that has accepted their terms, and its token in the environment (never committed) |
+| 5 | A V5 speed figure | This 8 GB M1 was always shared | One run with nothing else on the machine |
+| 6 | Wi-Fi with the real SDK | The Android emulator cannot join `PLAUD0001` | A hotspot the emulated phone can join, or a physical phone and a real SoftAP; raise the pen's dial attempts for that run |
+| 7 | Device questions (U1, U15, U17, U2, U22 and the others in [§6.1](#61-open-questions-24)) | No hardware | One passive BLE scan capture and one transfer capture of any legacy Plaud recorder |
+| 8 | Real firmware's audio shape (U20) | No real recording | One recording the operator lawfully owns |
+| 9 | iOS SDK at runtime | No Xcode | Xcode with a simulator, plus a Bluetooth bridge |
+| 10 | Piper voice licence | Research-only base-voice licence | An owner's decision before redistributing Piper audio |
+| 11 | Encrypted protocol with the real SDK (CRED-1) | Cloud-issued key material | Legitimate partner credentials; deliberately not pursued |
+
+Done since the 28 Sep morning version of this list: the blank-token K3 and
+Wi-Fi re-runs; `evals` scoring DER/JER when meeteval refuses; sherpa
+threshold and tie-break calibration; repeatable ASR; V5 on the full test
+split; Piper metadata in `meeting.json`; the phase-1 code review.
 
 ## 12. How to keep this document true
 
@@ -888,16 +1091,19 @@ re-measured, keep it and keep its date. Do not round.
 | Tests per area | `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ --collect-only -q -p no:cacheprovider \| grep '::' \| sed 's/::.*//' \| sort \| uniq -c` | §4.1 |
 | Verifiers | the loop in §9 | §4.2 |
 | Reference pins | for each `reference/*/*/`: `git rev-parse HEAD` equals its line in `docs/reference-pins.txt`, and `git status --porcelain` is empty; `shasum -a 256` of the AAR | §4.3 |
-| V5 numbers | `V5_STAGES=score,gates,summary ./scripts/run-v5.sh`, then `build/v5/summary.md`. This rewrites `build/v5/` in place; set `V5_OUT` to a copy to leave it alone (§9) | §4.4 |
+| V5 numbers, 25 Sep subset | `V5_STAGES=score,gates,summary ./scripts/run-v5.sh`, then `build/v5/summary.md`. This rewrites `build/v5/` in place; set `V5_OUT` to a copy to leave it alone (§9) | §4.4 |
+| V5 numbers, full test split | the rescore line in [`docs/v5-test-split.md`](v5-test-split.md) §11 with `V5_STAGES=score,gates,summary`, then `build/v5-test/summary.md`; `./scripts/crosscheck-md-eval.sh build/v5-test data/corpora/ami/test` | §4.4 |
+| Calibrations | `build/v5-calib/summary.md`, `build/v5-calib/tiebreak.md`, `build/v5-calib/embedding-cluster/selected.json` | §4.4, §5.10 |
+| Real-model ASR tests | `PLAUD_HARNESS_FW_MODEL=$PWD/data/models/faster-whisper/small.en PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/test_pipeline_adapters.py -k real_faster_whisper -p no:cacheprovider` | §6.4 |
 | V6 timings | `./scripts/compose-smoke.sh` (lines `build_s`, `up_wait_s`, `job_s`) | §4.5 |
 | R7-S13 hashes | `cd r7/r7-s13-evidence && shasum -a 256 -c SHA256SUMS` (60 archived files); `grep -a -h PULLCAP_ r7/r7-s13-evidence/logcat-*.log \| grep -o 'sha256=[0-9a-f]*' \| sort \| uniq -c`; `shasum -a 256 tests/fixtures/r6s2_16k_mono.ogg` | §4.6 |
 | Fault matrix | after a suite run, count `outcome` values in `build/v2-fault-matrix.json` | §4.7 |
-| Cloud contact | `grep -a -l gen-key r7/r7-s1[34]-evidence/*.log \| wc -l`; `grep -a -l 'Status: 401' …` | §4.8 |
+| Cloud contact | `grep -a -l gen-key r7/r7-s1[34]-evidence/*.log \| wc -l`; `grep -a -l 'Status: 401' …`; `for f in r7/r7-s14-evidence/blank-token-drivers-check/*.gz; do gzip -dc $f \| grep -a -c gen-key; done` | §4.8 |
 | Open questions | count `status` values in `docs/final-uncertainty-matrix.json` `unresolved` | §6.1 |
 | GitHub CI | `curl -s "https://api.github.com/repos/ORION2809/PLAUDE_EMULATOR_REV-ENG/actions/runs?per_page=5"` | top, §5.13 |
 | Working-tree state | `git status --porcelain \| wc -l`; `git status --porcelain -uall \| grep -c '^??'`; `git log --oneline` | top |
-| SDK copies left unignored | `git check-ignore -v r7/android-app/app/build/intermediates/external_file_lib_dex_archives/debug/0_plaud-sdk-runtime.jar` (exit 1 means not ignored) | §8, §11 |
+| SDK copies left unignored | `git check-ignore -v r7/android-app/app/build/intermediates/external_file_lib_dex_archives/debug/0_plaud-sdk-runtime.jar` (exit 1 means not ignored) | §8 |
 
 When a rung, a component status or a correction changes, update §2, §3 and
-§7 in the same edit. When the stale passages in §6.6 are fixed, delete their
-rows.
+§7 in the same edit. If a document is found to disagree with the evidence,
+list it in §6.6 until it is fixed at the source.
