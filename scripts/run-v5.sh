@@ -18,8 +18,9 @@
 #   build/v5/summary.{json,md}                                       the tables docs/v5-results.md quotes
 #
 # Idempotent: an input that is present (and verifies) is not downloaded again, a
-# hypothesis that exists is not recomputed (FORCE=1 recomputes), scoring and the
-# summary are always recomputed (cheap and deterministic).
+# hypothesis that exists is not recomputed (FORCE=1 recomputes), scoring is
+# recomputed for every system (or only the V5_SCORE_ONLY ones, keeping the other
+# reports), and the summary is always recomputed (deterministic).
 #
 # Environment:
 #   PYTHON=...            interpreter (default .venv/bin/python)
@@ -46,6 +47,8 @@
 #                         words re-assigned to its own turns with another tie-break, from the ASR
 #                         cache, no model run (pipeline/adapters.py reassign_hypothesis); the
 #                         derive stage first checks that the source's own tie-break reproduces it
+#   V5_SCORE_ONLY="name ..."   the score stage scores only the systems with exactly these names
+#                         (e.g. systems added after a full run); every other report is kept as is
 #
 # Exit codes: 0 ok (every gate passed); 1 a gate failed; 2 an inference run failed;
 # 3 a local-only input is missing and could not be provided; 4 gave up waiting.
@@ -367,9 +370,9 @@ for spec in ${REASSIGN_SPECS[@]+"${REASSIGN_SPECS[@]}"}; do REASSIGN_NAMES+=("${
 #                   can be read without the word-run segmentation (docs/pipeline.md §11.7);
 #   <sys>-wordruns  the hypothesis's own word-run segments with the text removed.  DER/JER
 #                   ignore text, so these equal the full hypothesis's DER/JER; they exist
-#                   because evals cannot score cpWER for a hypothesis with > 20 speakers and
-#                   then drops the whole meeting (see score_lifted).  Empty text keeps such a
-#                   hypothesis out of meeteval entirely.
+#                   because evals cannot score cpWER for a hypothesis with > 20 speakers
+#                   (until 28 Sep it then dropped the whole meeting; see score_lifted).
+#                   Empty text keeps such a hypothesis out of meeteval entirely.
 derive_turns() {
   "$PY" - "$OUT/hyp" "${WS_SYSTEMS[@]}" <<'EOF'
 import hashlib, json, sys
@@ -457,8 +460,10 @@ score_one() {  # dataset system variant [evals args...]
 
 # meeteval 0.4.3 refuses cpWER/tcpWER when either side has more than 20 speakers
 # (meeteval/wer/wer/cp.py `_minimum_permutation_word_error_rate`: "Are you sure?").
-# `python -m evals batch` then records the meeting under `errors` and exits 2 --
-# that is the primary result and it is kept.  As a SUPPLEMENTARY, labelled
+# `python -m evals batch` then keeps the meeting's DER/JER/WER and marks cpWER/tcpWER
+# not scored (`not_scored` in the report) -- that is the primary result and it is
+# kept.  (Before 2026-09-28 evals recorded the whole meeting under `errors`.)  As a
+# SUPPLEMENTARY, labelled
 # measurement (HARNESS_POLICY), the same `evals.cli.main batch` path is re-run
 # in-process with only that guard removed from meeteval's source (the guard block
 # is cut out textually and the function re-compiled in meeteval's own module
@@ -495,12 +500,17 @@ has_errors() {  # report.json -> true when evals recorded per-meeting errors, or
   [[ -f "$1" ]] && "$PY" -c 'import json,sys; r=json.load(open(sys.argv[1])); sys.exit(0 if r["errors"] or any(m["cpwer"].get("refused") or m["tcpwer"].get("refused") for m in r["meetings"]) else 1)' "$1"
 }
 
+in_score_only() {  # system -> true unless V5_SCORE_ONLY is set and does not name it
+  [[ -z "${V5_SCORE_ONLY:-}" || " ${V5_SCORE_ONLY} " == *" $1 "* ]]
+}
+
 score_dataset() {
   local ds="$1" sys ws derived=()
   for ws in "${WS_SYSTEMS[@]}"; do derived+=("$ws-wordruns" "$ws-turns"); done
   for sys in oracle energy-vad-cluster energy-vad-cluster-hint "${WS_SYSTEMS[@]}" \
     ${EXTRA_NAMES[@]+"${EXTRA_NAMES[@]}"} ${REASSIGN_NAMES[@]+"${REASSIGN_NAMES[@]}"} "${derived[@]}"; do
     [[ -d "$OUT/hyp/$ds/$sys" ]] || continue
+    in_score_only "$sys" || continue
     score_one "$ds" "$sys" ""                       # evals defaults: DER collar 0.25 (±0.125 s), tcpWER collar 5 s
     score_one "$ds" "$sys" collar0 --der-collar 0   # no DER collar, overlap scored
     rm -f "$OUT/reports/$ds/$sys".lifted*
@@ -513,7 +523,10 @@ score_dataset() {
     fi
   done
   for sys in "${WS_SYSTEMS[@]}" ${REASSIGN_NAMES[@]+"${REASSIGN_NAMES[@]}"}; do
-    [[ -d "$OUT/hyp/$ds/$sys" ]] && score_one "$ds" "$sys" norm --numbers-to-words --expand-contractions
+    # an if, not an && list: a false test must not become the function's status under set -e
+    if [[ -d "$OUT/hyp/$ds/$sys" ]] && in_score_only "$sys"; then
+      score_one "$ds" "$sys" norm --numbers-to-words --expand-contractions
+    fi
   done
 }
 
