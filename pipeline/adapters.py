@@ -14,9 +14,13 @@ Status (docs/pipeline.md §2, §8, §11), 2026-09-25:
   ``python -m pipeline fetch-models``, any other name needs the Hugging Face
   cache or an explicit ``allow_download=true``.  The files loaded are hashed
   and recorded in ``hyp.extra["models"]``.
-* The pyannote.audio, whisperx and SpeechBrain adapters are still UNTESTED
-  against a model: those packages are not installed and their default
-  pyannote pipelines are gated.  Each is written against the package's
+* The SpeechBrain ECAPA embedder behind ``embedding-cluster`` HAS run
+  against its real model (speechbrain 1.1.1, torch 2.14.0, in a separate
+  environment; requirements/embedding.txt, docs/pipeline.md §11.9,
+  2026-09-28/29).
+* The pyannote.audio and whisperx adapters are still UNTESTED against a
+  model: those packages are not installed and their default pyannote
+  pipelines are gated.  Each is written against the package's
   documented public API (cited per class, from the READMEs as remembered
   offline), imports lazily, and the registry reports it as unavailable with a
   reason instead of failing at import time.  Their own logic (output
@@ -44,8 +48,8 @@ import numpy as np
 
 from .base import (
     ASSIGNMENT_PARAMS,
-    ASSIGNMENT_RULE,
     COMMON_AUDIO_PARAMS,
+    DEFAULT_TIE_BREAK,
     ComposedPipeline,
     Diarizer,
     Hypothesis,
@@ -58,6 +62,7 @@ from .base import (
     Transcriber,
     Turn,
     assign_speakers,
+    assignment_rule,
     audio_provenance,
     make_segment,
     normalize_text,
@@ -515,7 +520,7 @@ class ModelComposedPipeline(ComposedPipeline):
         if self.transcriber is not None:
             extra["models"]["asr"] = getattr(self.transcriber, "model_provenance", None)
             extra["asr"] = {"settings": getattr(self.transcriber, "settings", {}), **getattr(self.transcriber, "last_info", {})}
-            extra["assignment"] = {"rule": ASSIGNMENT_RULE, **stats}
+            extra["assignment"] = {"rule": assignment_rule(stats.get("tie_break", DEFAULT_TIE_BREAK)), **stats}
         if self.diarizer is not None:
             models = getattr(self.diarizer, "models", None)
             if isinstance(models, dict):
@@ -810,8 +815,9 @@ EMBEDDING_CLUSTER_PARAMS = frozenset(
     | {"embedding_model", "embedding_savedir", "device", "batch_windows"}
 )
 
-#: HARNESS_POLICY, UNCALIBRATED: the distance guard in COSINE distance for
-#: neural embeddings.  Tune on a dev split once a model is installed.
+#: HARNESS_POLICY: the distance guard in COSINE distance for neural embeddings.
+#: The default stays 0.5; 0.55 was selected on the AMI dev split for ECAPA
+#: (docs/pipeline.md §11.9) and is passed explicitly where it is used.
 EMBEDDING_DISTANCE_THRESHOLD = 0.5
 
 Embedder = Callable[[list[np.ndarray], int], np.ndarray]
@@ -824,8 +830,9 @@ class EmbeddingClusterDiarizer(Diarizer):
     This is the seam for an UNGATED pretrained speaker-embedding model, so
     diarization works without Hugging Face gating: it reuses exactly the VAD,
     cell/window layout, speaker-count estimate (cosine distance) and
-    smoothing of ``energy-vad-cluster``.  Tested here with a stand-in
-    embedder; no model has been run.
+    smoothing of ``energy-vad-cluster``.  Unit-tested with a stand-in
+    embedder; run against SpeechBrain ECAPA on 2026-09-28/29
+    (docs/pipeline.md §11.9).
     """
 
     name = "embedding-cluster"
@@ -870,8 +877,8 @@ class EmbeddingClusterDiarizer(Diarizer):
 
 #: HARNESS_POLICY: SpeechBrain's ECAPA runs with PyTorch's NNPACK convolution
 #: backend DISABLED on CPU (a process-wide torch flag).  NNPACK made ECAPA ~34x
-#: slower here (docs/v5-test-split.md, "embedding-cluster"); the numbers do not
-#: depend on it beyond floating-point rounding.
+#: slower here (docs/pipeline.md §11.9).  Every recorded run had it disabled;
+#: whether the embeddings differ with it enabled was not measured.
 ECAPA_CPU_NNPACK = False
 
 
@@ -881,7 +888,8 @@ def speechbrain_ecapa_embedder(
     device: str = "cpu",
     batch_windows: int = 32,
 ) -> Embedder:
-    """SpeechBrain ECAPA-TDNN speaker embeddings.  UNTESTED here (no model).
+    """SpeechBrain ECAPA-TDNN speaker embeddings.  Run against the real model
+    (speechbrain 1.1.1, torch 2.14.0) on 2026-09-28; docs/pipeline.md §11.9.
 
     Documented API (SpeechBrain >= 1.0; ``speechbrain.pretrained`` before 1.0):
         from speechbrain.inference.speaker import EncoderClassifier
@@ -1048,7 +1056,7 @@ def reassign_hypothesis(doc: dict[str, Any], asr_cache: str | Path, tie_break: s
     segments = assign_speakers(entry["segments"], turns, stats=stats, tie_break=tb)
     stats["tie_break"] = tb
     new_extra = copy.deepcopy(extra)
-    new_extra["assignment"] = {"rule": ASSIGNMENT_RULE, **stats}
+    new_extra["assignment"] = {"rule": assignment_rule(tb), **stats}
     new_extra["reassigned_from"] = {"system": doc.get("system"), "tie_break": ((extra.get("assignment") or {}).get("tie_break"))}
     return Hypothesis(meeting_id=doc["meeting_id"], system=system or f"{doc.get('system')}:{tb}", segments=segments,
                       extra=new_extra).validate().to_dict()

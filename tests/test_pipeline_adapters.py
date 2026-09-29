@@ -577,5 +577,7 @@ def test_reassign_hypothesis_reproduces_itself_and_changes_only_ties(tmp_path):
     assert speakers(same) == [("one", "A"), ("two", "A"), ("three", "A"), ("four", "B")]
     assert speakers(moved) == [("one", "A"), ("two", "B"), ("three", "B"), ("four", "B")]
     assert moved["extra"]["assignment"]["tie_break"] == "latest_start" and moved["extra"]["assignment"]["tie"] == 2
+    assert "latest-starting" in moved["extra"]["assignment"]["rule"]
+    assert "earliest-starting" in same["extra"]["assignment"]["rule"]
     with pytest.raises(Exception, match="asr_cache"):
         reassign_hypothesis({**doc, "extra": {}}, tmp_path, "floor")

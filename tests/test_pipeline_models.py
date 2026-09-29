@@ -116,6 +116,21 @@ def test_each_tie_break_rule_and_the_default():
         tie_break_param("coin_flip")
 
 
+def test_recorded_rule_text_names_the_tie_break_used():
+    """hyp.extra["assignment"]["rule"] describes the tie-break that ran; floor
+    keeps the 2026-09-25 text byte for byte (earlier hypotheses carry it)."""
+    from pipeline.base import TIE_BREAKS, assignment_rule
+
+    assert assignment_rule() == assignment_rule("floor") == ASSIGNMENT_RULE
+    assert "earliest-starting overlapping turn" in ASSIGNMENT_RULE
+    texts = {tb: assignment_rule(tb) for tb in TIE_BREAKS}
+    assert len(set(texts.values())) == len(TIE_BREAKS)
+    assert "latest-starting overlapping turn" in texts["latest_start"]
+    assert "appears first" in texts["first_seen"] and "previous word" in texts["previous_word"]
+    with pytest.raises(ParamError):
+        assignment_rule("coin_flip")
+
+
 def test_previous_word_tie_break_keeps_a_run_together():
     turns = [(0.0, 4.0, "A"), (2.0, 4.0, "B")]
     seg = {"start": 1.0, "end": 3.5, "text": "one two three", "words": [

@@ -1,0 +1,12 @@
+# Optional: the "embedding-cluster" diarizer's real model (SpeechBrain ECAPA,
+# speechbrain/spkrec-ecapa-voxceleb, ungated).  Install into a SEPARATE
+# environment, never into .venv, and never install reference/ into it:
+#   python3.11 -m venv .venv-torch
+#   .venv-torch/bin/pip install -r requirements/embedding.txt
+# The versions it ran with on 2026-09-28/29 (docs/pipeline.md section 11.9).
+# CI does not install them.
+-r all.txt
+torch==2.14.0
+torchaudio==2.11.0
+speechbrain==1.1.1
+huggingface_hub==2.0.0

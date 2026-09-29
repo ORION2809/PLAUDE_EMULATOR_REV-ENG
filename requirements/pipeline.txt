@@ -19,7 +19,7 @@
 #                       (returns .speaker_diarization / .exclusive_speaker_diarization; token=)
 #                       + torch.  Both default pipelines are gated on Hugging Face.
 #   whisperx            >= 3.3 (whisperx.diarize.DiarizationPipeline) + torch
-#   speechbrain         >= 1.0 (speechbrain.inference.speaker.EncoderClassifier; < 1.0's
-#                       speechbrain.pretrained is also tried) + torch -- the
+#   speechbrain         RUN 2026-09-28/29 in a separate environment: speechbrain 1.1.1,
+#                       torch 2.14.0, pinned in requirements/embedding.txt -- the
 #                       "embedding-cluster" diarizer's default, ungated model
-#                       speechbrain/spkrec-ecapa-voxceleb (check its licence first)
+#                       speechbrain/spkrec-ecapa-voxceleb (docs/pipeline.md section 11.9)

@@ -652,6 +652,25 @@ def tie_break_param(value: Any) -> str:
     return str(v)
 
 
+_TIE_BREAK_TEXT = {
+    "latest_start": "ties to the speaker of the latest-starting overlapping turn",
+    "first_seen": "ties to the tied speaker who appears first in the meeting",
+    "previous_word": "ties to the previous word's speaker when it is tied, else to the speaker of the "
+                     "earliest-starting overlapping turn",
+}
+
+
+def assignment_rule(tie_break: str = DEFAULT_TIE_BREAK) -> str:
+    """The rule text recorded in ``hyp.extra["assignment"]["rule"]`` for a
+    tie-break.  ``floor`` keeps the 2026-09-25 text (:data:`ASSIGNMENT_RULE`)
+    byte for byte, so earlier hypotheses still match it."""
+    tb = tie_break_param(tie_break)
+    if tb == "floor":
+        return ASSIGNMENT_RULE
+    return (f"max total overlap per speaker; {_TIE_BREAK_TEXT[tb]}; no overlap -> nearest turn by gap "
+            f"(HARNESS_POLICY, 2026-09-28)")
+
+
 class SpeakerIndex:
     """Diarization turns prepared for word lookup (HARNESS_POLICY rule).
 
