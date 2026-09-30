@@ -1,0 +1,33 @@
+booted=1
+netsimd: /Users/mivi/mivi-toolchain/android-sdk/emulator/netsimd --host-dns=127.0.0.1 --http-proxy=127.0.0.1:9 --wifi PLAUD0001 10000001 --pcap
+Success
+BluetoothShellCommand: Exec enable
+enable: Success
+scan: 1 PLAUD0001 line(s)
+internet check (expect failure):
+connect: Network is unreachable
+16:48:56 no dialog seen in 60 s
+== Wi-Fi mode=transfer ==
+WIFICAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+WIFICAP_CB_STATE state=CONNECTING rel=6
+WIFICAP_CB_STATE state=CONNECTED rel=4146
+WIFICAP_CB_STATE state=HANDSHAKING rel=4146
+WIFICAP_CB_STATE state=READY rel=5159
+WIFICAP_CB_HANDSHAKE_COMPLETED info="SYN-WIFI-SESSION-0001" rel=5159
+WIFICAP_CB_FILELIST n=1 rel=5173
+WIFICAP_EXPORT why=list sessionId=1700000000 format=OPUS channels=1 rel=5177
+WIFICAP_EXPORT_STAGE why=list stage=DOWNLOADING rel=5183
+WIFICAP_EXPORT_PROGRESS why=list p=0 msg="downloading via WiFi" rel=5184
+WIFICAP_CB_PROGRESS sessionId=1700000000 p=100 speed=0.0 rel=5216
+WIFICAP_EXPORT_PROGRESS why=list p=99 msg="downloading via WiFi 99%" rel=5216
+WIFICAP_EXPORT_PROGRESS why=list p=100 msg="download complete" rel=5217
+WIFICAP_EXPORT_STAGE why=list stage=TRANSCODING rel=5217
+WIFICAP_CB_FILE_DONE sessionId=1700000000 path=/storage/emulated/0/Android/data/com.plaud.template/files/Download/PlaudOpus/2023-11-15_03-43-20.opus len=11271 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d rel=5232
+WIFICAP_EXPORT_DONE why=list path=/data/user/0/com.plaud.template/files/wificap-export/1700000000.opus len=11271 sha256=0f45367bd1eae540a51f2741e3150ffc705aace3054bfdaa4e134b71cbb48c3d rel=5236
+WIFICAP_CB_BATTERY level=100 charging=false rel=6153
+WIFICAP_CB_BATTERY level=100 charging=false rel=7156
+WIFICAP_CB_BATTERY level=100 charging=false rel=8164
+WIFICAP_CB_STATE state=DISCONNECTED rel=8176
+gen-key lines: 0
+ALL DONE
+exit=0

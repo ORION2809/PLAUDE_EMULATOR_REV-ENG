@@ -1,5 +1,15 @@
 # R7-S14: the official SDK's Wi-Fi transfer against our Wi-Fi device (RUNTIME, synthetic-only)
 
+> **Update, 29 Sep 2026 (R7-S15).** The block below was in the emulated phone's
+> environment, not the SDK or our device: the AVD offered no `PLAUD0001` network,
+> and nobody approved Android's network-request dialog. With the AVD's simulated
+> Wi-Fi offering `PLAUD0001` and passphrase `10000001` (`netsimd --wifi`), and the
+> dialog approved by a scripted tap (run 1; run 2 reused that approval), the SDK
+> joined, started its server,
+> completed the Wi-Fi handshake with our pen and downloaded the file byte-exact
+> ([`r7-s15-evidence/README.md`](r7-s15-evidence/README.md)). It also confirmed D4:
+> our pen needed 6 dials before the phone's server existed.
+
 Verdict: **blocked at the SoftAP join, before the phone's WebSocket server
 exists.** The unmodified SDK (`plaud-sdk.aar`, same build as R7-S12/S13)
 bound to our BLE emulator, sent OpenWiFi (opcode 10), took the answer, and then

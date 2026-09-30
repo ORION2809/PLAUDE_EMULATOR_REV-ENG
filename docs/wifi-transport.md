@@ -1,6 +1,10 @@
 # Wi-Fi bulk transfer — emulator track (`emulator/plaudsim/wifi.py`, `wifi_device.py`)
 
-Status 2026-09-25: **implemented and tested against a phone-side test double;
+Status 2026-09-29: **the genuine SDK completed a Wi-Fi transfer against this
+track** (R7-S15, section 12): handshake, file list and a byte-exact download,
+on an AVD given a simulated `PLAUD0001` network to join. The bytes went through
+`adb forward`, not the simulated radio, and no real pen has been used. The
+status of 2026-09-25 follows: **implemented and tested against a phone-side test double;
 never run against a real phone or pen.** Since 2026-09-25 a BLE session can
 hand over to Wi-Fi: with a `wifi_device_factory`, an accepted opcode 10
 starts the Wi-Fi device and opcode 13 closes it (section 8). That hand-over is
@@ -310,8 +314,11 @@ is the R7-S13 configuration by name.
   (`transfer_failed` is logged only); the phone's request times out.
 * A second closeWiFi is answered with status 0; the template claims real
   firmware may answer an error status (`SyncManager.kt:531-532`).
-* Not validated against a real phone or pen; every phone-side behaviour comes
-  from bytecode, every pen-side behaviour is policy constrained by that bytecode.
+* Not validated against a real phone or pen. Phone-side behaviour comes from
+  bytecode, except what R7-S15 (section 12) observed from the genuine SDK on an
+  AVD: the server starting after the join, the PDU sequence of one unencrypted
+  session, and the padded empty token. Every pen-side behaviour is policy
+  constrained by that bytecode.
 * The Kotlin phone's permissive receive (`replay_check=False`) is implemented in
   the sealer and covered by the codec tests, not by a session test.
 
@@ -353,3 +360,30 @@ Report and evidence: `r7/r7-s14-wifi-real-sdk.md`, `r7/r7-s14-evidence/`
   `userId`) is dead: it reaches `connectToDeviceWifi`'s third parameter and is
   overwritten (`WifiConnectionManager.txt:47`).
 
+## 12. R7-S15: the genuine SDK completes a transfer (2026-09-29)
+
+R7-S14 stopped because the AVD's simulated Wi-Fi offered only `AndroidWifi`.
+`netsimd --wifi PLAUD0001 10000001` makes it offer the network the SDK asks to
+join (`r7/r7-s15-evidence/README.md`, `run.sh`). Run 2 then went end to end:
+
+* The phone joined 3.9 s after the SDK's `requestNetwork`. The SDK logged "WiFi
+  network available" and, 9 ms later, "Starting WebSocket server on port 8081". Before that, `adb forward` connections to 8081 were refused; our
+  device succeeded at its 6th dial. RUNTIME confirmation of the phone-server
+  sequence of section 3, and of R7-S14's D4: a pen that dials once fails.
+* PDUs, exactly as `wifi.py` encodes them: `SayHello` (device) → `Handshake`
+  (phone: `token` = 32 zeros, `stamp`) → `Handshake {status 0, session}` →
+  `GetFileList {uid 0, start 0, single 0}` twice → `FileSync {session, scene 2,
+  start 0, end 11271}` → `FileSync {status 0, total}` → three `FileSyncContent`
+  (4096, 4096, 3079 B; the last with `last 1`) → three device `Heartbeat`s (the
+  phone answered two; the third answer was cancelled when our device closed).
+* The SDK wrote the file (11 271 B) and exported it as OPUS, both with the served
+  file's sha256.
+* The token was 32 zeros. With the blank SDK token the SDK has no partner token
+  (`generateToken: handshake token is EMPTY`), and `padEnd(token, 32, '0')`
+  fills it, as the bytecode reading in section 2 predicts. Our device accepts any token
+  (HARNESS_POLICY); a real pen may refuse this one.
+* No session key (`hasKey=false`): the session was not sealed.
+
+Not shown: the bytes crossing the simulated Wi-Fi link (our device reached the
+phone's 8081 through `adb forward`, so the SDK saw a peer at 127.0.0.1), a
+sealed session, a non-empty token, a real pen's access point.

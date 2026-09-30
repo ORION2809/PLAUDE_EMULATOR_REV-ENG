@@ -1082,10 +1082,12 @@ SDK's kept set (review 2026-09-28).
 
 ---
 
-## 7. Wi-Fi bulk transfer — SOURCE-DERIVED; emulated against a phone double only
+## 7. Wi-Fi bulk transfer — SOURCE-DERIVED; emulated; completed against the genuine SDK on the AVD (R7-S15)
 
-Pen side now implemented in `emulator/plaudsim/wifi.py` + `wifi_device.py`, tested only against
-a bytecode-derived phone double (`docs/wifi-transport.md`), never against the real SDK or a phone.
+Pen side now implemented in `emulator/plaudsim/wifi.py` + `wifi_device.py`. It is tested against
+a bytecode-derived phone double (`docs/wifi-transport.md`) and, on the AVD, against the genuine SDK:
+R7-S14 blocked at the join, and R7-S15 completed one unencrypted session through `adb forward`. It
+has never run against a real phone or pen.
 
 **The roles are inverted between the two layers, which is the thing to get
 right:** the **pen** raises a WPA2 SoftAP and the **phone** joins it as a
@@ -1176,6 +1178,25 @@ where marked** (`r7/r7-s14-wifi-real-sdk.md`, evidence `r7/r7-s14-evidence/`):
   A SayHello token mismatch is only logged ("Token mismatch! … 握手会被设备拒绝");
   the phone still sends its HandshakeRequest; the pen decides
   (`WifiAgentImpl.txt:1376-1417`).
+
+**R7-S15 (2026-09-29) — the genuine SDK completes a Wi-Fi transfer, RUNTIME_PROVEN
+where marked** (`r7/r7-s15-evidence/README.md`). The AVD's simulated Wi-Fi offered
+`PLAUD0001` with WPA2 passphrase `10000001` (`netsimd --wifi`):
+
+* The join credentials are right: the phone associated and completed the WPA2
+  4-way handshake with `10000001` (RUNTIME, runs 1 and 2).
+* The sequence above ran to the end (run 2): joined 3.9 s after `requestNetwork`,
+  "WiFi network available", then "Starting WebSocket server on port 8081"; our pen
+  connected once the server existed (6th dial). The server accepted a peer at
+  127.0.0.1 through `adb forward`, as the unbound `InetSocketAddress(8081)` above
+  allows. The bytes did not cross the simulated radio.
+* PDUs (RUNTIME, both directions at the pen): SayHello → Handshake (phone: token
+  `"0"*32`, the empty partner token padded; stamp) → Handshake status 0 →
+  GetFileList (twice) → FileSync `{scene 2, start 0, end 11271}` → three
+  FileSyncContent (4096, 4096, 3079 B, `last` on the third) → Heartbeats. The file
+  and its OPUS export matched the served sha256.
+* `hasKey=false`: no session key, so the session was plain. The empty handshake
+  token was accepted by our pen (HARNESS_POLICY); a real pen's check is UNKNOWN.
 
 ---
 

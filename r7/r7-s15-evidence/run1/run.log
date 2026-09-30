@@ -1,0 +1,20 @@
+booted=1
+netsimd: /Users/mivi/mivi-toolchain/android-sdk/emulator/netsimd --host-dns=10.0.0.1 --wifi PLAUD0001 10000001 --debug-no-network --pcap
+Success
+BluetoothShellCommand: Exec enable
+enable: Success
+scan: 1 PLAUD0001 line(s)
+internet check (expect failure):
+connect: Network is unreachable
+16:42:19 dialog approved at 879,1470
+== Wi-Fi mode=transfer ==
+WIFICAP_BIND sn="8810000001" status=0 protVersion=5 tz=5
+WIFICAP_CB_STATE state=CONNECTING rel=7
+WIFICAP_CB_ERROR code=1003 message="Failed to connect to device WiFi" rel=30095 agent=true state=CONNECTING active=false
+WIFICAP_EXPORT why=guard sessionId=1700000000 format=OPUS channels=1 rel=30100
+WIFICAP_EXPORT_ERROR why=guard "WiFi is not ready. Current state: CONNECTING" rel=30101
+WIFICAP_END_WIFI_TRANSFER rel=31109
+WIFICAP_END mode=transfer agent=true state=CONNECTING active=false rel=42107
+gen-key lines: 0
+ALL DONE
+exit=0
