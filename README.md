@@ -37,13 +37,13 @@ which is now corrected.
 |---|---|---|---|
 | V1 | Emulator is discovered and completes a session | Done | The central is our own Python code. |
 | V2 | Survives fault injection without corrupting a transfer | Done: 62 counted cells plus 2 content-fault rows ([`docs/v2-fault-matrix.md`](docs/v2-fault-matrix.md)) | The receiver is a Python model of the SDK derived from bytecode; six of its behaviours were cross-checked against the real-SDK runs (docs/v2-fault-matrix.md). "No silent corruption" holds by construction in the counted cells, so the matrix tests completion, not content integrity. One cell is a documented corruption risk; payload bit-flips are undetectable by design. |
-| V3 | Plaud's own SDK connects and pulls a recording | Done (Android, Bluetooth, legacy protocol) | Nothing about real devices. Not iOS, not the encrypted protocol. Not Wi-Fi: the SDK's Wi-Fi transfer stopped at the hotspot join ([`r7/r7-s14-wifi-real-sdk.md`](r7/r7-s14-wifi-real-sdk.md)). |
+| V3 | Plaud's own SDK connects and pulls a recording | Done (Android, Bluetooth, legacy protocol) | Nothing about real devices. Not iOS, not the encrypted protocol. Wi-Fi only on an emulated network: on 29 September the SDK joined a simulated `PLAUD0001` and downloaded the file byte-exact over Wi-Fi messages, but the bytes reached it through `adb forward`, not a radio link ([`r7/r7-s15-evidence/`](r7/r7-s15-evidence/README.md)). |
 | V4 | Synthetic ground truth round-trips at DER 0 | Done | Plumbing and metric direction only. The oracle returns the ground truth by construction. |
-| V5 | A full pipeline hits target cpWER/DER on AMI | Measured; **failed** | `whisper-sherpa` (Whisper small.en plus sherpa-onnx) on all 16 AMI test-split meetings (9.06 h), with settings calibrated on the 18 dev meetings and no speaker-count hint: macro DER 0.6472, cpWER 0.8428, against a target of 0.20 and 0.30. Speaker attribution is the main error ([`docs/v5-test-split.md`](docs/v5-test-split.md)). |
+| V5 | A full pipeline hits target cpWER/DER on AMI | Measured; **failed, narrowly** | All 16 AMI test-split meetings (9.06 h), no speaker-count hint. Best: Whisper small.en with pyannote's diarization (`faster-whisper+pyannote`), cpWER 0.3477 against a target of 0.30; pyannote's own turns DER 0.1295 against 0.20. pyannote may have been trained on AMI data. Earlier systems: `whisper-sherpa-ecapa` 0.4104/0.5132, `whisper-sherpa` 0.6472/0.8428 ([`docs/v5-test-split.md`](docs/v5-test-split.md)). |
 | V6 | `docker compose up` is live in under 60 s | Done | Healthy in 6.58 s on an Apple Silicon Mac in a Linux arm64 VM (25 September), and in 5.81 s on a GitHub x86_64 runner from a cold cache (28 September); job exit 0 both times. The job never pulls a recording over Bluetooth ([`docs/compose.md`](docs/compose.md)). |
 
-Full suite on 29 September 2026:
-`1420 passed, 5 skipped, 11 warnings in 244.15s (0:04:04)`. The count includes
+Full suite on 30 September 2026:
+`1432 passed, 5 skipped, 11 warnings in 271.52s (0:04:31)`. The count includes
 parametrised cases; the 5 skips are tests that apply only when faster-whisper
 or piper is absent, or that need a named real model. On GitHub the `tests` workflow runs on x86_64 Linux, arm64
 Linux and macOS; the tests that need the decompiled SDK skip there by design
@@ -51,22 +51,21 @@ Linux and macOS; the tests that need the decompiled SDK skip there by design
 
 ### What does not work, or is not established
 
-- V5 is not met. On all 16 AMI test meetings the real system scores about
-  three times the target error rates, even with its speaker-count setting
-  calibrated on the dev split ([`docs/v5-test-split.md`](docs/v5-test-split.md)).
-  pyannote-based systems have not run: their models are gated behind a
-  Hugging Face account.
+- V5 is not met, narrowly. On all 16 AMI test meetings the best system,
+  Whisper `small.en` with pyannote's diarization, scores cpWER 0.3477 against
+  a target of 0.30, and pyannote's own turns DER 0.1295 against 0.20. pyannote
+  may have been trained on AMI data, so these numbers may be optimistic
+  ([`docs/v5-test-split.md`](docs/v5-test-split.md)).
 - The encrypted protocol used at `portVersion` 20 and above is modelled as
   structure and exercised only with synthetic keys, never with the real SDK.
 - The iOS SDK has never been executed; this machine has no Xcode. The real
-  SDK's Wi-Fi transfer never reached our Wi-Fi emulator: it stopped at the
-  hotspot join, and no Wi-Fi message was exchanged. With a
-  `wifi_device_factory`, opening Wi-Fi over Bluetooth (opcode 10) now starts
-  the Wi-Fi device emulator, over loopback. The whole hand-over has run only
-  against our phone-side test double; in R7-S14, after the emulator's
-  mode-0 fix, the real SDK's opcode 10 started the device (runs 2 and 5), but no
-  Wi-Fi session followed
-  ([`docs/wifi-transport.md`](docs/wifi-transport.md) §8).
+  SDK's Wi-Fi transfer completed once, on 29 September (R7-S15; the first of two
+  runs failed at DHCP): the emulated phone joined a simulated `PLAUD0001`, and
+  the SDK completed the Wi-Fi handshake
+  with our emulator and downloaded the file byte-exact. The bytes went through
+  `adb forward`, not a radio link; the handshake token was empty (our blank SDK
+  token), which our emulator accepts; the session was not encrypted
+  ([`docs/wifi-transport.md`](docs/wifi-transport.md) §12).
 - No bind of *our* client to *real* hardware is possible offline: the RSA key
   pair, serial-number signature and handshake token come from Plaud's cloud,
   and this repository holds no credentials. Separately, the emulator refuses
@@ -178,6 +177,7 @@ toolchain of the machine they ran on; substitute your own paths.
 | [`docs/final-product-reconstruction.md`](docs/final-product-reconstruction.md) | The product above the radio: mobile, cloud, lifecycle, AI, web ([`docs/product-ledger.md`](docs/product-ledger.md), [`docs/architecture/`](docs/architecture/), [`docs/source-map.md`](docs/source-map.md)) |
 | [`r7/r7-s13-recording-pull.md`](r7/r7-s13-recording-pull.md) | The real SDK pulling a recording, and what it corrected |
 | [`r7/r7-s14-wifi-real-sdk.md`](r7/r7-s14-wifi-real-sdk.md) | The real SDK's Wi-Fi transfer, blocked at the hotspot join; the cloud-contact finding (D7) |
+| [`r7/r7-s15-evidence/`](r7/r7-s15-evidence/README.md) | The real SDK's Wi-Fi transfer, completed on a simulated `PLAUD0001` network (29 September) |
 | [`docs/v5-test-split.md`](docs/v5-test-split.md) | V5 on the full AMI test split: the dev-split calibration, 16 meetings, and why the target is missed |
 | [`docs/v5-results.md`](docs/v5-results.md) | The first real-model numbers (4 AMI test meetings, 4 Piper meetings, 25 September) |
 | [`docs/integration.md`](docs/integration.md) | Cross-layer proofs |

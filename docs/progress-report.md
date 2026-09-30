@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| Period | 21–29 September 2026 |
-| State as of | 29 September 2026 |
+| Period | 21–30 September 2026 |
+| State as of | 30 September 2026 |
 | Repository | `plaud-harness` (any clone), branch `main`, pushed to GitHub; the work described here is committed (section 15) |
 | Compiled by | Claude Code from the working tree, test runs, run logs, GitHub Actions results and the 25 and 28 September review and verification records |
 
@@ -19,7 +19,7 @@
 6. [Phase 3 · the remaining harness layers](#6-phase-3--the-remaining-harness-layers)
 7. [The real-SDK pull (R7-S13)](#7-the-real-sdk-pull-r7-s13)
 8. [25 September · review, fixes and first measurements](#8-25-september--review-fixes-and-first-measurements)
-9. [28 September · CI, the phase-1 review and V5 on the full test split](#9-28-september--ci-the-phase-1-review-and-v5-on-the-full-test-split)
+9. [28–29 September · CI, the phase-1 review, V5 and the Wi-Fi transfer](#9-2829-september--ci-the-phase-1-review-v5-and-the-wi-fi-transfer)
 10. [What was wrong, and has been corrected](#10-what-was-wrong-and-has-been-corrected)
 11. [How the work was checked, and what was not](#11-how-the-work-was-checked-and-what-was-not)
 12. [Numbers](#12-numbers)
@@ -49,12 +49,13 @@ hardware behaves.
 
 | At a glance | |
 |---|---|
-| Automated tests | **1420 pass, 5 skipped** on 29 Sep (1365 on 25 Sep; 978 on 24 Sep; 301 after phase 1) |
+| Automated tests | **1432 pass, 5 skipped** on 30 Sep (1365 on 25 Sep; 978 on 24 Sep; 301 after phase 1) |
 | Independent reviews | **71 findings** on the phase-3 layers (25 Sep): 69 confirmed, 2 plausible, none refuted (section 8.1). **28 findings** on the phase-1 protocol code (28 Sep); the confirmed defects are fixed (section 9.2) |
 | Protocol verifiers | **12 of 12 pass** (re-run 29 Sep) |
 | Reference corpus | **33 of 33 at their pins**, no tracked change, AAR hash matches (checked 29 Sep; one lapse in ignored files, section 9.6) |
 | GitHub CI | **Green** on x86_64 Linux, arm64 Linux and macOS, and V6 on an x86_64 runner (section 9.1) |
-| V5 on AMI | **Measured on all 16 test meetings; target missed.** Macro DER 0.6472, cpWER 0.8428 with dev-calibrated settings (target 0.20, 0.30) (section 9.3) |
+| V5 on AMI | **Measured on all 16 test meetings; target narrowly missed.** Best (29 Sep): `faster-whisper+pyannote` cpWER 0.3477 without a hint (target 0.30); pyannote's own turns DER 0.1295 (target 0.20). 28 Sep: `whisper-sherpa` 0.6472, 0.8428 (sections 9.3, 9.7) |
+| Real SDK over Wi-Fi | **Completed on 29 Sep** (R7-S15): joined a simulated `PLAUD0001`, byte-exact download over Wi-Fi PDUs; the bytes went through `adb forward` (section 9.7) |
 | Real hardware used | **None**: no device and no credential |
 | Plaud cloud contact | **Yes, not intended**: in the R7 runtime runs, one SDK `gen-key` request per app start (logged in R7-S13 and R7-S14; very likely in R7-S12). 19 of the 22 logged requests got HTTP 401; 3 failed at DNS. Stopped on 25 Sep; all three drivers checked offline with a blank token (sections 8.6, 9.5) |
 | Committed | **All of it**, on `main`, pushed to GitHub (section 15) |
@@ -97,12 +98,14 @@ What changed the picture most this week:
   28 Sep it also passed on a GitHub x86_64 runner (section 9.1).
 - **The real SDK's Wi-Fi transfer was tried and stopped at the hotspot join.**
   No Wi-Fi message reached our Wi-Fi device. The run exposed one emulator bug,
-  which is fixed.
+  which is fixed. On 29 Sep, with a simulated `PLAUD0001` network for the
+  emulated phone to join, the transfer completed byte-exact (section 9.7).
 - **28 Sep: V5 on the full AMI test split** (section 9). Speech recognition
   was made repeatable, and the diarizer's threshold and word-assignment rule
   were calibrated on the 18 dev meetings. On all 16 test meetings, the stack
-  scores macro DER 0.6472 and cpWER 0.8428 without a hint. It misses the target
-  by a wide margin, and speaker attribution is the main error.
+  scores macro DER 0.6472 and cpWER 0.8428 without a hint. On 29 Sep a new
+  system, sherpa's speaker count with ECAPA's turns, brought that to 0.4104 and
+  0.5132 (section 9.7). The target is still missed.
 - **28 Sep: CI green on three platforms, and a review of the phase-1 code.**
   The phase-1 review found real defects, among them an advertisement over the
   legacy size limit and an empty-transfer reply that makes the SDK restart
@@ -110,14 +113,14 @@ What changed the picture most this week:
 
 What is not true yet:
 
-- V5 is not met. On all 16 AMI test meetings the best realistic configuration
-  scores about three times the target error rates.
-- pyannote-based systems have not run: their models are gated behind a Hugging
-  Face account.
+- V5 is not met, narrowly: the best system scores cpWER 0.3477 against 0.30,
+  and pyannote's turns DER 0.1295 against 0.20, on AMI data pyannote may have
+  been trained on.
 - The encrypted protocol used by newer devices (port version 20 and above) has
   only been exercised with synthetic keys, never with the real SDK.
-- The iOS SDK has never been executed; this machine has no Xcode. The real SDK
-  has never exchanged a Wi-Fi message with our emulator.
+- The iOS SDK has never been executed; this machine has no Xcode. The real
+  SDK's Wi-Fi bytes have not crossed a Wi-Fi link: R7-S15 carried them through
+  `adb forward`, with an empty handshake token and no encryption.
 - The Android runtime rigs, and the 28 Sep V5 and calibration scripts, were
   not reviewed line by line (the scripts were checked by their outputs).
 
@@ -130,9 +133,9 @@ and, as importantly, what it does not.
 |---|---|---|---|---|
 | V1 | Emulator is discovered and completes a session | **Done** | A Bumble central scans, parses the advertisement with the SDK's own rules, connects, exchanges MTU, discovers services and runs the control and file-sync messages. | The central is our Python code. It passed while the transfer sequence was still wrong, which is why V3 matters. |
 | V2 | Survives fault injection without corrupting a transfer | **Done** | 62 counted cells since 28 Sep (60 on 25 Sep) over a virtual Bluetooth link: drops, duplicates, reordering, truncation, wrong session, disconnects, stop mid-transfer, MTU 23–517, both subscription modes and more. Each ends byte-exact or with a detected failure. Two further rows put wrong bytes at the right offsets and show that the corruption check fires. | The receiving side is a Python model of the SDK's receiver derived from bytecode. Six of its behaviours were cross-checked against the real-SDK runs (docs/v2-fault-matrix.md). The review (T10) showed that "no silent corruption" holds by construction in every counted cell, so the matrix tests completion, not content integrity. One cell is a documented corruption risk. Payload bit-flips are undetectable, because data frames carry no checksum. |
-| V3 | Plaud's own SDK connects and pulls a recording | **Done** (Android BLE, legacy protocol) | The real AAR bound, listed the file and pulled it through `syncFile` and `exportAudio(OPUS)`, byte-exact. Its gap recovery converged byte-exact in all four gap runs. | Nothing about real devices. Not iOS, not the encrypted protocol, and not Wi-Fi (R7-S14 stopped at the hotspot join). Not our own client binding to real hardware, which needs cloud-issued keys. |
+| V3 | Plaud's own SDK connects and pulls a recording | **Done** (Android BLE, legacy protocol) | The real AAR bound, listed the file and pulled it through `syncFile` and `exportAudio(OPUS)`, byte-exact. Its gap recovery converged byte-exact in all four gap runs. | Nothing about real devices. Not iOS, not the encrypted protocol, and Wi-Fi only on 29 Sep: R7-S15 completed a byte-exact download over Wi-Fi PDUs on a simulated network, the bytes through `adb forward` (section 9.7). Not our own client binding to real hardware, which needs cloud-issued keys. |
 | V4 | Synthetic ground truth round-trips at DER 0 | **Done** | The reference annotation scores DER and JER 0.0 against itself and against one rebuilt from the sample-level activity mask. End to end, generator → oracle pipeline → evals gives DER, JER, cpWER and tcpWER all 0.0. Perturbations raise every metric. | This validates plumbing and metric direction only. The oracle returns the ground truth by construction, so zero is expected. It says nothing about any real system's quality. |
-| V5 | A full pipeline hits target cpWER/DER on AMI | **Measured; failed** (28 Sep) | `whisper-sherpa` on all 16 AMI test-split meetings (9.06 h), with its threshold and tie-break calibrated on the 18 dev meetings and no hint: macro DER 0.6472, cpWER 0.8428, speaker-agnostic WER 0.3221. With the reference speaker count: 0.6396, 0.8567. On 25 Sep, 4 of the 16 meetings and 4 synthetic Piper meetings were measured (`docs/v5-results.md`). | The target (`ami-headset`: DER ≤ 0.20, cpWER ≤ 0.30) is missed for every configuration. The segmentation model was trained on data that includes AMI. One system family only; pyannote's gated models were not used (section 9.3, `docs/v5-test-split.md`). |
+| V5 | A full pipeline hits target cpWER/DER on AMI | **Measured; failed** (28–29 Sep) | 29 Sep: `faster-whisper+pyannote` scores cpWER 0.3477 without a hint, and pyannote's turns DER 0.1295; `whisper-sherpa-ecapa` (chosen on the dev split) 0.4104, 0.5132. 28 Sep: `whisper-sherpa` on all 16 AMI test-split meetings (9.06 h), with its threshold and tie-break calibrated on the 18 dev meetings and no hint: macro DER 0.6472, cpWER 0.8428, speaker-agnostic WER 0.3221. With the reference speaker count: 0.6396, 0.8567. On 25 Sep, 4 of the 16 meetings and 4 synthetic Piper meetings were measured (`docs/v5-results.md`). | The target (`ami-headset`: DER ≤ 0.20, cpWER ≤ 0.30) is missed for every configuration with words. pyannote's segmentation model was trained on data that includes AMI, so these numbers may be optimistic. One ASR model (Whisper `small.en`); whisperx has not run (section 9.7, `docs/v5-test-split.md`). |
 | V6 | `docker compose up` is live in under 60 s | **Done** (25 and 28 Sep) | `scripts/compose-smoke.sh` built the three images (121.38 s, outside the timed window by design), brought emulator and mock cloud to healthy in 6.58 s, and ran the job to exit 0 in 11.34 s (`build/v6/compose-smoke-2026-09-25.log`, Apple M1, Colima arm64). On 28 Sep a GitHub x86_64 runner from a cold cache: healthy in 5.81 s, job exit 0 in 14.66 s. | The job's zeros are harness self-tests (oracle), not system scores. The job never pulls a recording over BLE. |
 
 ## 3. Timeline
@@ -145,6 +148,7 @@ and, as importantly, what it does not.
 | 24 Sep | Remaining harness layers; confirmation runs; the first version of this report | R7-S13 runs 11–13 on the shipped emulator code; V2 matrix, Wi-Fi emulator, generator, evals, pipeline, mock cloud, integration tests, compose. |
 | 25 Sep | Commit `70249ba` pushed to GitHub; independent review of the phase-3 layers and fixes; CI diagnosis; first Docker run; R7-S14 Wi-Fi run with the real SDK; Piper TTS, `whisper-sherpa` and the AMI converter; V5-style measurement; cloud-contact correction | 71 review findings addressed; V6 measured; `docs/v5-results.md`; `r7/r7-s14-wifi-real-sdk.md`; drivers changed to pass a blank SDK token. |
 | 28 Sep | The 25 Sep work committed and pushed; CI fixed and extended to three platforms; review of the phase-1 code and fixes; repeatable ASR; dev-split calibration; V5 on the full test split; md-eval and GoReplay cross-checks; blank-token K3 and Wi-Fi re-runs; `embedding-cluster` against its model | First green `tests` run (`5a3d2ff`); V6 on GitHub; `docs/v5-test-split.md`; `docs/project-state.md` (section 9). |
+| 29 Sep | `whisper-sherpa-ecapa`, chosen on the dev split and measured on test; pyannote on the full test split (GPU); the real SDK's Wi-Fi transfer completed (R7-S15) | `docs/v5-test-split.md` §7.1, §7.2; `r7/r7-s15-evidence/` (section 9.7). |
 
 ## 4. Phase 1 · protocol reconstruction
 
@@ -572,7 +576,7 @@ What the numbers say:
   `docs/final-product-reconstruction.md`, `README.md`, `PROJECT.md` and this
   report.
 
-## 9. 28 September · CI, the phase-1 review and V5 on the full test split
+## 9. 28–29 September · CI, the phase-1 review, V5 and the Wi-Fi transfer
 
 On 28 Sep most open items that needed no hardware, credentials or owner's
 decision were taken up; the Piper diarization investigation, attribution work
@@ -745,6 +749,48 @@ directories into `reference/upstream/bumble`. They were git-ignored, so
 sets `PYTHONDONTWRITEBYTECODE=1`. The 33 reference repositories are at their
 pins with no tracked change (checked 29 Sep).
 
+### 9.7 29 September: a better speech system, and the Wi-Fi transfer
+
+- **`whisper-sherpa-ecapa`.** The two diarizers failed in opposite ways.
+  Calibrated sherpa counts speakers well but attributes speech poorly. The ECAPA
+  clustering attributes well when told the count but counts poorly. The new
+  system takes the count from sherpa and the turns from ECAPA, and assigns the
+  same Whisper words to those turns. It was checked on the dev split first
+  (DER 0.4314 against 0.5431 for sherpa alone). On the test split, without a
+  hint: macro DER 0.4104 and cpWER 0.5132, against 0.6472 and 0.8428. cpWER is
+  lower on all 16 meetings, and speaker confusion falls from 0.342 to 0.107.
+  V5 still fails (target 0.20, 0.30). All 32 real runs equal the replay they
+  were planned from. A new regression gate, `ami-test-whisper-sherpa-ecapa`,
+  records it (`docs/v5-test-split.md` §7.1, `docs/pipeline.md` §11.10).
+- **pyannote.** With the owner's Hugging Face account, pyannote's gated
+  community-1 pipeline ran on all 16 test meetings. The token is kept outside
+  the repository. The adapters turn pyannote.audio 4's usage telemetry off,
+  record the model snapshot they loaded, and run pyannote on the Mac's GPU
+  (4.7× faster than the CPU, identical output on the meeting checked;
+  `build/v5-test/pyannote-device-check/`).
+  `pyannote-audio` alone scores DER 0.1295 (under the target's 0.20). With the
+  same transcript on its turns, `faster-whisper+pyannote` scores cpWER 0.3477
+  (target 0.30) with speaker confusion 0.012: what remains is the transcript
+  (WER 0.3221). At collar 0, `pyannote-audio`'s pooled DER is 17.07 %, against
+  17.0 % on the model card for the same AMI condition. The card does not list its
+  training data; its segmentation model, segmentation-3.0, was trained on data
+  that includes AMI, so these numbers may be optimistic (`docs/v5-test-split.md`
+  §7.2).
+- **The real SDK's Wi-Fi transfer completed (R7-S15).** R7-S14's block was in
+  the emulated phone's environment, not the SDK or our device: the phone could
+  see no `PLAUD0001`, and nobody approved Android's network-request dialog. The
+  emulator's network simulator can offer any SSID (`netsimd --wifi PLAUD0001
+  10000001`), and a script tapped the dialog's Connect button. Run 1 then failed
+  at DHCP (`--debug-no-network` also stops the simulator's DHCP). In run 2,
+  which reused run 1's approval, the SDK joined in 3.9 s and started its
+  server. It completed the Wi-Fi handshake with our device and
+  downloaded the file byte-exact over Wi-Fi PDUs (11 271 bytes, the served
+  file's sha256). Egress was cut with a dead DNS server and a dead proxy, and
+  no `gen-key` request was logged. Caveats: the bytes went through
+  `adb forward`, not the simulated radio; the handshake token was empty (blank
+  SDK token), which our device accepts; the session was not encrypted
+  (`r7/r7-s15-evidence/README.md`).
+
 ## 10. What was wrong, and has been corrected
 
 This list exists so that nobody has to take the rest of the report on trust.
@@ -832,10 +878,11 @@ milestone, are in `docs/reconstruction-log.md`.*
 - **Docker.** Two platforms: arm64 on a Mac (25 Sep) and x86_64 on GitHub
   (first run 28 Sep; the workflow re-runs on commits that touch the images).
   The job never pulls a recording over BLE.
-- **Model numbers.** One system family on one machine, measured under
-  contention. The segmentation model may have seen AMI in training. The
-  calibration used AMI dev meetings, the same corpus and recording setup as
-  test.
+- **Model numbers.** One ASR model (Whisper `small.en`) and four diarizer
+  families (energy VAD, sherpa-onnx, ECAPA, pyannote) on one machine, measured
+  under contention. pyannote segmentation-3.0, used by sherpa-onnx's diarizer and
+  by community-1, was trained on data that includes AMI. The calibration used AMI
+  dev meetings, the same corpus and recording setup as test.
 - **Piper voice licence.** The voice is fine-tuned from the lessac base voice.
   The lessac dataset's licence page is a research-only agreement. Whether it
   reaches fine-tuned weights, and audio made with them, is unresolved
@@ -846,7 +893,7 @@ milestone, are in `docs/reconstruction-log.md`.*
 
 ## 12. Numbers
 
-| Tests by area (collected) | 24 Sep | 25 Sep | 29 Sep |
+| Tests by area (collected) | 24 Sep | 25 Sep | 30 Sep |
 |---|---:|---:|---:|
 | Phase 1 protocol and emulator (from 28 Sep including `test_review_phase1.py`, 21) | 301 | 301 | 325 |
 | End-of-data frame and stream abort (R7-S13) | 15 | 20 | 20 |
@@ -855,27 +902,27 @@ milestone, are in `docs/reconstruction-log.md`.*
 | Generator and V4 round trip | 82 | 136 | 137 |
 | Evals | 137 | 198 | 200 |
 | AMI converter | – | 51 | 51 |
-| V5 gate calibration | – | 8 | 13 |
-| Pipeline | 104 | 228 | 249 |
+| V5 gate calibration | – | 8 | 19 |
+| Pipeline | 104 | 228 | 255 |
 | Mock cloud | 43 | 76 | 76 |
 | Cross-layer integration and V4 end to end | 21 | 21 | 21 |
 | Compose | 31 | 59 | 59 |
-| **Total** | **978** | **1369** | **1425** |
+| **Total** | **978** | **1369** | **1437** |
 
-The last full run (29 Sep): `1420 passed, 5 skipped, 11 warnings in 244.15s (0:04:04)`.
+The last full run (30 Sep): `1432 passed, 5 skipped, 11 warnings in 271.52s (0:04:31)`.
 On 25 Sep: `1365 passed, 4 skipped, 11 warnings in 339.00s (0:05:38)`.
 
-| Code and documents (lines, re-counted 29 Sep) | Lines |
+| Code and documents (lines, re-counted 30 Sep) | Lines |
 |---|---:|
 | `emulator/plaudsim/`, including phase-1 code | 7 011 |
 | `generator/` | 4 130 |
 | `evals/` | 3 993 |
-| `pipeline/` | 5 698 |
+| `pipeline/` | 5 862 |
 | `mockcloud/` | 2 766 |
 | `emulator/serve.py` and `docker/` Python | 1 210 |
-| Tests, 81 Python files | 25 223 |
+| Tests, 81 Python files | 25 332 |
 | Kotlin runtime drivers, 3 files | 678 |
-| Documents in `docs/` and `docs/architecture/` | 13 399 |
+| Documents in `docs/` and `docs/architecture/` | 13 913 |
 
 | V2 matrix outcomes | 25 Sep | 28 Sep |
 |---|---:|---:|
@@ -902,10 +949,10 @@ version listed. `docs/project-state.md` §11 keeps the current ordered list.
 
 | Item | Blocked on | What would unblock it |
 |---|---|---|
-| V5 target | Speaker attribution: confusion is 0.34 of the reference time after calibration | Engineering work on attribution. pyannote-based systems need a Hugging Face account that has accepted the gated models' terms |
+| V5 target | cpWER 0.3477 against 0.30: the transcript (WER 0.3221 with `small.en`) | A larger Whisper model chosen on the dev split, its words re-assigned to pyannote's turns |
 | sherpa diarization near chance on the Piper voices | Whole-turn embeddings near chance; not traced | A focused investigation before the Piper set is used to judge any diarizer |
 | A V5 speed figure | The machine was always shared during runs | One run on a quiet machine |
-| Wi-Fi path with the real SDK | The emulated phone cannot join a hotspot | A real access point the emulated phone can join, or a physical phone |
+| Wi-Fi bytes over the air with the real SDK | R7-S15 carried them through `adb forward` | Route our device over netsim's network, or a physical phone and a real access point |
 | iOS SDK at runtime | No Xcode here (command-line tools only) | Xcode with a simulator, plus a Bluetooth bridge |
 | Real device behaviour: advertising branch, end-of-data code and TAIL (U15, U17, U18), storage units, settings values, the opcode-10 mode byte | No device | One Bluetooth capture of any legacy Plaud recorder |
 | What real firmware records (U20) | No real recording | One recording the operator lawfully owns |

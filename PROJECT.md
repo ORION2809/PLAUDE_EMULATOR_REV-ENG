@@ -170,9 +170,14 @@ Each rung is a test that either passes or fails. Nothing subjective.
   `cluster_threshold` (1.15) and the word-assignment tie-break (`latest_start`) chosen on
   the 18 AMI dev meetings and no speaker-count hint: macro DER 0.6472, cpWER 0.8428, WER
   0.3221 (`docs/v5-test-split.md`). With the oracle speaker count: 0.6396 / 0.8567. Suite
-  `ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30) FAILS for both. Speaker attribution is the main
-  error (confusion 0.34 of reference time). The 2026-09-25 subset (4 meetings plus a
-  4-meeting Piper set) is in `docs/v5-results.md`.
+  `ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30) FAILS for both. Speaker attribution was the main
+  error (confusion 0.34 of reference time). **2026-09-29:** `whisper-sherpa-ecapa` (the same
+  transcript; speaker count from sherpa-onnx, turns from ECAPA embeddings; chosen on the dev
+  split) scores DER 0.4104, cpWER 0.5132 without a hint, confusion 0.107.
+  `faster-whisper+pyannote` (pyannote community-1, gated; its segmentation model was trained on data that includes AMI)
+  scores cpWER 0.3477, confusion 0.012, and pyannote's own turns DER 0.1295 — still NOT MET
+  (cpWER > 0.30).
+  The 2026-09-25 subset (4 meetings plus a 4-meeting Piper set) is in `docs/v5-results.md`.
 - [x] **V6** `docker compose up` brings the whole system live in under 60 seconds —
   **executed under Docker on 2026-09-25 and on GitHub on 2026-09-28.** `scripts/compose-smoke.sh`
   on this M1 with Colima (Linux arm64 VM, Docker daemon 29.5.2): images built in 121.38 s
@@ -320,7 +325,9 @@ what `PlaudDeviceAgent.syncFile(sessionId, start, end)` drives. Wi-Fi is an
 one. The emulator implements the BLE path; the Wi-Fi path is not implemented.
 (Correction 2026-09-25: the Wi-Fi path is now implemented on the pen side and tested
 against a bytecode-derived phone double only — `docs/wifi-transport.md`; the real SDK's
-Wi-Fi transfer stopped at the hotspot join in R7-S14.)
+Wi-Fi transfer stopped at the hotspot join in R7-S14. 2026-09-29, R7-S15: with a simulated
+`PLAUD0001` network the real SDK completed a byte-exact Wi-Fi transfer against the pen side,
+the bytes carried through `adb forward` — `r7/r7-s15-evidence/`.)
 
 Audio: the SDK **enforces** an Opus codec geometry of 16 kHz, 20 ms frames,
 32 kbps CBR, exactly 80 bytes per frame per channel natively in `libjni_ogg`
@@ -392,6 +399,14 @@ set; the K3 and Wi-Fi drivers re-run with a blank token, offline — no `gen-key
 **embedding-cluster** ran against its real model (ECAPA; NNPACK disabled on CPU). Rung
 status: V1 ✅ V2 ✅ V3 ✅ (BLE transfer path) V4 ✅ V5 ◻ (measured on the full split; target
 missed) V6 ✅ (arm64 Mac and x86_64 GitHub runner).
+
+**2026-09-29.** `whisper-sherpa-ecapa` (sherpa's speaker count, ECAPA turns; chosen on the dev
+split): macro DER 0.4104 / cpWER 0.5132 on the 16 test meetings without a hint — V5 still NOT
+MET. pyannote's gated models ran (owner's Hugging Face token, kept outside the repo; telemetry
+off; GPU): `faster-whisper+pyannote` cpWER 0.3477, `pyannote-audio` DER 0.1295, and a collar-0
+DER of 17.07 % against pyannote's published 17.0 %. **R7-S15:** the real SDK's Wi-Fi transfer completed byte-exact once the
+emulated phone had a simulated `PLAUD0001` to join; the bytes went through `adb forward`
+(`r7/r7-s15-evidence/`).
 
 **Phase 4 — review, fixes and first measurements, 2026-09-25.** Full account:
 [`docs/progress-report.md`](docs/progress-report.md) §8.
@@ -502,15 +517,16 @@ three platforms, V5 on the full test split with a dev-split calibration, repeata
 DER/JER kept on meeteval refusals, Piper metadata, the phase-1 code review, the
 blank-token K3 and Wi-Fi re-runs. `docs/project-state.md` §11 is the maintained list.)
 
-1. **Speaker attribution**, the main V5 error. Candidates, none built or measured as a
-   system: report sherpa's own turns as the diarization output (they already score DER
-   0.5263 calibrated, against 0.6472 for the word runs) while keeping the words for
-   cpWER; overlap-aware word assignment; a stronger embedding model; calibrating
-   `min_duration_on/off` on the dev split.
-2. **pyannote-based systems** (`pyannote-audio`, `faster-whisper+pyannote`, `whisperx`)
-   need a Hugging Face account that has accepted the gated models' terms.
-3. **Wi-Fi with the real SDK**: a hotspot the AVD can join, or a physical phone; raise
-   the pen's dial attempts for that run (the phone's server starts only after the join).
+1. **The rest of the V5 gap: the transcript.** Speaker attribution was the main error until
+   2026-09-29: `whisper-sherpa-ecapa` cut confusion from 0.34 to 0.107, and
+   `faster-whisper+pyannote` to 0.012 (cpWER 0.3477 against the 0.30 target; pyannote's
+   segmentation model was trained on data that includes AMI). What remains is the transcript (WER 0.3221 with `small.en`).
+   Next: a larger Whisper model chosen on the dev split, its words re-assigned to pyannote's
+   turns (hours of CPU decoding on this machine).
+2. **`whisperx`** is still untested against a model (not installed).
+3. **Wi-Fi with the real SDK over the air**: done on 2026-09-29 through `adb forward` (R7-S15);
+   the bytes have not crossed a Wi-Fi link. Route the pen over netsim's network, or use a
+   physical phone and a real access point.
 4. **U1 (with U18 merged into it), U15 and U17 need a device**: one scan capture settles the advertising branch;
    one transfer capture settles the EMPTY_PACKAGE code value (U15) and whether a TAIL follows it (U17).
 5. **iOS** needs Xcode (not on this machine) and a Bluetooth bridge for the simulator.

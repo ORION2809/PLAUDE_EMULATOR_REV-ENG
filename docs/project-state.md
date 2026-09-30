@@ -1,8 +1,8 @@
 # Project state
 
-**As of 29 September 2026.** Branch `main`, published at
+**As of 30 September 2026.** Branch `main`, published at
 `github.com/ORION2809/PLAUDE_EMULATOR_REV-ENG` (public). This document is
-committed together with the 25–29 September work it describes. The `tests`
+committed together with the 25–30 September work it describes. The `tests`
 workflow failed on `70249ba`, the first pushed commit that carries it, and first passed on
 `5a3d2ff` (run 36386441732, 28 Sep, x86_64 Linux). From `d566d43` it runs on
 x86_64 Linux, arm64 Linux and macOS. The first runs there exposed portability
@@ -20,9 +20,13 @@ an Android emulator, bound to the emulated recorder and pulled a recording whose
 bytes hash identically to the served file. Most other checks compare our own
 components with each other or with models we derived from the SDK's bytecode.
 Real ASR and diarization were measured on all 16 AMI test meetings (9.06 h).
-The V5 target (DER ≤ 0.20, cpWER ≤ 0.30) is missed by a wide margin: macro DER
-0.6472 and cpWER 0.8428 with settings calibrated on the AMI dev split. The SDK's
-Wi-Fi transfer stopped at the hotspot join. No real Plaud device, account,
+The V5 target (DER ≤ 0.20, cpWER ≤ 0.30) is missed, narrowly. The best
+system, `faster-whisper+pyannote` (29 Sep), scores cpWER 0.3477 without a
+speaker-count hint, and pyannote's own turns score DER 0.1295. That compares
+with 0.8428 and 0.6472 for calibrated `whisper-sherpa` on 28 Sep.
+pyannote's segmentation model was trained on data that includes AMI, so these numbers may be optimistic. On 29 Sep the
+SDK's Wi-Fi transfer also completed byte-exact, after the emulated phone was
+given a network named `PLAUD0001` to join (R7-S15). No real Plaud device, account,
 credential or iOS runtime has been used. The official SDK did send automatic
 `gen-key` requests to Plaud's server during the runtime runs, because our
 drivers gave it a synthetic token. All three drivers now pass a blank token,
@@ -32,9 +36,11 @@ and each has been re-run offline without a request
 **Verdict in plain words:** on an Android emulator, Plaud's real Android SDK
 bound to our Bluetooth emulator and pulled one 11 271-byte synthetic file
 byte-exact, on the legacy (unencrypted) protocol. It never used getStorage,
-resume or delete against the emulator. Its Wi-Fi transfer stopped at the
-hotspot join. The speech side runs end to end on nine hours of real meetings,
-at about three times the target error rates. Nothing here shows how real
+resume or delete against the emulator. Its Wi-Fi transfer also completed
+byte-exact, on a simulated `PLAUD0001` network, though the bytes reached the
+phone through `adb forward`, not the simulated radio. The speech side runs end to end on nine hours of real meetings,
+with speaker attribution nearly solved by pyannote and cpWER 0.05 above the
+target; the rest is the transcript. Nothing here shows how real
 hardware behaves.
 
 This document is meant to replace reading README, PROJECT.md, the progress
@@ -42,7 +48,7 @@ report and the layer documents together. Those stay as history and detail, and
 are linked below. `README.md` and `PROJECT.md` point here. Numbers were taken
 as follows:
 
-| Measured or re-measured for this document on 28–29 Sep | Read from saved outputs (not re-run) |
+| Measured or re-measured for this document on 28–30 Sep | Read from saved outputs (not re-run) |
 |---|---|
 | Full test suite and per-file counts; the 12 protocol verifiers; 33 reference pins and the AAR hash; the fault-matrix JSON (rewritten by the suite run); the R7-S13 evidence checksums; the `gen-key` counts in the runtime logs; V5 on the full AMI test split, its dev-split calibration and the md-eval cross-check (`build/v5-test/`, `build/v5-calib/`); the GoReplay replay of the mock cloud's export; the blank-token re-runs of the K3 and Wi-Fi drivers; the GitHub Actions status (public API); the `git status` counts and what `.gitignore` excludes | The 25 Sep V5 subset and the Piper numbers (`build/v5/`); the V6 Docker log (25 Sep); the GitHub V6 timings (check-run notices, 28 Sep); the Android runtime logs (23–25 Sep); review and verifier records (25 and 28 Sep journals) |
 
@@ -119,18 +125,18 @@ code. **Not done** = never attempted or never run.
 | Legacy handshake (portVersion < 20) | Works | RUNTIME_PROVEN | [`r7/r7-s12-k3-runtime-capture.md`](../r7/r7-s12-k3-runtime-capture.md) | The emulator accepts any token (HARNESS_POLICY) |
 | Encrypted path (portVersion ≥ 20) | Partial | BYTECODE_PROVEN layouts; EMULATOR_INTEGRATION with synthetic keys | `r5-s5/` … `r5-s11/` verifiers; `tests/test_r5_s*.py` | Never run with the real SDK; keys are cloud-issued (CRED-1) |
 | BLE file transfer | Works | RUNTIME_PROVEN | [`r7/r7-s13-evidence/DELIVERED-OUTPUTS.sha256.txt`](../r7/r7-s13-evidence/DELIVERED-OUTPUTS.sha256.txt) | Real firmware's end-of-transfer behaviour unknown (U15, U17) |
-| Wi-Fi transfer emulator | Partial | EMULATOR_INTEGRATION against a bytecode-derived phone double | [`docs/wifi-transport.md`](wifi-transport.md), `tests/test_wifi_*.py` | The real SDK never exchanged a Wi-Fi message with it |
+| Wi-Fi transfer emulator | Partial | EMULATOR_INTEGRATION against a bytecode-derived phone double; RUNTIME_PROVEN for one session with the real SDK on an AVD (R7-S15) | [`docs/wifi-transport.md`](wifi-transport.md) §12, `tests/test_wifi_*.py`, [`r7/r7-s15-evidence/`](../r7/r7-s15-evidence/README.md) | The real SDK completed one unencrypted session with it on 29 Sep, through `adb forward`, not a radio link; never run with a real phone or pen |
 | Real SDK: bind | Works (Android) | RUNTIME_PROVEN | [`r7/r7-s12-k3-runtime-capture.md`](../r7/r7-s12-k3-runtime-capture.md) | Android emulator only; legacy protocol only |
 | Real SDK: file pull | Works (Android, BLE) | RUNTIME_PROVEN | [`r7/r7-s13-recording-pull.md`](../r7/r7-s13-recording-pull.md) | One synthetic 11 271-byte file; our emulator as the device |
-| Real SDK: Wi-Fi transfer | Blocked | RUNTIME_PROVEN up to the join | [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) | The Android emulator cannot join the pen's hotspot |
+| Real SDK: Wi-Fi transfer | Works (Android emulator, 29 Sep) | RUNTIME_PROVEN | [`r7/r7-s15-evidence/`](../r7/r7-s15-evidence/README.md); [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) | One run. The phone joined a simulated `PLAUD0001`, but the WebSocket bytes went through `adb forward`, not the simulated radio. The handshake token was empty (blank SDK token), which our emulator accepts. No encryption |
 | Fault-injection matrix (V2) | Works (completion only) | EMULATOR_INTEGRATION, scored by a bytecode-derived receiver model | [`docs/v2-fault-matrix.md`](v2-fault-matrix.md), `build/v2-fault-matrix.json` (git-ignored) | Tests completion, not content integrity |
 | Product reconstruction | Partial: done as documents, with external-evidence blockers (the phase-2 verdict) | OFFICIAL_DOC, BYTECODE_PROVEN, CLOUD_OBSERVED | [`docs/final-product-reconstruction.md`](final-product-reconstruction.md) | The consumer cloud is seen only through third-party clients |
 | Generator, formant voice | Works | EMULATOR_INTEGRATION | [`docs/generator.md`](generator.md) | Not intelligible speech |
 | Generator, Piper voice | Works (locally) | EMULATOR_INTEGRATION | `generator/tts/piper.py`, `tests/test_generator_piper.py`; `meeting.json` carries the voice hashes, timing method and attribution | Not in CI; voice licence unresolved |
 | Evals | Works | EMULATOR_INTEGRATION (V4); MEASURED agreement with NIST md-eval (224 of 224 per-meeting DERs at collar 0) | [`docs/evals.md`](evals.md), `tests/test_evals_*.py`, `build/v5-test/md-eval-crosscheck.json` | Above 20 speakers meeteval refuses cpWER/tcpWER; the meeting is kept with DER, JER and WER, and a gate on the refused metric fails |
 | Pipeline baselines | Works | EMULATOR_INTEGRATION | [`docs/pipeline.md`](pipeline.md) | `energy-vad-cluster` is tuned to synthetic voices |
-| Real ASR + diarization (`whisper-sherpa`) | Partial: measured on all 16 AMI test meetings; target missed | MEASURED | [`docs/v5-test-split.md`](v5-test-split.md), [`docs/v5-results.md`](v5-results.md) | Macro DER 0.6472, cpWER 0.8428 with dev-calibrated settings and no hint (target 0.20, 0.30). Speaker attribution is the main error |
-| Other model adapters | Partial | MEASURED for `embedding-cluster` (SpeechBrain ECAPA, in a separate torch environment) | [`docs/v5-test-split.md`](v5-test-split.md) §7; `python -m pipeline list` | `pyannote-audio`, `faster-whisper+pyannote` and `whisperx` never ran against a model: pyannote's models are gated behind a Hugging Face account |
+| Real ASR + diarization (`whisper-sherpa`, `whisper-sherpa-ecapa`, `faster-whisper+pyannote`) | Partial: measured on all 16 AMI test meetings; target missed | MEASURED | [`docs/v5-test-split.md`](v5-test-split.md), [`docs/v5-results.md`](v5-results.md) | Best: `faster-whisper+pyannote`, cpWER 0.3477 without a hint (target 0.30); pyannote's turns alone DER 0.1295 (target 0.20). The transcript's WER (0.3221) now dominates. pyannote's segmentation model was trained on data that includes AMI |
+| Other model adapters | Partial | MEASURED for `embedding-cluster` (SpeechBrain ECAPA), `pyannote-audio` and `faster-whisper+pyannote` (pyannote.audio 4.0.7, gated community-1 pipeline), in separate environments | [`docs/v5-test-split.md`](v5-test-split.md) §7, §7.2; `python -m pipeline list` | `whisperx` never ran against a model (not installed) |
 | AMI converter | Works | MEASURED (cross-check against BUT RTTMs) | `evals/ami.py`, `tests/test_ami_converter.py` | Audio here for all 16 test and 18 dev meetings, headset mix only |
 | Mock cloud | Works (as a contract mock) | EMULATOR_INTEGRATION; contract from OFFICIAL_DOC (OpenAPI pages, template-app source) and BYTECODE_PROVEN (SDK-internal routes). GoReplay replays its traffic export exactly (14 of 14 requests) | [`docs/mockcloud.md`](mockcloud.md), `scripts/crosscheck-goreplay.sh` | Never compared with real responses |
 | Compose / V6 | Works (arm64 on a Mac; x86_64 on GitHub) | EMULATOR_INTEGRATION | `build/v6/compose-smoke-2026-09-25.log` (committed evidence); the `compose` workflow (first run 36396859985); [`docs/compose.md`](compose.md) | The job never pulls a recording over BLE, and no container runs the Android SDK |
@@ -146,20 +152,20 @@ The rungs are defined in [`PROJECT.md`](../PROJECT.md) §4b.
 |---|---|---|---|---|---|
 | V1 | Emulator is discovered and completes a session | Done | A Bumble central scans, parses the advertisement with the SDK's parse rules, connects, sets MTU, discovers, subscribes and runs the control and file-sync messages | The central is our Python code; V1 passed while the transfer sequence was still wrong | `tests/test_v1_discovery_session.py` and the phase-1 tests |
 | V2 | Survives fault injection without corrupting a transfer | Done | 61 of the 62 counted cells end byte-exact (39 directly, 6 after an app resume) or with a detected failure (16); the 62nd, `old_stream_not_abandoned[atomic]`, is a documented corruption risk. 2 content-fault rows show the harness's corruption check fires | The receiver is our model of the SDK. "No silent corruption" holds by construction in the counted cells (review finding T10) | `tests/test_v2_fault_matrix.py`, [§4.7](#47-fault-injection-matrix-v2) |
-| V3 | Plaud's own SDK connects and pulls a recording | Done (Android, BLE, legacy protocol) | Bind, file list, and byte-exact download through `syncFile` and `exportAudio(OPUS)`; gap recovery converged byte-exact | Real devices, iOS, the encrypted protocol, Wi-Fi | [`r7/r7-s13-recording-pull.md`](../r7/r7-s13-recording-pull.md) |
+| V3 | Plaud's own SDK connects and pulls a recording | Done (Android, BLE, legacy protocol) | Bind, file list, and byte-exact download through `syncFile` and `exportAudio(OPUS)`; gap recovery converged byte-exact | Real devices, iOS, the encrypted protocol. Wi-Fi was done on 29 Sep, with caveats: the phone joined a simulated network, and the bytes went through `adb forward` ([§5.4](#54-real-sdk-runtime-runs-android-only)) | [`r7/r7-s13-recording-pull.md`](../r7/r7-s13-recording-pull.md), [`r7/r7-s15-evidence/`](../r7/r7-s15-evidence/README.md) |
 | V4 | Synthetic ground truth round-trips at DER 0 | Done | Reference vs itself and vs a mask-rebuilt copy: DER = JER = 0.0; generator → oracle → evals gives DER, JER, cpWER, tcpWER all 0.0; perturbations raise each metric | Plumbing and metric direction only; the oracle returns the truth by construction | `tests/test_v4_der_roundtrip.py`, `tests/test_v4_e2e.py` |
-| V5 | A full pipeline hits target cpWER/DER on held-out AMI | Measured; **failed** | `whisper-sherpa` on all 16 AMI test meetings (9.06 h), settings chosen on the 18 dev meetings, no hint: macro DER 0.6472, cpWER 0.8428. With the oracle speaker count: 0.6396, 0.8567. Suite `ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30, HARNESS_POLICY bounds) fails for both | Any configuration near the target; pyannote-based systems (gated models) | [`docs/v5-test-split.md`](v5-test-split.md), `build/v5-test/gates/`, `evals/gates.yaml` |
+| V5 | A full pipeline hits target cpWER/DER on held-out AMI | Measured; **failed, narrowly** | All 16 AMI test meetings (9.06 h), no hint. `whisper-sherpa`, dev-calibrated: macro DER 0.6472, cpWER 0.8428 (28 Sep). `whisper-sherpa-ecapa`: 0.4104, 0.5132. `faster-whisper+pyannote`: DER 0.3140 (word runs), cpWER 0.3477. `pyannote-audio` (no words): DER 0.1295 (29 Sep). Suite `ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30, HARNESS_POLICY bounds) fails for every system with words | cpWER ≤ 0.30; generalisation beyond AMI (pyannote's segmentation model was trained on data that includes it) | [`docs/v5-test-split.md`](v5-test-split.md), `build/v5-test/gates/`, `evals/gates.yaml` |
 | V6 | `docker compose up` is live in under 60 s | Done (arm64 on a Mac; x86_64 on a GitHub runner) | Healthy in 6.58 s (Colima, 25 Sep) and 5.81 s (GitHub, cold cache, 28 Sep); job exit 0 both times | A BLE pull inside the topology; the real SDK | `build/v6/compose-smoke-2026-09-25.log`; `compose` run 36396859985 |
 
 ## 4. Measured numbers
 
 ### 4.1 Tests
 
-Full suite, run on 29 September 2026:
+Full suite, run on 30 September 2026:
 
 ```
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ -q -p no:cacheprovider --timeout=120 -rs
-1420 passed, 5 skipped, 11 warnings in 244.15s (0:04:04)
+1432 passed, 5 skipped, 11 warnings in 271.52s (0:04:31)
 ```
 
 - Counts include parametrised cases.
@@ -169,7 +175,7 @@ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ -q -p no:cacheprovid
   packages are installed here.
 - The other two, `test_real_faster_whisper_on_a_generator_clip` and
   `test_real_faster_whisper_seeded_sampling_repeats_across_processes`
-  (`tests/test_pipeline_adapters.py:438`, `:471`), run the faster-whisper
+  (`tests/test_pipeline_adapters.py:520`, `:553`), run the faster-whisper
   adapter against a real model. They run only when `PLAUD_HARNESS_FW_MODEL`
   names a model. With it set to the pinned `small.en` they passed on 29 Sep
   (2 passed in 67.01 s; [§6.4](#64-never-run)).
@@ -180,7 +186,7 @@ PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests/ -q -p no:cacheprovid
 - Pytest must be pointed at `tests/`. Run from the repository root without a
   path, it collects `reference/` and stops with an error.
 
-Per area, from `pytest tests/ --collect-only` on 29 Sep. 74 of the 75
+Per area, from `pytest tests/ --collect-only` on 30 Sep. 74 of the 75
 `test_*.py` modules yield tests; `test_mockcloud_helpers.py` holds shared
 helpers only. `tests/` holds 81 Python files, including `conftest.py` and 5
 support modules:
@@ -194,15 +200,15 @@ support modules:
 | Generator and V4 round trip | `test_generator_*.py`, `test_v4_der_roundtrip.py` | 137 |
 | Evals | `test_evals_*.py` | 200 |
 | AMI converter | `test_ami_converter.py` | 51 |
-| V5 gate calibration | `test_v5_gates.py` | 13 |
-| Pipeline | `test_pipeline_*.py` | 249 |
+| V5 gate calibration | `test_v5_gates.py` | 19 |
+| Pipeline | `test_pipeline_*.py` | 255 |
 | Mock cloud | `test_mockcloud_*.py` | 76 |
 | Cross-layer integration and V4 end to end | `test_integration_*.py`, `test_v4_e2e.py` | 21 |
 | Compose | `test_compose_*.py` | 59 |
-| **Total collected** | | **1425** |
+| **Total collected** | | **1437** |
 
 History: 301 tests after phase 1; 978 on 24 Sep; 1365 passed on 25 Sep; 1377
-on 28 Sep before the day's changes (12 added for R-CI-1); 1420 on 29 Sep.
+on 28 Sep before the day's changes (12 added for R-CI-1); 1420 on 29 Sep; 1432 on 30 Sep.
 
 Before GitHub ran the workflow, two CI-like runs were made on macOS arm64 on
 25 Sep (from the follow-up and stage-2 journals):
@@ -264,6 +270,10 @@ meetings. Nothing was tuned on the test split.
 | energy-vad-cluster, no hint (no ASR) | 0.5871 | 0.6842 | n/a | n/a | n/a | +0.94 |
 | embedding-cluster, calibrated, no hint (no ASR) | 0.4967 | 0.6506 | n/a | n/a | n/a | −1.50 |
 | embedding-cluster, hint (no ASR) | 0.3708 | 0.4548 | n/a | n/a | n/a | 0.00 |
+| **whisper-sherpa-ecapa, no hint** (29 Sep) | **0.4104** | 0.5391 | **0.5132** | 0.5297 | 0.3221 | −0.31 |
+| whisper-sherpa-ecapa, hint (29 Sep) | 0.3965 | 0.4968 | 0.4821 | 0.4994 | 0.3221 | 0.00 |
+| **faster-whisper+pyannote, no hint** (29 Sep) | 0.3140 | 0.3358 | **0.3477** | 0.3562 | 0.3221 | +0.25 |
+| **pyannote-audio, no hint (no ASR)** (29 Sep) | **0.1295** | 0.1773 | n/a | n/a | n/a | +0.25 |
 | oracle (self-test) | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.00 |
 
 - `ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30) fails for the calibrated and the
@@ -301,16 +311,38 @@ meetings. Nothing was tuned on the test split.
   the dev split (0.55). Without a hint it collapses to one speaker on 8 of 16
   meetings; its macro DER, 0.4967, mixes those with meetings where it finds 4–5
   speakers and scores 0.16–0.40 ([`docs/v5-test-split.md`](v5-test-split.md) §7).
+- **`whisper-sherpa-ecapa` (29 Sep).** The whisper-sherpa words, assigned to
+  ECAPA turns cut into the number of speakers calibrated sherpa-onnx finds.
+  Chosen on the dev split first: there it scored DER 0.4314 and a
+  reference-word cpWER of 0.6145, against 0.5431 and 0.9344 for sherpa alone
+  (`scripts/check-sherpa-ecapa-dev.py`). On test: DER 0.4104 and cpWER 0.5132
+  without a hint. cpWER improved on all 16 meetings, and speaker confusion fell
+  from 0.342 to 0.107. All 32 real runs, with and without the hint, equal the
+  replay. All 18 fresh ASR decodes (the 16 no-hint runs, and two hint runs of a
+  first, stopped attempt) reproduced the cached transcripts word for word
+  ([`docs/v5-test-split.md`](v5-test-split.md) §7.1).
+- **pyannote (29 Sep).** `pyannote-audio` (pyannote.audio 4.0.7, gated
+  `speaker-diarization-community-1`, library defaults, no hint) scores DER
+  0.1295, and finds the right speaker count on 12 of 16 meetings.
+  `faster-whisper+pyannote` puts the same transcript on pyannote's turns:
+  cpWER 0.3477, speaker confusion 0.012, and cpWER ≤ 0.30 on 5 of 16 meetings.
+  At collar 0 the pooled DER is 17.07 %, against 17.0 % on the model card for
+  AMI (IHM): an outside check of the harness's scoring. The card does not list
+  its training data; its segmentation model is segmentation-3.0, which was trained
+  on data that includes AMI ([`docs/v5-test-split.md`](v5-test-split.md) §7.2).
 - **Checks.** The oracle scores 0 everywhere. NIST md-eval gives the same DER
   for all 224 per-meeting values at collar 0. At collar 0.25, 213 of 224 agree
   and 11 differ by at most 0.0054.
-- **Regression gates.** `ami-test-whisper-sherpa-cal` and
-  `ami-test-whisper-sherpa-hint` are the measured macro values plus 0.03 (0.25
-  on the speaker-count error), rounded up. Passing them means "no worse than
-  on 28 Sep", not "good".
+- **Regression gates.** `ami-test-whisper-sherpa-cal`,
+  `ami-test-whisper-sherpa-hint`, `ami-test-whisper-sherpa-ecapa`,
+  `ami-test-whisper-pyannote` and `ami-test-pyannote-audio` are the measured
+  macro values plus 0.03 (0.25 on the speaker-count error), rounded up. Passing them means "no worse than when measured", not "good".
 - **Timing is not a speed measurement.** Up to four heavy jobs shared the 8 GB
-  M1. RTF was 0.319–1.145 for runs that decoded speech, and 0.160–0.682 for
-  diarization-only runs.
+  M1. On 28 Sep, RTF was 0.319–1.145 for runs that decoded speech and
+  0.160–0.682 for diarization-only runs. On 29 Sep (`whisper-sherpa-ecapa`) it
+  was 0.26–0.38 for runs that decoded speech, and 0.023–0.035 from the cached
+  transcript (the hinted runs, repeated on 30 Sep). pyannote on the GPU ran at
+  0.13–0.26.
 - **Against the 25 Sep subset.** On all 16 meetings the hinted configuration
   scores DER 0.6396 and cpWER 0.8567; the 4-meeting subset scored 0.6557 and
   0.8533.
@@ -438,6 +470,7 @@ Recounted on 28 Sep with `grep -a` over the archived logs:
 | Other Plaud URLs requested | 0 (the other `plaud.ai` lines are base-URL configuration) |
 | `gen-key` lines in the blank-token offline check of the pull driver (25 Sep), counted in the archived `logcat.filtered.log` (133 lines). That filter keeps the `PlaudSdk_SourceFile` tag, which logged every earlier request, and it shows the Partner API base-URL lines. The unfiltered logcat, which `run.sh` counted, was not archived | 0 |
 | `gen-key` lines in the blank-token offline re-runs of the K3 driver and the Wi-Fi driver (modes open and transfer), 28 Sep. The full logcats are archived (gzip; 4 846, 1 492 and 1 479 lines) in [`r7/r7-s14-evidence/blank-token-drivers-check/`](../r7/r7-s14-evidence/blank-token-drivers-check/) | 0 |
+| `gen-key` lines in the two R7-S15 Wi-Fi runs, 29 Sep. Run 1 (`--debug-no-network`): the phone associated with the simulated `PLAUD0001` but got no DHCP address. Run 2: the phone was on `PLAUD0001` (10.0.2.16), with DNS pointed at a dead address (127.0.0.1) and TCP at a dead proxy (127.0.0.1:9). Full logcats archived (gzip; 1 935 and 4 736 lines) in [`r7/r7-s15-evidence/`](../r7/r7-s15-evidence/README.md) | 0 |
 
 The R7-S12 logs were filtered to other log tags, so they cannot show whether
 the request was sent; that driver passed the same synthetic token. The R4-S3
@@ -528,6 +561,7 @@ Each entry: what exists; how it was proven; what is not proven; where to read mo
 | R7-S14 | 25 Sep | 6 runs. Bind, OpenWiFi (opcode 10) and its answer worked. In the 4 transfer runs (1, 1b, 2, 5) the SDK asked Android to join `PLAUD0001`, and the request timed out after 30 s. In 1b, 2 and 5 the log shows `onError(1003)` (at +30.124 s, +30.051 s and +30.155 s); run 1's log is truncated. Runs 3 and 4 drove `setDeviceWiFi` open and close only and requested no join. In runs 1 and 1b the pre-fix emulator answered opcode 10 without a passphrase and started no Wi-Fi device (D1, fixed). The SDK never started its server on port 8081, and no Wi-Fi message went either way in any run | [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) |
 | Blank-token check | 25 Sep | Export re-run with the phone's Wi-Fi and mobile data off and a blank SDK token: byte-exact, no `gen-key` line | [`r7/r7-s14-evidence/blank-token-offline-check/`](../r7/r7-s14-evidence/blank-token-offline-check/) |
 | Blank-token drivers | 28 Sep | The K3 driver and the Wi-Fi driver (modes open and transfer), from the debug build with the drivers in the debug source set, offline, with a blank token. K3 and Wi-Fi bind with status 0. OpenWiFi answers 0. With the phone's Wi-Fi off, the transfer's join fails at once (`onError(1003)` at +151 ms). No `gen-key` line in any full logcat | [`r7/r7-s14-evidence/blank-token-drivers-check/`](../r7/r7-s14-evidence/blank-token-drivers-check/) |
+| R7-S15 | 29 Sep | The emulator's simulated Wi-Fi offered `PLAUD0001` (WPA2, passphrase `10000001`; `netsimd --wifi`). Run 1 (`--debug-no-network`): the phone associated and completed the WPA2 handshake with the SDK's passphrase, but got no DHCP address, and the SDK gave up at 30 s. Run 2 (DHCP on; DNS and TCP egress cut): joined in 3.9 s. The SDK started its WebSocket server on port 8081, completed the Wi-Fi handshake with our device and listed the file. It downloaded it over Wi-Fi byte-exact (11 271 B, `0f45367b…`), in the download and the OPUS export. No `gen-key` line. The bytes went through `adb forward`, not the simulated radio; the handshake token was empty; no encryption | [`r7/r7-s15-evidence/`](../r7/r7-s15-evidence/README.md) |
 
 What only the real SDK could show (R7-S13): completion needs the EMPTY_PACKAGE
 before the TAIL. On a gap the SDK sends stop at once and restarts from its
@@ -547,8 +581,16 @@ a byte-for-byte passthrough.
   and 5 sent mode 0 from `startWifiTransfer`, and runs 3 and 4 sent mode 1 from
   `setDeviceWiFi(true)`. No session followed. The pre-fix runs 1 and 1b started
   none (`wifi_devices` in `r7/r7-s14-evidence/capture-run*.json`).
-- **Not proven.** Everything after the join with the real SDK. There is no
-  access-point or DHCP layer. The opcode-10 byte's meaning is UNKNOWN.
+- **Real SDK over Wi-Fi (R7-S15, 29 Sep).** With a simulated `PLAUD0001`
+  network to join, the real SDK completed the whole session: handshake, file
+  list, `FileSync` and three `FileSyncContent` frames. The download was
+  byte-exact ([§5.4](#54-real-sdk-runtime-runs-android-only)). The runtime
+  confirmed these bytecode readings: the SSID and passphrase; that the phone
+  starts its server only once the network is available (the pen needed 6
+  dials); and the PDU sequence.
+- **Not proven.** The bytes crossing the simulated radio (they went through
+  `adb forward`), a non-empty handshake token, the encrypted Wi-Fi session, a
+  real pen's access point. The opcode-10 byte's meaning is UNKNOWN.
 - **More.** [`docs/wifi-transport.md`](wifi-transport.md) §8, §11; ledger §7.
 
 ### 5.6 Fault-injection matrix (V2)
@@ -623,12 +665,14 @@ a byte-for-byte passthrough.
 
 ### 5.10 Pipeline
 
-- **Exists.** `python -m pipeline list` (29 Sep) shows 10 entries. Available in
+- **Exists.** `python -m pipeline list` (29 Sep) shows 11 entries. Available in
   `.venv`: `oracle`, `perturbed-oracle`, `energy-vad-cluster`,
   `faster-whisper`, `sherpa-onnx-diarization`, `whisper-sherpa`.
   `embedding-cluster` is available in a separate environment with torch 2.14.0
-  and SpeechBrain 1.1.1 (`.venv-torch`, git-ignored). `pyannote-audio`,
-  `faster-whisper+pyannote` and `whisperx` are unavailable here.
+  and SpeechBrain 1.1.1 (`.venv-torch`, git-ignored). A third environment,
+  `.venv-pyannote` (git-ignored; 29 Sep), adds pyannote.audio 4.0.7 to those and
+  to the model stack. There, 10 of the 11 are available, all but `whisperx`,
+  including the new `whisper-sherpa-ecapa`.
 - **`whisper-sherpa`.** faster-whisper 1.2.1 (`small.en`) plus sherpa-onnx
   1.13.8 (pyannote segmentation-3.0 ONNX, 3D-Speaker CAM++). Weights pinned by
   sha256 in `pipeline/model_store.py`; packages in the optional
@@ -656,8 +700,28 @@ a byte-for-byte passthrough.
   EN2002a–c), with the hint (IS1009a) and at 0.55 (EN2002b). On the test split it
   scores DER 0.3708 with the hint and 0.4967 without
   ([§4.4](#44-v5-the-full-ami-test-split-28-september-and-the-25-september-subset)).
-- **Not proven.** The three unavailable adapters were tested only against
-  stand-in modules (review finding PIPE-05). `energy-vad-cluster`'s pitch
+- **`whisper-sherpa-ecapa` (29 Sep).** The `whisper-sherpa` transcript with
+  turns from ECAPA embeddings cut into the number of speakers sherpa-onnx finds
+  at `cluster_threshold` 1.15 (`SherpaCountedEmbeddingDiarizer`,
+  `pipeline/whisper_sherpa.py`); with a hint, sherpa-onnx is not run. Chosen on
+  the dev split ([`docs/pipeline.md`](pipeline.md) §11.10). Without a hint it
+  scores macro DER 0.4104 and cpWER 0.5132. It was the best system measured until
+  the pyannote runs later on 29 Sep (`faster-whisper+pyannote`: 0.3140, 0.3477).
+- **pyannote (29 Sep).** The gated models ran with the owner's Hugging Face
+  token. The token is read from the environment and never stored in the
+  repository. The adapters turn pyannote.audio 4's usage telemetry off when
+  `pipeline.adapters` is imported, and again before pyannote runs, unless the user
+  set `PYANNOTE_METRICS_ENABLED` before pyannote.audio was imported (pyannote writes
+  its own default, "true", on import). They record the model's cache snapshot
+  (revision and file hashes), and accept `diarization_device` so pyannote can
+  use the Mac GPU (4.7× faster than the CPU, same turns;
+  `build/v5-test/pyannote-device-check/`) while Whisper stays on
+  the CPU. Results: `pyannote-audio` DER 0.1295; `faster-whisper+pyannote`
+  cpWER 0.3477. At collar 0, pyannote's pooled DER is 17.07 %, against 17.0 %
+  on its model card for the same AMI condition
+  ([`docs/pipeline.md`](pipeline.md) §11.11).
+- **Not proven.** `whisperx` was tested only against stand-in modules (review
+  finding PIPE-05). `energy-vad-cluster`'s pitch
   feature is tuned to synthetic voices.
 - **Before V5.** Sanity checks on one AMI test meeting (ES2004a): a 60 s clip
   and excerpts ([`docs/pipeline.md`](pipeline.md) §11.4–§11.5). Across 19 runs
@@ -775,21 +839,22 @@ unresolved entries. U23 is marked `DUPLICATE_OF_U15`, which leaves 24.
 
 | Item | Detail | Evidence |
 |---|---|---|
-| V5 target missed | On all 16 AMI test meetings the best realistic configuration scores macro DER 0.6472 and cpWER 0.8428 (target 0.20 and 0.30). Speaker confusion (0.34 of reference time) and words missing from overlapped speech dominate | [`docs/v5-test-split.md`](v5-test-split.md) |
+| V5 target missed | On all 16 AMI test meetings the best realistic configuration, `faster-whisper+pyannote`, scores cpWER 0.3477 (target 0.30), with speaker confusion 0.012; pyannote's own turns score DER 0.1295 (target 0.20). The remaining gap is the transcript (WER 0.3221) and, for word-level DER, speech the word runs miss (0.26). pyannote's segmentation model was trained on data that includes AMI | [`docs/v5-test-split.md`](v5-test-split.md) §7.2 |
 | sherpa's default threshold over-clusters | With `cluster_threshold` 0.5, sherpa finds 35–108 clusters on 3–4-speaker AMI meetings. The calibrated 1.15 is not the default: a caller must pass it | [`docs/v5-test-split.md`](v5-test-split.md) §5 |
 | meeteval's speaker limits | meeteval 0.4.3 refuses cpWER above 20 speakers; with the guard lifted it fails above about 56. Such meetings keep DER, JER and WER but have no cpWER | [`docs/evals.md`](evals.md) |
 | sherpa diarization near chance on Piper voices | confusion 0.50 of reference time even with the hint; not traced | [`docs/v5-results.md`](v5-results.md) §8.4 |
-| Timing under contention | V5 RTFs were measured on a shared 8 GB M1 (25 Sep: 0.215–0.380; 28 Sep: 0.160–1.145); no quiet-machine figure | [`docs/v5-results.md`](v5-results.md) §4, [`docs/v5-test-split.md`](v5-test-split.md) §4 |
+| Timing under contention | V5 RTFs were measured on a shared 8 GB M1 (25 Sep: 0.215–0.380; 28 Sep: 0.160–1.145; 29–30 Sep: 0.023–0.381); no quiet-machine figure | [`docs/v5-results.md`](v5-results.md) §4, [`docs/v5-test-split.md`](v5-test-split.md) §4 |
 | Opus decode differs on macOS | On GitHub's macOS runner, FFmpeg's Opus decoder (same PyAV, same packets) gives different samples over one ~8-packet stretch of a test clip; Linux and this Mac agree bit for bit. Cause not established | `c0be32e`; [§5.13](#513-ci) |
-| Wi-Fi join | The Android emulator sees only `AndroidWifi`; nobody approved Android's network-request dialog, so a missing hotspot is sufficient to block the join but not shown to be the only cause | R7-S14 checker record (25 Sep journal) |
-| Pen dial default | The pen dials once by default; the real phone starts its server only after a join of up to 30 s. The runs used 90 attempts; the default is unchanged | [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) D4 |
+| Pen dial default | The pen dials once by default; the real phone starts its server only after the join. In R7-S15 our device needed 6 dials; the runs use 90 attempts, and the default is unchanged | [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) D4, [`r7/r7-s15-evidence/`](../r7/r7-s15-evidence/README.md) |
 | SDK CloseWiFi quirk | The SDK waits for the close answer on opcode 10 but type-checks it as 13, so no close status reaches the app; an opcode-10 answer arrives as status −1 | same, D5 |
 | SDK after a failed join | The Wi-Fi agent stays CONNECTING, and `endWiFiTransfer` sends nothing over BLE | same, D6 |
 | V2 scoring | "No silent corruption" holds by construction in the counted cells; the matrix measures completion | review finding T10 |
-| Remaining narrowed review findings | GEN-1 overlap target still short on one preset (worst −0.043); PIPE-05: the pyannote and whisperx adapters checked only against stand-ins; PIPE-01 still miscounts two held-out smoke seeds without the hint. EV-4 (md-eval) and MC-3 (GoReplay) were closed on 28 Sep | [`docs/progress-report.md`](progress-report.md) §8.1 |
+| Remaining narrowed review findings | GEN-1 overlap target still short on one preset (worst −0.043); PIPE-05: the whisperx adapter and the pyannote.audio 3.x paths checked only against stand-ins; PIPE-01 still miscounts two held-out smoke seeds without the hint. EV-4 (md-eval) and MC-3 (GoReplay) were closed on 28 Sep | [`docs/progress-report.md`](progress-report.md) §8.1 |
 
-Fixed on 28 Sep and removed from this table: ASR not repeatable on long audio
-(now seeded); evals dropping a meeting that meeteval refused; Piper metadata
+Fixed on 28–29 Sep and removed from this table: ASR not repeatable on long audio
+(now seeded); evals dropping a meeting that meeteval refused; the Wi-Fi join,
+fixed on 29 Sep by giving the emulated phone a `PLAUD0001` network and approving
+Android's network-request dialog with a scripted tap (R7-S15); Piper metadata
 missing from `meeting.json`; the three debug activities exported from
 `src/main` (now in the debug source set only; the merged release manifest has
 none of them).
@@ -820,9 +885,9 @@ source set (`7740153`).
 - The iOS SDK. This machine has only the Xcode command-line tools
   (`xcode-select -p` → `/Library/Developer/CommandLineTools`).
 - Any real Plaud device, account or credential.
-- `pyannote-audio`, `faster-whisper+pyannote` and `whisperx` against a model
-  (pyannote's models are gated behind a Hugging Face account).
-- The Wi-Fi transfer with the real SDK beyond the join.
+- `whisperx` against a model (not installed).
+- The real SDK's Wi-Fi bytes over the simulated radio (R7-S15 used `adb forward`),
+  and an encrypted Wi-Fi session.
 - The mock cloud against the real template app.
 - A V5 speed measurement on a quiet machine.
 
@@ -919,6 +984,9 @@ No other disagreement was known when this commit was made. §12 says how to re-c
 | ASR non-repeatability was probably the unseeded temperature fallback (inferred, 25 Sep) | Consistent with it: CTranslate2 seeded before the model is built repeats sampled output across processes, and re-seeding inside a process does not. With seeding, a fresh process reproduced EN2002a exactly | 28 Sep | [`docs/pipeline.md`](pipeline.md) §11.8 |
 | sherpa's default `cluster_threshold` (0.5) is a usable default | On AMI it finds 35–108 clusters for 3–4 speakers. The dev split selects 1.15 | Dev-split calibration, 28 Sep | [`docs/v5-test-split.md`](v5-test-split.md) §3 |
 | The 4-meeting V5 subset might not represent the split | It did: hinted DER 0.6557 and cpWER 0.8533 on 4 meetings; 0.6396 and 0.8567 on 16 | Full split, 28 Sep | same, §6 |
+| The Android emulator cannot join the pen's hotspot, so the real SDK's Wi-Fi transfer needs a physical phone or access point (R7-S14) | The emulator's network simulator offers any SSID and passphrase (`netsimd --wifi`). With `PLAUD0001`/`10000001`, and Android's network-request dialog approved by a scripted tap, the SDK joined and completed the transfer byte-exact | 29 Sep, R7-S15 | [`r7/r7-s15-evidence/`](../r7/r7-s15-evidence/README.md) |
+| sherpa's attribution was the best available (V5, 28 Sep) | Sherpa's speaker count with ECAPA turns cuts confusion from 0.342 to 0.107 and cpWER from 0.8428 to 0.5132 | Dev split, then test, 29 Sep | [`docs/v5-test-split.md`](v5-test-split.md) §7.1 |
+| pyannote's diarization is out of reach (gated models; 28 Sep) | With the owner's Hugging Face token it ran: DER 0.1295 alone, cpWER 0.3477 with the transcript, and its collar-0 DER (17.07 %) matches its published 17.0 % | 29 Sep | [`docs/v5-test-split.md`](v5-test-split.md) §7.2 |
 
 ## 8. Rules, and how they held
 
@@ -930,7 +998,7 @@ No other disagreement was known when this commit was made. §12 says how to re-c
 | Identifiers are synthetic | Held for what this document checked: id `SYNTH-HIST-0001`, serial `8810000001`, session `1700000000`, a synthetic fixture file. The template app's `local.properties` holds a placeholder token per [`r7/README.md`](../r7/README.md); it was not opened for this document | R7 reports |
 | Evidence classes stay distinct | Held in the protocol and product documents; harness choices carry `HARNESS_POLICY` | Ledger, product ledger |
 | SDK binaries are not redistributed | Held. No commit in the history contains an `.aar`, `.dex`, `.apk`, `.so` or `.class` file; its only jars are the two Gradle wrappers (checked 29 Sep with `git log --all --name-only`). Near miss, 28 Sep: a `.gitignore` edit that published `build/v5/` and `build/v6/` also un-ignored the nested Android build folders, one of which holds a dexed copy of the SDK (`r7/android-app/app/build/.../0_plaud-sdk-runtime.jar`). A fact-checker caught it before any commit; the rule `*/**/build/` now keeps every nested build folder ignored, and the would-be commit was scanned for jar/dex/zip/class content (none) | `.gitignore`; `git check-ignore -v` on the jar |
-| No contact with Plaud's cloud | **Not held.** We never called a Plaud endpoint from our own code. The official SDK did, because our drivers gave it a synthetic token. It sent one `gen-key` request per app start, logged in all 22 kept R7-S13 and R7-S14 logs that cover app start; R7-S14 run 1's truncated log does not cover it, so that request is inferred. 19 of the 22 logged requests were answered 401 and 3 failed at DNS. No response data was used. The 401 responses (status, Cloudflare headers, `x-request-id`) are archived in 14 of the 17 R7-S13 logs, which are public in `70249ba`. On 25 Sep the three drivers were changed to a blank token and the pull driver was re-run offline. On 28 Sep the K3 and Wi-Fi drivers were re-run the same way: no request in any full logcat. The template's own UI path still passes the `local.properties` token ([§9](#9-how-to-reproduce)) | [§4.8](#48-plaud-cloud-contact-in-the-runtime-logs); [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) D7; `r7/android-app/app/src/main/java/com/plaud/template/managers/DeviceManager.kt:177-181` |
+| No contact with Plaud's cloud | **Not held.** We never called a Plaud endpoint from our own code. The official SDK did, because our drivers gave it a synthetic token. It sent one `gen-key` request per app start, logged in all 22 kept R7-S13 and R7-S14 logs that cover app start; R7-S14 run 1's truncated log does not cover it, so that request is inferred. 19 of the 22 logged requests were answered 401 and 3 failed at DNS. No response data was used. The 401 responses (status, Cloudflare headers, `x-request-id`) are archived in 14 of the 17 R7-S13 logs, which are public in `70249ba`. On 25 Sep the three drivers were changed to a blank token and the pull driver was re-run offline. On 28 Sep the K3 and Wi-Fi drivers were re-run the same way: no request in any full logcat. On 29 Sep (R7-S15) the Wi-Fi driver ran with the phone joined to a simulated network; DNS and TCP egress were cut on the host side, and again no request was logged. The template's own UI path still passes the `local.properties` token ([§9](#9-how-to-reproduce)) | [§4.8](#48-plaud-cloud-contact-in-the-runtime-logs); [`r7/r7-s14-wifi-real-sdk.md`](../r7/r7-s14-wifi-real-sdk.md) D7; `r7/android-app/app/src/main/java/com/plaud/template/managers/DeviceManager.kt:177-181` |
 | Downloads of Plaud's public material (outside the rule above) | On 23 Sep, without authentication, the project downloaded 43 files from `docs.plaud.ai` (including the `llms.txt` index and 5 OpenAPI specs) into `build/docs-plaud-ai/`. It also fetched two official npm packages, `@plaud-ai/cli` 0.3.14 and `@plaud-ai/mcp` 0.3.13, from registry.npmjs.org into `build/npm-plaud/`. These are public downloads, not API calls. Both folders are git-ignored | `build/docs-plaud-ai/manifest.json`, `build/npm-plaud/manifest.json`, [`docs/source-map.md`](source-map.md) |
 
 ## 9. How to reproduce
@@ -1054,7 +1122,7 @@ emulated phone offline as a second guard.
 | Inputs to the evidence graph | `docs/product-evidence/` (8 JSON files). `scripts/build_evidence_graph.py` reads `agent-findings-2026-09-23.json` from it |
 | Early and superseded records (all public in `70249ba`) | `docs/forensics-report.md` (21 Sep inventory); `docs/protocol-spec.md` and `docs/protocol.json` (both marked "SUPERSEDED IN PART"; the JSON is the class census from `scripts/extract_protocol.py`); `docs/repository-map.md` (21 Sep; says the code directories are empty); `dump.md` (the raw research chat, with claims refuted in [`docs/final-product-reconstruction.md`](final-product-reconstruction.md) §6) |
 | Dependencies | `requirements/all.txt`, `requirements/ci.txt` (`-r all.txt`), `requirements/models.txt` (optional), and per-layer `evals.txt`, `faults.txt`, `generator.txt`, `mockcloud.txt`, `pipeline.txt`, `wifi.txt`. In `all.txt`, `cryptography`, `grpcio` and `protobuf` carry no version pin, and `websockets` is a range (`>=17,<18`) |
-| Code size (lines of Python, 29 Sep) | `emulator/plaudsim/` 7 011; `generator/` 4 130; `evals/` 3 993; `pipeline/` 5 698; `mockcloud/` 2 766; tests 25 223 in 81 Python files (75 `test_*.py`); Kotlin drivers 678 (`r7/android-app/app/src/debug/`) |
+| Code size (lines of Python, 30 Sep) | `emulator/plaudsim/` 7 011; `generator/` 4 130; `evals/` 3 993; `pipeline/` 5 862; `mockcloud/` 2 766; tests 25 332 in 81 Python files (75 `test_*.py`); Kotlin drivers 678 (`r7/android-app/app/src/debug/`) |
 
 ## 11. What is next
 
@@ -1064,10 +1132,10 @@ In order. Each item names what blocks it and what would unblock it.
 |---|---|---|---|
 | 1 | Keep CI green on all three platforms | – | The "Annotate failures" step publishes any failing test through the public API ([§5.13](#513-ci)). An install failure (as on `3e46ad9`) needs the job log, which needs a token |
 | 2 | Decide whether to keep absolute local paths in the published V5 evidence | Owner's call | 152 files in `build/v5/` contain `/Users/…` paths from the run; they are left byte-identical as produced. `build/v5-test/` and `build/v5-calib/` carry the same kind of paths |
-| 3 | Improve speaker attribution, the main V5 error | Engineering, not blocked | The strongest lead: `embedding-cluster`'s ECAPA turns score DER 0.3708 with the hint, against 0.5192 for sherpa's; attaching the transcript to them (no model run) should first be justified on the dev split, since this lead was found on test. Its unaided speaker count needs work (one speaker on 8 of 16 meetings). Other candidates, none built or measured as a system: report sherpa's own turns as the diarization output (they already score DER 0.5263 calibrated, against 0.6472 for the word runs) and keep the words for cpWER; overlap-aware word assignment; a stronger embedding model; calibrate `min_duration_on/off` on the dev split |
-| 4 | pyannote-based systems on the full split (`pyannote-audio`, `faster-whisper+pyannote`, `whisperx`) | pyannote's models are gated | A Hugging Face account that has accepted their terms, and its token in the environment (never committed) |
+| 3 | Close the rest of the V5 gap | Engineering, not blocked | Done 29 Sep: `whisper-sherpa-ecapa` (cpWER 0.5132) and `faster-whisper+pyannote` (cpWER 0.3477, confusion 0.012). What remains is the transcript: its WER is 0.3221 with `small.en`. Next: a larger Whisper model, chosen on the dev split (hours of CPU decoding here), then re-assigning its words to pyannote's turns |
+| 4 | pyannote-based systems on the full split | Done 29 Sep for `pyannote-audio` and `faster-whisper+pyannote`; `whisperx` is not installed | Install whisperx in a separate environment if wanted; its alignment models are a large download |
 | 5 | A V5 speed figure | This 8 GB M1 was always shared | One run with nothing else on the machine |
-| 6 | Wi-Fi with the real SDK | The Android emulator cannot join `PLAUD0001` | A hotspot the emulated phone can join, or a physical phone and a real SoftAP; raise the pen's dial attempts for that run |
+| 6 | Wi-Fi with the real SDK over the air | Done on 29 Sep through `adb forward` (R7-S15). The bytes have not crossed a Wi-Fi link | Route our device over netsim's network (the host is reached through slirp), or a physical phone and a real SoftAP |
 | 7 | Device questions (U1, U15, U17, U2, U22 and the others in [§6.1](#61-open-questions-24)) | No hardware | One passive BLE scan capture and one transfer capture of any legacy Plaud recorder |
 | 8 | Real firmware's audio shape (U20) | No real recording | One recording the operator lawfully owns |
 | 9 | iOS SDK at runtime | No Xcode | Xcode with a simulator, plus a Bluetooth bridge |
