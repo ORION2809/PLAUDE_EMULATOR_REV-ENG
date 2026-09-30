@@ -54,7 +54,6 @@ GPU_JOBS=(
   "nsf-ct:whisper-cpp:whisper-cpp:0:asr_cache=WCPPCACHE"
   "nsf-ct:pyannote-audio:pyannote-audio:0:device=mps"
   "nsf-ct:whisper-pyannote:faster-whisper+pyannote:0:language=en,cpu_threads=4,diarization_device=mps"
-  "test:parakeet-tdt:nemotron-asr:0:asr_model=parakeet-tdt,asr_cache=NCACHE"
   "nsf-sc:nemotron-tagged:nemotron-tagged:0"
   "nsf-sc:nemotron35-rc13:nemotron-asr:0:right_context=13,asr_cache=NCACHE"
   "nsf-sc:sortformer-v2:nemo-speech-diarization:0:diar_model=nvidia/diar_streaming_sortformer_4spk-v2"

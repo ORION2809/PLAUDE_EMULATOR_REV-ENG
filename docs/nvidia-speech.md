@@ -31,9 +31,29 @@ Nemotron's diarizer alone still runs at RTF 1.84 on this CPU.
 **Size.** NVIDIA's pair is 849 MB (742 MB ASR + 107 MB diarizer). The current on-device
 stack is 300 MB (264 MB + 36 MB).
 
-**Verdict so far.** Nemotron gives better speaker-attributed transcripts. On a low-end
-Android CPU it cannot keep up with real time, and its diarizer is the bottleneck. Nothing
-here measures a flagship phone, a phone GPU or NPU, or an iPhone (section 8).
+**On a Snapdragon 8 NPU it is fast.** NVIDIA's English ASR, run as sherpa-onnx's NPU
+graphs on four real Galaxy phones through Qualcomm AI Hub (section 5.1):
+
+| Phone (chip) | Per 1.12 s step | Real-time factor | NPU memory |
+|---|---|---|---|
+| Galaxy S23 (8 Gen 2) | 86 ms | 0.077 | 105 MB |
+| Galaxy S24 (8 Gen 3) | 65 ms | 0.058 | 112 MB |
+| Galaxy S25 (8 Elite) | 63 ms | 0.056 | 138 MB |
+| Galaxy S26 (8 Elite Gen 5) | 40 ms | 0.036 | 148 MB |
+
+That is 12–28× faster than real time, against 0.72× real time on the Mivi One's CPU.
+
+**On Apple it works end to end.** Our Swift engine runs NVIDIA's models through FluidAudio's
+Core ML ports, tested on an M1 Mac as a stand-in for an iPhone (section 8). It produced a
+speaker-attributed transcript at ASR RTF 0.15 on the Neural Engine, with a 71 MB
+footprint. Loading the ASR model takes about 109 s on each start.
+
+**Verdict so far.** Nemotron gives better speaker-attributed transcripts.
+- **Budget Android CPU:** it cannot keep up with real time, and its diarizer is the
+  bottleneck.
+- **Snapdragon 8 NPU:** the ASR has large headroom.
+- **Diarizer on phone NPUs:** no NPU port exists anywhere; the GPU path is next
+  (section 9).
 
 ## 2. What was compared
 
@@ -159,6 +179,55 @@ with a 30 s cooldown between runs
   - Nemotron diarization: RTF about 0.08, peak 0.9 GB on a 36-minute meeting.
   - Quiet Mac runs are pending ([`research/nvidia/speed.sh`](../research/nvidia/speed.sh)).
 
+**Longer recordings on the same phone.** A full 14-minute AMI meeting (IS1009a) and a
+6-minute NOTSOFAR far-field meeting (MTG_32045):
+
+| Run | IS1009a, 14 min: RTF | Peak RSS | MTG_32045, 6 min: RTF | Peak RSS |
+|---|---|---|---|---|
+| Nemotron-EN ASR, 1.12 s context | **0.46** | 1 169 MB | 1.65 | **4 597 MB** |
+| Nemotron 3.5 ASR, defaults | 0.83 | 1 164 MB | 5.68 | **5 178 MB** |
+| Nemotron 3.5 ASR + speaker tags | 3.16 | 1 429 MB | 7.93 | 4 836 MB |
+| Nemotron 3 Diarization | 2.34 | 280 MB | pending | |
+| whisper.cpp `small.en` | 0.71 | 794 MB | pending | |
+| sherpa-onnx diarization | 0.34 | 297 MB | pending | |
+
+- **Recordings under about 6.6 minutes blow up memory.** Below that length, NeMo-Speech.cpp
+  recognises the whole file in one full-attention pass. Memory then grows with the square
+  of the length: 4.6–5.2 GB for 6 minutes, slower than the 14-minute meeting.
+  - Longer audio goes through the streaming runner, which holds memory at about 1.2 GB.
+  - **So an app must always feed audio through the streaming API** (`nemo_speech_asr`
+    streams, 1.12 s context), never the one-shot `recognize_f32` call used here.
+- **On long audio, NVIDIA's ASR beats whisper.cpp on this phone:** RTF 0.46 against 0.71.
+  Nemotron's diarizer is the bottleneck: RTF 2.34, against 0.34 for sherpa-onnx.
+
+### 5.1 Snapdragon 8 NPU (real phones via Qualcomm AI Hub)
+
+**What was measured.** sherpa-onnx v1.13.8 publishes NVIDIA's Nemotron-EN (1.12 s chunks)
+as per-chip Qualcomm NPU (QNN HTP) graphs: an encoder, an RNNT decoder and a joiner. The
+encoder and joiner use 16-bit activations; the decoder is fp16. We uploaded each chip's
+graphs to Qualcomm AI Hub and profiled them on hosted Galaxy phones
+([`research/nvidia/aihub/profile_qnn_binaries.py`](../research/nvidia/aihub/profile_qnn_binaries.py);
+results in `build/nvidia/aihub/qnn-binaries/`). Each graph ran 100 iterations on random
+inputs. The encoder ran in both AI Hub's default BURST mode and BALANCED mode.
+
+| Phone (chip, NPU) | Encoder, BURST / BALANCED | Decoder / joiner per call | Per 1.12 s step | RTF (BURST / BALANCED) | Peak | First load |
+|---|---|---|---|---|---|---|
+| Galaxy S23 (8 Gen 2, v73) | 83.8 / 85.9 ms | 0.34 / 0.08 ms | 86.5 ms | 0.077 / 0.079 | 105 MB | 1.17 s |
+| Galaxy S24 (8 Gen 3, v75) | 62.0 / 84.7 ms | 0.28 / 0.08 ms | 64.7 ms | 0.058 / 0.078 | 112 MB | 0.32 s |
+| Galaxy S25 (8 Elite, v79) | 61.0 / 90.7 ms | 0.23 / 0.06 ms | 63.0 ms | 0.056 / 0.083 | 138 MB | 0.24 s |
+| Galaxy S26 (8 Elite Gen 5, v81) | 38.1 / 56.2 ms | 0.23 / 0.07 ms | 40.4 ms | 0.036 / 0.052 | 148 MB | 0.24 s |
+
+- **How "per step" is estimated:** one encoder run, plus 14 joiner calls (one per encoder
+  frame), plus about 4 emitted tokens × (decoder + joiner).
+- **Treat these as a lower bound for an app.** AI Hub's numbers are microbenchmarks at
+  high priority. A real app adds feature extraction and decoding on the CPU, and a
+  sustained load throttles.
+- **Snapdragon 7 and 7s have no published graphs.** They would be compiled on the phone at
+  first run, or by us through AI Hub. The only hosted 7-series phone is a Snapdragon 7
+  Gen 4 reference device.
+- **Accuracy on the NPU is not measured yet.** The NPU graphs are a different quantization
+  from the CPU model (16-bit activations, calibrated on 3 clips).
+
 ## 6. Size and licences
 
 | Component | Size | Licence |
@@ -242,10 +311,40 @@ not NeMo-Speech.cpp):
 **Memory ceiling:** FluidAudio reports a Neural Engine memory limit on iOS of about 1.4 GB
 for the Nemotron EN encoder ([source](https://github.com/FluidInference/FluidAudio/blob/main/Documentation/Benchmarks.md)).
 
+### 8.1 Our Apple engine, measured on the M1 Mac as a stand-in
+
+**What it is.** `MiviSpeech` is a Swift package
+([`research/nvidia/apple/MiviSpeech`](../research/nvidia/apple/MiviSpeech)) that builds with
+the Command Line Tools and runs:
+- NVIDIA's Nemotron-EN at the 1.12 s chunk;
+- Nemotron 3 Diarization (the `fast128` preset);
+- through FluidAudio 0.17.4's Core ML ports;
+- then the harness's word-to-speaker rule, ported to Swift and checked against the Python
+  rule on every word ([`research/nvidia/apple/to_hyp.py`](../research/nvidia/apple/to_hyp.py)).
+
+The `mivi-speech` CLI writes the same JSON as the Android engines. The same library
+targets iOS 17.
+
+**On the 60 s AMI clip** (warm runs, with the Mac heavily loaded):
+
+| Encoder on | ASR model load | ASR | Diarization | Footprint |
+|---|---|---|---|---|
+| Neural Engine | 108.6 s | 8.7 s (RTF 0.15) | 0.7 s (RTF 0.011) | 71 MB |
+| CPU only | 36.6 s | 680.9 s (RTF 11.4) | 3.9 s | 57 MB |
+
+- **The int8 encoder is only usable on the Neural Engine.** On the CPU through Core ML it
+  runs 11× slower than real time.
+- **The Neural Engine load costs about 110 s on every process start.** The app therefore
+  loads the models once, while recording begins, and keeps them resident.
+- **The iPhone keeps the same trade-off:** third parties report a similar load wall of
+  about 130 s on iOS. The M1's Neural Engine is the A14's (11 TOPS); on speed the M1 sits
+  between the A16 and the A18 for Whisper workloads.
+- **Accuracy on AMI and NOTSOFAR is running** (`research/nvidia/apple/run_eval.sh`).
+
 ## 9. Still running, and next
 
 **Mac, AMI test split**
-- `nemotron`: remaining 10 meetings.
+- `nemotron`: the last meeting; the Apple engine on all 16 meetings.
 - Nemotron-EN and Nemotron 3.5 at the 1.12 s context, whisper.cpp, Parakeet.
 - Diarizer variants: the `v3-offline` preset and Sortformer v2.
 - NVIDIA's tagging against the harness rule.
@@ -263,8 +362,16 @@ for the Nemotron EN encoder ([source](https://github.com/FluidInference/FluidAud
   ([`research/nvidia/device_to_hyp.py`](../research/nvidia/device_to_hyp.py)).
 - Runs that separate the effect of the model from the effect of the right context.
 
-**Possible next experiment**
-- A q4_k Nemotron-EN (about 0.4 GB) for size and phone speed.
+**Product build** (Snapdragon 7/8 phones and iPhones)
+- **Android app:**
+  - sherpa-onnx with the Qualcomm NPU for the streaming ASR;
+  - LiteRT (GPU, FP32) for Nemotron 3 Diarization, validated first on the Mac;
+  - NVIDIA's runtime as the CPU fallback, fed through its streaming API.
+- **End-to-end testing:** the app flow on the Mivi One (CPU path), and the NPU and GPU
+  graphs on AI Hub phones, with output parity against the CPU.
+- **iPhone:** a SwiftUI app shell over `MiviSpeech`, built and simulator-tested in CI on a
+  macOS runner with Xcode.
+- **Possible experiment:** a q4_k Nemotron-EN (about 0.4 GB) for size and phone speed.
 
 ## Sources
 
