@@ -303,8 +303,8 @@ run_one() {  # dataset system pipeline hint(0|1) meeting_dir meeting_id n_active
   if [[ -n "$extra" ]]; then
     for kv in ${extra//,/ }; do params+=(--param "$kv"); done
   fi
-  if [[ ( "$pipe" == whisper-sherpa || "$pipe" == whisper-sherpa-ecapa || "$pipe" == faster-whisper+pyannote ) \
-        && -n "${V5_ASR_CACHE:-}" ]]; then
+  if [[ ( "$pipe" == whisper-sherpa || "$pipe" == whisper-sherpa-ecapa || "$pipe" == faster-whisper+pyannote \
+          || "$pipe" == faster-whisper+nemotron-diar ) && -n "${V5_ASR_CACHE:-}" ]]; then
     params+=(--param "asr_cache=$V5_ASR_CACHE")
   fi
   wait_quiet
@@ -358,8 +358,10 @@ for spec in ${EXTRA_SPECS[@]+"${EXTRA_SPECS[@]}"}; do
   IFS=: read -r _n _p _h _x <<<"$spec"
   EXTRA_NAMES+=("$_n")
   # whisper-sherpa-ecapa and faster-whisper+pyannote share the transcript and the
-  # hypothesis layout (words, turns)
-  [[ "$_p" == whisper-sherpa || "$_p" == whisper-sherpa-ecapa || "$_p" == faster-whisper+pyannote ]] && WS_EXTRA_NAMES+=("$_n")
+  # hypothesis layout (words, turns); the NVIDIA composed systems (pipeline/nemo_speech.py)
+  # have the same layout.  nemotron-tagged has no separate turns (speakers come on the words).
+  [[ "$_p" == whisper-sherpa || "$_p" == whisper-sherpa-ecapa || "$_p" == faster-whisper+pyannote \
+     || "$_p" == nemotron || "$_p" == faster-whisper+nemotron-diar ]] && WS_EXTRA_NAMES+=("$_n")
 done
 WS_SYSTEMS=(whisper-sherpa whisper-sherpa-hint ${WS_EXTRA_NAMES[@]+"${WS_EXTRA_NAMES[@]}"})
 REASSIGN_SPECS=(${V5_REASSIGN:-})

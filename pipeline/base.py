@@ -995,4 +995,4 @@ def _ensure_builtin_registrations() -> None:
     if _BUILTINS_LOADED:
         return
     _BUILTINS_LOADED = True
-    from . import adapters, energy_vad, oracle, whisper_sherpa  # noqa: F401  (side effect: registration)
+    from . import adapters, energy_vad, nemo_speech, oracle, whisper_cpp, whisper_sherpa  # noqa: F401  (side effect: registration)
