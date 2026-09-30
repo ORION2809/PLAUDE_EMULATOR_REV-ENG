@@ -14,8 +14,15 @@ Registered names (``python -m pipeline list``):
                                 ``python -m pipeline fetch-models`` has run)
   sherpa-onnx-diarization       the same diarizer alone (DER/JER only)
   faster-whisper                faster-whisper + the model-free diarizer
-  pyannote-audio, faster-whisper+pyannote, whisperx, embedding-cluster
-                                optional adapters, UNTESTED here (packages absent)
+  whisper-sherpa-ecapa          whisper-sherpa's transcript + ECAPA embedding-cluster turns cut
+                                into sherpa-onnx's speaker count (needs torch + SpeechBrain;
+                                a separate environment, docs/pipeline.md §11.10)
+  pyannote-audio, faster-whisper+pyannote
+                                pyannote.audio adapters; not in .venv, run in a separate
+                                environment against pyannote.audio 4.0.7 / community-1 (§11.11)
+  embedding-cluster             SpeechBrain ECAPA embeddings + the model-free clustering; not
+                                in .venv, run in a torch + SpeechBrain environment (§11.9)
+  whisperx                      optional adapter, UNTESTED here (package absent)
 """
 
 from .base import (

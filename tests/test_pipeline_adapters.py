@@ -16,6 +16,7 @@ libraries behave like the stand-ins -- that needs the packages and models
 from __future__ import annotations
 
 import json
+import os
 import sys
 import types
 from dataclasses import dataclass
@@ -215,6 +216,26 @@ def _band_embed(clips, sr):
     return v - v.mean(axis=1, keepdims=True)  # cosine-friendly: centre each vector
 
 
+_REAL_HF_SNAPSHOT_PROVENANCE = adapters.hf_snapshot_provenance
+
+
+@pytest.fixture(autouse=True)
+def _no_user_model_cache(monkeypatch):
+    """The pyannote adapter records the Hugging Face cache snapshot of its
+    model; these stand-in tests must not read (and hash) the user's cache."""
+    monkeypatch.setattr(adapters, "hf_snapshot_provenance", lambda model: {"source": model, "revision": None})
+
+
+def test_hf_snapshot_provenance_hashes_every_file_of_a_local_model_dir(tmp_path):
+    hf_snapshot_provenance = _REAL_HF_SNAPSHOT_PROVENANCE  # not the fixture's stand-in
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "config.yaml").write_text("a: 1\n")
+    (tmp_path / "sub" / "weights.bin").write_bytes(b"\x00\x01")
+    prov = hf_snapshot_provenance(str(tmp_path))
+    assert prov["revision"] == tmp_path.name and prov["pinned"] is False
+    assert set(prov["files"]) == {"config.yaml", "sub/weights.bin"} and prov["files"]["sub/weights.bin"]["bytes"] == 2
+
+
 @pytest.fixture
 def wav(tmp_path):
     p = tmp_path / "x.wav"
@@ -250,6 +271,67 @@ def test_pyannote_4x_output_object_is_read_not_crashed_on(monkeypatch, wav):
     assert [(s["speaker"], s["start"], s["end"]) for s in hyp.segments] == [("SPEAKER_00", 0.0, 1.0), ("SPEAKER_01", 1.2, 2.0)]
     assert calls["from_pretrained"] == {"checkpoint": "pyannote/speaker-diarization-community-1", "token": "not-a-real-token"}
     assert calls["call"] == {"keys": ["sample_rate", "waveform"], "num_speakers": 2}
+
+
+def test_pyannote_telemetry_is_off_unless_chosen(monkeypatch, wav):
+    """pyannote.audio 4.x sends usage traces to otel.pyannote.ai unless
+    PYANNOTE_METRICS_ENABLED is false.  It writes its own default ("true") on
+    import and reads the variable on every call, so the harness sets "false"
+    unless the user chose a value before pyannote.audio was imported."""
+    monkeypatch.setitem(sys.modules, "torch", _torch_module())
+    monkeypatch.setitem(sys.modules, "pyannote.audio", _pyannote_module(4, {}))
+    monkeypatch.setattr(adapters, "_major_version", lambda dist: 4)
+    monkeypatch.setenv("PYANNOTE_METRICS_ENABLED", "x")  # recorded first, so teardown restores the original state
+    monkeypatch.delenv("PYANNOTE_METRICS_ENABLED")
+    monkeypatch.setattr(adapters, "_USER_TELEMETRY_CHOICE", None)
+    get_pipeline("pyannote-audio").run(wav)
+    assert os.environ["PYANNOTE_METRICS_ENABLED"] == "false"
+    monkeypatch.setenv("PYANNOTE_METRICS_ENABLED", "true")  # pyannote's default, written on its import
+    adapters.pyannote_telemetry_off()
+    assert os.environ["PYANNOTE_METRICS_ENABLED"] == "false"
+    monkeypatch.setattr(adapters, "_USER_TELEMETRY_CHOICE", "true")  # the user's own choice is kept
+    monkeypatch.setenv("PYANNOTE_METRICS_ENABLED", "true")
+    adapters.pyannote_telemetry_off()
+    assert os.environ["PYANNOTE_METRICS_ENABLED"] == "true"
+
+
+def test_diarization_device_overrides_the_shared_device_for_pyannote(monkeypatch):
+    """faster-whisper+pyannote shares `device` with the transcriber (CTranslate2
+    has no MPS backend); `diarization_device` moves only pyannote."""
+    seen = []
+    monkeypatch.setattr(adapters, "PyannoteDiarizer", lambda **kw: seen.append(kw["device"]))
+    adapters._pyannote_from_params({"device": "cpu", "diarization_device": "mps"}, exclusive=True)
+    adapters._pyannote_from_params({"device": "cpu"}, exclusive=True)
+    adapters._pyannote_from_params({}, exclusive=False)
+    assert seen == ["mps", "cpu", None]
+    assert "diarization_device" in registered()["faster-whisper+pyannote"].params
+
+
+def _python_env_output(code: str, **env_extra: str) -> str:
+    import subprocess
+
+    env = {k: v for k, v in os.environ.items() if k != "PYANNOTE_METRICS_ENABLED"}
+    env.update(PYTHONDONTWRITEBYTECODE="1", **env_extra)
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env,
+                         cwd=str(Path(__file__).resolve().parents[1]), timeout=120)
+    assert out.returncode == 0, out.stderr[-2000:]
+    return out.stdout.strip().splitlines()[-1]
+
+
+def test_importing_the_pipeline_package_turns_pyannote_telemetry_off_first():
+    """The registry's availability checks import pyannote.audio before any
+    adapter runs, so the default must be set when pipeline is imported."""
+    code = ("import os, pipeline; from pipeline import registered; registered()['pyannote-audio'].reason(); "
+            "print(os.environ.get('PYANNOTE_METRICS_ENABLED'))")
+    assert _python_env_output(code) == "false"
+    # pyannote.audio imported first has written its default "true": not a choice, so it is overridden
+    first = ("import os, sys, types; sys.modules['pyannote.audio.telemetry.metrics'] = types.ModuleType('m'); "
+             "os.environ['PYANNOTE_METRICS_ENABLED'] = 'true'; import pipeline.adapters; "
+             "print(os.environ['PYANNOTE_METRICS_ENABLED'])")
+    assert _python_env_output(first) == "false"
+    # a value set before anything was imported is the user's choice
+    assert _python_env_output("import os, pipeline.adapters; print(os.environ['PYANNOTE_METRICS_ENABLED'])",
+                              PYANNOTE_METRICS_ENABLED="true") == "true"
 
 
 def test_pyannote_3x_annotation_and_use_auth_token_still_work(monkeypatch, wav):

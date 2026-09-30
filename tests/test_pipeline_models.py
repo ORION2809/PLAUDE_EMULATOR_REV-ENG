@@ -722,6 +722,52 @@ def test_registry_declares_the_model_pipelines():
     assert "model" not in reg["sherpa-onnx-diarization"].params
 
 
+def test_whisper_sherpa_ecapa_is_declared_with_distinct_ecapa_params():
+    e = registered()["whisper-sherpa-ecapa"]
+    assert e.is_system_under_test
+    assert {"num_speakers", "cluster_threshold", "assignment_tie_break", "asr_cache", "ecapa_model", "batch_windows"} <= e.params
+    assert "embedding_model" in e.params  # sherpa's CAM++ file, as in whisper-sherpa; ECAPA's is ecapa_model
+    reason = e.reason()
+    if reason is not None:
+        assert "not importable" in reason or reason.startswith(SKIP_WEIGHTS), reason
+
+
+class _FakeDiarizer:
+    def __init__(self, turns, models=None):
+        self.turns, self.calls = turns, []
+        self.models, self.settings, self.last_info = models or {}, {"fake": True}, {"info": 1}
+
+    def diarize(self, pcm, sample_rate, num_speakers=None):
+        self.calls.append(num_speakers)
+        return list(self.turns)
+
+
+def test_sherpa_counted_embedding_diarizer_takes_the_count_from_sherpa_and_the_turns_from_ecapa():
+    """whisper-sherpa-ecapa (docs/pipeline.md §11.10): sherpa-onnx gives the
+    speaker count, the ECAPA clusterer the turns; a hint skips sherpa."""
+    from pipeline.whisper_sherpa import SherpaCountedEmbeddingDiarizer
+
+    counter = _FakeDiarizer([(0.0, 1.0, "A"), (1.0, 2.0, "B"), (2.0, 3.0, "A"), (3.0, 4.0, "C")],
+                            {"segmentation": "seg", "embedding": "campp"})
+    ecapa = _FakeDiarizer([(0.0, 2.0, "spk0"), (2.0, 4.0, "spk1")], {"embedding": "ecapa"})
+    d = SherpaCountedEmbeddingDiarizer(counter, ecapa)
+    pcm = np.zeros(16000, dtype=np.float32)
+    assert d.diarize(pcm, 16000) == [(0.0, 2.0, "spk0"), (2.0, 4.0, "spk1")]
+    assert counter.calls == [None] and ecapa.calls == [3]
+    assert d.last_info["speaker_count"]["source"] == "sherpa-onnx" and d.last_info["speaker_count"]["speakers"] == 3
+    assert d.models == {"count_segmentation": "seg", "count_embedding": "campp", "turns_embedding": "ecapa"}
+    assert d.last_info["num_speakers_hint"] is None and d.last_info["hint_honoured"] is None
+    assert d.last_info["n_speakers"] == 2 and d.last_info["n_turns"] == 2  # every key run-v5.sh reads
+    d.diarize(pcm, 16000, num_speakers=4)  # the hint: sherpa is not run
+    assert counter.calls == [None] and ecapa.calls == [3, 4]
+    assert d.last_info["speaker_count"] == {"source": "hint", "speakers": 4}
+    assert d.last_info["num_speakers_hint"] == 4 and d.last_info["hint_honoured"] is False  # the fake gives 2
+    silent = SherpaCountedEmbeddingDiarizer(_FakeDiarizer([]), ecapa)
+    assert silent.diarize(pcm, 16000) == [] and ecapa.calls == [3, 4]  # no speech: no clustering
+    assert silent.last_info["embedding"] == {} and silent.last_info["n_speakers"] == 0
+    assert silent.last_info["n_turns"] == 0
+
+
 # --- the real models ---------------------------------------------------------------------------------
 
 

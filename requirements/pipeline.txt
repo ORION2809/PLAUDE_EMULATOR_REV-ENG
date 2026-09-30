@@ -9,15 +9,16 @@
 # The model-backed stack that IS installed and run (faster-whisper, sherpa-onnx, ...) is
 # pinned in requirements/models.txt (2026-09-25; docs/pipeline.md section 11).
 #
-# Other optional adapters -- NOT installed, never run against a model here (see
-# docs/pipeline.md section 8).  Their own logic is tested against stand-in
-# modules (tests/test_pipeline_adapters.py).  The API each adapter targets,
-# to be turned into real pins (">=tested,<next-major") by the stage that
-# installs them and runs them on a real model:
+# Other optional adapters -- not in .venv.  pyannote.audio and speechbrain are
+# installed and have run in separate environments (requirements/pyannote.txt,
+# requirements/embedding.txt); whisperx is NOT installed and has never run
+# against a model here (see docs/pipeline.md section 8).  Their own logic is
+# tested against stand-in modules (tests/test_pipeline_adapters.py).  The API
+# each adapter targets:
 #   faster-whisper      installed: 1.2.1, see requirements/models.txt
-#   pyannote.audio      3.x (returns an Annotation; use_auth_token=) AND 4.x
-#                       (returns .speaker_diarization / .exclusive_speaker_diarization; token=)
-#                       + torch.  Both default pipelines are gated on Hugging Face.
+#   pyannote.audio      RUN 2026-09-29: 4.0.7 in a separate environment (requirements/pyannote.txt)
+#                       with the gated speaker-diarization-community-1 (docs/pipeline.md 11.11).
+#                       3.x (returns an Annotation; use_auth_token=) is tested against stand-ins only.
 #   whisperx            >= 3.3 (whisperx.diarize.DiarizationPipeline) + torch
 #   speechbrain         RUN 2026-09-28/29 in a separate environment: speechbrain 1.1.1,
 #                       torch 2.14.0, pinned in requirements/embedding.txt -- the

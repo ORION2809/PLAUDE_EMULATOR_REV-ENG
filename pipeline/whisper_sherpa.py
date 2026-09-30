@@ -43,6 +43,8 @@ from .adapters import (  # ModelComposedPipeline is re-exported here (it lived h
     FasterWhisperTranscriber,
     ModelComposedPipeline,
     _faster_whisper_from_params,
+    ecapa_embedding_cluster,
+    hint_info,
     _missing,
     _missing_any,
     _timed,
@@ -59,7 +61,7 @@ from .base import (
     register,
 )
 
-__all__ = ["ModelComposedPipeline", "SherpaOnnxDiarizer", "sherpa_turns"]
+__all__ = ["ModelComposedPipeline", "SherpaCountedEmbeddingDiarizer", "SherpaOnnxDiarizer", "sherpa_turns"]
 
 SEGMENTATION_ASSET = "pyannote-segmentation-3.0-onnx"
 EMBEDDING_ASSET = "3dspeaker-campplus-en-voxceleb"
@@ -284,3 +286,84 @@ def _make_sherpa_diarization(config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name="sherpa-onnx-diarization")
     diarizer, load_s = _timed(lambda: _sherpa_from_params(cfg.params))
     return ModelComposedPipeline(None, diarizer, cfg, name="sherpa-onnx-diarization", load_s=load_s)
+
+
+# --- whisper-sherpa-ecapa -----------------------------------------------------------
+
+#: ``--param`` keys of the ECAPA part of ``whisper-sherpa-ecapa`` (its VAD and
+#: cells are ``embedding-cluster``'s defaults).  Distinct names, because
+#: sherpa's ``embedding_model`` already means the CAM++ file.
+ECAPA_PARAMS = frozenset({"ecapa_model", "ecapa_savedir", "batch_windows"})
+
+#: HARNESS_POLICY defaults of ``whisper-sherpa-ecapa``, chosen on the AMI dev
+#: split, never on test (docs/pipeline.md §11.8, §11.10): sherpa's
+#: ``cluster_threshold`` for the speaker count; ties are rare with these
+#: non-overlapping turns, so the tie-break stays the default ``floor``.
+WHISPER_SHERPA_ECAPA_DEFAULTS: dict[str, Any] = {"cluster_threshold": 1.15}
+
+
+class SherpaCountedEmbeddingDiarizer(Diarizer):
+    """Turns from ECAPA ``embedding-cluster`` cut into the number of speakers
+    sherpa-onnx finds.
+
+    On AMI, sherpa-onnx at a dev-calibrated ``cluster_threshold`` estimates
+    the speaker count well but attributes speech poorly, and the ECAPA
+    clustering attributes well when told the count but estimates it poorly
+    (docs/v5-test-split.md §5, §7).  This takes the count from the first and
+    the turns from the second.  With a ``num_speakers`` hint, sherpa-onnx is
+    not run.  HARNESS_POLICY, chosen on the AMI dev split
+    (docs/pipeline.md §11.10).
+    """
+
+    name = "sherpa-count+embedding-cluster"
+
+    def __init__(self, counter: Diarizer, clusterer: Diarizer) -> None:
+        self.counter = counter
+        self.clusterer = clusterer
+        cm, em = getattr(counter, "models", {}) or {}, getattr(clusterer, "models", {}) or {}
+        self.models = {**{f"count_{k}": v for k, v in cm.items()}, **{f"turns_{k}": v for k, v in em.items()}}
+        self.settings = {"count": getattr(counter, "settings", {}), "turns": getattr(clusterer, "settings", {})}
+        self.last_info: dict[str, Any] = {}
+
+    def diarize(self, pcm: np.ndarray, sample_rate: int, num_speakers: int | None = None) -> list[Turn]:
+        if num_speakers is None:
+            t0 = time.perf_counter()
+            counted = self.counter.diarize(pcm, sample_rate)
+            k = len({spk for _, _, spk in counted})
+            count: dict[str, Any] = {"source": "sherpa-onnx", "speakers": k, "sherpa_turns": len(counted),
+                                     "count_s": time.perf_counter() - t0}
+        else:
+            k = int(num_speakers)
+            count = {"source": "hint", "speakers": k}
+        turns = list(self.clusterer.diarize(pcm, sample_rate, num_speakers=k)) if k > 0 else []
+        self.last_info = {"speaker_count": count,
+                          # a skipped clusterer's last_info belongs to the previous meeting
+                          "embedding": getattr(self.clusterer, "last_info", {}) if k > 0 else {},
+                          **hint_info(turns, num_speakers)}
+        return turns
+
+
+def _whisper_sherpa_ecapa_availability() -> str | None:
+    return _whisper_sherpa_availability() or _missing_any("speechbrain", "torch")
+
+
+@register(
+    "whisper-sherpa-ecapa",
+    description=(
+        "faster-whisper small.en + turns from SpeechBrain ECAPA embeddings (embedding-cluster) cut into the "
+        "number of speakers sherpa-onnx finds at cluster_threshold 1.15 (dev-calibrated); words take the "
+        "max-overlap speaker"
+    ),
+    availability=_whisper_sherpa_ecapa_availability,
+    params=FASTER_WHISPER_PARAMS | SHERPA_PARAMS | ECAPA_PARAMS | COMMON_AUDIO_PARAMS | ASSIGNMENT_PARAMS,
+)
+def _make_whisper_sherpa_ecapa(config: PipelineConfig | None = None) -> Pipeline:
+    cfg = config or PipelineConfig(name="whisper-sherpa-ecapa")
+    p = {**WHISPER_SHERPA_ECAPA_DEFAULTS, **cfg.params}
+    t0 = time.perf_counter()
+    counter = _sherpa_from_params(p)
+    turns = ecapa_embedding_cluster({"batch_windows": p.get("batch_windows", 32)}, source=p.get("ecapa_model"),
+                                    savedir=p.get("ecapa_savedir"))
+    asr: FasterWhisperTranscriber = _faster_whisper_from_params(p, allow_library_names=False, **WHISPER_SHERPA_ASR_DEFAULTS)
+    return ModelComposedPipeline(asr, SherpaCountedEmbeddingDiarizer(counter, turns), cfg, name="whisper-sherpa-ecapa",
+                                 load_s=time.perf_counter() - t0)

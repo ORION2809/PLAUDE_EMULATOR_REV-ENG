@@ -1,0 +1,21 @@
+# Optional: the combined environment of whisper-sherpa-ecapa and the pyannote
+# systems (pyannote-audio, faster-whisper+pyannote), git-ignored as .venv-pyannote.
+# The versions it ran with on 2026-09-29 (docs/pipeline.md sections 11.10-11.11):
+#   python3.11 -m venv .venv-pyannote
+#   .venv-pyannote/bin/pip install -r requirements/pyannote.txt
+# Do not install requirements/embedding.txt on top: it pins huggingface_hub 2.0.0
+# for the standalone ECAPA environment, and pyannote.audio 4.0.7 runs here with
+# the 1.33.0 of the model stack.  Never install reference/ into it.  pyannote's
+# default pipelines are gated: the Hugging Face token is read from $HF_TOKEN at
+# run time and never stored.  CI does not install this.
+-r all.txt
+faster-whisper==1.2.1
+ctranslate2==4.8.2
+sherpa-onnx==1.13.8
+sherpa-onnx-core==1.13.8
+onnxruntime==1.30.0
+huggingface_hub==1.33.0
+torch==2.14.0
+torchaudio==2.11.0
+speechbrain==1.1.1
+pyannote.audio==4.0.7

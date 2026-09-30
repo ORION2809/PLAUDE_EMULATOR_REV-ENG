@@ -1,6 +1,6 @@
 """Optional adapters for real ASR/diarization systems.
 
-Status (docs/pipeline.md §2, §8, §11), 2026-09-25:
+Status (docs/pipeline.md §2, §8, §11), 2026-09-30:
 
 * ``FasterWhisperTranscriber`` HAS run against the installed faster-whisper
   1.2.1 with the pinned ``small.en`` CTranslate2 weights
@@ -18,9 +18,12 @@ Status (docs/pipeline.md §2, §8, §11), 2026-09-25:
   against its real model (speechbrain 1.1.1, torch 2.14.0, in a separate
   environment; requirements/embedding.txt, docs/pipeline.md §11.9,
   2026-09-28/29).
-* The pyannote.audio and whisperx adapters are still UNTESTED against a
-  model: those packages are not installed and their default pyannote
-  pipelines are gated.  Each is written against the package's
+* The pyannote.audio adapters HAVE run against pyannote.audio 4.0.7 and
+  its gated default pipeline, speaker-diarization-community-1, with the
+  owner's token from the environment (docs/pipeline.md §11.11,
+  2026-09-29); their 3.x paths are tested only against stand-ins.
+* The whisperx adapter is still UNTESTED against a model: the package is
+  not installed.  It is written against the package's
   documented public API (cited per class, from the READMEs as remembered
   offline), imports lazily, and the registry reports it as unavailable with a
   reason instead of failing at import time.  Their own logic (output
@@ -39,6 +42,7 @@ import hashlib
 import importlib
 import json
 import os
+import sys
 import time
 from dataclasses import fields
 from pathlib import Path
@@ -542,7 +546,7 @@ def _timed(build: Callable[[], Any]) -> tuple[Any, float]:
 # --- pyannote.audio -----------------------------------------------------------
 
 #: ``--param`` keys read by the pyannote diarizer factories.
-PYANNOTE_PARAMS = frozenset({"diarization_model", "token_env", "device"})
+PYANNOTE_PARAMS = frozenset({"diarization_model", "token_env", "device", "diarization_device"})
 
 #: HARNESS_POLICY default pipelines per pyannote.audio major version: 4.x's
 #: README points at the open "community-1" pipeline, 3.x's at "3.1".
@@ -577,8 +581,65 @@ def pyannote_annotation(output: Any, *, exclusive: bool = False) -> Any:
     )
 
 
+def hf_snapshot_provenance(model: str) -> dict[str, Any]:
+    """Where a pyannote pipeline came from: the Hugging Face cache snapshot of
+    ``model`` (repository, revision, and the sha256 of every file, sub-folders
+    included), or the local directory it names.  Reads the local cache only
+    (``local_files_only``); never downloads.  Unpinned: the revision is whatever
+    the cache holds."""
+    from .model_store import file_sha256
+
+    path = Path(model)
+    if not path.is_dir():
+        try:
+            from huggingface_hub import snapshot_download  # type: ignore[import-not-found]
+
+            path = Path(snapshot_download(model, local_files_only=True))
+        except Exception as exc:  # not cached, or huggingface_hub missing
+            return {"source": model, "revision": None, "note": f"not resolved from the local cache ({type(exc).__name__})"}
+    files = {str(q.relative_to(path)): {"sha256": file_sha256(q), "bytes": q.stat().st_size}
+             for q in sorted(path.rglob("*")) if q.is_file()}
+    return {"source": model, "revision": path.name, "path": str(path), "pinned": False, "files": files}
+
+
+#: ``PYANNOTE_METRICS_ENABLED`` as set before pyannote.audio was imported, or
+#: None.  If pyannote.audio was imported first, the value in the environment is
+#: pyannote's own default (written on import), not a choice, so it is not kept.
+_USER_TELEMETRY_CHOICE = (None if "pyannote.audio.telemetry.metrics" in sys.modules
+                          else os.environ.get("PYANNOTE_METRICS_ENABLED"))
+
+
+def pyannote_telemetry_off() -> None:
+    """HARNESS_POLICY: no third-party usage telemetry.  pyannote.audio 4.x
+    sends OpenTelemetry traces to otel.pyannote.ai unless
+    ``PYANNOTE_METRICS_ENABLED`` is false.  On import it writes its configured
+    default ("true") into the variable when it is unset, and it reads the
+    variable on every call, so setting "false" works before or after that
+    import.  Only a value the user set before pyannote.audio and this module
+    were imported is kept."""
+    if _USER_TELEMETRY_CHOICE is None:
+        os.environ["PYANNOTE_METRICS_ENABLED"] = "false"
+
+
+def hint_info(turns: list[Turn], num_speakers: int | None) -> dict[str, Any]:
+    """The per-meeting keys scripts/run-v5.sh reads from every diarizer's
+    ``last_info``: the hint given, the speakers found, whether they agree, and
+    the number of turns."""
+    n = len({spk for _, _, spk in turns})
+    return {"num_speakers_hint": num_speakers, "n_speakers": n,
+            "hint_honoured": (n == int(num_speakers)) if num_speakers is not None else None,
+            "n_turns": len(turns)}
+
+
+# At import, not only before the adapters load pyannote: the registry's
+# availability checks (_missing) import pyannote.audio and whisperx first.
+pyannote_telemetry_off()
+
+
 class PyannoteDiarizer(Diarizer):
-    """pyannote.audio speaker-diarization pipeline.  UNTESTED here against a model.
+    """pyannote.audio speaker-diarization pipeline.  Run against pyannote.audio
+    4.0.7 and speaker-diarization-community-1 on 2026-09-29 (docs/pipeline.md
+    §11.11); the 3.x path is tested against stand-ins only.
 
     Documented API (pyannote.audio README):
       4.x: pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-community-1", token=HF_TOKEN)
@@ -606,6 +667,7 @@ class PyannoteDiarizer(Diarizer):
         reason = _missing_any("pyannote.audio", "torch")
         if reason:
             raise PipelineUnavailable(reason)
+        pyannote_telemetry_off()
         from pyannote.audio import Pipeline as PAPipeline  # type: ignore[import-not-found]
 
         model = model or default_pyannote_model()
@@ -622,6 +684,16 @@ class PyannoteDiarizer(Diarizer):
             self.pipeline.to(torch.device(device))
         self.model_name = model
         self.exclusive = exclusive
+        try:
+            from importlib.metadata import version as _dist_version
+
+            pa_version: str | None = _dist_version("pyannote.audio")
+        except Exception:
+            pa_version = None
+        self.models = {"diarization": hf_snapshot_provenance(model)}
+        self.settings = {"model": model, "exclusive": exclusive, "device": device or "cpu",
+                         "pyannote.audio": pa_version, "telemetry": os.environ.get("PYANNOTE_METRICS_ENABLED")}
+        self.last_info: dict[str, Any] = {}
 
     def diarize(self, pcm: np.ndarray, sample_rate: int, num_speakers: int | None = None) -> list[Turn]:
         import torch  # type: ignore[import-not-found]
@@ -635,14 +707,19 @@ class PyannoteDiarizer(Diarizer):
         turns: list[Turn] = []
         for turn, _, speaker in ann.itertracks(yield_label=True):
             turns.append((float(turn.start), float(turn.end), str(speaker)))
-        return sorted(turns)
+        turns.sort()
+        self.last_info = hint_info(turns, num_speakers)
+        return turns
 
 
 def _pyannote_from_params(p: dict[str, Any], *, exclusive: bool) -> PyannoteDiarizer:
     return PyannoteDiarizer(
         model=p.get("diarization_model"),
         token_env=str(p.get("token_env", "HF_TOKEN")),
-        device=p.get("device"),
+        # diarization_device lets pyannote use a GPU (e.g. "mps") while the
+        # transcriber of faster-whisper+pyannote stays on "device" (CTranslate2
+        # has no MPS backend)
+        device=p.get("diarization_device", p.get("device")),
         exclusive=exclusive,
     )
 
@@ -754,6 +831,7 @@ class WhisperXPipeline(Pipeline):
         reason = _missing_any("whisperx", "torch")
         if reason:
             raise PipelineUnavailable(reason)
+        pyannote_telemetry_off()  # whisperx imports pyannote.audio for diarization
         import whisperx  # type: ignore[import-not-found]
 
         self.whisperx = whisperx
@@ -861,8 +939,10 @@ class EmbeddingClusterDiarizer(Diarizer):
             labels = cluster_embeddings(emb, num_speakers=num_speakers, params=c, metric="cosine", info=count)
         raw: list[Turn] = [(a, b, f"c{int(l)}") for (a, b), l in zip(cells, labels)]
         turns = smooth_turns(raw, min_segment_s=c.min_segment_s, merge_gap_s=c.merge_gap_s)
-        self.last_info = {"vad": vad_info, "count": count, "n_chunks": len(cells), "chunk_s": c.chunk_s}
-        return _relabel_by_first_appearance(turns)
+        turns = _relabel_by_first_appearance(turns)
+        self.last_info = {"vad": vad_info, "count": count, "n_chunks": len(cells), "chunk_s": c.chunk_s,
+                          **hint_info(turns, num_speakers)}
+        return turns
 
     @staticmethod
     def params_from(p: dict[str, Any]) -> tuple[VadParams, ClusterParams]:
@@ -966,7 +1046,7 @@ def _make_faster_whisper(config: PipelineConfig | None = None) -> Pipeline:
 
 @register(
     "faster-whisper+pyannote",
-    description="faster-whisper ASR + pyannote.audio diarization (UNTESTED here: no models)",
+    description="faster-whisper ASR + pyannote.audio diarization (gated model: token in $HF_TOKEN)",
     availability=lambda: _missing_any("faster_whisper", "pyannote.audio", "torch"),
     params=FASTER_WHISPER_PARAMS | {FW_DOWNLOAD_PARAM} | PYANNOTE_PARAMS | COMMON_AUDIO_PARAMS | ASSIGNMENT_PARAMS,
 )
@@ -980,13 +1060,14 @@ def _make_faster_whisper_pyannote(config: PipelineConfig | None = None) -> Pipel
 
 @register(
     "pyannote-audio",
-    description="pyannote.audio diarization only, no ASR (UNTESTED here: no models)",
+    description="pyannote.audio diarization only, no ASR (gated model: token in $HF_TOKEN)",
     availability=lambda: _missing_any("pyannote.audio", "torch"),
     params=PYANNOTE_PARAMS | COMMON_AUDIO_PARAMS,
 )
 def _make_pyannote(config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name="pyannote-audio")
-    return ComposedPipeline(None, _pyannote_from_params(cfg.params, exclusive=False), cfg, name="pyannote-audio")
+    di, load_s = _timed(lambda: _pyannote_from_params(cfg.params, exclusive=False))
+    return ModelComposedPipeline(None, di, cfg, name="pyannote-audio", load_s=load_s)
 
 
 @register(
@@ -997,6 +1078,41 @@ def _make_pyannote(config: PipelineConfig | None = None) -> Pipeline:
 )
 def _make_whisperx(config: PipelineConfig | None = None) -> Pipeline:
     return WhisperXPipeline(config)
+
+
+def ecapa_embedding_cluster(
+    p: dict[str, Any],
+    *,
+    source: Any = None,
+    savedir: Any = None,
+    device: Any = None,
+) -> EmbeddingClusterDiarizer:
+    """An ``EmbeddingClusterDiarizer`` over SpeechBrain ECAPA, with its VAD and
+    cell/cluster settings from ``p`` and the model, savedir and device given
+    (defaults: ``speechbrain/spkrec-ecapa-voxceleb`` under
+    ``<models dir>/speechbrain-ecapa``, CPU).  Shared by ``embedding-cluster``
+    and ``whisper-sherpa-ecapa``."""
+    v, c = EmbeddingClusterDiarizer.params_from(p)
+    batch = p.get("batch_windows", 32)
+    if isinstance(batch, bool) or not isinstance(batch, int) or batch < 1:
+        raise ParamError(f"batch_windows must be a positive integer, got {batch!r}")
+    from . import model_store
+
+    source = str(source or "speechbrain/spkrec-ecapa-voxceleb")
+    # HARNESS_POLICY: SpeechBrain's savedir defaults to <models dir>/speechbrain-ecapa
+    # (git-ignored) so the model never lands in the working directory; its files
+    # are hashed into hyp.extra.models (unpinned: SpeechBrain fetches them).
+    savedir = str(savedir or (model_store.models_dir() / "speechbrain-ecapa"))
+    device = str(device or "cpu")
+    embed = speechbrain_ecapa_embedder(source=source, savedir=savedir, device=device, batch_windows=batch)
+    d = EmbeddingClusterDiarizer(embed, v, c)
+    files = model_store.describe_local(savedir) if Path(savedir).is_dir() else {"path": savedir, "pinned": False, "files": {}}
+    d.models = {"embedding": {"source": source, **files}}
+    d.settings = {"source": source, "device": device, "batch_windows": batch,
+                  "nnpack": ECAPA_CPU_NNPACK,
+                  "vad": {f.name: getattr(v, f.name) for f in fields(v)},
+                  "cluster": {f.name: getattr(c, f.name) for f in fields(c)}}
+    return d
 
 
 @register(
@@ -1011,27 +1127,9 @@ def _make_whisperx(config: PipelineConfig | None = None) -> Pipeline:
 def _make_embedding_cluster(config: PipelineConfig | None = None) -> Pipeline:
     cfg = config or PipelineConfig(name="embedding-cluster")
     p = cfg.params
-    v, c = EmbeddingClusterDiarizer.params_from(p)
-    batch = p.get("batch_windows", 32)
-    if isinstance(batch, bool) or not isinstance(batch, int) or batch < 1:
-        raise ParamError(f"batch_windows must be a positive integer, got {batch!r}")
-    from . import model_store
-
-    source = str(p.get("embedding_model", "speechbrain/spkrec-ecapa-voxceleb"))
-    # HARNESS_POLICY: SpeechBrain's savedir defaults to <models dir>/speechbrain-ecapa
-    # (git-ignored) so the model never lands in the working directory; its files
-    # are hashed into hyp.extra.models (unpinned: SpeechBrain fetches them).
-    savedir = str(p.get("embedding_savedir") or (model_store.models_dir() / "speechbrain-ecapa"))
     t0 = time.perf_counter()
-    embed = speechbrain_ecapa_embedder(source=source, savedir=savedir, device=str(p.get("device", "cpu")),
-                                       batch_windows=batch)
-    d = EmbeddingClusterDiarizer(embed, v, c)
-    files = model_store.describe_local(savedir) if Path(savedir).is_dir() else {"path": savedir, "pinned": False, "files": {}}
-    d.models = {"embedding": {"source": source, **files}}
-    d.settings = {"source": source, "device": str(p.get("device", "cpu")), "batch_windows": batch,
-                  "nnpack": ECAPA_CPU_NNPACK,
-                  "vad": {f.name: getattr(v, f.name) for f in fields(v)},
-                  "cluster": {f.name: getattr(c, f.name) for f in fields(c)}}
+    d = ecapa_embedding_cluster(p, source=p.get("embedding_model"), savedir=p.get("embedding_savedir"),
+                                device=p.get("device"))
     return ModelComposedPipeline(None, d, cfg, name="embedding-cluster", load_s=time.perf_counter() - t0)
 
 
