@@ -303,7 +303,8 @@ run_one() {  # dataset system pipeline hint(0|1) meeting_dir meeting_id n_active
   if [[ -n "$extra" ]]; then
     for kv in ${extra//,/ }; do params+=(--param "$kv"); done
   fi
-  if [[ "$pipe" == whisper-sherpa && -n "${V5_ASR_CACHE:-}" ]]; then
+  if [[ ( "$pipe" == whisper-sherpa || "$pipe" == whisper-sherpa-ecapa || "$pipe" == faster-whisper+pyannote ) \
+        && -n "${V5_ASR_CACHE:-}" ]]; then
     params+=(--param "asr_cache=$V5_ASR_CACHE")
   fi
   wait_quiet
@@ -356,7 +357,9 @@ WS_EXTRA_NAMES=()     # extra systems built on whisper-sherpa (derived views, te
 for spec in ${EXTRA_SPECS[@]+"${EXTRA_SPECS[@]}"}; do
   IFS=: read -r _n _p _h _x <<<"$spec"
   EXTRA_NAMES+=("$_n")
-  [[ "$_p" == whisper-sherpa ]] && WS_EXTRA_NAMES+=("$_n")
+  # whisper-sherpa-ecapa and faster-whisper+pyannote share the transcript and the
+  # hypothesis layout (words, turns)
+  [[ "$_p" == whisper-sherpa || "$_p" == whisper-sherpa-ecapa || "$_p" == faster-whisper+pyannote ]] && WS_EXTRA_NAMES+=("$_n")
 done
 WS_SYSTEMS=(whisper-sherpa whisper-sherpa-hint ${WS_EXTRA_NAMES[@]+"${WS_EXTRA_NAMES[@]}"})
 REASSIGN_SPECS=(${V5_REASSIGN:-})
@@ -366,7 +369,7 @@ for spec in ${REASSIGN_SPECS[@]+"${REASSIGN_SPECS[@]}"}; do REASSIGN_NAMES+=("${
 # ---------------------------------------------------------------- derive ----
 
 # Two diarization-only views of each whisper-sherpa hypothesis (no inference):
-#   <sys>-turns     the raw sherpa-onnx turns (hyp.extra.diarization.turns), so DER/JER
+#   <sys>-turns     the diarizer's raw turns (hyp.extra.diarization.turns), so DER/JER
 #                   can be read without the word-run segmentation (docs/pipeline.md §11.7);
 #   <sys>-wordruns  the hypothesis's own word-run segments with the text removed.  DER/JER
 #                   ignore text, so these equal the full hypothesis's DER/JER; they exist
@@ -394,7 +397,8 @@ for src_sys in sys.argv[2:]:
             "system": f"{d['system']}:diarization-turns",
             "segments": [s.to_dict() for s in segs],
             "extra": {"derived_from": str(src), "derived_from_sha256": hashlib.sha256(src.read_bytes()).hexdigest(),
-                      "note": "raw sherpa-onnx turns from extra.diarization.turns; no text (DER/JER only)"},
+                      "note": f"raw diarization turns ({d.get('extra', {}).get('components', {}).get('diarizer') or 'diarizer not recorded'}) "
+                              "from extra.diarization.turns; no text (DER/JER only)"},
         }
         (out_dir / "hyp.json").write_text(json.dumps(doc, indent=2) + "\n")
         ordered = sorted(segs, key=lambda s: (s.start, s.end, s.speaker))
@@ -568,6 +572,11 @@ SYSTEMS = ["oracle", "energy-vad-cluster", "energy-vad-cluster-hint", *ws_system
            *[f"{s}-wordruns" for s in ws_systems], *[f"{s}-turns" for s in ws_systems]]
 VARIANTS = ["collar0", "norm", "lifted", "lifted.collar0", "lifted.control"]
 TEXT_SYSTEMS = {"oracle", *ws_systems, *[s for s in extra if not s.startswith("energy") and not s.startswith("embedding")]}
+
+def has_text(sys_, e):
+    """A text system by name AND by content: a diarization-only extra (e.g.
+    pyannote-audio) has no words, and evals scores empty text as cpWER 1.0."""
+    return sys_ in TEXT_SYSTEMS and any((r.get("n_hyp_words") or 0) > 0 for r in e["runs"].values())
 KEYS = ["der.der", "der.miss_rate", "der.false_alarm_rate", "der.confusion_rate", "jer.jer",
         "cpwer.error_rate", "tcpwer.error_rate", "wer_concat.wer", "wer_literal.wer",
         "speaker_count.error", "speaker_count.abs_error", "speaker_count.hypothesis", "der.total",
@@ -711,7 +720,7 @@ for ds, dsum in summary["datasets"].items():
     L += ["", "| system | report | agg | DER | miss | FA | conf | JER | cpWER | tcpWER | WER concat | spk err | errors | cpWER refused |",
           "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for sys_, e in dsum["systems"].items():
-        txt = sys_ in TEXT_SYSTEMS
+        txt = has_text(sys_, e)
         for vname, rep in [("standard", e), *e["variants"].items()]:
             for agg in ("macro", "micro"):
                 a = rep[agg]
@@ -724,7 +733,7 @@ for ds, dsum in summary["datasets"].items():
     L += ["", "| system | meeting | report | DER | JER | cpWER | tcpWER | WER concat | hyp spk | hint | honoured | RTF | wall s | max RSS MB | load start/end (1 min) |",
           "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for sys_, e in dsum["systems"].items():
-        txt = sys_ in TEXT_SYSTEMS
+        txt = has_text(sys_, e)
         for mid, run in e["runs"].items():
             src, r = ("standard", e["per_meeting"].get(mid))
             if r is None and "lifted" in e["variants"]:
