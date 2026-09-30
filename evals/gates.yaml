@@ -56,10 +56,15 @@ suites:
       full-corpus partition, headset mix).  Measured on 2026-09-28
       (docs/v5-test-split.md) and FAILED: whisper-sherpa with the dev-calibrated
       threshold and no hint gave macro DER 0.6472 and cpWER 0.8428; with the
-      speaker count given, 0.6396 and 0.8567.  The thresholds are an
-      uncalibrated target (HARNESS_POLICY), not derived from any run.  The
-      measured runs are regression-gated by ami-test-whisper-sherpa-cal and
-      ami-test-whisper-sherpa-hint (full split) and ami-subset-whisper-sherpa
+      speaker count given, 0.6396 and 0.8567.  On 2026-09-29 whisper-sherpa-ecapa
+      (sherpa's speaker count, ECAPA turns; no hint) gave 0.4104 and 0.5132,
+      and faster-whisper+pyannote (pyannote community-1, trained on data that
+      includes AMI) 0.3140 and 0.3477: still FAILED.  pyannote-audio alone
+      (no words, so no cpWER) scored DER 0.1295.  The thresholds are an uncalibrated target (HARNESS_POLICY),
+      not derived from any run.  The measured runs are regression-gated by
+      ami-test-whisper-sherpa-cal, ami-test-whisper-sherpa-hint,
+      ami-test-whisper-sherpa-ecapa, ami-test-whisper-pyannote and
+      ami-test-pyannote-audio (full split) and ami-subset-whisper-sherpa
       (the 25 Sep 4-meeting subset, docs/v5-results.md).
     gates:
       - {metric: der.der,          max: 0.20}
@@ -119,6 +124,52 @@ suites:
       - {metric: tcpwer.error_rate,       max: 1.011}
       - {metric: wer_concat.wer,          max: 0.353}
       - {metric: speaker_count.abs_error, max: 0.25}
+
+  ami-test-whisper-sherpa-ecapa:
+    description: >
+      REGRESSION gate (HARNESS_POLICY), calibrated on one measured run:
+      whisper-sherpa-ecapa (turns from ECAPA embeddings cut into the number of
+      speakers sherpa-onnx finds at cluster_threshold 1.15; chosen on the AMI
+      dev split) with NO speaker-count hint, on all 16 AMI test-split meetings,
+      macro average, evals defaults.  Measured 2026-09-29; values and margin in
+      docs/v5-test-split.md.  Not the V5 target (that is ami-headset).
+    gates:
+      - {metric: der.der,                 max: 0.441}
+      - {metric: jer.jer,                 max: 0.57}
+      - {metric: cpwer.error_rate,        max: 0.544}
+      - {metric: tcpwer.error_rate,       max: 0.56}
+      - {metric: wer_concat.wer,          max: 0.353}
+      - {metric: speaker_count.abs_error, max: 0.688}
+
+  ami-test-whisper-pyannote:
+    description: >
+      REGRESSION gate (HARNESS_POLICY), calibrated on one measured run:
+      faster-whisper+pyannote (the whisper-sherpa transcript, words assigned to
+      pyannote.audio 4.0.7 speaker-diarization-community-1's exclusive turns)
+      with NO speaker-count hint, on all 16 AMI test-split meetings, macro
+      average, evals defaults.  pyannote's training data includes AMI.
+      Measured 2026-09-29; values and margin in docs/v5-test-split.md.  Not the
+      V5 target (that is ami-headset).
+    gates:
+      - {metric: der.der,                 max: 0.344}
+      - {metric: jer.jer,                 max: 0.366}
+      - {metric: cpwer.error_rate,        max: 0.378}
+      - {metric: tcpwer.error_rate,       max: 0.387}
+      - {metric: wer_concat.wer,          max: 0.353}
+      - {metric: speaker_count.abs_error, max: 0.5}
+
+  ami-test-pyannote-audio:
+    description: >
+      REGRESSION gate (HARNESS_POLICY), calibrated on one measured run:
+      pyannote-audio (pyannote.audio 4.0.7 speaker-diarization-community-1,
+      overlap-aware output, no ASR) with NO speaker-count hint, on all 16 AMI
+      test-split meetings, macro average, evals defaults.  pyannote's training
+      data includes AMI.  Measured 2026-09-29; values and margin in
+      docs/v5-test-split.md.  Diarization only, so no word metrics.
+    gates:
+      - {metric: der.der,                 max: 0.16}
+      - {metric: jer.jer,                 max: 0.208}
+      - {metric: speaker_count.abs_error, max: 0.5}
 
   synthetic-piper-whisper-sherpa:
     description: >

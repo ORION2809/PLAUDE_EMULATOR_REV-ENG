@@ -38,7 +38,8 @@ TEST_DOC = REPO / "docs" / "v5-test-split.md"
 SCRIPT = REPO / "scripts" / "run-v5.sh"
 V5_SUITES = ("ami-subset-whisper-sherpa", "synthetic-piper-whisper-sherpa")
 #: the 2026-09-28 full-test-split regression suites, calibrated in docs/v5-test-split.md
-V5_TEST_SUITES = ("ami-test-whisper-sherpa-cal", "ami-test-whisper-sherpa-hint")
+V5_TEST_SUITES = ("ami-test-whisper-sherpa-cal", "ami-test-whisper-sherpa-hint", "ami-test-whisper-sherpa-ecapa",
+                  "ami-test-whisper-pyannote", "ami-test-pyannote-audio")
 
 
 def calibration(doc: Path = DOC, tag: str = "v5-gate-calibration") -> dict:
@@ -111,9 +112,14 @@ def test_ami_headset_is_the_full_test_set_target_and_records_that_it_was_missed(
     for name in ("ami-subset-whisper-sherpa", *V5_TEST_SUITES):
         assert name in suite.description
     # and it does fail on the recorded full-split measurements
+    # (pyannote-audio has no words, so no cpWER: it meets the DER half, which the description records)
     for name in V5_TEST_SUITES:
         rec, _ = suite_record(name)
-        assert not evaluate(suite, rec["measured"], target="macro").passed
+        res = evaluate(suite, rec["measured"], target="macro")
+        if "cpwer.error_rate" in rec["measured"]:
+            assert not res.passed and "der.der" in res.failed_metrics
+        else:
+            assert rec["measured"]["der.der"] <= 0.20 and res.failed_metrics == ["cpwer.error_rate"]
 
 
 def test_run_v5_script_is_valid_bash_and_applies_both_suites() -> None:

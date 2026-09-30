@@ -2179,6 +2179,6 @@
   "extra": {
     "derived_from": "/Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/whisper-sherpa-cal/EN2002b/hyp.json",
     "derived_from_sha256": "f33f302be62c057c8005c8ca2a2464037aab1fc59dd7d3bf1f8d69027431c0df",
-    "note": "raw sherpa-onnx turns from extra.diarization.turns; no text (DER/JER only)"
+    "note": "raw diarization turns (sherpa-onnx) from extra.diarization.turns; no text (DER/JER only)"
   }
 }

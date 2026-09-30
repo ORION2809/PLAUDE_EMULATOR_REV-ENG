@@ -1,0 +1,25 @@
+# 2026-09-29T14:26:23Z ami pyannote-audio TS3003b pipeline=pyannote-audio hint=0 n_active=4 params=--param device=mps
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/TS3003b/mix.wav
+# load average at start: { 1.99 1.63 1.69 }
+# swap at start: total = 8192.00M  used = 6924.81M  free = 1267.19M  (encrypted)
+pyannote-audio: 444 segments, 4 speakers, 558.66s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/pyannote-audio/TS3003b.partial/hyp.json (+ .rttm, .stm)
+      566.17 real        52.51 user        33.19 sys
+           953434112  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1999274  page reclaims
+               19108  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  31  messages sent
+                  31  messages received
+                   0  signals received
+                9093  voluntary context switches
+              264760  involuntary context switches
+        332991222535  instructions retired
+        140574078682  cycles elapsed
+          4892890048  peak memory footprint
+# load average at end: { 1.52 2.31 2.16 }
+# exit 0

@@ -1,0 +1,687 @@
+ES2004c 1 spk0 0.000 2.000 i'll wait until you're all in i think so
+ES2004c 1 spk0 17.520 18.120 get
+ES2004c 1 spk1 18.120 18.560 the creep
+ES2004c 1 spk0 47.700 49.100 okay
+ES2004c 1 spk0 78.220 81.360 welcome back everybody
+ES2004c 1 spk0 82.360 83.900 we've had fun
+ES2004c 1 spk0 85.600 85.720 right
+ES2004c 1 spk0 86.480 88.600 this is our conceptual design meeting
+ES2004c 1 spk0 88.600 95.740 i think we're slightly ahead of ourselves from the last meeting
+ES2004c 1 spk0 96.280 96.290 yeah
+ES2004c 1 spk2 96.500 97.600 i was getting the
+ES2004c 1 spk0 97.600 98.120 impressionism
+ES2004c 1 spk0 98.300 98.780 i think yeah
+ES2004c 1 spk0 100.420 111.420 this is where we talk about properties materials user interface and trend watching
+ES2004c 1 spk0 112.380 119.600 so i think we've touched on a few things to that already but we'll just go over it
+ES2004c 1 spk0 122.520 136.120 the minutes from last time we had a couple of changes in our plans in that we couldn't use teletext it wasn't going to be a control for everything
+ES2004c 1 spk0 136.120 141.860 and that we had to incorporate the image of a company into it sometimes
+ES2004c 1 spk0 144.380 150.640 we have decided on leaving out the voice recognition
+ES2004c 1 spk0 151.580 159.440 we've decided on there being a flip design and a different shape from what's normal
+ES2004c 1 spk0 160.560 164.040 we were thinking a shell but something along the sides just a different shape from what's normal
+ES2004c 1 spk0 168.300 179.480 you were going to look into the rechargeable batteries and we were going to think about the port and an alarm for getting it lost things like that
+ES2004c 1 spk0 181.040 187.500 and our market was going to be young business kind of range
+ES2004c 1 spk0 188.960 191.020 okay so shall we start with the first presentation
+ES2004c 1 spk0 191.020 198.460 yes just connect up
+ES2004c 1 spk0 217.300 221.780 okay so we decided on our market
+ES2004c 1 spk0 221.780 226.960 and so this feedback from the marketing department is really about trend watching
+ES2004c 1 spk1 229.360 229.960 the
+ES2004c 1 spk0 229.960 241.660 methods we use to decide on current trends and so on market trends we did our traditional our usual market research study with our 100 subjects
+ES2004c 1 spk0 242.760 249.320 and the general feedback from them is that the most i'm sorry i'm slightly tongue tied after lunch
+ES2004c 1 spk0 250.940 256.380 we decided on the most important aspect required in a remote control device and we'll come to that later
+ES2004c 1 spk0 256.640 257.900 so that was one of the first things we did
+ES2004c 1 spk0 258.500 268.500 also with our company being forerunners in putting fashion into technology we also looked at a fashion update using our consultants on fashion and design in paris and milan
+ES2004c 1 spk0 269.860 285.160 so the general findings from that was in the market trends the most important aspects for remote controls were people want a fancy look and feel rather than the current functional look and feel of remote controls
+ES2004c 1 spk0 285.940 293.800 they also want a remote control to be technologically innovative and of course as you predicted that it should be easy to use
+ES2004c 1 spk0 293.800 299.660 now i should point out that the first of those findings fancy look and feel is the most important
+ES2004c 1 spk0 299.800 306.320 it's twice as important as the second technologically innovative which is in turn twice as important as being easy to use
+ES2004c 1 spk0 307.760 311.180 so possibly that the feature that we put first is actually third
+ES2004c 1 spk0 311.280 316.040 it's still important but it's third in order of preference for the subject that we looked at
+ES2004c 1 spk0 317.920 334.560 now the fashion update which relates to very personal preferences among our subject group we found from our consultants in paris and milan who attended all the design and fashion fairs then that fruit and vegetables are going to be the theme for clothes shoes and furniture
+ES2004c 1 spk0 335.140 339.020 so should we be thinking of using something like that in our remote control design too
+ES2004c 1 spk0 339.700 346.920 there also seems to be a trend towards a spongy feel to materials again in contrast to last year
+ES2004c 1 spk0 347.960 353.560 so a lot of interesting feedback there both in our market research departments and from our people in paris and milan
+ES2004c 1 spk0 354.340 356.380 it'd be interesting to see what our design people make of that
+ES2004c 1 spk0 357.160 358.680 okay thank you very much
+ES2004c 1 spk0 361.440 363.560 let's start from the inside and work our way out
+ES2004c 1 spk0 363.560 364.480 yep
+ES2004c 1 spk2 364.580 365.040 okay
+ES2004c 1 spk0 365.480 367.220 unless anyone has any questions about that
+ES2004c 1 spk0 367.540 367.900 not yet
+ES2004c 1 spk2 380.360 381.080 yeah
+ES2004c 1 spk0 384.760 389.660 i hate those little things
+ES2004c 1 spk0 391.060 396.460 especially if you do them on too tight and you can't get the leverage on them to undo them
+ES2004c 1 spk2 411.260 420.320 okay this is all about the design of the edge components and the availability of the components we have in stock at the moment
+ES2004c 1 spk2 422.040 438.620 okay first into the method the main idea of the whole thing is just so you just press buttons and it should activate things on the tv and we discussed last meeting it should be easy to find
+ES2004c 1 spk2 439.800 450.500 also in this study i've looked into the availability of some of the materials because some of the things that we looked at last time unfortunately aren't available
+ES2004c 1 spk2 453.400 455.800 findings i've got my nice little picture there
+ES2004c 1 spk2 455.960 467.060 this is the chip called the ta 11 835 which is what's used in pretty much every remote control because it sends out standard signals based on your input
+ES2004c 1 spk2 467.600 473.460 and it's pretty much used for all tv remotes at the moment
+ES2004c 1 spk2 475.740 478.440 and then we're looking into battery options
+ES2004c 1 spk2 480.740 484.020 there's actually no rechargeable option available
+ES2004c 1 spk2 484.800 493.320 so i saw the standard aa and aaa which we thought were a bit too bulky at the moment
+ES2004c 1 spk2 493.860 498.120 dynamo charging i thought that might be a bit silly to be honest
+ES2004c 1 spk2 499.040 501.460 it's basically like wind up radio
+ES2004c 1 spk2 502.340 504.580 so you wind up your remote control before you use it
+ES2004c 1 spk2 504.580 505.180 how
+ES2004c 1 spk0 505.180 508.000 long can you get out of that
+ES2004c 1 spk0 508.280 512.140 can you pick it up and then wind it for two minutes and then that's it for the night
+ES2004c 1 spk2 512.660 516.380 yeah i presume you wouldn't have to wind it for very long
+ES2004c 1 spk2 516.920 526.420 but i don't think it's really sort of necessary when you think of the next two options like the solar charging
+ES2004c 1 spk2 527.600 529.900 because most people have the light on in the room anyway
+ES2004c 1 spk2 529.900 532.600 so they could get when you've
+ES2004c 1 spk0 532.600 533.940 got tv
+ES2004c 1 spk3 540.420 545.860 regarding those sizes which one you think will be like because we have to take into consideration size also
+ES2004c 1 spk3 546.220 551.180 so maybe standard aaa might take lesser space and dynamo might take more
+ES2004c 1 spk2 551.180 551.220 space
+ES2004c 1 spk2 551.220 557.020 yeah it would the dynamo would take more space because you'd actually need a physical sort of handle to wind up
+ES2004c 1 spk0 557.020 559.700 i'm pretty sure that solar is from the sun
+ES2004c 1 spk0 560.600 561.880 i don't think it counts
+ES2004c 1 spk0 563.000 568.320 but i mean you don't want to limit your market
+ES2004c 1 spk0 568.480 571.100 i mean people who live in basement lights there's not that many people
+ES2004c 1 spk0 571.280 572.900 i know a different part of the world too
+ES2004c 1 spk0 573.740 575.040 if we're at the marketing internationally
+ES2004c 1 spk0 575.240 575.400 yeah
+ES2004c 1 spk2 575.560 580.220 most people also watch tv in the night anyway
+ES2004c 1 spk0 581.220 582.700 but then it would be charging through the day
+ES2004c 1 spk0 582.700 587.000 i think the point is it charges through the day and then got it charged
+ES2004c 1 spk2 587.420 590.520 but i think the next one's the best anyway
+ES2004c 1 spk2 590.980 598.260 the kinetic charging which is like you get it in wristwatches and you don't even notice it
+ES2004c 1 spk2 598.500 603.660 i mean the amount of probably moving around you'd be doing all the time would charge it up
+ES2004c 1 spk2 603.840 607.920 i don't think you'd ever need to actually physically start shaking it up to make it work
+ES2004c 1 spk2 607.920 608.660 and
+ES2004c 1 spk3 608.660 613.500 what is the life of the kinetic battery it runs for a long time
+ES2004c 1 spk2 614.240 621.680 yeah it charges into some form of it's a smaller cell which it charges into
+ES2004c 1 spk2 623.060 628.260 and the size of a watch battery because they use them quite frequently in watches
+ES2004c 1 spk2 628.940 637.720 and that would last for well i'm not entirely sure how long it would last
+ES2004c 1 spk2 637.720 639.760 but i've never seen one run out
+ES2004c 1 spk0 639.820 644.940 but then if you think about a watch it's on your wrist so it's on your body the whole time
+ES2004c 1 spk0 646.020 649.700 so you're walking around you're doing things it is moving a lot of the time
+ES2004c 1 spk0 650.400 652.800 i mean you switch the tv and then you put it on the side
+ES2004c 1 spk0 652.940 655.080 then you pick it up to change it and then you put it on the side
+ES2004c 1 spk2 655.380 655.980 but then
+ES2004c 1 spk0 655.980 657.340 again i
+ES2004c 1 spk2 657.340 659.780 think it is because if you think about it
+ES2004c 1 spk2 659.780 668.940 the watch although it's only a tiny amount it's always moving for the whole day
+ES2004c 1 spk2 669.340 672.360 and they don't run out overnight when you leave them on the side
+ES2004c 1 spk2 673.680 680.120 and for the same reason you're only using it for an incredibly short amount of time just to send the signal
+ES2004c 1 spk2 680.460 681.620 and then you're finished with it
+ES2004c 1 spk2 681.620 682.300 so it's not
+ES2004c 1 spk0 682.300 682.740 the draw
+ES2004c 1 spk2 682.740 683.120 on it
+ES2004c 1 spk2 683.260 685.440 no i don't think the draw
+ES2004c 1 spk0 685.440 685.820 on it would
+ES2004c 1 spk2 685.820 686.000 be
+ES2004c 1 spk0 686.780 691.200 referring back to solar charging is that compatible with standard batteries
+ES2004c 1 spk0 691.400 695.800 i mean could people put standard batteries in but they could leave it in the sunlight for solar charging
+ES2004c 1 spk0 695.920 697.020 are the two things not compatible
+ES2004c 1 spk2 697.580 702.000 yeah you could have a dual power thing
+ES2004c 1 spk2 702.120 705.780 but the thing with the solar cells is you would need to put them on the case
+ES2004c 1 spk2 708.320 714.640 because on a calculator they're quite big and they all look identical
+ES2004c 1 spk0 714.640 717.560 so that would be expensive as well
+ES2004c 1 spk2 717.560 718.080 what kind
+ES2004c 1 spk0 718.080 719.640 of products they were looking at for
+ES2004c 1 spk3 720.320 720.900 i presume
+ES2004c 1 spk0 720.900 722.740 the normal batteries would be the cheapest
+ES2004c 1 spk2 723.060 724.900 yeah the normal batteries would be the cheapest
+ES2004c 1 spk2 725.140 728.760 i presume then it would actually be the solar charging ones
+ES2004c 1 spk2 731.680 737.260 but i think they're not very resistant to dropping
+ES2004c 1 spk2 738.180 743.880 because if you drop stuff yeah if you have the size you'd need to charge a remote it wouldn't be that big
+ES2004c 1 spk2 743.880 748.140 but i mean remotes always get thrown around and stuff
+ES2004c 1 spk2 751.180 751.700 practically
+ES2004c 1 spk2 753.560 756.220 i mean calculators you don't really throw around a lot
+ES2004c 1 spk2 757.160 758.480 whereas remotes you do
+ES2004c 1 spk0 759.980 762.380 don't calculators have a battery in
+ES2004c 1 spk2 762.380 762.460 them as well
+ES2004c 1 spk2 762.460 766.960 yeah they do they've got dual things but the batteries are smaller i think
+ES2004c 1 spk3 766.960 771.540 the question is which one would last the longest
+ES2004c 1 spk3 771.780 775.000 because we don't want customers to be charging a mobile phone every day
+ES2004c 1 spk3 776.060 776.620 a remote controller
+ES2004c 1 spk2 777.300 778.580 so look
+ES2004c 1 spk3 778.580 779.300 at the life also
+ES2004c 1 spk2 779.820 787.620 yeah if you had something using the standard batteries and the solar charging
+ES2004c 1 spk2 788.840 791.620 i don't think you'd
+ES2004c 1 spk2 792.280 796.100 well you know how long the standard aa's would last
+ES2004c 1 spk2 796.580 796.880 it would just
+ES2004c 1 spk0 796.880 799.400 detract from the attractiveness of the whole feature
+ES2004c 1 spk0 799.700 799.840 yeah i
+ES2004c 1 spk2 799.840 800.580 think it
+ES2004c 1 spk0 800.580 800.840 would
+ES2004c 1 spk0 801.720 806.140 okay can we add in an attachment to clothing feature
+ES2004c 1 spk0 806.980 807.220 okay
+ES2004c 1 spk0 807.900 808.940 can we think about that
+ES2004c 1 spk0 809.800 815.460 because if we're doing the kinetic thing shouldn't we do some market research on that first before we add it in
+ES2004c 1 spk0 815.460 817.540 well add it in to think about
+ES2004c 1 spk0 817.760 818.440 right okay
+ES2004c 1 spk0 823.080 832.160 because if it is the kinetic thing and it is small and it is portable and it is a different shape
+ES2004c 1 spk0 832.880 835.520 kinetic is something people don't do
+ES2004c 1 spk0 836.600 838.560 we're doing something original and different
+ES2004c 1 spk0 839.940 842.780 but if you wore it if it's something you could just clip on your pocket
+ES2004c 1 spk0 842.780 848.160 then you would have that less you wouldn't lose it so much
+ES2004c 1 spk0 849.600 855.980 but then maybe that's looking at someone who's just sitting on their own rather than the eternal battle for control of it
+ES2004c 1 spk0 856.920 861.800 it's not something that's come up in any of our focus groups and market research
+ES2004c 1 spk0 861.940 866.080 it's not a thing that people are looking for when they throw it open to the field
+ES2004c 1 spk0 867.740 870.140 but it's something to put on the side to think about maybe
+ES2004c 1 spk0 871.100 872.200 okay right
+ES2004c 1 spk2 872.580 873.380 okay well i'll move on
+ES2004c 1 spk2 875.240 877.940 my second part of my findings
+ES2004c 1 spk2 879.240 887.940 the most current remotes use this silicon pcb board which printed circuit board
+ES2004c 1 spk2 888.540 892.440 which basically has these contacts that are really close together
+ES2004c 1 spk2 892.440 894.640 and then when you press down on the rubber button
+ES2004c 1 spk2 895.240 902.760 it'll connect the circuit and each switch is connected to different legs on the chip
+ES2004c 1 spk2 902.760 904.320 and so it sends a different message
+ES2004c 1 spk2 906.000 911.420 and that then gets translated by the chip into a code
+ES2004c 1 spk2 911.420 917.540 and then it's fired out of this led in a sequence of on and off bursts
+ES2004c 1 spk0 918.220 919.760 what kind of things do we have to consider there
+ES2004c 1 spk0 920.660 925.140 what kind of size does it come in varying sizes or is it just one size
+ES2004c 1 spk0 925.620 927.440 and we would have to fit the kind
+ES2004c 1 spk2 927.440 927.920 of
+ES2004c 1 spk2 927.920 934.380 the thing about it is that they can be as big or as small as you want them to be
+ES2004c 1 spk2 934.380 937.840 because you can print a circuit board like that
+ES2004c 1 spk2 938.200 943.080 it's simply spaced like that so you can fit the size of the nine buttons in
+ES2004c 1 spk2 943.560 945.660 if you see how thin the tracks are
+ES2004c 1 spk2 945.660 949.940 you could put them virtually right next to each other
+ES2004c 1 spk2 949.940 954.060 and have a much smaller switch on each one if you wanted to
+ES2004c 1 spk2 954.760 959.080 but there is an option to do it like that
+ES2004c 1 spk2 959.080 966.440 or you could have some sort of array of switches which i'll speak about in the next bit
+ES2004c 1 spk2 968.780 976.320 and then to conserve battery life from being in a standby mode while not being used
+ES2004c 1 spk2 976.740 981.560 i was thinking about that because sometimes when you have these things
+ES2004c 1 spk2 981.560 984.260 they've got little lights behind the buttons
+ES2004c 1 spk2 984.260 986.280 so you can see what all the buttons are
+ES2004c 1 spk2 986.440 992.060 like on a mobile phone they do it more often than on a tv remote
+ES2004c 1 spk2 992.340 994.320 but you could have lights behind the buttons
+ES2004c 1 spk2 994.320 998.340 and after five or ten seconds of not being used
+ES2004c 1 spk2 998.340 1003.280 i'd have that turned off if we decided to go for buttons that could light up
+ES2004c 1 spk2 1005.400 1013.360 the case material i've been sent what the factory can actually give us
+ES2004c 1 spk2 1014.440 1018.700 there's the plastic which i think we were going to go for anyway
+ES2004c 1 spk2 1019.320 1021.860 as the main case housing
+ES2004c 1 spk2 1022.660 1029.940 and the main problems with the well you could go for wood
+ES2004c 1 spk2 1029.940 1031.760 but i think it would be a bit impractical
+ES2004c 1 spk2 1032.460 1036.360 titanium very expensive
+ES2004c 1 spk2 1037.000 1040.100 just the process to make it is expensive
+ES2004c 1 spk2 1041.480 1046.980 and rubber well you're saying that people like this spongy feel this year
+ES2004c 1 spk2 1046.980 1051.680 so perhaps something made of rubber
+ES2004c 1 spk2 1051.960 1053.620 but i was thinking more of the buttons
+ES2004c 1 spk2 1053.620 1060.200 because the buttons which they've put across
+ES2004c 1 spk3 1061.340 1062.020 are
+ES2004c 1 spk2 1062.020 1065.620 what is used in some stressful manufacture
+ES2004c 1 spk2 1065.620 1069.080 and it's meant to be anti rsi
+ES2004c 1 spk2 1070.120 1072.140 i'm not sure how that would work
+ES2004c 1 spk2 1072.140 1076.140 because surely your fingers would still be moving over the short distances
+ES2004c 1 spk2 1076.140 1078.580 but that's what they said
+ES2004c 1 spk2 1079.680 1090.360 the problem with the casing is that there's quite a few design restrictions
+ES2004c 1 spk2 1090.360 1094.040 that they've got on the shape of the case
+ES2004c 1 spk2 1094.180 1097.460 if you go for titanium they can only do a standard box shape
+ES2004c 1 spk2 1097.460 1104.500 whereas if you come to plastic they can do sort of curved shapes
+ES2004c 1 spk2 1104.500 1109.160 but whether or not because we'd have it in two separate units
+ES2004c 1 spk2 1111.020 1112.340 so for the flip phone
+ES2004c 1 spk0 1112.680 1112.690 yeah
+ES2004c 1 spk3 1112.680 1115.420 and second question is like mobile you can change the cover
+ES2004c 1 spk3 1116.240 1117.100 you can call it a skin or whatever
+ES2004c 1 spk3 1117.740 1120.220 so in this case if you're looking at like a customer can change the colour
+ES2004c 1 spk3 1120.220 1123.280 from green paret green to chilli red or something like that
+ES2004c 1 spk3 1123.540 1128.280 is that feature available in titanium or it's like only specific to plastic
+ES2004c 1 spk2 1128.280 1132.280 yeah in titanium i don't think it would be available at all really
+ES2004c 1 spk2 1134.100 1137.420 well you could make it available in the titanium
+ES2004c 1 spk2 1137.800 1141.180 it would be so expensive to buy a new case for it
+ES2004c 1 spk2 1141.180 1144.480 because of the expense of how much titanium is
+ES2004c 1 spk2 1144.980 1151.480 it's light and strong but i think it should be left for aircraft design rather than for a remote
+ES2004c 1 spk0 1151.700 1153.500 it does mark quite easily too
+ES2004c 1 spk0 1153.580 1156.300 if you let it fall i've got a mobile phone myself which is titanium
+ES2004c 1 spk0 1156.300 1158.780 and it does mark very easily if you can drop it
+ES2004c 1 spk0 1158.780 1162.380 i was just wondering if we make the basic mould out of plastic
+ES2004c 1 spk0 1162.380 1166.320 but have like a rubber cover that can give the spongy feel
+ES2004c 1 spk0 1166.680 1168.660 that also allows us to kind of have different functions
+ES2004c 1 spk0 1168.660 1168.940 and you
+ES2004c 1 spk2 1168.940 1169.820 can peel them off
+ES2004c 1 spk0 1170.040 1173.380 so instead of the fascia that comes off being plastic
+ES2004c 1 spk0 1173.380 1175.520 like a rubber sleeve almost
+ES2004c 1 spk0 1176.080 1180.000 like those pens that you get with the grip that you can
+ES2004c 1 spk3 1180.000 1180.480 pull that
+ES2004c 1 spk0 1180.480 1180.860 off
+ES2004c 1 spk3 1181.980 1183.800 it would be comfortable to hold on also
+ES2004c 1 spk0 1184.520 1186.420 very cheap way of changing the look of it
+ES2004c 1 spk0 1186.420 1188.620 and people can just buy a new one if they want to
+ES2004c 1 spk0 1188.700 1192.880 well that's been really popular with mobile phones so i don't think why not
+ES2004c 1 spk2 1194.380 1198.160 also just going back to the interface designs with the buttons
+ES2004c 1 spk2 1200.180 1203.500 we were planning to do some sort of touch screen
+ES2004c 1 spk2 1204.960 1207.840 now what i was saying before about instead of having
+ES2004c 1 spk2 1208.320 1211.920 you could have just a bare pcb circuit board
+ES2004c 1 spk2 1212.680 1215.440 and i'm sure you could probably get it in different colours
+ES2004c 1 spk2 1215.440 1220.440 and so just by touching it with your finger it would make the connection over
+ES2004c 1 spk2 1221.120 1222.600 if you had them close enough
+ES2004c 1 spk2 1222.800 1224.020 that would be one option
+ES2004c 1 spk2 1225.260 1228.180 the second option they offer rubber buttons
+ES2004c 1 spk2 1228.180 1232.360 but i thought that an lcd type of screen
+ES2004c 1 spk2 1232.360 1234.700 because one they are incredibly thin
+ES2004c 1 spk2 1235.840 1237.660 and don't take up much space
+ES2004c 1 spk2 1238.180 1243.880 two you can have them in a sort of array
+ES2004c 1 spk2 1243.880 1247.260 and you could arrange the buttons on the screen in a sort of set thing
+ES2004c 1 spk2 1247.860 1250.700 you could have them like a touch display
+ES2004c 1 spk3 1250.700 1252.220 so i didn't get the last part
+ES2004c 1 spk2 1254.560 1255.100 just what
+ES2004c 1 spk3 1255.100 1258.660 you said i didn't get the meaning of it completely
+ES2004c 1 spk2 1259.220 1262.880 oh on the lcd screen you could fit it
+ES2004c 1 spk2 1263.720 1265.860 the problem with it basically is that it's flat
+ES2004c 1 spk2 1265.860 1269.740 and so you can't do lots of curved things with it
+ES2004c 1 spk2 1269.740 1276.360 but with the lcd you'd have the wires coming off
+ES2004c 1 spk2 1276.780 1280.060 you wouldn't have that with the lcd
+ES2004c 1 spk2 1280.300 1283.080 you'd only have that with the printed circuit board
+ES2004c 1 spk0 1285.340 1286.620 sorry to interrupt
+ES2004c 1 spk0 1286.860 1288.680 i don't see why the curved thing is a problem
+ES2004c 1 spk0 1288.820 1290.420 if we for example had a shell
+ES2004c 1 spk0 1291.900 1292.860 you could
+ES2004c 1 spk2 1292.860 1294.160 have a flat screen inside
+ES2004c 1 spk2 1295.060 1298.980 but i'm just wondering whether we want an lcd screen inside
+ES2004c 1 spk2 1298.980 1300.660 it wouldn't be like full colour
+ES2004c 1 spk2 1301.000 1302.140 it would just be black and white
+ES2004c 1 spk2 1303.260 1305.100 but there'd be touch buttons
+ES2004c 1 spk2 1305.780 1307.280 so you wouldn't be pressing down on them
+ES2004c 1 spk2 1307.780 1311.800 or we could have rubber buttons which are made of this material which is anti is on
+ES2004c 1 spk0 1312.300 1317.580 i think it would be good to have a contrast between if the whole thing is going to be this rubber thing
+ES2004c 1 spk0 1318.360 1321.800 it would be good to open it up and see something quite fancy looking inside
+ES2004c 1 spk0 1322.540 1324.580 now how would you distinguish if you had it bare
+ES2004c 1 spk0 1325.200 1326.940 how would you distinguish where you had to press
+ES2004c 1 spk2 1328.300 1329.840 i hadn't really thought
+ES2004c 1 spk0 1329.840 1330.100 of that
+ES2004c 1 spk0 1330.100 1332.020 but this is another idea i don't know if it helps with that
+ES2004c 1 spk0 1332.240 1333.580 but just to do with the rsi
+ES2004c 1 spk0 1334.520 1335.860 is it possible just as an option
+ES2004c 1 spk0 1336.260 1338.680 when we open it up people can use their fingers to press the button
+ES2004c 1 spk0 1339.100 1341.300 or we have inside like a small pointer thing
+ES2004c 1 spk2 1341.320 1344.340 yeah you could have some sort of stylus that you could pull out
+ES2004c 1 spk2 1344.780 1344.790 but
+ES2004c 1 spk0 1344.780 1346.520 i
+ES2004c 1 spk2 1346.520 1349.040 think they could get a bit easily lost
+ES2004c 1 spk0 1349.600 1351.600 yeah but easier to replace as well
+ES2004c 1 spk3 1353.000 1355.460 a person who switches channels very often
+ES2004c 1 spk3 1355.460 1357.500 or does use a particular function very often
+ES2004c 1 spk3 1357.500 1360.100 will find it very irritating to use early on
+ES2004c 1 spk3 1360.620 1363.900 and he might spoil your touchpad very fast compared to a button
+ES2004c 1 spk3 1364.480 1367.460 if you keep punching with a pointer or whatever
+ES2004c 1 spk0 1368.460 1371.480 just a thought they wouldn't actually need one in the case of anything they've got
+ES2004c 1 spk0 1371.600 1372.560 couldn't they have pencil or pen
+ES2004c 1 spk0 1374.160 1375.760 okay we'll talk about that
+ES2004c 1 spk0 1376.360 1378.480 so if you finish here i'll come back to that
+ES2004c 1 spk2 1378.720 1379.920 yeah that's the end
+ES2004c 1 spk2 1380.520 1380.660 there was
+ES2004c 1 spk3 1380.660 1384.400 one question before regarding the circuit since we are having a flip top
+ES2004c 1 spk3 1384.400 1387.480 we can customise the two circuits for different type of buttons
+ES2004c 1 spk3 1387.700 1389.160 like we are keeping the standard buttons on the top
+ES2004c 1 spk3 1389.720 1391.440 and the more complex buttons on this thing
+ES2004c 1 spk3 1391.680 1393.200 so we can divide the circuit like this
+ES2004c 1 spk2 1393.520 1395.560 yeah that would be fairly simple
+ES2004c 1 spk2 1395.800 1400.200 i mean you'd actually have two separate circuit boards
+ES2004c 1 spk2 1400.200 1406.540 but they'd be joined by wires or some cabling between them
+ES2004c 1 spk2 1407.480 1410.820 because in the actual flip you'd have some linking
+ES2004c 1 spk0 1412.980 1415.040 now just to raise another point while it occurs to me
+ES2004c 1 spk0 1415.160 1417.240 it kind of applies to both our designers here
+ES2004c 1 spk0 1417.380 1418.500 i'm not sure how it would fit in
+ES2004c 1 spk0 1419.000 1421.900 if we flip open now you know how you've got some mirrors in nightclubs
+ES2004c 1 spk0 1422.960 1425.500 that are mirrors when you turn to them and you turn away
+ES2004c 1 spk0 1425.500 1427.000 and it gives like an advertising display
+ES2004c 1 spk0 1427.240 1428.140 you've seen those no
+ES2004c 1 spk0 1428.800 1430.980 and they kind of respond to the turn of your body
+ES2004c 1 spk0 1431.340 1433.960 is it possible that when we open our flip top shell
+ES2004c 1 spk0 1434.640 1436.840 it's a little compact mirror and when you press a button
+ES2004c 1 spk0 1436.840 1441.200 it then goes onto the remote control display thing
+ES2004c 1 spk0 1441.860 1444.780 we are marketing to guys as much as we are to women
+ES2004c 1 spk0 1445.320 1448.320 they don't look at themselves just a thought
+ES2004c 1 spk0 1448.960 1450.940 well it's remote control you were sitting watching tv
+ES2004c 1 spk0 1451.100 1451.360 yeah
+ES2004c 1 spk0 1451.580 1453.440 are you going to want to sort of open it and say
+ES2004c 1 spk0 1453.440 1454.060 i know what you mean
+ES2004c 1 spk0 1454.380 1456.480 it's because they're using the ideas to mobile phones
+ES2004c 1 spk0 1458.740 1460.920 they've kind of got side tracked onto that i think
+ES2004c 1 spk0 1461.940 1463.660 i'm just trying to think of other features we can build in
+ES2004c 1 spk0 1463.660 1464.560 that wouldn't cost too much
+ES2004c 1 spk0 1464.560 1466.040 but one would be that one on the side
+ES2004c 1 spk2 1469.300 1470.920 i mean you could do it
+ES2004c 1 spk2 1471.040 1472.540 you could have a
+ES2004c 1 spk2 1472.540 1476.940 because if you just put the full charge through an lcd display
+ES2004c 1 spk2 1476.940 1478.480 or completely blank it out
+ES2004c 1 spk2 1479.180 1481.200 but i don't know if you could get any mirror effect on it
+ES2004c 1 spk0 1481.200 1482.500 i think i'll be forget about the mirror
+ES2004c 1 spk0 1482.660 1484.160 that was just a very quick passing thought
+ES2004c 1 spk0 1484.420 1484.430 yeah
+ES2004c 1 spk3 1485.860 1486.220 okay
+ES2004c 1 spk3 1489.740 1491.600 i'd like to show something which i did here
+ES2004c 1 spk3 1492.100 1494.060 first thing is basically on design
+ES2004c 1 spk3 1494.360 1496.580 we just took the input from the previous meeting
+ES2004c 1 spk3 1496.580 1498.620 especially from the marketing and industrial design
+ES2004c 1 spk3 1498.620 1502.040 to check on the customer needs and feasibility
+ES2004c 1 spk3 1502.660 1504.180 second is we checked into competitors
+ES2004c 1 spk3 1504.440 1506.160 the picture here shows what are the standard models
+ES2004c 1 spk3 1506.160 1507.400 offered by competitors here
+ES2004c 1 spk3 1508.220 1510.280 so you generally see there is not much of variety
+ES2004c 1 spk3 1510.280 1513.720 and like marketing team said people need trendy
+ES2004c 1 spk3 1513.860 1514.860 they are both of black and white
+ES2004c 1 spk3 1515.720 1517.700 so you generally see rectangular shape
+ES2004c 1 spk3 1517.700 1521.700 very monotonous kind of designs here
+ES2004c 1 spk3 1523.460 1526.540 and second thing is there is too much of confusion here
+ES2004c 1 spk3 1527.280 1529.020 no particular remote is standard
+ES2004c 1 spk3 1531.300 1534.900 like some people have here
+ES2004c 1 spk3 1535.320 1535.760 you see this
+ES2004c 1 spk3 1536.140 1537.360 this is on
+ES2004c 1 spk3 1537.360 1541.440 i found that the only common feature is the channel control
+ES2004c 1 spk3 1541.440 1542.700 and the volume control
+ES2004c 1 spk3 1543.040 1543.720 there is other buttons
+ES2004c 1 spk3 1543.920 1545.020 they are in a very disorganized
+ES2004c 1 spk3 1545.020 1548.240 and they are not consistent with other models and all
+ES2004c 1 spk3 1549.060 1549.500 okay
+ES2004c 1 spk3 1549.680 1551.360 and second as already discussed with william
+ES2004c 1 spk3 1552.020 1553.640 we are going to have maybe a
+ES2004c 1 spk0 1553.640 1554.400 gui
+ES2004c 1 spk3 1554.400 1555.000 interface
+ES2004c 1 spk3 1555.000 1557.440 in the middle of the flip top
+ES2004c 1 spk0 1557.440 1558.620 sorry what does that sound like
+ES2004c 1 spk3 1558.840 1559.960 graphic user interface
+ES2004c 1 spk3 1560.300 1561.800 basically which is what we do in computer
+ES2004c 1 spk3 1562.360 1563.580 have icons or touchpad or whatever
+ES2004c 1 spk2 1564.480 1564.860 yeah
+ES2004c 1 spk2 1564.980 1566.980 if you have like buttons that appear on the screen
+ES2004c 1 spk2 1566.980 1568.260 and this lcd screen
+ES2004c 1 spk3 1568.880 1572.080 like you have icons or something you have
+ES2004c 1 spk3 1572.620 1574.860 it's a good example of gui and graphic user interface
+ES2004c 1 spk3 1574.860 1575.060 yes
+ES2004c 1 spk3 1576.440 1578.400 so basically a person need not point or click
+ES2004c 1 spk3 1578.400 1581.140 or press any particular device
+ES2004c 1 spk3 1581.240 1582.700 he just has to click on that particular icon
+ES2004c 1 spk3 1583.100 1583.540 that is simplified
+ES2004c 1 spk3 1584.460 1587.560 and on the top repetitive buttons which are like volume
+ES2004c 1 spk3 1587.560 1590.840 or channel changing and all could be on the pointing device
+ES2004c 1 spk3 1590.960 1591.880 that means user button
+ES2004c 1 spk3 1592.760 1596.140 so he need not use a pointer to keep changing the channel
+ES2004c 1 spk3 1596.140 1598.040 if a person is frequent so forth
+ES2004c 1 spk0 1598.840 1598.980 so
+ES2004c 1 spk3 1598.980 1600.460 we are having a combination of both
+ES2004c 1 spk3 1601.080 1603.580 so on the simpler board on the top
+ES2004c 1 spk3 1603.580 1605.640 we have this button rubber buttons
+ES2004c 1 spk3 1605.740 1608.180 to keep frequently changing the channels
+ES2004c 1 spk0 1609.160 1612.800 can we swap that round so that the ones that we use all the time
+ES2004c 1 spk0 1612.800 1614.300 are on the bottom part
+ES2004c 1 spk0 1615.440 1617.160 in fact if you are thinking about holding it
+ES2004c 1 spk0 1618.520 1620.660 you would be using your thumbs to press
+ES2004c 1 spk0 1621.500 1622.600 just like a mobile phone
+ES2004c 1 spk0 1622.820 1625.580 no you would flip it open and you would be
+ES2004c 1 spk0 1626.840 1628.160 wouldn't you isn't that the idea
+ES2004c 1 spk0 1628.780 1631.040 if we just use the shell as an example again
+ES2004c 1 spk0 1631.060 1631.900 you open that
+ES2004c 1 spk0 1631.900 1634.760 you've got your lcd display there and you've got the buttons there
+ES2004c 1 spk0 1635.300 1636.320 that's what i was just saying
+ES2004c 1 spk2 1636.660 1637.760 but you can't do it with your thumb
+ES2004c 1 spk0 1638.300 1640.440 and then have the lcd at the top
+ES2004c 1 spk0 1640.440 1643.560 and then be able to touch that for the other
+ES2004c 1 spk3 1643.560 1643.880 controls
+ES2004c 1 spk3 1644.060 1644.840 so have
+ES2004c 1 spk0 1644.840 1649.220 the volume and the program things like that
+ES2004c 1 spk0 1649.660 1649.670 on
+ES2004c 1 spk3 1649.660 1650.340 the
+ES2004c 1 spk0 1650.340 1650.780 lower side
+ES2004c 1 spk3 1654.940 1657.560 so the findings are too many cluttered buttons
+ES2004c 1 spk3 1658.500 1660.920 repetition of certain buttons which i already explained
+ES2004c 1 spk3 1661.320 1662.760 example the volume and channel control buttons
+ES2004c 1 spk3 1663.820 1665.600 all are confusing and inconsistent
+ES2004c 1 spk3 1666.260 1668.360 okay we had a latest finding of voice recognition
+ES2004c 1 spk3 1668.620 1671.400 there was a mail which mentioned that
+ES2004c 1 spk3 1671.400 1674.620 our division has developed a new speech recognition feature
+ES2004c 1 spk3 1675.560 1679.320 we have to check into the financial feasibility
+ES2004c 1 spk3 1679.320 1682.000 whether we can incorporate this at a low cost
+ES2004c 1 spk3 1683.440 1687.760 but we had a response from the customers
+ES2004c 1 spk3 1687.760 1689.600 that they would like to have a feature of finding
+ES2004c 1 spk2 1689.600 1690.780 it
+ES2004c 1 spk3 1691.340 1692.680 so it could be like where is the remote
+ES2004c 1 spk3 1692.980 1694.240 and the remote answers i am here
+ES2004c 1 spk3 1695.380 1698.480 some kind of thing or it gives a bleep sound
+ES2004c 1 spk3 1698.480 1699.520 or some kind of sound
+ES2004c 1 spk3 1700.220 1701.920 and if this can be incorporated this would be more
+ES2004c 1 spk3 1702.820 1706.540 you can say trendy also and technologically innovative also
+ES2004c 1 spk3 1708.500 1712.540 so we can check into the financial feasibility of incorporating this
+ES2004c 1 spk3 1715.840 1717.880 my personal preferences would be like
+ES2004c 1 spk3 1718.220 1721.400 as already highlighted by the marketing department
+ES2004c 1 spk3 1721.620 1722.820 they want something to do with fruit
+ES2004c 1 spk3 1723.100 1724.880 so i wouldn't say the design should be like a fruit
+ES2004c 1 spk3 1725.520 1727.880 but yeah we can take inspiration from fruit colors
+ES2004c 1 spk3 1727.880 1730.400 like the vibrant colors red chili
+ES2004c 1 spk2 1731.400 1733.240 tomato
+ES2004c 1 spk3 1733.240 1733.880 red or whatever
+ES2004c 1 spk3 1734.800 1738.200 and second thing is certain standard buttons we should have
+ES2004c 1 spk3 1738.760 1740.900 like for example if you see the previous slide
+ES2004c 1 spk3 1745.420 1747.920 i think most of the users would now be well acquainted
+ES2004c 1 spk3 1747.920 1750.640 with this central pattern here
+ES2004c 1 spk3 1751.640 1754.180 so we would not change that particular pattern
+ES2004c 1 spk3 1754.180 1757.180 because this is the most consistent thing in all remote controls
+ES2004c 1 spk0 1757.540 1758.080 i can't see that
+ES2004c 1 spk0 1758.080 1759.320 is that play in store
+ES2004c 1 spk3 1759.860 1760.940 this is the central one
+ES2004c 1 spk0 1761.460 1762.100 is that volume
+ES2004c 1 spk3 1762.100 1763.240 and channel
+ES2004c 1 spk3 1763.240 1767.820 so keep that standardized because that's the most common feature
+ES2004c 1 spk3 1767.820 1768.700 across all models
+ES2004c 1 spk3 1769.020 1771.480 if you look at all the models it's here
+ES2004c 1 spk3 1780.040 1781.400 voice recognition
+ES2004c 1 spk0 1787.300 1787.980 right
+ES2004c 1 spk0 1787.980 1788.740 okay
+ES2004c 1 spk0 1791.800 1793.960 i'm not sure how long we've got left
+ES2004c 1 spk0 1794.500 1801.880 but we need to make a decision about the things we've discussed
+ES2004c 1 spk0 1803.240 1808.900 so we agree on do we agree on the battery
+ES2004c 1 spk0 1809.780 1810.200 kinetic
+ES2004c 1 spk0 1810.500 1810.740 kinetic
+ES2004c 1 spk0 1811.480 1811.740 yeah
+ES2004c 1 spk0 1813.920 1818.060 that means that there's no function for the port
+ES2004c 1 spk0 1818.520 1820.680 you know that it sits in there and press the button then having
+ES2004c 1 spk0 1821.340 1823.900 so we could incorporate voice recognition in finding it
+ES2004c 1 spk0 1824.760 1825.740 it's a gadget
+ES2004c 1 spk2 1827.580 1828.740 it's a selling point
+ES2004c 1 spk2 1828.820 1830.220 it's quite a cool feature to have
+ES2004c 1 spk2 1830.500 1834.800 and also if they've got these parts already in stock
+ES2004c 1 spk2 1835.380 1838.040 then it won't be cheap to remanufacture them
+ES2004c 1 spk2 1838.240 1840.840 it will be cheap so to remanufacture them
+ES2004c 1 spk2 1841.340 1843.040 so do you reckon that's a good idea
+ES2004c 1 spk2 1843.220 1846.280 that where's the remote i'm here thing
+ES2004c 1 spk2 1846.660 1847.520 i think that would be quite
+ES2004c 1 spk0 1847.520 1847.860 fun
+ES2004c 1 spk0 1848.120 1853.060 i think the only i think the only pitfall that we would have
+ES2004c 1 spk0 1853.060 1855.020 would be how much it's going to cost
+ES2004c 1 spk0 1855.260 1855.380 yeah
+ES2004c 1 spk0 1855.580 1857.940 that means we have to cut down somewhere else
+ES2004c 1 spk0 1858.320 1862.380 but i think pretty much we've used cheap
+ES2004c 1 spk0 1863.440 1864.900 relatively cheap and simple things
+ES2004c 1 spk0 1865.300 1866.340 the lcd's not cheap
+ES2004c 1 spk0 1866.340 1866.760 well
+ES2004c 1 spk2 1867.060 1872.180 it's not as expensive as it would be if it was full colour
+ES2004c 1 spk2 1872.400 1873.920 because if we've just got a black and white one
+ES2004c 1 spk2 1874.320 1875.840 i mean they use them in calculators
+ES2004c 1 spk3 1877.260 1879.220 maybe we could start with the black and white
+ES2004c 1 spk2 1879.900 1880.240 yeah
+ES2004c 1 spk3 1880.820 1881.620 that could be good
+ES2004c 1 spk3 1882.180 1883.120 upgrade later on april
+ES2004c 1 spk0 1884.600 1886.040 we talked about kinetic charging
+ES2004c 1 spk0 1886.260 1887.520 we seem to have decided on that
+ES2004c 1 spk0 1887.580 1889.300 did we decide on double your aaa batteries
+ES2004c 1 spk2 1890.580 1890.680 what
+ES2004c 1 spk2 1891.100 1891.960 you went
+ES2004c 1 spk0 1891.960 1892.760 like a backup
+ES2004c 1 spk0 1893.820 1894.080 no
+ES2004c 1 spk0 1894.400 1895.420 one of the decisions we had to make
+ES2004c 1 spk0 1895.420 1897.060 was whether we had double your aaa batteries
+ES2004c 1 spk0 1897.160 1898.780 because they've still got to be charged this way haven't they
+ES2004c 1 spk2 1899.340 1903.360 no the kinetic ones come with a sort of watch
+ES2004c 1 spk2 1903.560 1904.900 a battery that goes in the watch
+ES2004c 1 spk0 1905.220 1906.080 right okay got you
+ES2004c 1 spk0 1906.160 1906.400 so
+ES2004c 1 spk2 1906.400 1907.360 it's a lot smaller
+ES2004c 1 spk2 1908.080 1908.480 got
+ES2004c 1 spk0 1908.480 1909.280 you on that okay
+ES2004c 1 spk0 1913.340 1914.940 okay got battery
+ES2004c 1 spk0 1916.340 1920.660 the inside components is pretty standardized across the board isn't it
+ES2004c 1 spk0 1921.160 1921.560 yeah
+ES2004c 1 spk0 1922.040 1924.420 so there's not really a decision to be made there
+ES2004c 1 spk0 1927.700 1928.600 the buttons
+ES2004c 1 spk0 1929.540 1931.200 what did you give us as own
+ES2004c 1 spk0 1934.420 1936.100 the bare board lcd
+ES2004c 1 spk2 1936.400 1936.600 yeah
+ES2004c 1 spk2 1936.880 1939.400 i think we're going for the lcd on that one
+ES2004c 1 spk2 1939.880 1940.480 on the buttons
+ES2004c 1 spk2 1941.200 1944.700 on the top one
+ES2004c 1 spk0 1945.020 1945.600 on the top one okay
+ES2004c 1 spk0 1945.660 1946.320 you've got the touch
+ES2004c 1 spk0 1946.840 1946.940 yeah
+ES2004c 1 spk0 1947.620 1947.860 okay
+ES2004c 1 spk0 1948.620 1949.840 and then
+ES2004c 1 spk2 1949.840 1952.460 on the bottom we were going to have the rubber ones
+ES2004c 1 spk2 1952.460 1955.680 the anti rsi ones
+ES2004c 1 spk0 1956.880 1958.360 okay okay
+ES2004c 1 spk0 1959.740 1960.820 sorry could you repeat that
+ES2004c 1 spk2 1960.820 1961.680 last part
+ES2004c 1 spk2 1963.200 1963.210 on
+ES2004c 1 spk0 1963.200 1964.000 the
+ES2004c 1 spk2 1964.000 1967.380 flip screen the top one is going to be the lcd
+ES2004c 1 spk2 1967.380 1969.840 and the bottom one is going to be the rubberized button
+ES2004c 1 spk3 1971.700 1972.460 and for the
+ES2004c 1 spk0 1973.280 1974.040 no it's fine
+ES2004c 1 spk3 1976.960 1978.720 for the body design i think plastic
+ES2004c 1 spk2 1980.100 1980.440 plastic
+ES2004c 1 spk2 1981.000 1981.080 yeah
+ES2004c 1 spk2 1981.080 1981.680 for
+ES2004c 1 spk0 1981.680 1982.360 the inside
+ES2004c 1 spk0 1982.680 1982.900 for the
+ES2004c 1 spk3 1982.900 1983.380 inside end
+ES2004c 1 spk3 1984.300 1987.760 rubber as a padding or for the grip something like to add to the design
+ES2004c 1 spk0 1989.160 1993.120 so we decided on a rubber casing for the plastic shell and variety of designs
+ES2004c 1 spk0 1995.900 1997.140 and it is just
+ES2004c 1 spk0 1997.140 1998.480 oh it's rubberized and spongy
+ES2004c 1 spk0 1998.900 2001.720 apart from that we're just going to go for sort of vegetable and fruit colors
+ES2004c 1 spk0 2001.860 2005.420 we're not going to try and make it actually a vegetable or fruit design
+ES2004c 1 spk0 2005.420 2007.120 or anything else in the shell that we discussed
+ES2004c 1 spk0 2007.140 2010.540 no i think we don't want to be tacky if we've got
+ES2004c 1 spk0 2010.540 2010.800 okay
+ES2004c 1 spk0 2011.900 2012.740 different shape anyway
+ES2004c 1 spk0 2014.560 2018.020 the fact the material that we would be using would be cheap
+ES2004c 1 spk0 2018.700 2023.420 so we could make it red we could make it psychedelic
+ES2004c 1 spk0 2024.700 2027.140 you know we could make it black and white they're the stripes
+ES2004c 1 spk0 2027.700 2031.640 but that's not really what we're focusing on what we're focusing on you know
+ES2004c 1 spk0 2031.780 2032.200 the feel
+ES2004c 1 spk0 2032.640 2032.980 yes
+ES2004c 1 spk0 2034.140 2036.400 so we could just pick anything
+ES2004c 1 spk0 2037.600 2039.980 is that going to be this image i've got in my head
+ES2004c 1 spk0 2039.980 2043.440 of something kind of shaped like that maybe about that size
+ES2004c 1 spk0 2044.240 2048.740 made of plastic fits into the palm of the hand rubberized cover that's spongy
+ES2004c 1 spk0 2049.080 2052.000 is that really going to fit fancy looking feel
+ES2004c 1 spk0 2052.220 2055.020 which was the major thing that people wanted market research
+ES2004c 1 spk0 2055.180 2055.620 is that
+ES2004c 1 spk0 2055.620 2056.340 it's just different
+ES2004c 1 spk0 2057.140 2058.920 it's just different from everything else
+ES2004c 1 spk0 2059.160 2064.080 and i mean i'm trying to imagine clean looking houses
+ES2004c 1 spk0 2064.600 2066.480 sort of beige and black
+ES2004c 1 spk0 2068.060 2070.560 do you either want something that goes with that
+ES2004c 1 spk0 2071.000 2072.460 which is what's on the market anyway
+ES2004c 1 spk0 2072.920 2076.260 or you want something that contrasts as you know like
+ES2004c 1 spk0 2076.960 2080.720 you get clocks now that are more of a talking point than an actual clock
+ES2004c 1 spk0 2080.900 2081.020 yeah
+ES2004c 1 spk0 2081.540 2084.960 i'm just kind of pushing at that to see if you came out with anything else
+ES2004c 1 spk0 2085.160 2086.340 but i mean i totally agree
+ES2004c 1 spk0 2086.860 2087.700 we looked at those remotes
+ES2004c 1 spk0 2087.880 2090.460 i mean they are kind of anonymous very similar looking things
+ES2004c 1 spk0 2090.780 2092.140 this would definitely be different enough
+ES2004c 1 spk0 2092.240 2093.860 i just wondered if anybody could come up with something
+ES2004c 1 spk0 2093.860 2096.820 and you would just have it across the board
+ES2004c 1 spk0 2096.920 2099.280 you would have so many different options you could do
+ES2004c 1 spk0 2100.020 2102.660 you could have a plain black one
+ES2004c 1 spk0 2103.020 2105.220 you could have sparkly pink
+ES2004c 1 spk0 2105.500 2108.620 the rubberized covers are going to be so relatively cheap to produce
+ES2004c 1 spk0 2108.620 2111.620 that if in a year's time we get feedback from the design fears
+ES2004c 1 spk0 2111.620 2112.860 that show something else is coming
+ES2004c 1 spk0 2113.020 2116.060 it's so easy for us to produce that that could be slipped on
+ES2004c 1 spk0 2116.400 2117.680 which is another beauty of it
+ES2004c 1 spk0 2117.840 2121.980 and the ones that have rubbery spikes you know
+ES2004c 1 spk0 2121.980 2124.220 it goes so far with it
+ES2004c 1 spk0 2124.700 2125.400 like a puffer effect
+ES2004c 1 spk0 2125.860 2127.180 you could take it wherever
+ES2004c 1 spk0 2127.640 2129.920 so i think that would be quite flexible
+ES2004c 1 spk3 2130.600 2132.600 and finally the body should be detached
+ES2004c 1 spk3 2132.860 2135.940 maybe you can change the body of the case casing
+ES2004c 1 spk3 2136.240 2136.760 the case outside
+ES2004c 1 spk3 2137.400 2141.020 it should be molded with the design in such a way you can change it every time
+ES2004c 1 spk2 2141.620 2145.140 yeah with these rubberized case
+ES2004c 1 spk2 2145.200 2149.300 not the actual plastic outside case just the rubber
+ES2004c 1 spk2 2149.300 2149.440 yeah
+ES2004c 1 spk0 2151.900 2153.400 ok we've got five minutes
+ES2004c 1 spk0 2155.780 2156.960 that might have been up for a while
+ES2004c 1 spk0 2157.300 2158.840 so can i just recap sarah
+ES2004c 1 spk0 2159.960 2160.940 for the decisions that we've made
+ES2004c 1 spk0 2161.120 2163.240 kinetic charging the watch type batteries
+ES2004c 1 spk0 2165.540 2168.420 lcd display on the top side of the flip top
+ES2004c 1 spk0 2168.780 2170.720 rubberized buttons on the bottom side
+ES2004c 1 spk0 2171.080 2173.220 we're going to use fruit and vegetable colors for the rubber cover
+ES2004c 1 spk0 2173.400 2174.800 the case itself is plastic
+ES2004c 1 spk0 2175.800 2176.740 that's how far we've got
+ES2004c 1 spk0 2176.740 2179.800 what else do we have to add to our decisions here
+ES2004c 1 spk3 2181.260 2183.180 we're talking of voice recognition also
+ES2004c 1 spk3 2184.080 2187.640 because we have not addressed the issue of how to locate
+ES2004c 1 spk3 2188.360 2189.780 remote control if it's lost
+ES2004c 1 spk0 2191.160 2193.280 yeah it was just a cost issue with that
+ES2004c 1 spk0 2193.380 2194.200 but it's a good idea
+ES2004c 1 spk0 2194.360 2195.740 we just need to check on the cost
+ES2004c 1 spk3 2196.000 2198.040 or maybe like william was suggesting in the last thing
+ES2004c 1 spk3 2198.140 2199.660 some devices you put on keychains
+ES2004c 1 spk2 2201.560 2202.180 oh yeah yeah
+ES2004c 1 spk2 2202.580 2202.590 the whistle
+ES2004c 1 spk3 2202.580 2202.880 ones
+ES2004c 1 spk3 2203.120 2203.400 the whistle
+ES2004c 1 spk3 2203.400 2207.020 so we can financially voice recognition is not feasible
+ES2004c 1 spk3 2207.160 2208.080 we could go for a whistle
+ES2004c 1 spk0 2216.940 2219.440 and incorporating the company logo
+ES2004c 1 spk0 2221.340 2222.880 have you
+ES2004c 1 spk3 2222.880 2223.240 sorry william
+ES2004c 1 spk3 2223.560 2225.300 but we'll be incorporating on the design
+ES2004c 1 spk0 2226.360 2228.060 because i took it from the feedback you gave
+ES2004c 1 spk0 2228.060 2230.120 in the last meeting from your report
+ES2004c 1 spk0 2230.560 2233.220 it's not just a case of having a little rr hidden somewhere
+ES2004c 1 spk0 2233.220 2235.400 they do want it to be obvious that it's our product
+ES2004c 1 spk0 2235.700 2236.200 well they do
+ES2004c 1 spk0 2236.440 2238.500 but i think we can
+ES2004c 1 spk0 2238.500 2240.000 since it's the only one of its kind on the market
+ES2004c 1 spk0 2240.240 2240.940 it's obviously going to be ours
+ES2004c 1 spk0 2240.940 2241.060 well it is
+ES2004c 1 spk0 2241.320 2243.800 i think you just addressed that with advertising
+ES2004c 1 spk0 2245.440 2248.460 you associate the name with the individual product that it is
+ES2004c 1 spk0 2248.720 2250.340 and that does the work for you
+ES2004c 1 spk0 2250.420 2252.300 obviously you'll have a logo on it just like everything
+ES2004c 1 spk0 2252.640 2254.180 but everything else has a logo on it
+ES2004c 1 spk0 2254.280 2256.660 the point is that it's got to stand out somehow differently
+ES2004c 1 spk0 2257.140 2258.940 but i think it does without that
+ES2004c 1 spk0 2259.460 2260.280 and that word might work
+ES2004c 1 spk0 2261.500 2262.220 did we
+ES2004c 1 spk0 2262.220 2264.280 i know at the last meeting we spoke about a beeper
+ES2004c 1 spk0 2264.400 2265.940 i think that was you talked about a beeper for a location
+ES2004c 1 spk0 2266.100 2268.000 and we just rejected that and gave her a voice recognition
+ES2004c 1 spk0 2268.820 2269.920 depending on her
+ES2004c 1 spk2 2269.920 2271.420 yeah depending on the expense of
+ES2004c 1 spk0 2271.420 2271.560 it
+ES2004c 1 spk0 2271.660 2273.320 i mean we've got this memo saying that
+ES2004c 1 spk0 2273.320 2275.760 it's something that the company's looking into
+ES2004c 1 spk0 2276.100 2276.660 and i've got in
+ES2004c 1 spk2 2276.660 2276.980 stocks
+ES2004c 1 spk0 2278.200 2279.580 that seems to make sense
+ES2004c 1 spk0 2279.760 2281.360 but if it turns out that it's hugely expensive
+ES2004c 1 spk0 2281.360 2282.960 we'd have to cut down somewhere else
+ES2004c 1 spk0 2283.560 2286.060 then it's worth thinking about
+ES2004c 1 spk0 2286.940 2288.860 but i think we'll find out more about cost
+ES2004c 1 spk0 2288.860 2289.020 yeah
+ES2004c 1 spk0 2291.640 2291.700 right
+ES2004c 1 spk0 2292.260 2293.380 i'm going to wrap it up today
+ES2004c 1 spk0 2296.300 2297.840 i've got an end meeting now
+ES2004c 1 spk0 2298.160 2299.580 did it
+ES2004c 1 spk0 2301.260 2301.740 sorry
+ES2004c 1 spk3 2302.520 2303.340 i'll be in a bush now
+ES2004c 1 spk0 2304.860 2306.700 so i think we've probably got
+ES2004c 1 spk0 2306.700 2307.300 we've got to go through
+ES2004c 1 spk0 2307.300 2308.540 instead of proposing we have 40 minutes
+ES2004c 1 spk0 2309.600 2312.160 so i think we've probably got about that time before we come back
+ES2004c 1 spk0 2313.980 2317.260 it's either that or we only had 40 minutes
+ES2004c 1 spk0 2317.260 2318.880 to discuss what we have discussed
+ES2004c 1 spk0 2319.880 2320.980 i don't know how long that took me
+ES2004c 1 spk3 2321.560 2323.820 i think we're pretty going in a clear direction now
+ES2004c 1 spk0 2325.600 2326.640 is everyone happy
+ES2004c 1 spk3 2328.560 2329.140 life is good
+ES2004c 1 spk0 2331.000 2331.440 okay

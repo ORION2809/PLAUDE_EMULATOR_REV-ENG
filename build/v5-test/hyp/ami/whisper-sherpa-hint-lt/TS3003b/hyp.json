@@ -22960,7 +22960,7 @@
       }
     },
     "assignment": {
-      "rule": "max total overlap per speaker; ties to the speaker of the earliest-starting overlapping turn; no overlap -> nearest turn by gap (HARNESS_POLICY, 2026-09-25)",
+      "rule": "max total overlap per speaker; ties to the speaker of the latest-starting overlapping turn; no overlap -> nearest turn by gap (HARNESS_POLICY, 2026-09-28)",
       "words": 3829,
       "overlap": 3693,
       "tie": 80,

@@ -1,0 +1,1480 @@
+EN2002c 1 SPEAKER_02 20.040 20.880 oops
+EN2002c 1 SPEAKER_02 22.360 24.760 does it squeeze in like that
+EN2002c 1 SPEAKER_00 49.680 50.000 did
+EN2002c 1 SPEAKER_01 50.000 54.700 we get a sound out of 10 for the other one
+EN2002c 1 SPEAKER_01 54.700 55.160 yeah
+EN2002c 1 SPEAKER_02 56.460 58.400 let's go in the what's he giving me
+EN2002c 1 SPEAKER_00 60.680 61.980 oh okay
+EN2002c 1 SPEAKER_00 64.530 64.920 excellent
+EN2002c 1 SPEAKER_00 67.000 67.340 okay
+EN2002c 1 SPEAKER_02 100.400 101.380 so how
+EN2002c 1 SPEAKER_00 101.380 104.800 are we getting along
+EN2002c 1 SPEAKER_01 107.080 107.600 not bad
+EN2002c 1 SPEAKER_00 108.360 114.420 one thing that i was wondering is there standard control that you use to
+EN2002c 1 SPEAKER_00 114.420 117.440 connect the different things like if you're on a topic and it goes and
+EN2002c 1 SPEAKER_00 117.440 121.260 highlights the topic in the text or whatever is there a particular type of
+EN2002c 1 SPEAKER_00 121.260 124.780 control that like is there one of these nxt
+EN2002c 1 SPEAKER_00 124.780 127.080 i think
+EN2002c 1 SPEAKER_01 127.080 127.920 there is
+EN2002c 1 SPEAKER_01 128.380 137.320 just because the topic box and all this is based on what was it called
+EN2002c 1 SPEAKER_01 137.320 143.320 non night text area or something in text areas i don't know what it is
+EN2002c 1 SPEAKER_01 143.500 145.760 and it has some sort of highlighting stuff there
+EN2002c 1 SPEAKER_01 146.300 152.640 so you should probably look at the
+EN2002c 1 SPEAKER_01 155.140 157.080 i'm not sure if it's in built though to be honest
+EN2002c 1 SPEAKER_00 158.200 164.320 you haven't had to build any new windows to do that sort of thing like other topics or
+EN2002c 1 SPEAKER_00 164.320 166.560 we're going to do one for speaker i guess in all the rest right
+EN2002c 1 SPEAKER_00 167.740 168.140 okay
+EN2002c 1 SPEAKER_00 169.560 173.160 when we talk about speaker characterization how are we accessing the list of speakers
+EN2002c 1 SPEAKER_00 173.580 173.960 i want
+EN2002c 1 SPEAKER_02 173.960 174.780 to talk about that actually
+EN2002c 1 SPEAKER_02 176.380 182.160 the data processing is fine but i don't particularly want to do the gui for it
+EN2002c 1 SPEAKER_01 182.500 182.840 you don't
+EN2002c 1 SPEAKER_02 183.040 183.180 no
+EN2002c 1 SPEAKER_02 184.060 184.260 if
+EN2002c 1 SPEAKER_01 184.260 184.720 you
+EN2002c 1 SPEAKER_02 184.720 185.120 want to do
+EN2002c 1 SPEAKER_01 185.120 185.440 that
+EN2002c 1 SPEAKER_01 185.440 186.640 yeah i was thinking about
+EN2002c 1 SPEAKER_02 186.640 186.960 then
+EN2002c 1 SPEAKER_01 186.960 188.420 tell me how you
+EN2002c 1 SPEAKER_02 188.420 189.500 want the data presented
+EN2002c 1 SPEAKER_02 191.100 197.700 it's at the moment i've created two classes one that represents speakers
+EN2002c 1 SPEAKER_02 197.800 202.800 one that represents the meetings and the information about both is contained within each object
+EN2002c 1 SPEAKER_02 203.520 207.720 and then they write objects and the objects contain all the information about the meetings
+EN2002c 1 SPEAKER_02 207.720 211.720 and the speakers so the speakers that are at the meetings and the amount they speak
+EN2002c 1 SPEAKER_02 212.180 216.600 and then the averages are contained with the speakers so there's two separate classes
+EN2002c 1 SPEAKER_01 217.040 217.880 okay yeah
+EN2002c 1 SPEAKER_01 217.880 218.780 and they're
+EN2002c 1 SPEAKER_02 218.780 222.000 two different objects and you can write the rights to the objects
+EN2002c 1 SPEAKER_02 222.180 227.000 and then you call the objects back and those returned objects have all the information that they need
+EN2002c 1 SPEAKER_02 227.140 229.500 and then you can call methods to return whatever you want
+EN2002c 1 SPEAKER_01 229.860 231.260 okay yeah i see what you mean
+EN2002c 1 SPEAKER_01 231.340 231.820 or everything
+EN2002c 1 SPEAKER_02 232.000 234.960 but that's why i wanted to know what's the easiest way to have the data
+EN2002c 1 SPEAKER_01 235.200 238.100 so have you already calculated all this data
+EN2002c 1 SPEAKER_01 238.380 239.300 what are you supposed to do that
+EN2002c 1 SPEAKER_02 239.420 240.000 yes basically all
+EN2002c 1 SPEAKER_01 240.000 240.300 calculated
+EN2002c 1 SPEAKER_02 240.300 244.340 data and all stored as objects so dot object files
+EN2002c 1 SPEAKER_02 244.740 245.200 all right
+EN2002c 1 SPEAKER_02 245.200 245.320 okay
+EN2002c 1 SPEAKER_02 246.400 250.380 which means that you just call the and our null constructor and call the load thing
+EN2002c 1 SPEAKER_02 250.480 252.900 and call it that and you can create a list of them or back to it
+EN2002c 1 SPEAKER_02 253.040 253.840 and whatever you want to do
+EN2002c 1 SPEAKER_02 254.580 256.940 and then we'll just call them one at a time to populate a window
+EN2002c 1 SPEAKER_02 257.300 260.820 but that's what i wanted to know what format do you want the data to come back in
+EN2002c 1 SPEAKER_02 261.540 263.680 because it can come back as almost anything
+EN2002c 1 SPEAKER_02 264.560 264.740 okay
+EN2002c 1 SPEAKER_01 266.020 267.340 what should it come back as
+EN2002c 1 SPEAKER_00 267.920 268.800 what's easiest to display
+EN2002c 1 SPEAKER_00 268.980 270.920 that might also help like when he was talking about like
+EN2002c 1 SPEAKER_00 271.060 272.740 have an architecture that things are going to plug into
+EN2002c 1 SPEAKER_00 273.100 273.320 yeah
+EN2002c 1 SPEAKER_00 273.320 274.720 i mean so the things are all modular
+EN2002c 1 SPEAKER_00 274.900 277.900 i mean it would be a good idea if we use that same idea for anything else we do
+EN2002c 1 SPEAKER_00 277.940 278.780 or what else we're doing
+EN2002c 1 SPEAKER_00 280.120 280.440 yeah
+EN2002c 1 SPEAKER_00 280.800 281.720 even the searches or whatever
+EN2002c 1 SPEAKER_00 282.140 283.400 and just any sort of thing
+EN2002c 1 SPEAKER_00 283.500 285.820 i mean search results if they're all in a predictable thing with a name
+EN2002c 1 SPEAKER_00 286.360 288.060 certain properties or a list of properties or whatever
+EN2002c 1 SPEAKER_02 290.340 290.560 yeah
+EN2002c 1 SPEAKER_02 292.520 295.760 so as i can have it so that it returns you a
+EN2002c 1 SPEAKER_02 296.240 300.840 is at the moment the main data structures are hash tables for the meetings
+EN2002c 1 SPEAKER_02 300.840 304.840 that say it's got one that says percent it's called percent talk
+EN2002c 1 SPEAKER_02 305.780 307.860 one's percent noise and one is percent participation
+EN2002c 1 SPEAKER_02 308.720 309.060 do you see what i mean
+EN2002c 1 SPEAKER_02 309.260 310.980 so and then it's got inside it's got a link
+EN2002c 1 SPEAKER_02 311.220 313.260 it's got a it's got the speaker's name
+EN2002c 1 SPEAKER_02 313.820 316.060 and then it's got their percentage for that thing
+EN2002c 1 SPEAKER_01 316.460 316.820 oh yeah
+EN2002c 1 SPEAKER_02 316.980 318.940 so it can either come back as a you can have the hash table
+EN2002c 1 SPEAKER_02 319.160 320.940 or you can have it returned as a vector
+EN2002c 1 SPEAKER_02 321.340 325.440 and it will say noise it's just a string it's noise
+EN2002c 1 SPEAKER_02 326.060 326.640 it works percent
+EN2002c 1 SPEAKER_02 327.020 329.400 it will say a vector that's i don't know whatever
+EN2002c 1 SPEAKER_02 329.400 331.840 you can either have it you can either have it
+EN2002c 1 SPEAKER_02 331.880 335.060 you could have it like an embedded vector or array of strings
+EN2002c 1 SPEAKER_02 335.260 337.640 and each one represents one person or whatever
+EN2002c 1 SPEAKER_02 338.860 339.280 whatever
+EN2002c 1 SPEAKER_02 339.540 339.900 whatever you give
+EN2002c 1 SPEAKER_01 339.900 342.300 me i can do it
+EN2002c 1 SPEAKER_01 342.740 342.920 whatever you give me i can do it
+EN2002c 1 SPEAKER_00 343.500 346.300 just a matter of deciding what would be easiest
+EN2002c 1 SPEAKER_00 346.420 346.920 yeah you get it
+EN2002c 1 SPEAKER_00 347.060 347.480 all the way around
+EN2002c 1 SPEAKER_00 347.840 348.320 thank you
+EN2002c 1 SPEAKER_01 350.080 354.400 so what whenever we open a window for one speaker
+EN2002c 1 SPEAKER_02 355.120 355.380 yeah
+EN2002c 1 SPEAKER_02 359.400 360.220 see that's the key
+EN2002c 1 SPEAKER_02 360.580 363.480 how did we can i have a look at that again
+EN2002c 1 SPEAKER_02 366.980 369.620 if it's in that format it's speaker
+EN2002c 1 SPEAKER_02 369.820 370.420 yeah that's pretty much all
+EN2002c 1 SPEAKER_01 370.420 370.760 that's on
+EN2002c 1 SPEAKER_02 370.960 374.200 it's speaker speaker is the controlling thing
+EN2002c 1 SPEAKER_02 374.500 374.520 yeah
+EN2002c 1 SPEAKER_02 374.720 377.120 yeah okay yeah yeah
+EN2002c 1 SPEAKER_02 377.120 379.500 yeah so all of this all that's calculated as well
+EN2002c 1 SPEAKER_02 379.640 380.480 still the speaker objects
+EN2002c 1 SPEAKER_01 381.280 381.800 oh is it
+EN2002c 1 SPEAKER_02 381.980 382.800 yeah that's easy
+EN2002c 1 SPEAKER_02 383.660 384.680 so i'm quite amusing actually
+EN2002c 1 SPEAKER_02 385.500 388.140 the influences are i lived in germany for six months
+EN2002c 1 SPEAKER_02 388.140 389.380 i don't know if that had any effect
+EN2002c 1 SPEAKER_02 389.540 391.140 i spent too much time talking to brits
+EN2002c 1 SPEAKER_02 392.020 393.040 that was a bizarre thing
+EN2002c 1 SPEAKER_01 393.600 394.520 where do these people go
+EN2002c 1 SPEAKER_02 398.560 401.620 so then all that is calculated as well
+EN2002c 1 SPEAKER_02 401.760 403.260 all i have to do is get the dialogue out
+EN2002c 1 SPEAKER_02 403.360 404.200 so i don't think that would be difficult
+EN2002c 1 SPEAKER_02 414.140 417.100 so then does this how is this box populated
+EN2002c 1 SPEAKER_02 417.100 419.520 is it populated by the one present or the one highlighted
+EN2002c 1 SPEAKER_01 420.960 422.180 the one present
+EN2002c 1 SPEAKER_02 422.460 422.880 the one present
+EN2002c 1 SPEAKER_01 423.360 427.500 although we could do we could do the one highlighted i suppose
+EN2002c 1 SPEAKER_02 429.480 431.960 because at the moment i'm using there are methods that say
+EN2002c 1 SPEAKER_02 433.460 435.420 for the fly using for other talks
+EN2002c 1 SPEAKER_02 435.580 437.360 so i was pressing it and it says like get
+EN2002c 1 SPEAKER_02 437.620 440.520 get talk time and you take the name
+EN2002c 1 SPEAKER_02 440.760 442.340 so that would call that
+EN2002c 1 SPEAKER_02 442.460 444.760 and call the meetings method that said return that
+EN2002c 1 SPEAKER_02 444.800 445.580 and that would populate that
+EN2002c 1 SPEAKER_02 445.580 446.940 which would be an easy thing
+EN2002c 1 SPEAKER_01 446.940 447.500 to do
+EN2002c 1 SPEAKER_02 448.840 449.560 and the same for that
+EN2002c 1 SPEAKER_01 449.580 453.700 i mean that would be implementing what you said
+EN2002c 1 SPEAKER_01 454.120 455.780 that you want to see per topic
+EN2002c 1 SPEAKER_01 455.940 458.620 you want to see which one spoke in most something like that
+EN2002c 1 SPEAKER_01 458.900 461.100 so you could zap through these topics
+EN2002c 1 SPEAKER_02 462.000 462.360 meetings
+EN2002c 1 SPEAKER_01 462.820 463.400 meetings sorry
+EN2002c 1 SPEAKER_01 463.580 463.900 yeah yeah
+EN2002c 1 SPEAKER_01 464.080 466.860 and it would come up with how much they spoke
+EN2002c 1 SPEAKER_01 467.060 469.040 and you can pick the one that looks the most
+EN2002c 1 SPEAKER_02 469.040 469.050 interesting
+EN2002c 1 SPEAKER_02 469.040 470.400 yeah yeah that would be easy as well yeah
+EN2002c 1 SPEAKER_01 470.720 471.540 so do you want to do that then
+EN2002c 1 SPEAKER_02 471.840 472.360 yeah okay
+EN2002c 1 SPEAKER_02 472.500 474.400 so i'll just leave in lots of methods
+EN2002c 1 SPEAKER_02 474.400 477.160 that will just return one number at a
+EN2002c 1 SPEAKER_01 477.160 477.580 time
+EN2002c 1 SPEAKER_02 477.740 478.520 that would be the easiest way
+EN2002c 1 SPEAKER_01 478.520 478.660 to
+EN2002c 1 SPEAKER_02 478.660 479.040 do it yeah
+EN2002c 1 SPEAKER_01 479.320 479.840 yeah definitely
+EN2002c 1 SPEAKER_02 481.220 481.640 yeah that's
+EN2002c 1 SPEAKER_01 481.640 481.760 fine
+EN2002c 1 SPEAKER_01 481.760 485.080 so yeah random things like just return talking time
+EN2002c 1 SPEAKER_02 485.520 485.800 yeah
+EN2002c 1 SPEAKER_02 487.100 487.160 yeah
+EN2002c 1 SPEAKER_02 487.260 487.880 get talk time i think
+EN2002c 1 SPEAKER_00 488.380 488.780 yeah
+EN2002c 1 SPEAKER_01 491.640 492.000 yeah
+EN2002c 1 SPEAKER_00 492.240 494.320 so each time are you going straight to the xml files
+EN2002c 1 SPEAKER_00 494.320 495.400 for the information
+EN2002c 1 SPEAKER_00 495.780 496.340 no it's stored
+EN2002c 1 SPEAKER_02 496.340 497.140 as an object file
+EN2002c 1 SPEAKER_00 497.260 499.360 it prices a whole lot offline and stores it as an object
+EN2002c 1 SPEAKER_02 499.820 499.920 okay okay
+EN2002c 1 SPEAKER_02 500.080 501.380 and then they're much much smaller
+EN2002c 1 SPEAKER_02 501.380 503.340 they're only like a one without
+EN2002c 1 SPEAKER_00 503.340 503.700 one
+EN2002c 1 SPEAKER_02 503.700 504.020 key
+EN2002c 1 SPEAKER_00 504.360 505.720 so that's all just pre processed
+EN2002c 1 SPEAKER_02 505.720 506.640 yeah it's all pre processed
+EN2002c 1 SPEAKER_02 506.800 508.300 and then it's just each one of the objects
+EN2002c 1 SPEAKER_02 508.300 509.860 got a return a bunch of return methods
+EN2002c 1 SPEAKER_02 510.020 511.040 you have to recreate the object
+EN2002c 1 SPEAKER_02 511.240 512.060 it's got a load method
+EN2002c 1 SPEAKER_02 512.300 512.520 okay
+EN2002c 1 SPEAKER_02 513.080 514.560 so what you do is you call the null constructor
+EN2002c 1 SPEAKER_02 514.980 517.620 because if you call the proper constructor for each meeting
+EN2002c 1 SPEAKER_02 517.720 519.340 it goes off and does all the processing and stores
+EN2002c 1 SPEAKER_02 519.340 519.660 the own object
+EN2002c 1 SPEAKER_02 519.660 520.340 yeah right
+EN2002c 1 SPEAKER_02 520.580 522.940 and then if you call the null constructor
+EN2002c 1 SPEAKER_02 523.500 526.280 then you call load and you can call load on whatever one
+EN2002c 1 SPEAKER_02 526.280 527.880 or all of them or anything like that
+EN2002c 1 SPEAKER_00 528.020 530.820 because is it for the entire corpus
+EN2002c 1 SPEAKER_00 530.820 534.120 or is it just like individual ones like one object for each meeting
+EN2002c 1 SPEAKER_00 534.120 535.080 one object for each meeting
+EN2002c 1 SPEAKER_00 535.320 536.460 oh each meeting okay
+EN2002c 1 SPEAKER_02 538.220 539.860 i wonder if that would be useful
+EN2002c 1 SPEAKER_02 539.860 541.140 for some of the other stuff we're doing
+EN2002c 1 SPEAKER_02 543.300 546.320 yeah it just tells you who participated at the moment
+EN2002c 1 SPEAKER_02 546.400 547.280 it tells you who participated
+EN2002c 1 SPEAKER_02 547.280 549.940 and the amounts they participated in percentages
+EN2002c 1 SPEAKER_02 549.940 551.320 and in time as well
+EN2002c 1 SPEAKER_01 551.340 553.540 can you put in there what topic we're speaking about as well
+EN2002c 1 SPEAKER_02 553.940 554.640 yeah yeah that'd be
+EN2002c 1 SPEAKER_01 554.640 555.380 pretty easy
+EN2002c 1 SPEAKER_01 555.580 558.140 i could use that for the topic pop up window
+EN2002c 1 SPEAKER_02 558.520 558.860 all right
+EN2002c 1 SPEAKER_02 559.180 559.260 yeah
+EN2002c 1 SPEAKER_02 559.260 562.760 so that would cause a problem with anything
+EN2002c 1 SPEAKER_02 562.760 564.300 that wasn't annotated for topics
+EN2002c 1 SPEAKER_01 565.260 565.900 that wasn't what
+EN2002c 1 SPEAKER_00 566.220 568.040 or just return a null or a blank or a blank string
+EN2002c 1 SPEAKER_00 568.040 568.920 oh yeah no topic specified
+EN2002c 1 SPEAKER_02 569.120 569.940 you don't have a default yeah
+EN2002c 1 SPEAKER_02 571.420 573.640 there are some default unknowns actually
+EN2002c 1 SPEAKER_02 574.120 575.400 a lot of people don't give you range
+EN2002c 1 SPEAKER_01 577.120 578.040 because at the moment
+EN2002c 1 SPEAKER_01 578.080 580.700 if you right click on the topic window on one of the topics
+EN2002c 1 SPEAKER_01 580.800 583.480 you have the option of popping open a window
+EN2002c 1 SPEAKER_01 583.480 586.300 which gives you a list of all the meetings containing that topic
+EN2002c 1 SPEAKER_02 586.840 587.060 yeah
+EN2002c 1 SPEAKER_01 588.040 588.440 so
+EN2002c 1 SPEAKER_02 588.440 589.200 okay right
+EN2002c 1 SPEAKER_02 589.320 590.220 yeah that would be a problem
+EN2002c 1 SPEAKER_02 590.380 592.460 and then you could do a search over the meetings
+EN2002c 1 SPEAKER_02 592.820 593.400 over the objects
+EN2002c 1 SPEAKER_02 593.580 594.040 because that's the thing
+EN2002c 1 SPEAKER_02 594.420 596.480 these are so small that you can load each
+EN2002c 1 SPEAKER_02 596.600 598.320 all of the whole lot up and do a search over the whole lot
+EN2002c 1 SPEAKER_02 598.320 600.160 to find who passes by doing what no problem
+EN2002c 1 SPEAKER_02 600.320 601.400 or what topics were in what
+EN2002c 1 SPEAKER_02 602.120 603.120 so it doesn't crash the thing
+EN2002c 1 SPEAKER_01 603.580 605.840 so how would you calculate that
+EN2002c 1 SPEAKER_01 606.280 609.600 would you do the summarization as you populate it
+EN2002c 1 SPEAKER_01 610.640 611.040 the global
+EN2002c 1 SPEAKER_02 611.040 611.760 statistics come
+EN2002c 1 SPEAKER_01 611.760 612.040 straight up for that
+EN2002c 1 SPEAKER_01 612.040 612.180 yeah we've
+EN2002c 1 SPEAKER_02 612.180 613.360 got
+EN2002c 1 SPEAKER_02 613.360 614.300 because they're just for the meeting
+EN2002c 1 SPEAKER_01 615.540 615.880 oh right
+EN2002c 1 SPEAKER_01 616.200 618.380 so that is all stored together
+EN2002c 1 SPEAKER_01 618.380 618.640 and
+EN2002c 1 SPEAKER_02 618.640 620.120 the speaker class knows about all of that stuff
+EN2002c 1 SPEAKER_01 620.220 620.800 oh right okay
+EN2002c 1 SPEAKER_01 620.820 620.880 and the
+EN2002c 1 SPEAKER_02 620.880 621.760 meeting class knows about
+EN2002c 1 SPEAKER_01 621.760 622.320 all that stuff
+EN2002c 1 SPEAKER_01 625.620 626.100 sounds good
+EN2002c 1 SPEAKER_01 627.100 628.080 so have you done these yet
+EN2002c 1 SPEAKER_02 628.540 628.800 no
+EN2002c 1 SPEAKER_01 629.000 629.010 no
+EN2002c 1 SPEAKER_01 629.180 629.340 i don't
+EN2002c 1 SPEAKER_02 629.340 629.460 know
+EN2002c 1 SPEAKER_02 629.620 629.900 we've just
+EN2002c 1 SPEAKER_01 629.900 632.800 got to decide on what we want to do
+EN2002c 1 SPEAKER_02 632.800 633.620 what we want yeah
+EN2002c 1 SPEAKER_02 635.040 636.660 i thought the other stuff was more important
+EN2002c 1 SPEAKER_01 637.000 637.220 yeah definitely
+EN2002c 1 SPEAKER_01 637.220 637.620 so i did that
+EN2002c 1 SPEAKER_02 637.620 637.920 first
+EN2002c 1 SPEAKER_01 639.480 640.980 so it's all usable now
+EN2002c 1 SPEAKER_01 641.160 642.000 can i do it tonight
+EN2002c 1 SPEAKER_02 644.020 644.180 no
+EN2002c 1 SPEAKER_02 644.640 645.260 design agree first
+EN2002c 1 SPEAKER_02 645.260 648.240 because the problem is if you change the classes
+EN2002c 1 SPEAKER_02 648.740 650.300 the objects serial numbers change
+EN2002c 1 SPEAKER_02 650.440 651.340 and you can't reload the objects
+EN2002c 1 SPEAKER_02 651.500 652.800 so all the processing has to be done over again
+EN2002c 1 SPEAKER_02 653.100 654.260 and i haven't quite finished it yet so
+EN2002c 1 SPEAKER_02 655.840 657.260 it would become out of sync
+EN2002c 1 SPEAKER_02 657.680 658.360 it would get a bit funny
+EN2002c 1 SPEAKER_02 659.420 660.320 if i gave you one
+EN2002c 1 SPEAKER_02 661.200 662.900 if i gave you it now and you worked on it
+EN2002c 1 SPEAKER_02 662.940 664.620 and then i changed it and ran the thing again
+EN2002c 1 SPEAKER_02 664.700 666.340 you wouldn't ever be able to load the objects back up
+EN2002c 1 SPEAKER_01 666.640 667.120 oh i see
+EN2002c 1 SPEAKER_02 668.560 670.100 and then you'd have multiple copies of objects
+EN2002c 1 SPEAKER_02 670.100 670.860 while replacing it
+EN2002c 1 SPEAKER_02 672.940 673.260 well
+EN2002c 1 SPEAKER_01 673.440 675.920 let me know when it's usable
+EN2002c 1 SPEAKER_01 676.260 677.180 but if you want
+EN2002c 1 SPEAKER_02 677.180 677.800 to make the picture
+EN2002c 1 SPEAKER_02 678.540 679.720 you can do that without anything
+EN2002c 1 SPEAKER_01 680.900 682.040 what do you mean a picture
+EN2002c 1 SPEAKER_01 682.580 683.860 you mean just the
+EN2002c 1 SPEAKER_01 684.840 685.780 yeah but it's not going to take very long
+EN2002c 1 SPEAKER_01 685.780 686.780 that doesn't take long
+EN2002c 1 SPEAKER_01 687.380 687.680 yeah
+EN2002c 1 SPEAKER_02 690.980 692.460 well it won't take very long to do it
+EN2002c 1 SPEAKER_02 694.280 696.320 but i'll need to have done all of this stuff too
+EN2002c 1 SPEAKER_02 697.600 699.180 because otherwise the objects won't be the same
+EN2002c 1 SPEAKER_01 702.520 703.120 sounds good
+EN2002c 1 SPEAKER_01 703.840 706.360 so where's that is that stored in the
+EN2002c 1 SPEAKER_02 706.360 707.720 that is somewhere in the home directory
+EN2002c 1 SPEAKER_01 708.820 710.560 on your home directory not in there
+EN2002c 1 SPEAKER_01 710.800 711.340 no no no
+EN2002c 1 SPEAKER_00 712.160 713.100 well it's finished i'll put it there
+EN2002c 1 SPEAKER_00 714.680 716.360 actually i can upload my stuff as well
+EN2002c 1 SPEAKER_00 716.440 718.620 i just have to make one change to your file
+EN2002c 1 SPEAKER_00 718.620 721.620 just to load this one instead of the default
+EN2002c 1 SPEAKER_00 721.880 722.220 all right
+EN2002c 1 SPEAKER_00 722.440 724.360 so it's two lines of code
+EN2002c 1 SPEAKER_01 725.180 725.340 yeah
+EN2002c 1 SPEAKER_01 725.660 728.800 well are you wanting to write that in directly
+EN2002c 1 SPEAKER_01 728.920 730.420 or what do you want to do
+EN2002c 1 SPEAKER_01 730.420 730.880 what
+EN2002c 1 SPEAKER_00 730.880 731.600 do you mean
+EN2002c 1 SPEAKER_01 732.120 733.120 if you want to change my code
+EN2002c 1 SPEAKER_00 733.540 735.300 well yeah just the one thing that's like the action
+EN2002c 1 SPEAKER_00 735.300 736.940 for loading up the search thing
+EN2002c 1 SPEAKER_01 737.500 740.280 do you want to change the original mbrowser file then
+EN2002c 1 SPEAKER_00 740.560 741.800 yeah well your version
+EN2002c 1 SPEAKER_01 742.400 743.600 have you done that now
+EN2002c 1 SPEAKER_00 743.900 745.120 no i do it in my directory
+EN2002c 1 SPEAKER_00 745.760 746.520 oh okay
+EN2002c 1 SPEAKER_01 746.640 748.400 so not the actual one but a copy of it
+EN2002c 1 SPEAKER_00 750.060 751.360 i have a copy yes
+EN2002c 1 SPEAKER_00 752.440 754.940 but i will i was going to update that one
+EN2002c 1 SPEAKER_00 755.460 756.880 it just makes sense that
+EN2002c 1 SPEAKER_00 756.880 758.100 well just tell me when
+EN2002c 1 SPEAKER_01 758.320 758.900 because i usually
+EN2002c 1 SPEAKER_01 759.520 760.920 work on my own copy
+EN2002c 1 SPEAKER_00 760.920 762.400 for the
+EN2002c 1 SPEAKER_01 762.400 762.600 day
+EN2002c 1 SPEAKER_01 762.720 765.340 and then update it without checking if the one in the
+EN2002c 1 SPEAKER_01 765.340 765.500 share
+EN2002c 1 SPEAKER_00 765.500 765.660 has changed
+EN2002c 1 SPEAKER_00 765.660 767.440 yeah i have a million changes to it yeah
+EN2002c 1 SPEAKER_01 767.520 767.680 okay
+EN2002c 1 SPEAKER_00 769.260 771.900 yeah i'll just make that one and let you know
+EN2002c 1 SPEAKER_01 771.980 772.900 yeah let me know
+EN2002c 1 SPEAKER_00 773.140 775.100 because yeah like i say two lines of code
+EN2002c 1 SPEAKER_01 775.100 775.400 yeah
+EN2002c 1 SPEAKER_00 778.580 779.140 and then you can play
+EN2002c 1 SPEAKER_00 781.140 782.300 there's not much to do yet
+EN2002c 1 SPEAKER_00 782.840 785.580 i have to get better results like better
+EN2002c 1 SPEAKER_00 785.580 786.180 so is that
+EN2002c 1 SPEAKER_01 786.180 787.280 what you're working on now then
+EN2002c 1 SPEAKER_01 787.280 789.180 to represent the results
+EN2002c 1 SPEAKER_00 790.140 794.340 and just to wire in the topics in some ways
+EN2002c 1 SPEAKER_00 796.540 797.500 i mean
+EN2002c 1 SPEAKER_01 797.620 798.820 the highlighting stuff
+EN2002c 1 SPEAKER_00 799.180 801.100 well also yeah i like that as well
+EN2002c 1 SPEAKER_00 802.540 804.740 so i'm just trying to find out what kind of objects
+EN2002c 1 SPEAKER_00 804.740 808.180 those were for the other ones
+EN2002c 1 SPEAKER_00 808.940 811.740 so it goes in and highlights because that's
+EN2002c 1 SPEAKER_01 811.740 811.980 yeah
+EN2002c 1 SPEAKER_00 812.740 813.040 i know
+EN2002c 1 SPEAKER_01 813.040 817.940 actually for any text area whatever it is
+EN2002c 1 SPEAKER_01 819.320 822.420 they define some handy highlights on that
+EN2002c 1 SPEAKER_01 823.060 824.360 so you've got different highlights
+EN2002c 1 SPEAKER_01 824.940 828.240 just look at what they wrote about it
+EN2002c 1 SPEAKER_01 828.540 832.100 they've got user highlights selection highlights
+EN2002c 1 SPEAKER_01 832.400 836.300 time highlights and something else
+EN2002c 1 SPEAKER_01 838.620 842.460 so you can quite easily if your text area is called
+EN2002c 1 SPEAKER_01 842.460 845.280 area sethighlights or something you know
+EN2002c 1 SPEAKER_01 845.480 846.740 something like that
+EN2002c 1 SPEAKER_01 849.020 851.780 that's the way i did it to cross highlight
+EN2002c 1 SPEAKER_01 851.780 853.860 between topic and transcripts
+EN2002c 1 SPEAKER_00 856.120 856.130 okay
+EN2002c 1 SPEAKER_01 856.560 857.460 sounds good
+EN2002c 1 SPEAKER_00 859.720 861.560 so there's a few more things to do with that
+EN2002c 1 SPEAKER_00 861.760 864.960 and then once pinilla gets the index
+EN2002c 1 SPEAKER_00 866.380 867.900 then that's going to be kind of fun
+EN2002c 1 SPEAKER_00 868.280 869.780 i'm just wondering have you had to
+EN2002c 1 SPEAKER_00 869.780 872.440 well the way you were doing it
+EN2002c 1 SPEAKER_00 872.440 874.720 there's a new corpus each time for each meeting
+EN2002c 1 SPEAKER_00 874.900 878.740 but you're doing the object so you don't need to
+EN2002c 1 SPEAKER_00 878.740 881.160 because if we do have like the inverted search
+EN2002c 1 SPEAKER_00 882.060 883.420 says that there's 10 documents
+EN2002c 1 SPEAKER_00 883.520 886.320 are we going to have to load each of these 10 corpora
+EN2002c 1 SPEAKER_00 886.320 889.860 just to do the individual next t search
+EN2002c 1 SPEAKER_00 890.240 890.580 that
+EN2002c 1 SPEAKER_02 890.580 891.320 way it doesn't crash
+EN2002c 1 SPEAKER_02 891.520 892.940 if you try and load all 10 in one it crashes
+EN2002c 1 SPEAKER_02 894.380 895.040 probably yeah
+EN2002c 1 SPEAKER_02 895.100 896.500 it's a bit dumb if you can fool it
+EN2002c 1 SPEAKER_02 896.820 900.040 if you load up 10 different engines simultaneously
+EN2002c 1 SPEAKER_02 900.400 902.100 it can do that fine
+EN2002c 1 SPEAKER_02 902.460 902.560 really
+EN2002c 1 SPEAKER_02 903.280 905.700 you can't do them if it thinks they're one
+EN2002c 1 SPEAKER_02 906.000 908.520 because it's about the amount that each
+EN2002c 1 SPEAKER_02 908.520 910.220 you have to kind of call a new class
+EN2002c 1 SPEAKER_02 910.440 911.320 and then it will do it fine
+EN2002c 1 SPEAKER_02 911.540 912.300 but if you don't
+EN2002c 1 SPEAKER_01 912.300 912.900 i'm like okay it's more
+EN2002c 1 SPEAKER_00 912.900 913.640 dead as well
+EN2002c 1 SPEAKER_02 913.880 916.020 yeah it says okay oh yeah i've got all this space
+EN2002c 1 SPEAKER_02 916.360 916.760 you've got yourself
+EN2002c 1 SPEAKER_02 918.020 918.900 otherwise it goes oh no
+EN2002c 1 SPEAKER_01 921.580 922.980 does it talk to you now
+EN2002c 1 SPEAKER_01 923.460 926.340 it's a nice
+EN2002c 1 SPEAKER_02 926.340 927.140 machine i guess
+EN2002c 1 SPEAKER_01 928.740 931.040 you've spent too much time in front of it i think
+EN2002c 1 SPEAKER_01 932.820 935.600 all right well i've been doing some random pop up windows
+EN2002c 1 SPEAKER_01 935.600 937.600 for the speaker characterization which is good
+EN2002c 1 SPEAKER_01 937.860 938.900 so i can fill that in now
+EN2002c 1 SPEAKER_01 939.520 942.220 the windows are all there now after lots really
+EN2002c 1 SPEAKER_02 942.680 944.180 oh they're done are they okay cool
+EN2002c 1 SPEAKER_01 944.480 946.400 well you know just a pop up window
+EN2002c 1 SPEAKER_01 946.480 946.860 they pop up
+EN2002c 1 SPEAKER_01 946.880 947.680 it was difficult yeah
+EN2002c 1 SPEAKER_01 948.980 956.240 because it basically has to set up 10 pop up windows in memory
+EN2002c 1 SPEAKER_01 956.240 958.520 as in already initialise them
+EN2002c 1 SPEAKER_01 958.580 960.100 because there might be 10 speakers
+EN2002c 1 SPEAKER_00 960.640 960.740 they
+EN2002c 1 SPEAKER_01 960.740 962.920 all have to have different windows in
+EN2002c 1 SPEAKER_01 965.540 969.580 and i'm working on when you click on a topic
+EN2002c 1 SPEAKER_01 969.580 974.960 to see a list of the meetings that topic was mentioned in
+EN2002c 1 SPEAKER_01 976.140 979.460 and i have a question about the
+EN2002c 1 SPEAKER_01 979.920 981.780 it said we wanted a start screen
+EN2002c 1 SPEAKER_01 983.620 985.660 what kind of start screen do we want
+EN2002c 1 SPEAKER_01 986.580 989.620 i mean do we want some general blurb about welcome
+EN2002c 1 SPEAKER_01 989.620 990.880 to the browser or
+EN2002c 1 SPEAKER_02 990.880 991.100 something
+EN2002c 1 SPEAKER_02 991.100 993.840 well it's an lsd browser
+EN2002c 1 SPEAKER_02 995.280 996.900 some speeches and some music
+EN2002c 1 SPEAKER_02 999.100 1001.060 it doesn't take too long though
+EN2002c 1 SPEAKER_00 1002.040 1003.480 we have to you know while we're debugging
+EN2002c 1 SPEAKER_00 1003.820 1006.000 we're probably getting sick of it
+EN2002c 1 SPEAKER_00 1006.560 1008.400 but no or something that just sort of guides them
+EN2002c 1 SPEAKER_00 1008.400 1009.480 to the most obvious things
+EN2002c 1 SPEAKER_01 1010.280 1011.240 so do we want
+EN2002c 1 SPEAKER_01 1011.940 1013.500 yeah maybe we could write on like
+EN2002c 1 SPEAKER_01 1013.500 1016.120 whatever it's called the top of the window
+EN2002c 1 SPEAKER_01 1016.360 1018.060 saying welcome to the meeting browser
+EN2002c 1 SPEAKER_02 1019.000 1020.020 or a switchboard
+EN2002c 1 SPEAKER_01 1020.020 1020.220 that
+EN2002c 1 SPEAKER_02 1020.220 1021.640 comes up that's just a blank form
+EN2002c 1 SPEAKER_02 1021.640 1022.600 like that with some buttons
+EN2002c 1 SPEAKER_02 1023.680 1025.300 load me a meeting load me a search
+EN2002c 1 SPEAKER_02 1025.500 1027.780 load me something else whistle a tune
+EN2002c 1 SPEAKER_01 1029.220 1029.960 yeah but how
+EN2002c 1 SPEAKER_01 1030.880 1032.520 i mean at the moment the way it is
+EN2002c 1 SPEAKER_01 1032.680 1034.720 it's a drop down menu as you've seen
+EN2002c 1 SPEAKER_01 1036.560 1037.500 with all the
+EN2002c 1 SPEAKER_01 1038.480 1042.420 and that because it's the dialogue class
+EN2002c 1 SPEAKER_01 1042.420 1044.380 that you use there
+EN2002c 1 SPEAKER_00 1045.300 1046.540 i was just going to ask if we should assume
+EN2002c 1 SPEAKER_00 1046.540 1048.120 that they'll want to load a meeting first
+EN2002c 1 SPEAKER_00 1048.260 1048.880 but not necessarily
+EN2002c 1 SPEAKER_00 1049.120 1051.060 i guess if we're doing a search on entire
+EN2002c 1 SPEAKER_01 1051.060 1051.660 yeah
+EN2002c 1 SPEAKER_01 1052.060 1053.680 i mean i think they should have two options
+EN2002c 1 SPEAKER_01 1053.840 1056.300 either load up a meeting that they choose
+EN2002c 1 SPEAKER_01 1056.660 1057.440 or do a search
+EN2002c 1 SPEAKER_01 1058.260 1059.560 and for that once you've got the results
+EN2002c 1 SPEAKER_01 1059.760 1060.660 you click on something and that way
+EN2002c 1 SPEAKER_01 1060.660 1061.340 it's cheaper than hd
+EN2002c 1 SPEAKER_02 1061.340 1061.600 search
+EN2002c 1 SPEAKER_02 1062.060 1063.600 it would need you to have a meeting loaded
+EN2002c 1 SPEAKER_02 1063.600 1064.760 before it will start doing any search
+EN2002c 1 SPEAKER_02 1065.240 1067.600 well we can put the logic in there
+EN2002c 1 SPEAKER_02 1068.040 1070.540 the only thing you can search is a night object model
+EN2002c 1 SPEAKER_02 1070.540 1071.140 and the only time
+EN2002c 1 SPEAKER_00 1071.140 1072.660 you get one of those is if you've loaded an observation
+EN2002c 1 SPEAKER_00 1072.820 1073.540 i could probably even
+EN2002c 1 SPEAKER_00 1073.960 1076.960 it shouldn't be too hard to put a check in there
+EN2002c 1 SPEAKER_00 1077.220 1078.860 and if it hasn't loaded then of course you can load one
+EN2002c 1 SPEAKER_02 1079.320 1079.380 yeah
+EN2002c 1 SPEAKER_02 1079.680 1080.340 it doesn't
+EN2002c 1 SPEAKER_02 1080.340 1082.420 you could use the inverted file search
+EN2002c 1 SPEAKER_02 1082.420 1085.680 to return a list of meetings
+EN2002c 1 SPEAKER_02 1085.700 1087.880 and then use one of those to load a search
+EN2002c 1 SPEAKER_02 1089.460 1090.760 but you won't
+EN2002c 1 SPEAKER_01 1090.760 1092.820 can you not get this non object
+EN2002c 1 SPEAKER_02 1093.540 1094.640 it has to be an observation
+EN2002c 1 SPEAKER_02 1095.020 1097.360 and even if you go and search the whole corpus from that
+EN2002c 1 SPEAKER_02 1097.480 1099.760 you have to start with something
+EN2002c 1 SPEAKER_02 1099.760 1100.780 for some bizarre reason
+EN2002c 1 SPEAKER_02 1100.960 1101.300 the engine
+EN2002c 1 SPEAKER_02 1101.300 1102.260 there's only one
+EN2002c 1 SPEAKER_02 1102.260 1105.360 there's only one search method to the search engine
+EN2002c 1 SPEAKER_02 1106.680 1108.160 the engine class only has
+EN2002c 1 SPEAKER_01 1108.160 1108.660 one search method
+EN2002c 1 SPEAKER_01 1108.680 1109.760 i suppose we wouldn't want to use
+EN2002c 1 SPEAKER_01 1109.760 1112.380 yeah we wouldn't want to use nxt at the beginning anyway
+EN2002c 1 SPEAKER_01 1112.380 1114.440 because we don't want to search locally
+EN2002c 1 SPEAKER_01 1115.020 1115.500 yeah yeah globally
+EN2002c 1 SPEAKER_01 1115.940 1117.820 so let's say
+EN2002c 1 SPEAKER_01 1117.820 1118.040 unless they know
+EN2002c 1 SPEAKER_00 1118.040 1118.820 what meeting it is
+EN2002c 1 SPEAKER_00 1119.580 1120.020 well yeah
+EN2002c 1 SPEAKER_01 1120.280 1120.680 well no
+EN2002c 1 SPEAKER_01 1120.740 1122.440 then they would open the meeting first right
+EN2002c 1 SPEAKER_00 1122.720 1122.940 yeah
+EN2002c 1 SPEAKER_01 1123.780 1125.260 so let's say they have two options
+EN2002c 1 SPEAKER_01 1125.260 1127.960 either pick one meeting or search globally
+EN2002c 1 SPEAKER_01 1127.960 1130.700 to find a meeting that they like
+EN2002c 1 SPEAKER_00 1135.280 1138.180 well the things that may just be looking for a word
+EN2002c 1 SPEAKER_00 1138.440 1140.920 you know like if it shows up at ten different meetings
+EN2002c 1 SPEAKER_00 1141.340 1143.500 then at that point they'll probably want to
+EN2002c 1 SPEAKER_00 1143.620 1144.380 do we want to
+EN2002c 1 SPEAKER_00 1144.380 1146.160 like if a dot by default goes with the first one
+EN2002c 1 SPEAKER_00 1146.160 1148.600 and they want number five of the ones that are returned
+EN2002c 1 SPEAKER_00 1148.760 1149.780 i mean then they have to go through the
+EN2002c 1 SPEAKER_01 1149.780 1150.940 no but why do we want default
+EN2002c 1 SPEAKER_01 1151.180 1151.900 i mean just
+EN2002c 1 SPEAKER_00 1151.900 1152.120 well no
+EN2002c 1 SPEAKER_00 1152.120 1153.440 like to load up
+EN2002c 1 SPEAKER_00 1153.440 1155.120 like the thing is i think
+EN2002c 1 SPEAKER_00 1156.000 1158.300 like when it loads up it'll load up the transcript window
+EN2002c 1 SPEAKER_00 1158.300 1160.320 and the whatever other window right now
+EN2002c 1 SPEAKER_00 1160.320 1161.400 i think just the topic one
+EN2002c 1 SPEAKER_00 1163.060 1167.360 although the time is probably more caused by loading
+EN2002c 1 SPEAKER_00 1167.360 1169.120 the actual data so
+EN2002c 1 SPEAKER_00 1169.660 1171.480 i'm just thinking if it's kind of
+EN2002c 1 SPEAKER_00 1171.480 1174.260 like you were saying you have to have a non object right
+EN2002c 1 SPEAKER_00 1174.580 1176.840 i mean before you do a search at all
+EN2002c 1 SPEAKER_01 1177.000 1177.920 yeah but local search
+EN2002c 1 SPEAKER_01 1178.400 1178.500 yeah
+EN2002c 1 SPEAKER_01 1178.700 1180.140 we can't do local search without anything
+EN2002c 1 SPEAKER_02 1181.080 1181.640 it doesn't
+EN2002c 1 SPEAKER_01 1181.640 1181.650 take
+EN2002c 1 SPEAKER_02 1181.640 1182.540 long to load up anyway
+EN2002c 1 SPEAKER_02 1183.000 1184.020 we can load the dumb one up
+EN2002c 1 SPEAKER_02 1184.160 1184.460 it doesn't have
+EN2002c 1 SPEAKER_00 1184.460 1184.740 any
+EN2002c 1 SPEAKER_00 1184.740 1185.720 yeah but the
+EN2002c 1 SPEAKER_00 1185.720 1187.520 okay the global one feeds into the local
+EN2002c 1 SPEAKER_00 1189.000 1189.260 yeah i mean
+EN2002c 1 SPEAKER_00 1189.260 1190.880 so if we're getting any usable data
+EN2002c 1 SPEAKER_00 1191.060 1192.880 it's going to be doing a search on each of those files
+EN2002c 1 SPEAKER_00 1193.140 1195.140 so it's going to be loading up each of those one at a time
+EN2002c 1 SPEAKER_00 1195.140 1196.400 to get the data that we want
+EN2002c 1 SPEAKER_00 1196.420 1196.430 but yeah
+EN2002c 1 SPEAKER_01 1196.440 1199.440 the global inverted file search
+EN2002c 1 SPEAKER_01 1200.740 1203.600 gives the non objects basically to the local search
+EN2002c 1 SPEAKER_00 1203.760 1203.770 right
+EN2002c 1 SPEAKER_00 1203.980 1204.380 yeah right
+EN2002c 1 SPEAKER_00 1204.720 1206.060 but it could be time consuming
+EN2002c 1 SPEAKER_00 1206.200 1207.380 like if there are ten documents
+EN2002c 1 SPEAKER_01 1207.380 1208.140 that
+EN2002c 1 SPEAKER_01 1208.140 1209.680 that's always going to be the case with search
+EN2002c 1 SPEAKER_02 1210.960 1212.160 and it gives one at a time anyway
+EN2002c 1 SPEAKER_02 1212.520 1213.820 otherwise it crests the thing
+EN2002c 1 SPEAKER_00 1214.660 1217.100 yeah well i'm just thinking of some way we could
+EN2002c 1 SPEAKER_00 1217.100 1220.120 you know cache the results in a nice little format
+EN2002c 1 SPEAKER_00 1220.120 1223.100 that'll make things a bit easier
+EN2002c 1 SPEAKER_00 1223.240 1224.320 but the thing is i mean if we've got that
+EN2002c 1 SPEAKER_00 1224.400 1227.320 then it's going to be needing really to load
+EN2002c 1 SPEAKER_00 1227.760 1229.500 the entire corpus for that meeting
+EN2002c 1 SPEAKER_00 1230.560 1232.540 if it's trying to show us where those were
+EN2002c 1 SPEAKER_00 1232.760 1234.040 if it's trying to highlight those in the text
+EN2002c 1 SPEAKER_00 1234.200 1234.840 transcript whatever
+EN2002c 1 SPEAKER_00 1235.360 1237.040 and we're going to have to have all that other data in there
+EN2002c 1 SPEAKER_00 1237.560 1239.380 so each time when we have the search window
+EN2002c 1 SPEAKER_00 1239.380 1241.240 and we have like you know ten different meetings
+EN2002c 1 SPEAKER_00 1241.240 1242.800 you know the word wireless comes up
+EN2002c 1 SPEAKER_00 1243.040 1246.380 go to meeting one and it has to reload the non object
+EN2002c 1 SPEAKER_00 1246.980 1247.220 next one
+EN2002c 1 SPEAKER_00 1248.400 1249.060 i mean that's going to
+EN2002c 1 SPEAKER_02 1249.760 1249.880 yeah
+EN2002c 1 SPEAKER_00 1249.980 1250.100 it's
+EN2002c 1 SPEAKER_01 1250.100 1250.240 not
+EN2002c 1 SPEAKER_02 1250.240 1251.360 too slow though i don't think
+EN2002c 1 SPEAKER_02 1251.600 1252.920 it's not too bad on that
+EN2002c 1 SPEAKER_02 1253.440 1254.860 i don't think that will be able to
+EN2002c 1 SPEAKER_02 1254.860 1255.420 it
+EN2002c 1 SPEAKER_00 1255.420 1257.620 always seems to be slow loading up the first time
+EN2002c 1 SPEAKER_00 1257.640 1259.020 at least like that's all i'm thinking
+EN2002c 1 SPEAKER_00 1259.380 1259.420 yeah yeah yeah
+EN2002c 1 SPEAKER_00 1259.420 1261.280 it's just sort of loading it up test it
+EN2002c 1 SPEAKER_00 1261.380 1263.780 try some analysis shut down load it up
+EN2002c 1 SPEAKER_00 1265.120 1265.360 yeah
+EN2002c 1 SPEAKER_00 1265.360 1265.440 okay
+EN2002c 1 SPEAKER_00 1266.500 1268.500 so just sort of based on that isn't it
+EN2002c 1 SPEAKER_00 1270.200 1272.120 but if it doesn't take that long each time
+EN2002c 1 SPEAKER_00 1272.240 1274.780 then that should be all right
+EN2002c 1 SPEAKER_00 1275.240 1275.600 i
+EN2002c 1 SPEAKER_01 1275.600 1277.340 mean you can you know
+EN2002c 1 SPEAKER_01 1277.360 1279.220 the option is to do a search in the way that
+EN2002c 1 SPEAKER_01 1279.840 1281.060 if you do a global search
+EN2002c 1 SPEAKER_01 1282.860 1284.700 first step only return the meetings
+EN2002c 1 SPEAKER_01 1285.400 1287.320 not even the meetings but the name of the
+EN2002c 1 SPEAKER_00 1287.320 1287.560 meetings
+EN2002c 1 SPEAKER_00 1287.560 1287.700 yeah right
+EN2002c 1 SPEAKER_01 1288.240 1291.920 so you know say you want to search for the word language
+EN2002c 1 SPEAKER_01 1292.200 1293.920 then it gives you as a result
+EN2002c 1 SPEAKER_01 1293.920 1296.400 all the meetings that contain the word language
+EN2002c 1 SPEAKER_01 1296.580 1297.780 and then you can decide well
+EN2002c 1 SPEAKER_01 1297.800 1299.440 i want to search on this and this and this meeting
+EN2002c 1 SPEAKER_01 1299.760 1301.860 or only on this meeting or
+EN2002c 1 SPEAKER_02 1301.860 1302.680 yeah yeah
+EN2002c 1 SPEAKER_02 1302.760 1304.480 make it strings for as long as possible
+EN2002c 1 SPEAKER_02 1304.820 1306.600 and then return the things that they actually need
+EN2002c 1 SPEAKER_02 1306.700 1308.020 it needs to have to search
+EN2002c 1 SPEAKER_00 1308.380 1309.140 that makes sense
+EN2002c 1 SPEAKER_00 1310.560 1312.460 and that way if they know specifically which meeting it is
+EN2002c 1 SPEAKER_00 1312.840 1313.620 they'll save the time
+EN2002c 1 SPEAKER_00 1313.980 1317.000 because i'm sure they don't want to have the extra loading time
+EN2002c 1 SPEAKER_00 1317.240 1318.460 either if they can avoid it
+EN2002c 1 SPEAKER_00 1318.460 1318.760 definitely
+EN2002c 1 SPEAKER_00 1319.220 1320.440 or they can check mark
+EN2002c 1 SPEAKER_00 1320.760 1321.760 i think it's the ones they want to check
+EN2002c 1 SPEAKER_00 1321.760 1322.580 did
+EN2002c 1 SPEAKER_02 1322.580 1328.060 we think about better names for the meetings
+EN2002c 1 SPEAKER_00 1329.920 1330.960 well i think they were in the text
+EN2002c 1 SPEAKER_00 1331.140 1332.400 we can probably do that ourselves
+EN2002c 1 SPEAKER_00 1332.780 1334.900 and just sort of bdb you don't just do a stream
+EN2002c 1 SPEAKER_01 1334.900 1338.720 there is yeah in one of the papers
+EN2002c 1 SPEAKER_01 1339.000 1342.000 they have names such as
+EN2002c 1 SPEAKER_01 1342.000 1344.400 do they have better understanding or whatever
+EN2002c 1 SPEAKER_01 1344.560 1346.000 like the working group that it's part of
+EN2002c 1 SPEAKER_01 1346.300 1347.040 one of those okay
+EN2002c 1 SPEAKER_01 1347.740 1350.180 one of those even better understanding or something
+EN2002c 1 SPEAKER_01 1351.260 1353.260 that's a working group isn't it
+EN2002c 1 SPEAKER_02 1354.580 1354.980 yeah i love that
+EN2002c 1 SPEAKER_02 1355.000 1357.500 i want to see the meetings about even better understanding
+EN2002c 1 SPEAKER_01 1360.860 1363.560 so i've put that in already too
+EN2002c 1 SPEAKER_02 1364.600 1365.020 okay that's cool
+EN2002c 1 SPEAKER_01 1365.280 1365.620 sort of
+EN2002c 1 SPEAKER_01 1367.960 1370.620 so yeah again concretely to the startup
+EN2002c 1 SPEAKER_01 1371.460 1373.460 startup whatever it is window
+EN2002c 1 SPEAKER_02 1380.180 1382.960 so who would have the idfs
+EN2002c 1 SPEAKER_02 1383.020 1385.080 i mean the dfs
+EN2002c 1 SPEAKER_02 1385.340 1386.700 document frequencies for each word
+EN2002c 1 SPEAKER_02 1387.520 1387.660 do you
+EN2002c 1 SPEAKER_00 1387.660 1389.840 actually need the frequencies
+EN2002c 1 SPEAKER_02 1390.600 1392.980 yeah to do what tskiv's talking about you do
+EN2002c 1 SPEAKER_02 1393.400 1394.780 to do the topic label
+EN2002c 1 SPEAKER_00 1395.060 1395.840 i'll write that okay
+EN2002c 1 SPEAKER_01 1396.540 1397.420 yeah how is that
+EN2002c 1 SPEAKER_01 1398.480 1400.740 do you think you would have time for that as well
+EN2002c 1 SPEAKER_00 1401.600 1402.600 well the thing is if it's being done
+EN2002c 1 SPEAKER_00 1402.600 1403.080 if somebody's done
+EN2002c 1 SPEAKER_02 1403.080 1403.600 the key words
+EN2002c 1 SPEAKER_02 1405.220 1407.260 the idfs already would be not too well
+EN2002c 1 SPEAKER_02 1407.260 1407.600 there
+EN2002c 1 SPEAKER_00 1407.600 1410.560 was a class she was trying to get to work on friday
+EN2002c 1 SPEAKER_00 1412.040 1414.000 that did have all that and it was sort of built in
+EN2002c 1 SPEAKER_00 1414.060 1416.740 and just had some trouble getting it running properly
+EN2002c 1 SPEAKER_00 1417.720 1419.660 but it had sort of all that standard sort of stuff
+EN2002c 1 SPEAKER_00 1419.840 1421.660 but at last i heard it wasn't working
+EN2002c 1 SPEAKER_00 1422.220 1425.160 so she was going to look at a more straightforward sort of thing
+EN2002c 1 SPEAKER_00 1425.160 1428.140 that really just fulfills what we needed to do
+EN2002c 1 SPEAKER_00 1428.240 1430.640 but if we do need the frequencies
+EN2002c 1 SPEAKER_02 1430.640 1432.820 how do you do an invested process without the tf idea
+EN2002c 1 SPEAKER_02 1434.040 1434.760 i don't know
+EN2002c 1 SPEAKER_02 1435.720 1437.380 i think you need to have that
+EN2002c 1 SPEAKER_00 1438.260 1438.270 well
+EN2002c 1 SPEAKER_02 1438.680 1438.690 what
+EN2002c 1 SPEAKER_00 1438.680 1439.960 does the tf idea stand
+EN2002c 1 SPEAKER_02 1439.960 1440.220 for
+EN2002c 1 SPEAKER_02 1440.540 1443.000 the amount that they occur over term documents basically
+EN2002c 1 SPEAKER_02 1443.420 1444.460 what does it stand for
+EN2002c 1 SPEAKER_02 1444.520 1445.880 the tf is the document frequencies
+EN2002c 1 SPEAKER_02 1446.080 1447.360 the amount that each word occurs
+EN2002c 1 SPEAKER_02 1449.020 1450.220 no what is it
+EN2002c 1 SPEAKER_02 1450.560 1453.560 term frequency is the amount that it occurs
+EN2002c 1 SPEAKER_02 1455.560 1457.480 one of them is the amount that occurs in each document
+EN2002c 1 SPEAKER_02 1457.900 1460.880 and the other one is the amount that occurs generally
+EN2002c 1 SPEAKER_01 1462.240 1463.540 so the more
+EN2002c 1 SPEAKER_02 1463.540 1465.020 it occurs in specific documents
+EN2002c 1 SPEAKER_02 1465.440 1466.740 compared to its general score
+EN2002c 1 SPEAKER_02 1467.080 1468.880 the better more informative it is about a
+EN2002c 1 SPEAKER_01 1468.880 1468.890 certain
+EN2002c 1 SPEAKER_01 1468.880 1472.140 so the general score would that be for the whole language
+EN2002c 1 SPEAKER_01 1472.400 1473.900 or for the whole corpus
+EN2002c 1 SPEAKER_01 1473.900 1474.580 the whole corpus of
+EN2002c 1 SPEAKER_02 1474.580 1474.840 data
+EN2002c 1 SPEAKER_02 1475.780 1476.740 well you know
+EN2002c 1 SPEAKER_02 1478.100 1479.100 general frequencies
+EN2002c 1 SPEAKER_02 1479.740 1482.680 but classes plist so you remove stuff that doesn't like that
+EN2002c 1 SPEAKER_02 1483.220 1485.360 which is going to have basically an equal score
+EN2002c 1 SPEAKER_01 1485.780 1488.220 so if we had these fake topics
+EN2002c 1 SPEAKER_01 1488.460 1489.360 what would they look like
+EN2002c 1 SPEAKER_01 1489.360 1489.680 a
+EN2002c 1 SPEAKER_02 1489.680 1490.340 bunch of key words
+EN2002c 1 SPEAKER_01 1491.020 1491.180 a bunch
+EN2002c 1 SPEAKER_02 1492.260 1492.940 yeah it'd probably be easy
+EN2002c 1 SPEAKER_01 1493.000 1494.960 just a list of key words or something
+EN2002c 1 SPEAKER_02 1495.420 1495.620 key words
+EN2002c 1 SPEAKER_02 1496.740 1498.120 what's the i in tf idea
+EN2002c 1 SPEAKER_02 1498.560 1499.320 inverse com
+EN2002c 1 SPEAKER_02 1499.840 1501.320 term figures inverse com
+EN2002c 1 SPEAKER_02 1503.820 1504.980 i did do it once
+EN2002c 1 SPEAKER_02 1505.120 1506.880 i do have a java class that does it for something
+EN2002c 1 SPEAKER_02 1507.160 1508.180 i don't know whether it will work or not
+EN2002c 1 SPEAKER_01 1508.760 1510.180 because that would be really handy then
+EN2002c 1 SPEAKER_01 1510.300 1513.260 we can actually test it on the user
+EN2002c 1 SPEAKER_01 1514.160 1516.840 as opposed to just doing it and not using it
+EN2002c 1 SPEAKER_01 1517.240 1518.720 because if you just have the segmentation
+EN2002c 1 SPEAKER_01 1518.720 1519.340 that's great
+EN2002c 1 SPEAKER_01 1519.760 1524.180 but we can't compare it to the hand annotated
+EN2002c 1 SPEAKER_01 1524.300 1526.120 you know the hand segmented tool
+EN2002c 1 SPEAKER_02 1527.240 1529.840 also a key word gives you a whole new type of search
+EN2002c 1 SPEAKER_02 1530.160 1531.080 you have the key word search
+EN2002c 1 SPEAKER_02 1531.220 1533.100 but the key word search could be topic search
+EN2002c 1 SPEAKER_02 1533.360 1534.120 it could be the same thing
+EN2002c 1 SPEAKER_02 1534.620 1536.140 instead it would just search for key words
+EN2002c 1 SPEAKER_02 1536.560 1538.300 when you tell them that type of search
+EN2002c 1 SPEAKER_02 1538.420 1539.020 it would be topic search
+EN2002c 1 SPEAKER_02 1540.040 1540.320 key word
+EN2002c 1 SPEAKER_02 1541.580 1542.180 which
+EN2002c 1 SPEAKER_01 1542.180 1542.780 is
+EN2002c 1 SPEAKER_02 1542.780 1543.320 in there
+EN2002c 1 SPEAKER_01 1546.140 1549.140 yeah that would work
+EN2002c 1 SPEAKER_01 1549.420 1549.960 that would be really nice
+EN2002c 1 SPEAKER_02 1553.420 1558.140 i suppose even calculating the
+EN2002c 1 SPEAKER_02 1558.140 1559.920 what's its faces themselves
+EN2002c 1 SPEAKER_02 1560.500 1561.660 the two two one
+EN2002c 1 SPEAKER_02 1562.260 1564.480 the easy bit it's probably easier to calculate them
+EN2002c 1 SPEAKER_02 1564.480 1568.500 based upon in their whole occurrences in the corpus
+EN2002c 1 SPEAKER_02 1568.500 1571.520 than it is to calculate them per topic
+EN2002c 1 SPEAKER_02 1571.980 1573.500 because you don't have to integrate as
+EN2002c 1 SPEAKER_01 1573.500 1573.820 much
+EN2002c 1 SPEAKER_01 1573.980 1574.800 yeah definitely
+EN2002c 1 SPEAKER_02 1576.980 1581.680 no you can do search without tfidf
+EN2002c 1 SPEAKER_02 1582.360 1583.440 you just can't rank the search
+EN2002c 1 SPEAKER_01 1584.960 1586.280 yeah that's what i'm thinking too
+EN2002c 1 SPEAKER_01 1586.280 1586.300 do
+EN2002c 1 SPEAKER_02 1586.300 1586.720 we need to
+EN2002c 1 SPEAKER_02 1587.260 1589.220 i mean we're just looking for your
+EN2002c 1 SPEAKER_01 1589.220 1589.440 stuff
+EN2002c 1 SPEAKER_02 1589.580 1589.740 i guess
+EN2002c 1 SPEAKER_02 1589.740 1589.900 no
+EN2002c 1 SPEAKER_00 1590.120 1590.130 no
+EN2002c 1 SPEAKER_02 1590.400 1590.410 no
+EN2002c 1 SPEAKER_02 1590.980 1592.380 isn't that what the idea was in the first place
+EN2002c 1 SPEAKER_02 1592.580 1593.660 to rank the results
+EN2002c 1 SPEAKER_02 1594.800 1595.200 sort
+EN2002c 1 SPEAKER_01 1595.200 1595.600 of
+EN2002c 1 SPEAKER_01 1595.760 1598.040 but then the main idea was more like to speed it up
+EN2002c 1 SPEAKER_01 1598.040 1600.340 speed the search up because nxt wasn't
+EN2002c 1 SPEAKER_01 1600.780 1602.300 the whole of the corpus was just not feasible
+EN2002c 1 SPEAKER_01 1602.820 1602.880 yeah
+EN2002c 1 SPEAKER_02 1603.020 1603.880 but that whites
+EN2002c 1 SPEAKER_01 1603.880 1604.080 lie
+EN2002c 1 SPEAKER_02 1604.080 1604.460 down
+EN2002c 1 SPEAKER_02 1604.900 1606.160 ranking it whites lie down
+EN2002c 1 SPEAKER_01 1607.160 1609.460 no but the general inverted file
+EN2002c 1 SPEAKER_02 1610.540 1610.900 yeah
+EN2002c 1 SPEAKER_01 1611.000 1612.020 it still uses an inverted
+EN2002c 1 SPEAKER_02 1612.020 1612.260 file
+EN2002c 1 SPEAKER_02 1612.360 1613.260 but it ranks the results
+EN2002c 1 SPEAKER_01 1613.260 1613.880 by the amount
+EN2002c 1 SPEAKER_01 1614.280 1615.240 that would just be a nice extra
+EN2002c 1 SPEAKER_02 1615.640 1617.000 yeah i thought that was part of it
+EN2002c 1 SPEAKER_02 1617.060 1617.820 but yeah okay it doesn't matter
+EN2002c 1 SPEAKER_01 1618.180 1619.240 yeah i wasn't sure
+EN2002c 1 SPEAKER_01 1620.180 1620.260 i
+EN2002c 1 SPEAKER_00 1620.260 1621.680 don't think we had that in the document
+EN2002c 1 SPEAKER_00 1622.300 1622.340 true
+EN2002c 1 SPEAKER_00 1622.560 1623.040 no we didn't
+EN2002c 1 SPEAKER_01 1624.600 1626.000 so what it's only interim
+EN2002c 1 SPEAKER_00 1626.500 1626.820 yeah exactly
+EN2002c 1 SPEAKER_00 1626.820 1627.020 oh yeah
+EN2002c 1 SPEAKER_02 1629.660 1632.780 but yeah i guess if that's not part of it
+EN2002c 1 SPEAKER_02 1632.860 1633.360 don't worry about it
+EN2002c 1 SPEAKER_01 1633.660 1635.020 yeah i mean if you have time
+EN2002c 1 SPEAKER_02 1635.760 1636.180 because i mean
+EN2002c 1 SPEAKER_01 1638.420 1640.260 then then it would give you
+EN2002c 1 SPEAKER_01 1640.460 1641.640 like if you search for a word
+EN2002c 1 SPEAKER_01 1641.740 1643.240 it would give you the meetings
+EN2002c 1 SPEAKER_01 1643.540 1646.500 but also how often that word occurred in that meeting
+EN2002c 1 SPEAKER_01 1646.500 1647.320 that would be so useful
+EN2002c 1 SPEAKER_02 1647.460 1648.080 it would just give you a rank
+EN2002c 1 SPEAKER_02 1648.620 1649.060 that was
+EN2002c 1 SPEAKER_01 1649.060 1649.520 the whole point
+EN2002c 1 SPEAKER_01 1649.860 1650.000 i don't
+EN2002c 1 SPEAKER_02 1650.000 1650.160 know
+EN2002c 1 SPEAKER_00 1650.160 1651.040 actually because i
+EN2002c 1 SPEAKER_02 1651.040 1651.160 mean
+EN2002c 1 SPEAKER_02 1651.340 1652.060 this is your top one
+EN2002c 1 SPEAKER_00 1652.160 1652.680 this is your bottom
+EN2002c 1 SPEAKER_01 1653.000 1653.280 yeah yeah
+EN2002c 1 SPEAKER_00 1653.560 1654.900 but the thing is
+EN2002c 1 SPEAKER_00 1654.900 1656.920 we're just looking for when it happens in a meeting
+EN2002c 1 SPEAKER_00 1657.100 1658.640 if they're looking for a particular term or something
+EN2002c 1 SPEAKER_00 1658.960 1660.640 they just want to know if that term exists there
+EN2002c 1 SPEAKER_00 1660.720 1662.360 and where does it exist and i want to see it
+EN2002c 1 SPEAKER_01 1662.580 1663.840 yeah but it will be useful if you
+EN2002c 1 SPEAKER_01 1663.840 1664.040 but it's how
+EN2002c 1 SPEAKER_02 1664.040 1664.660 informative
+EN2002c 1 SPEAKER_02 1665.400 1666.780 tfidf is an informative school
+EN2002c 1 SPEAKER_01 1666.880 1667.180 isn't it
+EN2002c 1 SPEAKER_01 1667.220 1669.580 you know if you have if you search for language
+EN2002c 1 SPEAKER_01 1669.580 1671.100 and you return like you know
+EN2002c 1 SPEAKER_01 1671.320 1672.400 basically all of the meetings
+EN2002c 1 SPEAKER_01 1672.780 1674.840 you want to see where they actually spoke about it
+EN2002c 1 SPEAKER_01 1674.840 1676.200 and where they just mentioned it once
+EN2002c 1 SPEAKER_00 1676.400 1677.600 but if it's like a two word term
+EN2002c 1 SPEAKER_00 1677.960 1680.040 does the tfidf handle that
+EN2002c 1 SPEAKER_00 1680.200 1681.060 it'll treat you compound nouns
+EN2002c 1 SPEAKER_00 1681.740 1682.760 it's not a compound noun
+EN2002c 1 SPEAKER_00 1682.840 1683.720 it's just two words together
+EN2002c 1 SPEAKER_00 1685.760 1686.240 um
+EN2002c 1 SPEAKER_00 1686.240 1687.980 i don't know
+EN2002c 1 SPEAKER_00 1688.360 1688.780 i don't know
+EN2002c 1 SPEAKER_00 1689.260 1689.940 just something like
+EN2002c 1 SPEAKER_01 1690.760 1691.240 language
+EN2002c 1 SPEAKER_00 1691.240 1691.720 and
+EN2002c 1 SPEAKER_00 1691.720 1692.340 edinburgh university
+EN2002c 1 SPEAKER_00 1693.200 1693.820 has it come down there
+EN2002c 1 SPEAKER_01 1695.940 1697.280 it's like edinburgh and language
+EN2002c 1 SPEAKER_01 1697.280 1697.740 sunny day
+EN2002c 1 SPEAKER_02 1698.100 1698.700 sunny day yeah
+EN2002c 1 SPEAKER_02 1699.060 1699.070 and
+EN2002c 1 SPEAKER_01 1699.060 1699.180 i
+EN2002c 1 SPEAKER_02 1699.180 1700.240 can add it to the
+EN2002c 1 SPEAKER_02 1700.980 1704.140 and it's my simple form
+EN2002c 1 SPEAKER_02 1704.320 1706.980 it would do a separate rank for each one each term
+EN2002c 1 SPEAKER_02 1707.820 1709.500 you could make it more complicated and make it
+EN2002c 1 SPEAKER_02 1709.500 1710.620 let's not make it more complicated
+EN2002c 1 SPEAKER_02 1711.420 1711.440 and
+EN2002c 1 SPEAKER_01 1711.440 1713.280 then add those up or something
+EN2002c 1 SPEAKER_01 1713.700 1715.280 because the thing is the thing is that
+EN2002c 1 SPEAKER_01 1715.280 1715.860 the way we
+EN2002c 1 SPEAKER_00 1715.860 1716.300 were doing it
+EN2002c 1 SPEAKER_00 1716.360 1716.460 we were
+EN2002c 1 SPEAKER_01 1716.460 1716.580 just
+EN2002c 1 SPEAKER_00 1716.580 1717.660 looking for the words period
+EN2002c 1 SPEAKER_00 1717.820 1720.100 each word in the index
+EN2002c 1 SPEAKER_00 1720.560 1721.580 well that's the way we were thinking about it
+EN2002c 1 SPEAKER_00 1721.580 1721.920 yeah you don't want to start
+EN2002c 1 SPEAKER_00 1721.920 1723.100 and then it's just saying
+EN2002c 1 SPEAKER_00 1723.320 1724.980 were these two words in any of these documents
+EN2002c 1 SPEAKER_00 1725.160 1726.420 and then if it was then we'd go closer
+EN2002c 1 SPEAKER_00 1726.420 1727.580 and do the nxt search
+EN2002c 1 SPEAKER_02 1728.460 1728.780 yeah
+EN2002c 1 SPEAKER_00 1729.600 1732.260 to look for the exact term or the regular expression or whatever
+EN2002c 1 SPEAKER_00 1732.320 1732.560 i guess
+EN2002c 1 SPEAKER_02 1732.560 1734.280 you just do some of the
+EN2002c 1 SPEAKER_02 1736.460 1739.780 the individual tfidf for each term returned
+EN2002c 1 SPEAKER_02 1740.160 1742.260 and that generally will be a bit crude
+EN2002c 1 SPEAKER_02 1742.260 1743.720 but it will give you a score
+EN2002c 1 SPEAKER_02 1744.220 1744.740 and the higher
+EN2002c 1 SPEAKER_02 1744.740 1746.960 the more informative each term is for each thing
+EN2002c 1 SPEAKER_02 1747.100 1748.260 it'll give you a
+EN2002c 1 SPEAKER_02 1750.040 1750.960 it's pretty crude anyway
+EN2002c 1 SPEAKER_02 1751.120 1752.260 it's just looking for
+EN2002c 1 SPEAKER_02 1753.900 1756.040 if it's all it's going to do is look for separate
+EN2002c 1 SPEAKER_02 1756.040 1757.860 oh because then it's going to go into the nxt search
+EN2002c 1 SPEAKER_02 1758.740 1759.060 or
+EN2002c 1 SPEAKER_00 1759.060 1760.240 we choose the list of meetings
+EN2002c 1 SPEAKER_00 1760.240 1761.000 and we want it to search
+EN2002c 1 SPEAKER_02 1761.000 1761.340 to do
+EN2002c 1 SPEAKER_00 1761.340 1761.440 that
+EN2002c 1 SPEAKER_00 1761.860 1761.870 yeah
+EN2002c 1 SPEAKER_02 1762.000 1762.340 yeah yeah
+EN2002c 1 SPEAKER_02 1762.360 1762.600 that's true
+EN2002c 1 SPEAKER_00 1765.820 1766.640 i'm just wondering
+EN2002c 1 SPEAKER_00 1766.820 1768.060 if it's going to give us something cool
+EN2002c 1 SPEAKER_00 1768.320 1769.040 then yeah absolutely
+EN2002c 1 SPEAKER_00 1769.540 1770.580 but if it's sort of like
+EN2002c 1 SPEAKER_00 1770.580 1772.900 if the nxt search has still got to be run
+EN2002c 1 SPEAKER_00 1772.900 1774.580 to find these terms or these
+EN2002c 1 SPEAKER_00 1775.260 1775.540 groups of terms
+EN2002c 1 SPEAKER_00 1776.080 1776.400 yeah without
+EN2002c 1 SPEAKER_02 1776.400 1777.580 doing any like
+EN2002c 1 SPEAKER_02 1779.540 1781.440 or also like do wildcards
+EN2002c 1 SPEAKER_00 1781.440 1782.940 work for something like that
+EN2002c 1 SPEAKER_00 1783.340 1785.060 so if you're looking for wireless wired
+EN2002c 1 SPEAKER_00 1785.480 1786.800 blah blah blah you do wire with the star
+EN2002c 1 SPEAKER_00 1787.640 1787.800 no
+EN2002c 1 SPEAKER_00 1788.560 1788.820 yeah
+EN2002c 1 SPEAKER_02 1789.040 1789.060 i
+EN2002c 1 SPEAKER_00 1789.060 1789.080 don't
+EN2002c 1 SPEAKER_02 1789.080 1790.040 know how that works
+EN2002c 1 SPEAKER_00 1790.700 1791.920 actually that's a problem for me too
+EN2002c 1 SPEAKER_02 1793.340 1793.780 so
+EN2002c 1 SPEAKER_02 1793.780 1799.300 but the idea is that gives you an informative score
+EN2002c 1 SPEAKER_02 1799.300 1802.100 or how you combine that is up to you
+EN2002c 1 SPEAKER_02 1802.240 1803.340 i guess there's lots in the list
+EN2002c 1 SPEAKER_02 1803.680 1804.580 it should work yeah
+EN2002c 1 SPEAKER_00 1805.440 1805.600 if
+EN2002c 1 SPEAKER_02 1805.600 1805.740 you
+EN2002c 1 SPEAKER_00 1805.740 1806.700 were
+EN2002c 1 SPEAKER_02 1806.700 1809.720 there's a whole load about it in manning & schutz
+EN2002c 1 SPEAKER_02 1810.740 1812.460 they've got a whole chunk about it
+EN2002c 1 SPEAKER_02 1812.680 1813.680 so just ir isn't it
+EN2002c 1 SPEAKER_02 1813.780 1814.640 it's basically information
+EN2002c 1 SPEAKER_02 1815.840 1817.260 they've got a good chapter on it
+EN2002c 1 SPEAKER_00 1817.320 1817.480 if you
+EN2002c 1 SPEAKER_02 1817.480 1818.040 haven't got it it's on
+EN2002c 1 SPEAKER_00 1818.040 1818.380 cognit
+EN2002c 1 SPEAKER_02 1818.840 1818.980 yeah
+EN2002c 1 SPEAKER_00 1819.220 1820.300 i've got
+EN2002c 1 SPEAKER_00 1820.980 1821.420 somewhere
+EN2002c 1 SPEAKER_00 1824.380 1825.360 yeah me too
+EN2002c 1 SPEAKER_00 1825.900 1827.140 hundreds of pdfs
+EN2002c 1 SPEAKER_00 1827.140 1829.480 do the pdfs
+EN2002c 1 SPEAKER_00 1829.540 1830.060 switch it to postscript
+EN2002c 1 SPEAKER_00 1830.220 1830.840 switch it back to pdf
+EN2002c 1 SPEAKER_00 1836.040 1836.600 okay
+EN2002c 1 SPEAKER_00 1838.260 1838.820 that's
+EN2002c 1 SPEAKER_00 1841.680 1842.020 okay
+EN2002c 1 SPEAKER_01 1842.780 1845.040 so to come back to the stop screen
+EN2002c 1 SPEAKER_01 1845.240 1845.980 oh okay
+EN2002c 1 SPEAKER_01 1846.640 1847.600 what sort of decisions
+EN2002c 1 SPEAKER_01 1848.320 1850.640 i'm very unsure about what that should look like
+EN2002c 1 SPEAKER_01 1851.980 1855.440 for the part where you can choose the meeting
+EN2002c 1 SPEAKER_01 1855.440 1857.220 what kind of information do you want to have about meeting
+EN2002c 1 SPEAKER_01 1857.440 1859.400 i mean the longer name obviously
+EN2002c 1 SPEAKER_01 1860.200 1860.720 if there is one
+EN2002c 1 SPEAKER_01 1861.220 1862.240 because they don't all have a longer name
+EN2002c 1 SPEAKER_01 1863.200 1864.600 what the users that spoke
+EN2002c 1 SPEAKER_01 1866.560 1867.140 users that took part
+EN2002c 1 SPEAKER_01 1867.720 1867.780 yeah
+EN2002c 1 SPEAKER_01 1867.860 1871.380 then that's probably pretty much the same for the same group
+EN2002c 1 SPEAKER_00 1872.940 1874.100 probably for the most part
+EN2002c 1 SPEAKER_00 1874.260 1877.720 i mean there will be a set of people that do a subset
+EN2002c 1 SPEAKER_00 1877.720 1877.840 yeah
+EN2002c 1 SPEAKER_01 1879.100 1881.540 just to give them an idea general idea what there is
+EN2002c 1 SPEAKER_01 1881.780 1883.440 so they can pick a
+EN2002c 1 SPEAKER_01 1884.000 1884.400 search
+EN2002c 1 SPEAKER_00 1884.400 1885.020 for stuff
+EN2002c 1 SPEAKER_02 1885.880 1886.540 start working
+EN2002c 1 SPEAKER_02 1887.040 1887.050 yeah
+EN2002c 1 SPEAKER_00 1887.160 1888.540 i guess that's huge
+EN2002c 1 SPEAKER_00 1889.260 1890.540 okay like search browse
+EN2002c 1 SPEAKER_00 1893.400 1894.640 like if you're looking for something specific
+EN2002c 1 SPEAKER_00 1895.240 1895.840 is that what you're thinking
+EN2002c 1 SPEAKER_00 1896.060 1897.900 like if they know exactly where they want to go
+EN2002c 1 SPEAKER_00 1897.940 1900.160 they want to go to that meeting on december 3rd
+EN2002c 1 SPEAKER_00 1900.220 1901.460 and they just want to go there and see stuff
+EN2002c 1 SPEAKER_00 1901.620 1903.240 then they can immediately go and browse that
+EN2002c 1 SPEAKER_01 1903.240 1903.440 yeah
+EN2002c 1 SPEAKER_01 1903.620 1906.420 i want to look at the meeting where so and so spoke
+EN2002c 1 SPEAKER_01 1907.340 1910.480 of that you know some sort of research group
+EN2002c 1 SPEAKER_01 1911.140 1913.800 i want that first meeting look at that
+EN2002c 1 SPEAKER_00 1919.920 1922.560 browse by meeting browse by law browse by speaker
+EN2002c 1 SPEAKER_00 1923.140 1925.580 like no i'm just thinking of different ways we can do that
+EN2002c 1 SPEAKER_00 1925.740 1926.700 like different buttons on the top
+EN2002c 1 SPEAKER_00 1926.960 1928.420 like if they're looking for a particular person
+EN2002c 1 SPEAKER_00 1928.640 1930.200 particular working group particular whatever
+EN2002c 1 SPEAKER_00 1930.840 1931.480 then we just
+EN2002c 1 SPEAKER_00 1932.420 1935.440 we could break things down like that to that level of detail
+EN2002c 1 SPEAKER_00 1935.440 1938.520 that we want or we could give it more general
+EN2002c 1 SPEAKER_00 1938.560 1938.700 i don't think we need that
+EN2002c 1 SPEAKER_01 1938.880 1939.160 yeah
+EN2002c 1 SPEAKER_01 1939.160 1943.460 because we just want to have a way of you know
+EN2002c 1 SPEAKER_01 1943.460 1946.260 because as soon as they've got loaded their first meeting
+EN2002c 1 SPEAKER_01 1946.840 1950.600 they can browse through that quite nicely
+EN2002c 1 SPEAKER_00 1952.480 1954.180 yeah but i'm just thinking like initially
+EN2002c 1 SPEAKER_00 1954.260 1955.040 when they load up
+EN2002c 1 SPEAKER_00 1955.960 1957.740 what are the range of things that they'd want to do
+EN2002c 1 SPEAKER_01 1958.280 1958.540 yeah
+EN2002c 1 SPEAKER_00 1959.100 1960.860 like if they're part of the next working group
+EN2002c 1 SPEAKER_00 1961.040 1962.180 they'll want to get in there
+EN2002c 1 SPEAKER_00 1963.200 1964.360 do we want to say preferences
+EN2002c 1 SPEAKER_01 1966.760 1967.420 what do you mean
+EN2002c 1 SPEAKER_00 1967.420 1969.740 well if they're part of bdb working group
+EN2002c 1 SPEAKER_00 1969.740 1971.580 they're going to want to look at the bdb ones
+EN2002c 1 SPEAKER_00 1971.780 1972.860 and so we default to that
+EN2002c 1 SPEAKER_01 1973.800 1975.060 oh how are we going to know that
+EN2002c 1 SPEAKER_00 1975.920 1977.440 based on what they did the last time
+EN2002c 1 SPEAKER_01 1978.940 1978.980 have a nice environment
+EN2002c 1 SPEAKER_01 1978.980 1980.180 you can have a safe preferences
+EN2002c 1 SPEAKER_02 1981.120 1982.760 you could have a safe present preferences i guess
+EN2002c 1 SPEAKER_01 1984.040 1986.060 but that would defy the whole point of browsing right
+EN2002c 1 SPEAKER_01 1986.900 1988.500 if you only wanted to look at it or find
+EN2002c 1 SPEAKER_01 1988.500 1989.780 all right call it favorites then
+EN2002c 1 SPEAKER_02 1992.980 1993.900 you can have a
+EN2002c 1 SPEAKER_01 1993.900 1994.060 favorite
+EN2002c 1 SPEAKER_01 1994.540 1995.600 well you just scroll down the list
+EN2002c 1 SPEAKER_01 1995.600 1997.080 and find your favorite one i mean
+EN2002c 1 SPEAKER_02 1997.080 1998.560 yeah it's not in relation
+EN2002c 1 SPEAKER_01 1998.800 2000.440 it's not like they come back every day
+EN2002c 1 SPEAKER_01 2000.440 2001.760 and do the same browsing
+EN2002c 1 SPEAKER_01 2002.980 2004.240 let's see what's changed today
+EN2002c 1 SPEAKER_01 2005.780 2006.100 i
+EN2002c 1 SPEAKER_00 2006.100 2006.420 forgot
+EN2002c 1 SPEAKER_00 2009.220 2012.080 okay well no i'm just getting back to the sort of
+EN2002c 1 SPEAKER_00 2012.080 2014.540 what could be on the startup screen
+EN2002c 1 SPEAKER_00 2015.460 2017.160 like there's just a range of things we could do
+EN2002c 1 SPEAKER_00 2017.260 2019.060 we could have like search options browse options
+EN2002c 1 SPEAKER_00 2019.200 2020.500 i mean just
+EN2002c 1 SPEAKER_00 2020.500 2023.140 i don't know just playing around with ideas
+EN2002c 1 SPEAKER_00 2025.520 2030.140 and then we can tie this into our evaluation tasks
+EN2002c 1 SPEAKER_00 2030.720 2033.280 and say well if you want to search for a meeting
+EN2002c 1 SPEAKER_00 2033.280 2035.180 or search for a user in a particular meeting
+EN2002c 1 SPEAKER_00 2035.380 2036.160 then do this blah blah blah
+EN2002c 1 SPEAKER_00 2036.420 2039.480 so we can sort of guide them
+EN2002c 1 SPEAKER_00 2039.760 2041.620 it's just like hey my task is to do this
+EN2002c 1 SPEAKER_00 2041.620 2042.660 and there's a button for it
+EN2002c 1 SPEAKER_00 2042.960 2044.200 perfect you know
+EN2002c 1 SPEAKER_00 2044.460 2044.800 no
+EN2002c 1 SPEAKER_01 2047.280 2047.640 yeah
+EN2002c 1 SPEAKER_02 2048.360 2049.540 it would be quite good if it has yeah
+EN2002c 1 SPEAKER_01 2050.140 2053.180 i wasn't going to put any help in there
+EN2002c 1 SPEAKER_01 2053.320 2056.320 any sort of explanation of how the browser works
+EN2002c 1 SPEAKER_01 2056.400 2056.720 to be honest
+EN2002c 1 SPEAKER_01 2056.900 2057.480 no that's
+EN2002c 1 SPEAKER_00 2057.480 2058.440 not what i'm suggesting
+EN2002c 1 SPEAKER_00 2058.800 2060.680 i'm just saying like these are just
+EN2002c 1 SPEAKER_00 2060.680 2063.880 like a lot of programs well kind of lame programs
+EN2002c 1 SPEAKER_00 2064.040 2065.500 do have that sort of thing first
+EN2002c 1 SPEAKER_00 2065.500 2066.840 just because they don't want people to have to go
+EN2002c 1 SPEAKER_00 2066.840 2068.320 through all the menus and search themselves
+EN2002c 1 SPEAKER_00 2068.320 2070.980 and just like do commonly use tasks
+EN2002c 1 SPEAKER_00 2070.980 2074.860 or just exit and just let me use the program yeah as well
+EN2002c 1 SPEAKER_01 2076.240 2077.700 but i mean the main thing what you want to do
+EN2002c 1 SPEAKER_01 2077.700 2079.280 is to view a meeting right
+EN2002c 1 SPEAKER_00 2079.980 2080.140 probably
+EN2002c 1 SPEAKER_00 2080.340 2081.020 or search something
+EN2002c 1 SPEAKER_01 2081.580 2082.280 yeah or search yeah
+EN2002c 1 SPEAKER_01 2082.660 2084.060 so even if it just had two
+EN2002c 1 SPEAKER_02 2084.060 2084.760 things you said
+EN2002c 1 SPEAKER_02 2084.920 2087.220 one said take me straight to this meeting
+EN2002c 1 SPEAKER_02 2087.220 2088.620 and have a text box you can enter it
+EN2002c 1 SPEAKER_02 2088.640 2089.480 or drop down maybe
+EN2002c 1 SPEAKER_02 2089.980 2090.760 and then another one that said
+EN2002c 1 SPEAKER_02 2090.800 2092.740 search that allowed you to instantly find out the search
+EN2002c 1 SPEAKER_02 2092.900 2094.140 like find a specific meeting
+EN2002c 1 SPEAKER_00 2095.040 2095.820 yeah that's an easy sort of thing
+EN2002c 1 SPEAKER_02 2096.060 2096.300 yeah yeah
+EN2002c 1 SPEAKER_02 2096.560 2097.760 or one that yeah
+EN2002c 1 SPEAKER_01 2098.240 2100.620 yeah that all happens through the search basically
+EN2002c 1 SPEAKER_01 2101.440 2104.000 basically either the user knows which meeting
+EN2002c 1 SPEAKER_01 2104.000 2105.920 he wants to look at and he just clicks on it
+EN2002c 1 SPEAKER_01 2105.920 2108.040 or he doesn't and then he searches for one
+EN2002c 1 SPEAKER_01 2108.500 2110.100 that sort of
+EN2002c 1 SPEAKER_02 2110.100 2110.110 microphone
+EN2002c 1 SPEAKER_00 2110.580 2110.590 well the other
+EN2002c 1 SPEAKER_02 2110.580 2111.840 thing to do is just have searches
+EN2002c 1 SPEAKER_02 2111.840 2114.200 the default just it opens and the search window opens
+EN2002c 1 SPEAKER_02 2114.800 2115.760 and that's the interface
+EN2002c 1 SPEAKER_02 2116.580 2117.960 and you just go from there
+EN2002c 1 SPEAKER_01 2118.760 2119.000 yeah
+EN2002c 1 SPEAKER_02 2121.180 2122.400 and then that brings up the browser
+EN2002c 1 SPEAKER_02 2122.400 2123.960 after you've searched for something
+EN2002c 1 SPEAKER_02 2125.380 2127.800 or the search window could have on it
+EN2002c 1 SPEAKER_02 2127.800 2128.900 something that said just
+EN2002c 1 SPEAKER_02 2129.200 2130.380 has a drop down menu that says
+EN2002c 1 SPEAKER_02 2130.380 2132.380 just and a go button that said take me to this
+EN2002c 1 SPEAKER_01 2132.540 2133.480 oh i see what you mean
+EN2002c 1 SPEAKER_01 2134.420 2135.380 inside the search window yeah
+EN2002c 1 SPEAKER_02 2135.380 2137.520 yeah so the only thing that comes up when you finish
+EN2002c 1 SPEAKER_02 2137.520 2141.180 is a when you start it's just one window like that
+EN2002c 1 SPEAKER_02 2141.620 2143.820 and it's got all the search stuff right down there
+EN2002c 1 SPEAKER_02 2144.220 2145.040 so this is your search
+EN2002c 1 SPEAKER_01 2145.320 2145.660 mm hmm
+EN2002c 1 SPEAKER_02 2146.140 2146.860 just all here
+EN2002c 1 SPEAKER_02 2147.160 2148.980 and here it's just go to wherever
+EN2002c 1 SPEAKER_02 2150.240 2150.720 and the go button
+EN2002c 1 SPEAKER_02 2151.640 2153.320 and then from there it takes you to where the rest
+EN2002c 1 SPEAKER_01 2153.320 2153.330 of it goes
+EN2002c 1 SPEAKER_01 2153.320 2154.620 yeah that's what yeah
+EN2002c 1 SPEAKER_02 2155.140 2155.320 yeah
+EN2002c 1 SPEAKER_02 2156.920 2158.680 and the other topic says welcome to
+EN2002c 1 SPEAKER_02 2158.680 2160.260 welcome to our browser
+EN2002c 1 SPEAKER_01 2160.840 2161.980 yeah that one's about right
+EN2002c 1 SPEAKER_01 2163.820 2165.720 but i'm unsure about how to
+EN2002c 1 SPEAKER_01 2166.180 2168.080 how to put all the information in there
+EN2002c 1 SPEAKER_01 2168.940 2169.800 drop down menu
+EN2002c 1 SPEAKER_01 2170.180 2172.920 but we want all the information about the name
+EN2002c 1 SPEAKER_01 2173.240 2174.780 the longer the name is and the users
+EN2002c 1 SPEAKER_00 2175.880 2177.500 well we don't actually have user names do we
+EN2002c 1 SPEAKER_00 2177.660 2178.360 aren't there all these codes
+EN2002c 1 SPEAKER_00 2178.880 2180.380 oh it was the codes i mean at least
+EN2002c 1 SPEAKER_01 2180.700 2181.680 maybe if they know the codes
+EN2002c 1 SPEAKER_01 2182.060 2184.380 and in other in other
+EN2002c 1 SPEAKER_00 2184.380 2185.000 yeah that's two
+EN2002c 1 SPEAKER_00 2185.220 2186.520 in case like that we do want drop down
+EN2002c 1 SPEAKER_00 2186.600 2187.860 we don't want them to type them do we
+EN2002c 1 SPEAKER_01 2189.560 2189.880 yeah
+EN2002c 1 SPEAKER_00 2190.860 2191.180 drop
+EN2002c 1 SPEAKER_01 2191.180 2192.260 down is definitely not
+EN2002c 1 SPEAKER_00 2194.200 2194.800 and allow multiple
+EN2002c 1 SPEAKER_00 2195.460 2197.000 no okay you're just looking for one specific
+EN2002c 1 SPEAKER_00 2197.240 2197.460 this
+EN2002c 1 SPEAKER_02 2197.460 2197.580 is
+EN2002c 1 SPEAKER_00 2197.580 2197.720 good
+EN2002c 1 SPEAKER_00 2197.920 2198.160 do you want
+EN2002c 1 SPEAKER_02 2198.160 2198.260 to
+EN2002c 1 SPEAKER_00 2198.260 2198.840 search your search
+EN2002c 1 SPEAKER_00 2199.120 2200.120 if you want to look for one meeting
+EN2002c 1 SPEAKER_00 2200.300 2200.740 and just look at it
+EN2002c 1 SPEAKER_01 2201.320 2201.540 okay
+EN2002c 1 SPEAKER_01 2202.520 2204.440 but then yeah as i said how do you do it
+EN2002c 1 SPEAKER_02 2204.480 2205.880 that's two that's
+EN2002c 1 SPEAKER_01 2206.500 2206.660 oh yes
+EN2002c 1 SPEAKER_02 2206.700 2209.300 you have two one there's one there
+EN2002c 1 SPEAKER_02 2209.560 2211.560 but when you got two one meeting one for speaker
+EN2002c 1 SPEAKER_02 2211.800 2213.200 and you can choose you can go for go
+EN2002c 1 SPEAKER_02 2213.300 2213.840 or go for the other
+EN2002c 1 SPEAKER_02 2214.220 2214.800 you can't go for both
+EN2002c 1 SPEAKER_02 2215.120 2215.440 no
+EN2002c 1 SPEAKER_01 2215.660 2218.740 no no i'm not saying you can pick a user
+EN2002c 1 SPEAKER_01 2218.740 2221.020 but it should come up with some list
+EN2002c 1 SPEAKER_01 2221.340 2223.480 but an extended list of the meeting
+EN2002c 1 SPEAKER_01 2223.840 2225.960 so you know you have bdr whatever it was called
+EN2002c 1 SPEAKER_01 2226.760 2230.060 one and then it gives you the longer name blah
+EN2002c 1 SPEAKER_01 2230.760 2233.020 and then it gives you the you know the participants
+EN2002c 1 SPEAKER_02 2233.620 2235.620 you could do microsoft style and hold it over it
+EN2002c 1 SPEAKER_02 2235.640 2236.760 and it pops up a thing
+EN2002c 1 SPEAKER_02 2237.720 2238.120 i
+EN2002c 1 SPEAKER_01 2238.120 2239.060 was thinking that yeah
+EN2002c 1 SPEAKER_01 2239.780 2240.100 short tip
+EN2002c 1 SPEAKER_01 2241.480 2242.040 but then
+EN2002c 1 SPEAKER_01 2242.040 2242.640 is that complicated
+EN2002c 1 SPEAKER_01 2243.160 2244.460 no it's not at all i think
+EN2002c 1 SPEAKER_01 2244.980 2245.360 at all tip
+EN2002c 1 SPEAKER_01 2245.560 2246.220 at all tip yeah
+EN2002c 1 SPEAKER_01 2246.740 2248.840 i've not tried that yet but i was going to do that
+EN2002c 1 SPEAKER_01 2248.840 2250.220 now it's over isn't it
+EN2002c 1 SPEAKER_01 2251.480 2252.180 well let's do that
+EN2002c 1 SPEAKER_02 2252.180 2252.360 then
+EN2002c 1 SPEAKER_01 2253.140 2254.080 yeah i'm not sure
+EN2002c 1 SPEAKER_01 2254.460 2255.980 is that very
+EN2002c 1 SPEAKER_01 2255.980 2256.700 is that not annoying
+EN2002c 1 SPEAKER_01 2257.340 2258.180 if you have to
+EN2002c 1 SPEAKER_01 2258.180 2259.300 get out of the bloody way
+EN2002c 1 SPEAKER_01 2259.560 2259.580 i'm
+EN2002c 1 SPEAKER_02 2259.580 2260.460 trying to test it out
+EN2002c 1 SPEAKER_01 2261.460 2261.780 yes
+EN2002c 1 SPEAKER_01 2262.520 2263.680 they do that a lot don't they
+EN2002c 1 SPEAKER_01 2263.900 2268.200 no but you know to search for a specific user
+EN2002c 1 SPEAKER_01 2268.360 2269.880 you have to hold your mouse over that one
+EN2002c 1 SPEAKER_01 2270.000 2270.780 wait for it to pop up
+EN2002c 1 SPEAKER_01 2271.280 2271.290 yeah
+EN2002c 1 SPEAKER_02 2271.440 2271.700 that's
+EN2002c 1 SPEAKER_01 2271.700 2272.360 annoying
+EN2002c 1 SPEAKER_02 2273.660 2275.480 but that's why you could just have a list of your users
+EN2002c 1 SPEAKER_02 2275.480 2278.740 and you just say i want to look for this user
+EN2002c 1 SPEAKER_02 2279.560 2279.620 go
+EN2002c 1 SPEAKER_01 2280.540 2280.700 come in
+EN2002c 1 SPEAKER_02 2281.120 2283.200 find me and then it pulls up a list of all the ones
+EN2002c 1 SPEAKER_02 2283.200 2285.740 who've got that user and then you search for them
+EN2002c 1 SPEAKER_02 2286.080 2286.720 but then you're doing search
+EN2002c 1 SPEAKER_02 2286.980 2287.720 maybe just leave it
+EN2002c 1 SPEAKER_02 2287.900 2289.280 just have them leaving names there
+EN2002c 1 SPEAKER_02 2289.840 2291.060 and don't worry about the speakers
+EN2002c 1 SPEAKER_02 2291.880 2293.320 if they're doing speakers they're doing search
+EN2002c 1 SPEAKER_02 2293.780 2295.680 it's not the same as doing a quick access
+EN2002c 1 SPEAKER_01 2296.180 2296.420 yeah
+EN2002c 1 SPEAKER_01 2298.840 2301.160 it would just be nice to have some basic information on them
+EN2002c 1 SPEAKER_02 2301.180 2301.340 yeah
+EN2002c 1 SPEAKER_01 2301.500 2302.020 or you could have a
+EN2002c 1 SPEAKER_02 2302.020 2302.860 text box there
+EN2002c 1 SPEAKER_01 2302.920 2304.220 yeah i'm thinking that updates
+EN2002c 1 SPEAKER_01 2304.220 2304.940 yeah
+EN2002c 1 SPEAKER_02 2305.120 2305.920 as you go over
+EN2002c 1 SPEAKER_01 2305.920 2306.100 there
+EN2002c 1 SPEAKER_01 2306.500 2307.600 then that doesn't get in the way
+EN2002c 1 SPEAKER_01 2308.360 2309.320 maybe that's the best idea then
+EN2002c 1 SPEAKER_01 2309.640 2310.820 so you've got a drop down menu
+EN2002c 1 SPEAKER_01 2312.560 2312.640 search
+EN2002c 1 SPEAKER_01 2313.040 2313.640 search button
+EN2002c 1 SPEAKER_01 2313.940 2314.260 not search
+EN2002c 1 SPEAKER_01 2314.460 2314.800 go button
+EN2002c 1 SPEAKER_01 2317.040 2322.200 and then some sort of fields which updates dynamically
+EN2002c 1 SPEAKER_01 2322.300 2323.400 depending on what you've highlighted
+EN2002c 1 SPEAKER_02 2323.980 2324.060 yeah
+EN2002c 1 SPEAKER_02 2324.740 2325.960 the full name and the speakers
+EN2002c 1 SPEAKER_01 2326.460 2326.520 yeah
+EN2002c 1 SPEAKER_01 2327.560 2327.920 that sounds good
+EN2002c 1 SPEAKER_02 2328.480 2328.880 mm hmm
+EN2002c 1 SPEAKER_02 2330.120 2332.220 we can do all of that without even ever going anywhere near
+EN2002c 1 SPEAKER_02 2332.220 2334.660 loading up
+EN2002c 1 SPEAKER_02 2334.660 2334.800 i
+EN2002c 1 SPEAKER_01 2334.800 2336.660 think
+EN2002c 1 SPEAKER_02 2337.160 2338.280 i think
+EN2002c 1 SPEAKER_02 2338.360 2338.600 i think
+EN2002c 1 SPEAKER_01 2338.780 2339.020 nom
+EN2002c 1 SPEAKER_02 2339.340 2339.980 i'm eating a nom
+EN2002c 1 SPEAKER_01 2343.160 2344.960 what does nom actually stand for
+EN2002c 1 SPEAKER_00 2345.480 2346.660 i think it's a night object model
+EN2002c 1 SPEAKER_01 2347.020 2347.640 night oh yeah
+EN2002c 1 SPEAKER_00 2348.820 2351.240 i think in our case it's the right corpus
+EN2002c 1 SPEAKER_00 2351.580 2351.700 is that what
+EN2002c 1 SPEAKER_02 2351.700 2352.120 it is
+EN2002c 1 SPEAKER_00 2352.180 2352.880 night yeah is your right
+EN2002c 1 SPEAKER_00 2352.940 2353.020 it's
+EN2002c 1 SPEAKER_02 2353.020 2353.640 the right corpus
+EN2002c 1 SPEAKER_02 2355.160 2356.040 the right corpus
+EN2002c 1 SPEAKER_02 2356.300 2357.360 and then you've got night right elements
+EN2002c 1 SPEAKER_02 2357.880 2359.000 you've got night right actually
+EN2002c 1 SPEAKER_02 2359.520 2359.960 you've
+EN2002c 1 SPEAKER_01 2359.960 2361.340 got lots of nom something
+EN2002c 1 SPEAKER_01 2361.340 2362.340 and then night something
+EN2002c 1 SPEAKER_01 2362.520 2363.400 and then end something
+EN2002c 1 SPEAKER_01 2363.760 2363.860 yeah
+EN2002c 1 SPEAKER_02 2364.080 2365.720 i think end ones are interfaces
+EN2002c 1 SPEAKER_02 2366.000 2367.500 and the night one one of the ways around
+EN2002c 1 SPEAKER_02 2367.640 2368.160 one's an interface
+EN2002c 1 SPEAKER_02 2368.340 2370.100 and one's actually an implemented course
+EN2002c 1 SPEAKER_00 2370.580 2370.880 oh great
+EN2002c 1 SPEAKER_02 2372.000 2373.040 because if you go back enough
+EN2002c 1 SPEAKER_02 2373.240 2373.320 i think
+EN2002c 1 SPEAKER_02 2373.780 2374.460 what's his name
+EN2002c 1 SPEAKER_02 2374.680 2375.880 the api's all right
+EN2002c 1 SPEAKER_02 2375.960 2377.500 but there's not a lot of description in it
+EN2002c 1 SPEAKER_02 2377.920 2378.080 yeah
+EN2002c 1 SPEAKER_02 2378.560 2379.000 it's very clear
+EN2002c 1 SPEAKER_02 2379.020 2379.280 no
+EN2002c 1 SPEAKER_01 2380.720 2383.560 and most of the descriptions are hints to each other saying
+EN2002c 1 SPEAKER_01 2383.940 2385.000 you've got to update this jonathan
+EN2002c 1 SPEAKER_01 2386.180 2388.240 this is unintelligible
+EN2002c 1 SPEAKER_01 2388.660 2388.900 right
+EN2002c 1 SPEAKER_01 2389.480 2389.920 yeah
+EN2002c 1 SPEAKER_01 2391.040 2391.380 so you end
+EN2002c 1 SPEAKER_02 2391.380 2394.620 up just say returns a n text box
+EN2002c 1 SPEAKER_02 2395.160 2395.760 what's that though
+EN2002c 1 SPEAKER_02 2395.920 2398.840 it's a implementation of an n text
+EN2002c 1 SPEAKER_02 2399.080 2399.440 yeah
+EN2002c 1 SPEAKER_02 2400.740 2401.560 what's that
+EN2002c 1 SPEAKER_02 2401.840 2403.600 oh it's a extended version of it
+EN2002c 1 SPEAKER_02 2404.140 2405.680 oh stop it
+EN2002c 1 SPEAKER_01 2408.700 2409.360 no definitely
+EN2002c 1 SPEAKER_01 2410.860 2411.260 right
+EN2002c 1 SPEAKER_01 2414.020 2416.520 so anyone else got anything to say
+EN2002c 1 SPEAKER_00 2417.080 2417.860 not really
+EN2002c 1 SPEAKER_00 2417.860 2419.340 just going to keep on going
+EN2002c 1 SPEAKER_01 2420.940 2421.580 do we
+EN2002c 1 SPEAKER_01 2421.660 2421.900 yeah
+EN2002c 1 SPEAKER_01 2422.060 2424.300 do we want another meeting at the end of the week
+EN2002c 1 SPEAKER_01 2425.220 2425.540 we might
+EN2002c 1 SPEAKER_00 2425.540 2428.280 be useful
+EN2002c 1 SPEAKER_01 2428.460 2428.800 yeah
+EN2002c 1 SPEAKER_00 2429.180 2430.200 like friday afternoon or something
+EN2002c 1 SPEAKER_01 2430.440 2430.580 yeah
+EN2002c 1 SPEAKER_01 2430.940 2434.220 i mean i think i'm going to do quite a bit of work this week
+EN2002c 1 SPEAKER_01 2434.480 2436.300 so i'll have probably more to talk about
+EN2002c 1 SPEAKER_00 2436.960 2437.200 yeah
+EN2002c 1 SPEAKER_00 2437.480 2438.400 i think
+EN2002c 1 SPEAKER_00 2438.840 2441.260 and we won't have to have the meeting with steve on tuesday or at
+EN2002c 1 SPEAKER_00 2441.260 2441.560 all
+EN2002c 1 SPEAKER_00 2441.680 2441.760 yeah
+EN2002c 1 SPEAKER_00 2442.620 2445.600 so do we want to arrange this and get this one earlier
+EN2002c 1 SPEAKER_00 2445.600 2446.740 maybe three years
+EN2002c 1 SPEAKER_00 2448.180 2448.920 if you like
+EN2002c 1 SPEAKER_00 2449.160 2450.180 well we can just discuss
+EN2002c 1 SPEAKER_01 2450.180 2451.020 on friday if we have
+EN2002c 1 SPEAKER_00 2451.020 2451.180 one
+EN2002c 1 SPEAKER_00 2451.360 2451.680 that's true
+EN2002c 1 SPEAKER_01 2455.740 2456.720 yeah sure
+EN2002c 1 SPEAKER_01 2457.100 2457.520 what time
+EN2002c 1 SPEAKER_02 2462.160 2463.740 just after spt
+EN2002c 1 SPEAKER_00 2465.920 2466.320 possibly
+EN2002c 1 SPEAKER_00 2466.760 2466.960 i don't know
+EN2002c 1 SPEAKER_00 2467.260 2467.620 usually by then
+EN2002c 1 SPEAKER_00 2468.640 2469.220 need a break
+EN2002c 1 SPEAKER_00 2470.320 2471.040 although right
+EN2002c 1 SPEAKER_00 2471.360 2471.660 well i don't know
+EN2002c 1 SPEAKER_00 2471.760 2473.860 cause it's the lab and try and get some work done
+EN2002c 1 SPEAKER_00 2473.860 2474.780 yeah
+EN2002c 1 SPEAKER_00 2475.040 2475.580 yeah
+EN2002c 1 SPEAKER_02 2477.440 2477.980 i've
+EN2002c 1 SPEAKER_01 2477.980 2480.620 got a doctor's appointment at 10 to two
+EN2002c 1 SPEAKER_01 2484.560 2485.500 what morning
+EN2002c 1 SPEAKER_00 2487.520 2488.580 three o clock
+EN2002c 1 SPEAKER_02 2489.580 2490.020 or you
+EN2002c 1 SPEAKER_00 2490.020 2490.380 want to get
+EN2002c 1 SPEAKER_02 2491.380 2492.080 i don't know
+EN2002c 1 SPEAKER_02 2492.200 2492.720 maybe i do
+EN2002c 1 SPEAKER_02 2492.860 2493.440 i'm not sure
+EN2002c 1 SPEAKER_00 2497.980 2499.260 she's got a class at all
+EN2002c 1 SPEAKER_01 2504.440 2504.880 11
+EN2002c 1 SPEAKER_01 2504.880 2505.760 we say three
+EN2002c 1 SPEAKER_02 2505.760 2505.980 o clock
+EN2002c 1 SPEAKER_02 2506.220 2507.400 and then if there's a series
+EN2002c 1 SPEAKER_02 2507.600 2508.880 we could try one
+EN2002c 1 SPEAKER_00 2509.060 2509.880 we could try shortly after
+EN2002c 1 SPEAKER_00 2510.140 2510.380 well yeah
+EN2002c 1 SPEAKER_00 2511.040 2511.240 well yeah
+EN2002c 1 SPEAKER_00 2511.540 2512.380 well wouldn't be a long meeting
+EN2002c 1 SPEAKER_00 2513.200 2515.080 would you want to know
+EN2002c 1 SPEAKER_00 2516.740 2518.240 if one's bad for you then
+EN2002c 1 SPEAKER_00 2518.640 2518.900 no no
+EN2002c 1 SPEAKER_01 2519.060 2520.260 that would only give us like
+EN2002c 1 SPEAKER_01 2523.140 2524.000 well what
+EN2002c 1 SPEAKER_01 2525.640 2527.520 like you know five or six
+EN2002c 1 SPEAKER_02 2527.520 2528.940 three's better than five or six
+EN2002c 1 SPEAKER_01 2530.940 2531.700 well three o clock
+EN2002c 1 SPEAKER_01 2531.920 2532.420 let's say three o clock
+EN2002c 1 SPEAKER_01 2532.420 2532.760 say
+EN2002c 1 SPEAKER_02 2532.760 2533.420 three o clock
+EN2002c 1 SPEAKER_02 2533.660 2533.860 and then
+EN2002c 1 SPEAKER_02 2535.220 2537.480 if there's a problem with that then it's three o clock
+EN2002c 1 SPEAKER_02 2537.580 2537.860 it's a problem
+EN2002c 1 SPEAKER_02 2538.060 2539.040 five or six will be a problem
+EN2002c 1 SPEAKER_02 2540.440 2541.200 cause i might be here
+EN2002c 1 SPEAKER_02 2541.740 2542.780 but i don't think that will be
+EN2002c 1 SPEAKER_02 2543.160 2543.460 i'm not sure
+EN2002c 1 SPEAKER_01 2545.140 2545.560 all right
+EN2002c 1 SPEAKER_01 2546.060 2546.560 all right
+EN2002c 1 SPEAKER_01 2546.700 2548.000 this meeting up and i'll send it to
+EN2002c 1 SPEAKER_01 2548.580 2548.940 okay
+EN2002c 1 SPEAKER_02 2549.740 2550.640 is she collecting them
+EN2002c 1 SPEAKER_01 2551.540 2551.680 no
+EN2002c 1 SPEAKER_02 2553.360 2554.080 because she's
+EN2002c 1 SPEAKER_01 2554.080 2554.560 not here
+EN2002c 1 SPEAKER_02 2555.440 2556.160 she collected
+EN2002c 1 SPEAKER_02 2556.160 2557.020 oh right
+EN2002c 1 SPEAKER_02 2557.300 2557.520 oh yeah
+EN2002c 1 SPEAKER_02 2559.780 2560.340 it's cool
+EN2002c 1 SPEAKER_02 2560.560 2561.060 i collect
+EN2002c 1 SPEAKER_01 2561.240 2561.760 i
+EN2002c 1 SPEAKER_02 2561.760 2564.760 thought somebody was collecting them
+EN2002c 1 SPEAKER_02 2565.080 2565.920 well that's what i thought
+EN2002c 1 SPEAKER_01 2566.280 2567.880 we should probably do that at the end
+EN2002c 1 SPEAKER_02 2568.360 2568.580 yeah
+EN2002c 1 SPEAKER_02 2568.940 2570.140 then we'd know who's missed them
+EN2002c 1 SPEAKER_01 2570.280 2570.480 so
+EN2002c 1 SPEAKER_02 2570.480 2571.640 can we just
+EN2002c 1 SPEAKER_01 2571.700 2574.620 can we just repeat briefly what we've spoken about
+EN2002c 1 SPEAKER_01 2575.000 2578.280 so we didn't done a progress on the speaker characterization
+EN2002c 1 SPEAKER_01 2579.040 2580.340 who does the speaker characterization
+EN2002c 1 SPEAKER_01 2581.740 2585.540 we mentioned topic labeling with keywords
+EN2002c 1 SPEAKER_01 2586.160 2586.340 yeah
+EN2002c 1 SPEAKER_01 2587.240 2590.300 um we discussed if the search should be ranked
+EN2002c 1 SPEAKER_01 2592.120 2594.700 and michael did you have anything else
+EN2002c 1 SPEAKER_00 2595.240 2598.040 um there's just sort of the basic implementation stuff that i was
+EN2002c 1 SPEAKER_00 2598.040 2600.620 wondering about but it should be fine
+EN2002c 1 SPEAKER_00 2601.100 2602.120 um it's just progressing
+EN2002c 1 SPEAKER_01 2604.440 2605.300 did we
+EN2002c 1 SPEAKER_00 2605.300 2606.500 decide whether it should be ranked
+EN2002c 1 SPEAKER_00 2607.060 2607.100 no
+EN2002c 1 SPEAKER_00 2608.100 2608.280 for now
+EN2002c 1 SPEAKER_01 2608.480 2610.880 well basically not
+EN2002c 1 SPEAKER_01 2611.780 2613.860 not unless you've got time for it at the end
+EN2002c 1 SPEAKER_00 2614.360 2614.540 well i
+EN2002c 1 SPEAKER_01 2614.540 2614.800 kind
+EN2002c 1 SPEAKER_00 2614.800 2615.960 of think you would
+EN2002c 1 SPEAKER_00 2616.800 2619.760 complicate things quite a bit and not bring us
+EN2002c 1 SPEAKER_00 2619.840 2620.500 a lot
+EN2002c 1 SPEAKER_00 2621.440 2624.920 just because if it is like independently doing the words for a particular
+EN2002c 1 SPEAKER_00 2624.920 2625.920 documents it's not
+EN2002c 1 SPEAKER_00 2626.660 2627.920 it's not really getting them together
+EN2002c 1 SPEAKER_00 2628.420 2630.120 like if someone's looking for a particular term
+EN2002c 1 SPEAKER_00 2630.820 2632.340 um i don't know
+EN2002c 1 SPEAKER_00 2632.460 2632.580 just
+EN2002c 1 SPEAKER_00 2633.900 2635.260 just don't know if it would bring us that much
+EN2002c 1 SPEAKER_01 2635.600 2636.120 i think it would
+EN2002c 1 SPEAKER_00 2636.660 2636.920 also
+EN2002c 1 SPEAKER_01 2638.580 2640.120 i think i think it would
+EN2002c 1 SPEAKER_01 2640.720 2640.900 it would
+EN2002c 1 SPEAKER_00 2640.900 2641.180 give you
+EN2002c 1 SPEAKER_01 2641.180 2641.860 the most relevant
+EN2002c 1 SPEAKER_00 2641.860 2642.200 result
+EN2002c 1 SPEAKER_00 2642.760 2644.520 if they're looking for like i say sunny day
+EN2002c 1 SPEAKER_00 2644.520 2647.820 and you know sunny shows up in this document day shows up
+EN2002c 1 SPEAKER_00 2647.860 2648.520 but they're not together
+EN2002c 1 SPEAKER_00 2649.220 2652.760 um or if they're i don't know it just doesn't
+EN2002c 1 SPEAKER_00 2653.000 2655.800 you're looking for that term and relevance is kind of irrelevant
+EN2002c 1 SPEAKER_00 2655.800 2658.120 because if the term shows up it shows up
+EN2002c 1 SPEAKER_01 2658.120 2660.180 no but for things like if you search for language
+EN2002c 1 SPEAKER_01 2661.120 2663.940 then you might have you have some topics which have
+EN2002c 1 SPEAKER_01 2664.080 2665.720 as a you know some some meetings
+EN2002c 1 SPEAKER_01 2665.720 2667.520 which have as a topic language
+EN2002c 1 SPEAKER_01 2667.700 2670.680 they specifically speak about language and they use that word like
+EN2002c 1 SPEAKER_01 2670.680 2671.760 in every sentence
+EN2002c 1 SPEAKER_01 2671.940 2673.760 and then you've got those that just mentioned
+EN2002c 1 SPEAKER_01 2673.760 2676.940 you know mentioned it briefly like once or twice saying you know
+EN2002c 1 SPEAKER_01 2677.040 2680.260 my language is german or something stupid that you don't really want
+EN2002c 1 SPEAKER_01 2680.740 2682.120 so you want to distinguish that somehow
+EN2002c 1 SPEAKER_01 2682.940 2683.700 oh nice anyway
+EN2002c 1 SPEAKER_02 2684.300 2684.900 yeah that would help
+EN2002c 1 SPEAKER_00 2685.340 2686.600 for single for single terms
+EN2002c 1 SPEAKER_02 2686.760 2688.880 it would be very useful for multiple
+EN2002c 1 SPEAKER_02 2688.880 2692.080 terms unless you want to do something that will be a way of doing
+EN2002c 1 SPEAKER_02 2692.080 2693.160 it for multiple terms
+EN2002c 1 SPEAKER_01 2693.640 2696.000 for multiple terms we can just do something really simple
+EN2002c 1 SPEAKER_01 2696.380 2696.560 i mean
+EN2002c 1 SPEAKER_02 2697.420 2697.480 yeah
+EN2002c 1 SPEAKER_02 2697.740 2700.060 well you could do it and override it by the
+EN2002c 1 SPEAKER_02 2700.060 2704.860 you could just ignore the ranking if it doesn't show up together
+EN2002c 1 SPEAKER_02 2706.680 2708.260 or you could have you penalize it
+EN2002c 1 SPEAKER_02 2708.360 2708.640 you could just
+EN2002c 1 SPEAKER_02 2708.800 2709.040 but you
+EN2002c 1 SPEAKER_00 2709.040 2709.760 still have to do the search
+EN2002c 1 SPEAKER_00 2709.940 2711.480 you still have to do the nxt search then
+EN2002c 1 SPEAKER_00 2711.860 2712.220 yeah
+EN2002c 1 SPEAKER_02 2712.340 2713.200 you do the nxt search
+EN2002c 1 SPEAKER_02 2713.340 2714.060 so it doesn't show up together
+EN2002c 1 SPEAKER_02 2714.320 2714.400 yeah
+EN2002c 1 SPEAKER_02 2714.740 2716.800 either disregard it or put a weighting against it
+EN2002c 1 SPEAKER_02 2717.500 2718.640 if you how many pairs you get
+EN2002c 1 SPEAKER_00 2718.660 2718.900 it wouldn't
+EN2002c 1 SPEAKER_02 2718.900 2720.120 show up on the search results
+EN2002c 1 SPEAKER_01 2721.320 2721.480 yeah
+EN2002c 1 SPEAKER_01 2721.840 2723.380 just disregard it
+EN2002c 1 SPEAKER_01 2724.020 2724.140 yeah
+EN2002c 1 SPEAKER_01 2724.200 2726.300 i mean you just do it really simply you know
+EN2002c 1 SPEAKER_00 2726.760 2726.880 yeah
+EN2002c 1 SPEAKER_01 2727.660 2728.000 you'll have
+EN2002c 1 SPEAKER_00 2728.000 2728.440 the results
+EN2002c 1 SPEAKER_00 2728.440 2729.660 we'll have to talk to pernilla about this
+EN2002c 1 SPEAKER_00 2730.200 2730.480 yeah
+EN2002c 1 SPEAKER_00 2730.860 2732.260 see how she's doing this
+EN2002c 1 SPEAKER_00 2732.360 2733.060 we are using that
+EN2002c 1 SPEAKER_00 2733.140 2734.660 i mean it does make sense for that
+EN2002c 1 SPEAKER_02 2736.540 2736.860 actually
+EN2002c 1 SPEAKER_00 2738.680 2739.000 yeah
+EN2002c 1 SPEAKER_01 2740.080 2741.480 it doesn't have to be all intelligent
+EN2002c 1 SPEAKER_02 2742.640 2742.680 yeah
+EN2002c 1 SPEAKER_00 2743.000 2743.820 it's something you're going to get
+EN2002c 1 SPEAKER_02 2743.820 2744.560 a lot of results
+EN2002c 1 SPEAKER_02 2744.900 2745.180 yeah
+EN2002c 1 SPEAKER_02 2745.440 2747.360 and if the one that you got just happened to be at the bottom
+EN2002c 1 SPEAKER_02 2747.360 2748.700 and it was actually the most relevant one
+EN2002c 1 SPEAKER_00 2748.800 2749.540 something that was also
+EN2002c 1 SPEAKER_00 2750.020 2751.480 i mean if it's well yeah
+EN2002c 1 SPEAKER_00 2752.500 2752.580 yeah
+EN2002c 1 SPEAKER_00 2752.700 2752.820 okay
+EN2002c 1 SPEAKER_00 2752.920 2753.400 i see what you mean
+EN2002c 1 SPEAKER_00 2755.200 2757.720 and then we can actually put that like on the list of meetings
+EN2002c 1 SPEAKER_00 2757.720 2758.500 that get returned
+EN2002c 1 SPEAKER_00 2758.680 2760.760 if there were 15 meetings with languages in there
+EN2002c 1 SPEAKER_00 2761.120 2763.540 it's going to show you those and rank them
+EN2002c 1 SPEAKER_00 2763.860 2764.380 which is the highest
+EN2002c 1 SPEAKER_00 2764.540 2765.140 which is the highest
+EN2002c 1 SPEAKER_00 2765.240 2765.560 okay
+EN2002c 1 SPEAKER_00 2765.860 2766.140 i see that
+EN2002c 1 SPEAKER_02 2766.340 2770.440 and also if there's something like sunny day the
+EN2002c 1 SPEAKER_02 2772.680 2774.900 if sunny and day aren't mentioned together a lot
+EN2002c 1 SPEAKER_02 2775.040 2776.360 but sunny just happens to be mentioned at once
+EN2002c 1 SPEAKER_02 2776.580 2778.720 its term will be low and it will push down the other one
+EN2002c 1 SPEAKER_02 2778.720 2779.400 if you combine them
+EN2002c 1 SPEAKER_02 2779.480 2780.500 if you just add them together
+EN2002c 1 SPEAKER_02 2780.680 2780.690 well
+EN2002c 1 SPEAKER_00 2780.720 2781.100 the thing is i mean
+EN2002c 1 SPEAKER_00 2781.120 2782.980 that'll be exactly how we're doing it now
+EN2002c 1 SPEAKER_00 2783.180 2784.720 like we're just looking for the two words separately
+EN2002c 1 SPEAKER_00 2784.900 2786.080 see if they exist in the same document
+EN2002c 1 SPEAKER_00 2786.080 2786.640 i mean if they do them
+EN2002c 1 SPEAKER_00 2786.680 2788.380 there's possibility that they occur together
+EN2002c 1 SPEAKER_00 2789.060 2791.020 and then we do the nxt search on that document
+EN2002c 1 SPEAKER_02 2791.620 2791.660 yeah
+EN2002c 1 SPEAKER_02 2791.740 2793.260 but you have no ranking system at the moment
+EN2002c 1 SPEAKER_02 2793.560 2795.020 so if something's in an amazing
+EN2002c 1 SPEAKER_02 2795.500 2797.240 highly ranked thing from tfid
+EN2002c 1 SPEAKER_02 2797.240 2799.980 i think could just be ignored because it falls off the bottom of the
+EN2002c 1 SPEAKER_02 2800.940 2801.700 i'm assuming you only have
+EN2002c 1 SPEAKER_02 2802.040 2804.760 do you return all results for all
+EN2002c 1 SPEAKER_02 2805.180 2807.900 say you type language and it returned 75 meetings
+EN2002c 1 SPEAKER_02 2808.880 2808.900 well
+EN2002c 1 SPEAKER_00 2809.000 2809.900 right now it's not doing anything
+EN2002c 1 SPEAKER_00 2810.120 2811.440 so i don't know what
+EN2002c 1 SPEAKER_01 2811.440 2812.040 it's doing
+EN2002c 1 SPEAKER_01 2812.060 2812.360 well it's not that many meetings
+EN2002c 1 SPEAKER_01 2812.760 2813.000 but yeah
+EN2002c 1 SPEAKER_01 2814.220 2814.230 but
+EN2002c 1 SPEAKER_00 2814.220 2814.820 there are 75
+EN2002c 1 SPEAKER_02 2814.820 2815.360 meetings
+EN2002c 1 SPEAKER_01 2815.360 2816.000 is there really
+EN2002c 1 SPEAKER_00 2819.220 2819.300 yeah
+EN2002c 1 SPEAKER_02 2819.960 2820.320 save it
+EN2002c 1 SPEAKER_02 2820.500 2820.920 so yeah
+EN2002c 1 SPEAKER_02 2821.020 2822.020 if you return 75
+EN2002c 1 SPEAKER_02 2822.420 2823.020 why where do you stop
+EN2002c 1 SPEAKER_02 2824.120 2825.520 how do you rank them or something
+EN2002c 1 SPEAKER_02 2825.660 2826.380 or if it turns 20
+EN2002c 1 SPEAKER_02 2826.480 2827.160 even if it turns 20
+EN2002c 1 SPEAKER_02 2827.260 2827.980 do you cut it off at 10
+EN2002c 1 SPEAKER_02 2828.180 2828.680 do you rank them
+EN2002c 1 SPEAKER_02 2828.920 2829.360 yeah that's true
+EN2002c 1 SPEAKER_02 2830.460 2830.940 what's the threshold
+EN2002c 1 SPEAKER_02 2831.540 2831.550 yeah
+EN2002c 1 SPEAKER_01 2832.180 2832.480 it's true
+EN2002c 1 SPEAKER_00 2833.000 2833.820 look through them all
+EN2002c 1 SPEAKER_02 2834.240 2835.040 look through them all
+EN2002c 1 SPEAKER_02 2835.580 2835.960 it
+EN2002c 1 SPEAKER_01 2835.960 2839.340 would be useful as well for a word like language that might occur
+EN2002c 1 SPEAKER_01 2839.340 2840.100 in all of them
+EN2002c 1 SPEAKER_01 2840.560 2844.560 but you want to find the one that actually contains it
+EN2002c 1 SPEAKER_01 2844.560 2845.540 usefully somehow
+EN2002c 1 SPEAKER_00 2848.020 2848.060 you know
+EN2002c 1 SPEAKER_01 2849.260 2851.960 you still want to be able to search for the word language
+EN2002c 1 SPEAKER_01 2853.740 2855.680 in a sensible way
+EN2002c 1 SPEAKER_01 2858.200 2859.900 well we'll discuss it again on friday
+EN2002c 1 SPEAKER_02 2874.560 2875.680 so is that it
+EN2002c 1 SPEAKER_02 2876.800 2876.880 sure
+EN2002c 1 SPEAKER_02 2877.380 2877.460 yeah
+EN2002c 1 SPEAKER_02 2878.640 2878.660 tick
+EN2002c 1 SPEAKER_02 2879.340 2879.600 tick
+EN2002c 1 SPEAKER_02 2880.140 2880.440 okay
+EN2002c 1 SPEAKER_02 2880.940 2881.560 that's lined up already
+EN2002c 1 SPEAKER_00 2928.300 2929.700 okay
+EN2002c 1 SPEAKER_02 2959.460 2960.860 okay
+EN2002c 1 SPEAKER_02 2970.820 2972.220 okay

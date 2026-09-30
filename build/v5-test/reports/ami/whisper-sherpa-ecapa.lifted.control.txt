@@ -1,0 +1,20 @@
+meeteval cpWER 20-speaker guard lifted in-process (supplementary scoring, docs/v5-results.md)
+EN2002a [whisper-sherpa-ecapa]  cpWER 0.6351  tcpWER 0.6553  DER 0.5563  JER 0.6396
+EN2002b [whisper-sherpa-ecapa]  cpWER 0.5473  tcpWER 0.5744  DER 0.5378  JER 0.6267
+EN2002c [whisper-sherpa-ecapa]  cpWER 0.4157  tcpWER 0.4201  DER 0.4232  JER 0.4187
+EN2002d [whisper-sherpa-ecapa]  cpWER 0.5243  tcpWER 0.5395  DER 0.5306  JER 0.6109
+ES2004a [whisper-sherpa-ecapa]  cpWER 0.6242  tcpWER 0.6355  DER 0.5119  JER 0.7130
+ES2004b [whisper-sherpa-ecapa]  cpWER 0.7070  tcpWER 0.7210  DER 0.4552  JER 0.4939
+ES2004c [whisper-sherpa-ecapa]  cpWER 0.6230  tcpWER 0.6362  DER 0.3912  JER 0.4899
+ES2004d [whisper-sherpa-ecapa]  cpWER 0.4350  tcpWER 0.4526  DER 0.3406  JER 0.4779
+IS1009a [whisper-sherpa-ecapa]  cpWER 0.3860  tcpWER 0.4108  DER 0.3186  JER 0.5308
+IS1009b [whisper-sherpa-ecapa]  cpWER 0.6416  tcpWER 0.6561  DER 0.4070  JER 0.4834
+IS1009c [whisper-sherpa-ecapa]  cpWER 0.5068  tcpWER 0.5190  DER 0.2938  JER 0.4295
+IS1009d [whisper-sherpa-ecapa]  cpWER 0.3740  tcpWER 0.3948  DER 0.3284  JER 0.5079
+TS3003a [whisper-sherpa-ecapa]  cpWER 0.3410  tcpWER 0.3524  DER 0.3797  JER 0.7230
+TS3003b [whisper-sherpa-ecapa]  cpWER 0.4515  tcpWER 0.4687  DER 0.3221  JER 0.4494
+TS3003c [whisper-sherpa-ecapa]  cpWER 0.5017  tcpWER 0.5241  DER 0.3537  JER 0.4744
+TS3003d [whisper-sherpa-ecapa]  cpWER 0.4964  tcpWER 0.5150  DER 0.4168  JER 0.5566
+macro  n=16  cpWER 0.5132  tcpWER 0.5297  DER 0.4104  JER 0.5391
+micro  n=16  cpWER 0.5249  tcpWER 0.5407  DER 0.4185  JER 0.5410
+# exit 0

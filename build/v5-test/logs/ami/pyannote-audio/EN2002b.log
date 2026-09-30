@@ -1,0 +1,25 @@
+# 2026-09-29T13:02:26Z ami pyannote-audio EN2002b pipeline=pyannote-audio hint=0 n_active=4 params=--param device=mps
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/EN2002b/mix.wav
+# load average at start: { 3.05 1.88 1.97 }
+# swap at start: total = 8192.00M  used = 6694.81M  free = 1497.19M  (encrypted)
+pyannote-audio: 624 segments, 4 speakers, 319.62s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/pyannote-audio/EN2002b.partial/hyp.json (+ .rttm, .stm)
+      327.00 real        43.75 user        12.56 sys
+           927334400  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              783605  page reclaims
+               16198  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  31  messages sent
+                  31  messages received
+                   0  signals received
+                8226  voluntary context switches
+              138616  involuntary context switches
+        255050941479  instructions retired
+         89901878773  cycles elapsed
+          5072721344  peak memory footprint
+# load average at end: { 1.24 1.54 1.78 }
+# exit 0

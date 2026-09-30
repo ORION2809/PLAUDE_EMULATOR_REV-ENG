@@ -3913,6 +3913,6 @@
   "extra": {
     "derived_from": "/Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/whisper-sherpa-hint/TS3003d/hyp.json",
     "derived_from_sha256": "1c30714b3fb3f7826886d1107aee38cfa75d656561e3f9006b7a6ae0fbc4915c",
-    "note": "raw sherpa-onnx turns from extra.diarization.turns; no text (DER/JER only)"
+    "note": "raw diarization turns (sherpa-onnx) from extra.diarization.turns; no text (DER/JER only)"
   }
 }

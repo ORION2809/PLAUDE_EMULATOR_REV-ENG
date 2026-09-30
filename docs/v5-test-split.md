@@ -15,10 +15,19 @@ raises missed speech from 0.07 to 0.26. The numbers come from `scripts/run-v5.sh
 HARNESS_POLICY, and no threshold or setting was tuned on the test split; the
 `embedding-cluster` lead below was singled out after its test DER was seen.
 
-One lead for the main error: a diarizer built on pretrained ECAPA speaker embeddings
-(`embedding-cluster`, §7, no ASR) scores DER 0.3708 when told the speaker count,
-against 0.5192 for sherpa's own turns, but without a hint its speaker count
-collapses to one on half the meetings.
+**Update, 29 Sep: a better system, still short of the target.** A diarizer built on
+pretrained ECAPA speaker embeddings (`embedding-cluster`, §7, no ASR) scores DER 0.3708
+when told the speaker count, against 0.5192 for sherpa's own turns, but without a hint
+its speaker count collapses to one on half the meetings. `whisper-sherpa-ecapa` (§7.1)
+takes the count from sherpa-onnx and the turns from ECAPA; chosen on the dev split, it
+scores **macro DER 0.4104 and cpWER 0.5132** on the test split without a hint (0.3965
+and 0.4821 with it). `ami-headset` still fails.
+
+**Update, 29–30 Sep: pyannote.** With the gated pyannote models accessible (§7.2),
+`faster-whisper+pyannote` scores **cpWER 0.3477** (DER 0.3140 on its word runs), and
+pyannote's own turns score **DER 0.1295**, under the target's 0.20. cpWER still misses
+0.30; what remains is mostly the transcript (WER 0.3221). pyannote's segmentation model
+was trained on data that includes AMI (§7.2), so these numbers may be optimistic.
 
 This extends [`docs/v5-results.md`](v5-results.md) (25 Sep), which measured the same
 stack on 4 of these 16 meetings. What is new since then:
@@ -50,6 +59,10 @@ width, overlap scored; cpWER/tcpWER meeteval 0.4.3, tcpWER collar 5 s):
 | embedding-cluster, calibrated, no hint (no ASR; §7) | 0.4967 | 0.1968 | 0.0609 | 0.2390 | 0.6506 | n/a | n/a | n/a | -1.50 |
 | embedding-cluster, hint (no ASR; §7) | 0.3708 | 0.1988 | 0.0600 | 0.1120 | 0.4548 | n/a | n/a | n/a | +0.00 |
 | embedding-cluster, defaults, no hint (no ASR; §7) | 0.5021 | 0.1966 | 0.0609 | 0.2447 | 0.6591 | n/a | n/a | n/a | -1.56 |
+| **whisper-sherpa-ecapa, no hint (§7.1, 29 Sep)** | **0.4104** | 0.2624 | 0.0410 | 0.1071 | 0.5391 | **0.5132** | 0.5297 | 0.3221 | -0.31 |
+| whisper-sherpa-ecapa, hint (§7.1) | 0.3965 | 0.2631 | 0.0409 | 0.0925 | 0.4968 | 0.4821 | 0.4994 | 0.3221 | +0.00 |
+| **faster-whisper+pyannote, no hint (§7.2)** | 0.3140 | 0.2610 | 0.0409 | 0.0121 | 0.3358 | **0.3477** | 0.3562 | 0.3221 | +0.25 |
+| **pyannote-audio, no hint (no ASR; §7.2)** | **0.1295** | 0.0755 | 0.0245 | 0.0295 | 0.1773 | n/a | n/a | n/a | +0.25 |
 | oracle (self-test) | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | +0.00 |
 
 "Hint" means `num_speakers` = the meeting's number of active reference speakers
@@ -68,6 +81,8 @@ whisper-sherpa system; all are in `build/v5-test/summary.md`.
 | sherpa's own turns | derived | `hyp.extra.diarization.turns`, before word assignment; diarization only |
 | word runs, no text | derived | each whisper-sherpa hypothesis's segments without text; their DER/JER equal the full hypothesis's on all 16 meetings for all three systems (checked by the summary) |
 | energy-vad-cluster | model-free baseline | energy VAD + MFCC/f0 cells + spectral clustering; no ASR |
+| faster-whisper+pyannote, pyannote-audio (no hint) | `faster-whisper+pyannote --param diarization_device=mps`, `pyannote-audio --param device=mps` (§7.2), `.venv-pyannote`, `$HF_TOKEN` | pyannote.audio 4.0.7 `speaker-diarization-community-1`; the first with the whisper-sherpa transcript on pyannote's exclusive turns, the second pyannote's overlap-aware turns (no ASR) |
+| whisper-sherpa-ecapa (no hint, hint) | `whisper-sherpa-ecapa` (§7.1), `.venv-pyannote` | the whisper-sherpa transcript with turns from ECAPA embeddings cut into the number of speakers sherpa-onnx finds at `cluster_threshold` 1.15 |
 | embedding-cluster (defaults, hint, calibrated) | `scripts/calibrate-embedding-cluster.py --test-root` (§7) | the same VAD and cells with SpeechBrain ECAPA embeddings and cosine clustering; no ASR. Replayed from one embedding pass per meeting; the replay equals real `embedding-cluster` runs on all three paths (§7) |
 | oracle | self-test | the reference itself; scores exactly 0 on all 16 meetings |
 
@@ -190,9 +205,10 @@ whisper-sherpa systems.
   the easiest, near DER 0.51.
 
 **Variants** (`build/v5-test/reports/ami/*.collar0.json`, `*.norm.json`): at DER
-collar 0 every standard report's DER rises by 0.021–0.031 (calibrated 0.6752;
-`embedding-cluster` with the hint 0.031; the supplementary lifted-guard defaults run
-by 0.032). Normalising numbers and
+collar 0 every standard report's DER rises by 0.021–0.031 for the 28 Sep systems and
+the ECAPA turn views (calibrated 0.6752; `embedding-cluster` with the hint 0.031; the
+supplementary lifted-guard defaults run by 0.032), and by 0.044–0.045 for
+`whisper-sherpa-ecapa` and its word-run views (0.4542; hint 0.4411). Normalising numbers and
 contractions lowers WER to 0.3075 and the calibrated cpWER to 0.8342 (hint 0.8487).
 The defaults run scored with meeteval's speaker guard lifted (supplementary): meeteval
 then fails on 6 meetings for another reason ("too few fallback keys", more than about
@@ -295,9 +311,117 @@ threshold) picks 0.55 from the plateau.
   energy-vad-cluster (0.203): both use the same energy VAD.
 * **It has no words.** Its turns are not attached to a transcript, so there is no
   cpWER for it. Assigning the whisper-sherpa transcript to these turns would give
-  one without re-running a model (as `V5_REASSIGN` does for tie-breaks). That was
-  not done: this system was chosen after seeing its test DER, so such a measurement
-  should first be justified on the dev split.
+  one without re-running a model (as `V5_REASSIGN` does for tie-breaks). Because this
+  system was chosen after seeing its test DER, that was first justified on the dev
+  split and then run on test as `whisper-sherpa-ecapa` (§7.1).
+
+### 7.1 Sherpa's count with ECAPA's turns: `whisper-sherpa-ecapa`
+
+The two diarizers fail in opposite ways: calibrated sherpa-onnx counts well (10 of 16
+meetings right) but attributes poorly, and the ECAPA clustering attributes well when
+told the count but counts poorly. `whisper-sherpa-ecapa` combines them: sherpa-onnx at
+`cluster_threshold` 1.15 gives the number of speakers, the ECAPA clustering cuts its
+turns into that many, and the whisper-sherpa words are assigned to those turns
+([`docs/pipeline.md`](pipeline.md) §11.10).
+
+**Chosen on the dev split.** The idea came from §7's test results, so it was checked on
+the 18 dev meetings first, without a hint (`scripts/check-sherpa-ecapa-dev.py`,
+`build/v5-calib/whisper-sherpa-ecapa/`): DER 0.4314 against 0.5295 (ECAPA alone) and
+0.5431 (sherpa alone), and a cpWER of 0.6145 for the dev reference words attributed to
+its turns, against 0.9344 for sherpa's. Its settings (threshold 1.15, tie-break
+`floor`) come from the dev split; nothing was tuned on test.
+
+**Test split (real runs; `build/v5-test/reports/ami/whisper-sherpa-ecapa*.json`):**
+
+| meeting | speakers (reference / found) | DER | cpWER | hint: DER | hint: cpWER | whisper-sherpa calibrated: DER | cpWER |
+|---|---|---:|---:|---:|---:|---:|---:|
+| EN2002a | 4 / 3 | 0.5563 | 0.6351 | 0.4637 | 0.4475 | 0.7533 | 0.9256 |
+| EN2002b | 4 / 3 | 0.5378 | 0.5473 | 0.5131 | 0.5063 | 0.7685 | 0.8765 |
+| EN2002c | 3 / 4 | 0.4232 | 0.4157 | 0.4019 | 0.3720 | 0.6864 | 0.9377 |
+| EN2002d | 4 / 4 | 0.5306 | 0.5243 | 0.5306 | 0.5243 | 0.7426 | 0.8795 |
+| ES2004a | 4 / 3 | 0.5119 | 0.6242 | 0.4125 | 0.4323 | 0.6834 | 0.8922 |
+| ES2004b | 4 / 4 | 0.4552 | 0.7070 | 0.4552 | 0.7070 | 0.5197 | 0.7329 |
+| ES2004c | 4 / 4 | 0.3912 | 0.6230 | 0.3912 | 0.6230 | 0.5038 | 0.7470 |
+| ES2004d | 4 / 4 | 0.3406 | 0.4350 | 0.3406 | 0.4350 | 0.6691 | 0.8807 |
+| IS1009a | 4 / 4 | 0.3186 | 0.3860 | 0.3186 | 0.3860 | 0.5581 | 0.6715 |
+| IS1009b | 4 / 4 | 0.4070 | 0.6416 | 0.4070 | 0.6416 | 0.5128 | 0.8130 |
+| IS1009c | 4 / 3 | 0.2938 | 0.5068 | 0.1633 | 0.2584 | 0.6622 | 0.9910 |
+| IS1009d | 4 / 4 | 0.3284 | 0.3740 | 0.3284 | 0.3740 | 0.6466 | 0.8165 |
+| TS3003a | 4 / 2 | 0.3797 | 0.3410 | 0.5247 | 0.5568 | 0.6374 | 0.9073 |
+| TS3003b | 4 / 4 | 0.3221 | 0.4515 | 0.3221 | 0.4515 | 0.6436 | 0.8014 |
+| TS3003c | 4 / 4 | 0.3537 | 0.5017 | 0.3537 | 0.5017 | 0.6391 | 0.8008 |
+| TS3003d | 4 / 4 | 0.4168 | 0.4964 | 0.4168 | 0.4964 | 0.7290 | 0.8110 |
+
+* **cpWER is lower on all 16 meetings** than calibrated whisper-sherpa's; macro 0.5132
+  against 0.8428. The words are identical (WER 0.3221); only their speakers changed.
+  Speaker confusion falls from 0.342 to 0.107 of the reference time.
+* **Knowing the count adds little.** With the hint, DER 0.3965 and cpWER 0.4821; where
+  sherpa's count is right (10 meetings) the two runs are identical. On TS3003a the
+  wrong count (2 for 4) happens to score better than the hint.
+* **What is left is mostly ASR and missed speech.** The transcript's WER is 0.3221,
+  and cpWER stays well above it (macro 0.4821 with the hint). Speaker-agnostic WER is
+  not a strict floor: concatenation also charges for word order in overlapped speech,
+  so on EN2002c with the hint cpWER is 0.3720 against WER 0.3887. Missed speech is 0.26
+  of the reference time, from word runs as in §5. Scoring the ECAPA turns themselves
+  gives DER 0.3896.
+* **Real runs equal the replay** on all 32 runs (with and without the hint). The 16
+  no-hint runs decoded the speech afresh and reproduced the cached transcripts word for
+  word, at RTF 0.26–0.38 on the 8 GB M1 (sherpa's counting pass and the ASR). The EN2002a
+  and EN2002b hint runs of a first, stopped attempt (29 Sep) also decoded afresh and
+  matched, but they were replaced and are not kept. The 16 hinted runs were repeated on
+  30 Sep from the cached transcript, so that they record the hint (`num_speakers_hint`,
+  `hint_honoured`), identical, at RTF 0.023–0.035.
+
+### 7.2 pyannote: `pyannote-audio` and `faster-whisper+pyannote`
+
+With the owner's Hugging Face account, pyannote's gated pipelines ran on 29 Sep:
+pyannote.audio 4.0.7 with `pyannote/speaker-diarization-community-1` (CC BY 4.0,
+revision `3533c8cf`), on the M1's GPU (MPS). The token was read from the
+environment, telemetry was off, and the adapters recorded the model snapshot's file
+hashes ([`docs/pipeline.md`](pipeline.md) §11.11). `faster-whisper+pyannote` took
+its transcript from the shared cache (same 68 632 words) and assigned the words to
+pyannote's *exclusive* turns; `pyannote-audio` scores pyannote's overlap-aware turns.
+Nothing was tuned: both use the library's defaults.
+
+| meeting | reference / found speakers | pyannote-audio: DER | DER, collar 0 | faster-whisper+pyannote: DER | cpWER | WER | whisper-sherpa-ecapa: cpWER |
+|---|---|---:|---:|---:|---:|---:|---:|
+| EN2002a | 4 / 4 | 0.1780 | 0.2190 | 0.4612 | 0.4644 | 0.4384 | 0.6351 |
+| EN2002b | 4 / 4 | 0.1723 | 0.2074 | 0.4712 | 0.4806 | 0.4555 | 0.5473 |
+| EN2002c | 3 / 3 | 0.1542 | 0.1754 | 0.4026 | 0.3989 | 0.3887 | 0.4157 |
+| EN2002d | 4 / 4 | 0.2008 | 0.2322 | 0.4801 | 0.4651 | 0.4224 | 0.5243 |
+| ES2004a | 4 / 5 | 0.1438 | 0.1876 | 0.3512 | 0.2963 | 0.2759 | 0.6242 |
+| ES2004b | 4 / 5 | 0.0867 | 0.1262 | 0.2464 | 0.2773 | 0.2639 | 0.7070 |
+| ES2004c | 4 / 5 | 0.0846 | 0.1240 | 0.2336 | 0.2931 | 0.2795 | 0.6230 |
+| ES2004d | 4 / 4 | 0.1400 | 0.1878 | 0.3020 | 0.3770 | 0.3287 | 0.4350 |
+| IS1009a | 4 / 4 | 0.1458 | 0.1969 | 0.2845 | 0.3717 | 0.3266 | 0.3860 |
+| IS1009b | 4 / 5 | 0.1049 | 0.1519 | 0.2025 | 0.3141 | 0.2763 | 0.6416 |
+| IS1009c | 4 / 4 | 0.0631 | 0.1002 | 0.1573 | 0.2567 | 0.2444 | 0.5068 |
+| IS1009d | 4 / 4 | 0.1105 | 0.1642 | 0.2630 | 0.3036 | 0.2695 | 0.3740 |
+| TS3003a | 4 / 4 | 0.1396 | 0.1714 | 0.3438 | 0.2822 | 0.2605 | 0.3410 |
+| TS3003b | 4 / 4 | 0.0841 | 0.1198 | 0.2305 | 0.3169 | 0.3038 | 0.4515 |
+| TS3003c | 4 / 4 | 0.1025 | 0.1340 | 0.2581 | 0.3160 | 0.3049 | 0.5017 |
+| TS3003d | 4 / 4 | 0.1616 | 0.2108 | 0.3359 | 0.3497 | 0.3154 | 0.4964 |
+
+* **pyannote's turns meet the DER half of the target.** Macro DER 0.1295 (≤ 0.20), and
+  the speaker count is right on 12 of 16 meetings (one too many on the other 4). Its
+  exclusive turns (one speaker at a time, the ones the words are assigned to) score
+  0.1704.
+* **Attribution is nearly solved; the transcript is not.** With the words attached,
+  speaker confusion is 0.012 and cpWER 0.3477, just above the WER of the transcript
+  itself (0.3221). cpWER is at or under 0.30 on 5 of 16 meetings. The word runs'
+  missed speech (0.26) raises their DER to 0.3140, as for every word-level system here.
+  `ami-headset` fails for `faster-whisper+pyannote` on both metrics.
+* **An outside check of the scoring.** pyannote's model card reports 17.0 % DER for
+  community-1 on AMI (IHM) with no forgiveness collar and overlap scored. Scored the
+  same way here (collar 0), the pooled DER of `pyannote-audio` over the 16 test meetings
+  is 17.07 % (macro 16.93 %).
+* **Possibly optimistic.** The community-1 card reports AMI benchmarks but does not list
+  its training data; its segmentation model is pyannote segmentation-3.0 (the card
+  cites Plaquet & Bredin 2023 for it), which was trained on data that includes AMI.
+  Whether these test meetings were held out cannot be checked here.
+* **Speed.** On the GPU, RTF 0.18–0.26 for `pyannote-audio`; with the cached transcript,
+  0.13–0.19 for `faster-whisper+pyannote`. On the CPU, one 14-minute meeting took RTF
+  0.95.
 
 ## 8. Checks
 
@@ -319,10 +443,13 @@ threshold) picks 0.55 from the plateau.
 * `ami-headset` (the V5 target: macro DER ≤ 0.20, cpWER ≤ 0.30): **FAIL** for the
   calibrated system (0.6472, 0.8428) and for the hinted one (0.6396, 0.8567)
   (`build/v5-test/gates/`).
-* Two **regression** gates now record this run: `ami-test-whisper-sherpa-cal` and
-  `ami-test-whisper-sherpa-hint`, each the measured macro value plus 0.03 (0.25 on
-  the mean absolute speaker-count error), rounded up to 3 decimals. Passing them
-  means "no worse than on 2026-09-28", never "good". `tests/test_v5_gates.py`
+* Five **regression** gates record these runs: `ami-test-whisper-sherpa-cal`,
+  `ami-test-whisper-sherpa-hint` (28 Sep), `ami-test-whisper-sherpa-ecapa`,
+  `ami-test-whisper-pyannote` and `ami-test-pyannote-audio` (29 Sep), each the
+  measured macro value plus 0.03 (0.25 on the mean absolute speaker-count error),
+  rounded up to 3 decimals. Passing them means "no worse than when measured", never
+  "good". `ami-headset` also fails for `whisper-sherpa-ecapa` (0.4104, 0.5132) and
+  `faster-whisper+pyannote` (0.3140, 0.3477). `tests/test_v5_gates.py`
   checks every threshold against this block:
 
 ```json v5-test-gate-calibration
@@ -347,6 +474,60 @@ threshold) picks 0.55 from the plateau.
         "cpwer.error_rate": 0.03,
         "tcpwer.error_rate": 0.03,
         "wer_concat.wer": 0.03,
+        "speaker_count.abs_error": 0.25
+      }
+    },
+    "ami-test-whisper-sherpa-ecapa": {
+      "system": "whisper-sherpa-ecapa",
+      "gate_on": "macro",
+      "measured": {
+        "der.der": 0.4104268812822428,
+        "jer.jer": 0.5391012354890686,
+        "cpwer.error_rate": 0.5131547568557172,
+        "tcpwer.error_rate": 0.5297159970863285,
+        "wer_concat.wer": 0.3221439520471201,
+        "speaker_count.abs_error": 0.4375
+      },
+      "margin": {
+        "der.der": 0.03,
+        "jer.jer": 0.03,
+        "cpwer.error_rate": 0.03,
+        "tcpwer.error_rate": 0.03,
+        "wer_concat.wer": 0.03,
+        "speaker_count.abs_error": 0.25
+      }
+    },
+    "ami-test-whisper-pyannote": {
+      "system": "whisper-pyannote",
+      "gate_on": "macro",
+      "measured": {
+        "der.der": 0.3139903292556576,
+        "jer.jer": 0.33576801262124834,
+        "cpwer.error_rate": 0.34770881374613366,
+        "tcpwer.error_rate": 0.3562472071395135,
+        "wer_concat.wer": 0.3221439520471201,
+        "speaker_count.abs_error": 0.25
+      },
+      "margin": {
+        "der.der": 0.03,
+        "jer.jer": 0.03,
+        "cpwer.error_rate": 0.03,
+        "tcpwer.error_rate": 0.03,
+        "wer_concat.wer": 0.03,
+        "speaker_count.abs_error": 0.25
+      }
+    },
+    "ami-test-pyannote-audio": {
+      "system": "pyannote-audio",
+      "gate_on": "macro",
+      "measured": {
+        "der.der": 0.1295394885928911,
+        "jer.jer": 0.17728312211376873,
+        "speaker_count.abs_error": 0.25
+      },
+      "margin": {
+        "der.der": 0.03,
+        "jer.jer": 0.03,
         "speaker_count.abs_error": 0.25
       }
     },
@@ -376,21 +557,27 @@ threshold) picks 0.55 from the plateau.
 
 ## 10. What these numbers mean, and what they do not
 
-* **This is the whole standard test split,** but one system on one machine. No
-  confidence interval is given; per-meeting spread is large (calibrated DER
-  0.5038–0.7685).
-* **Not comparable to published AMI results** without reproducing their setup
-  (microphone condition, collar, hypothesis form, model sizes, speaker-count
-  knowledge); none is quoted.
-* **Possible contamination.** pyannote segmentation-3.0 was trained on data that
-  includes AMI; Whisper's training data is unpublished. A better score would not
-  prove generalisation.
+* **This is the whole standard test split,** measured with one ASR model
+  (faster-whisper `small.en`) and several diarizers (sherpa-onnx with and without
+  calibration and hint, energy-vad-cluster, embedding-cluster, whisper-sherpa-ecapa,
+  pyannote community-1), on one machine. No confidence interval is given; per-meeting
+  spread is large (calibrated `whisper-sherpa` DER 0.5038–0.7685).
+* **One published number is compared at matching settings:** the community-1 model
+  card's 17.0 % DER on AMI (IHM), collar 0 with overlap scored, against 17.07 % pooled
+  here (§7.2). Other published AMI results are not comparable without reproducing their
+  setup (microphone condition, collar, hypothesis form, model sizes, speaker-count
+  knowledge).
+* **Possible contamination.** pyannote segmentation-3.0, the segmentation model of both
+  sherpa-onnx's diarizer here and community-1, was trained on data that includes AMI;
+  Whisper's training data is unpublished. A better score would not prove
+  generalisation.
 * **The calibration used AMI dev meetings,** which are the same corpus and
   recording setup as test. A deployed recorder in another room with other people
   would need its own calibration data.
 * **What carries over:** the stack runs end to end on 16 real meetings of 14–50
-  minutes on an 8 GB M1, repeatably. Its weakness is speaker attribution, not
-  transcription.
+  minutes on an 8 GB M1, repeatably. For `faster-whisper+pyannote` the remaining error
+  is mainly the transcript (speaker confusion 0.012, cpWER 0.3477 against WER 0.3221);
+  for the sherpa-based systems it is speaker attribution.
 
 ## 11. Reproduce
 
@@ -416,19 +603,37 @@ PYTHONDONTWRITEBYTECODE=1 .venv-torch/bin/python scripts/calibrate-embedding-clu
 # then the same run-v5 line with these additions, scoring only the new systems:
 #   V5_EXTRA_SYSTEMS="<as above> embedding-cluster:embedding-cluster:0 embedding-cluster-hint:embedding-cluster:1 embedding-cluster-cal:embedding-cluster:0:distance_threshold=0.55"
 #   V5_STAGES=score,gates,summary V5_SCORE_ONLY="embedding-cluster embedding-cluster-hint embedding-cluster-cal"
+
+# whisper-sherpa-ecapa (§7.1): the dev check, then an interpreter with faster-whisper, sherpa-onnx,
+# torch and SpeechBrain (requirements/pyannote.txt) for the runs
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python scripts/check-sherpa-ecapa-dev.py
+PYTHON=$PWD/.venv-pyannote/bin/python V5_ONLY_EXTRA=1 V5_STAGES=infer <the run-v5 line above, with> \
+  V5_EXTRA_SYSTEMS="whisper-sherpa-ecapa:whisper-sherpa-ecapa:0 whisper-sherpa-ecapa-hint:whisper-sherpa-ecapa:1" ./scripts/run-v5.sh
+# then derive,score,gates,summary with those systems added to V5_EXTRA_SYSTEMS and
+#   ami-test-whisper-sherpa-ecapa:whisper-sherpa-ecapa:macro added to V5_AMI_GATES
+# pyannote (§7.2): a Hugging Face token with access to the gated models, in the environment only
+export HF_TOKEN=<token> PYANNOTE_METRICS_ENABLED=false
+#   the same infer line with V5_EXTRA_SYSTEMS="whisper-pyannote:faster-whisper+pyannote:0:language=en,cpu_threads=4,diarization_device=mps pyannote-audio:pyannote-audio:0:device=mps"
+#   (language and cpu_threads as in whisper-sherpa, so the transcript comes from the cache)
+# then derive,score,gates,summary with those systems added to V5_EXTRA_SYSTEMS and
+#   ami-headset:whisper-pyannote:macro ami-test-whisper-pyannote:whisper-pyannote:macro
+#   ami-test-pyannote-audio:pyannote-audio:macro added to V5_AMI_GATES
 ```
 
 The inputs stage downloads and sha256-checks the 16 WAVs and converts them. With
 `V5_STAGES=score,gates,summary` the saved hypotheses are rescored; on 28 Sep that took
-about 65 minutes, with other jobs running. The md-eval cross-check (§8) was run before
-the `embedding-cluster` systems were added and covers the other 14 systems and views.
+about 65 minutes, with other jobs running. The md-eval cross-check (§8) was run on 28 Sep,
+before the `embedding-cluster`, `whisper-sherpa-ecapa`, `pyannote-audio` and
+`faster-whisper+pyannote` systems were added, and covers 14 systems and views (none of
+those).
 
 ## 12. Not done
 
 * A quiet-machine speed measurement (section 4).
-* Any other ASR model, or a pyannote-based diarizer, on the full split:
-  pyannote-audio, faster-whisper+pyannote and whisperx need pyannote's gated models
-  (a Hugging Face account that has accepted their terms).
-* A transcript attached to `embedding-cluster`'s turns (§7).
+* Any other ASR model on the full split; `whisperx` (not installed). A larger Whisper
+  model, chosen on the dev split, is the obvious next step for cpWER.
+* A transcript attached to `embedding-cluster`'s own no-hint turns (its eigengap count at
+  the calibrated 0.55). With the hint this is `whisper-sherpa-ecapa-hint`, whose turns
+  equal `embedding-cluster`'s hinted turns (§7.1).
 * Calibration of `min_duration_on/off` or any sherpa setting other than the
   threshold.

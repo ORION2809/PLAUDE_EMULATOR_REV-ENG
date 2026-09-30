@@ -1,0 +1,19 @@
+EN2002a [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3267  JER 0.3548
+EN2002b [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.4104  JER 0.4621
+EN2002c [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3115  JER 0.3194
+EN2002d [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.4392  JER 0.5281
+ES2004a [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.4336  JER 0.4943
+ES2004b [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.4649  JER 0.4671
+ES2004c [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3711  JER 0.4628
+ES2004d [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3351  JER 0.4475
+IS1009a [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3376  JER 0.5099
+IS1009b [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.4125  JER 0.4737
+IS1009c [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.1561  JER 0.1534
+IS1009d [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.2885  JER 0.4711
+TS3003a [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.5146  JER 0.7199
+TS3003b [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3141  JER 0.4545
+TS3003c [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3974  JER 0.4471
+TS3003d [whisper-sherpa-ecapa:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.4200  JER 0.5106
+macro  n=16  cpWER 1.0000  tcpWER 1.0000  DER 0.3708  JER 0.4548
+micro  n=16  cpWER 1.0000  tcpWER 1.0000  DER 0.3678  JER 0.4569
+# exit 0

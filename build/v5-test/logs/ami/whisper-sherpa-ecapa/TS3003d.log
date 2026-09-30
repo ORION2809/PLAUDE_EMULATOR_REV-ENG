@@ -1,0 +1,25 @@
+# 2026-09-29T09:31:43Z ami whisper-sherpa-ecapa TS3003d pipeline=whisper-sherpa-ecapa hint=0 n_active=4 params=
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/TS3003d/mix.wav
+# load average at start: { 5.94 6.71 6.11 }
+# swap at start: total = 6144.00M  used = 4809.12M  free = 1334.88M  (encrypted)
+whisper-sherpa-ecapa: 749 segments, 4 speakers, 881.95s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/whisper-sherpa-ecapa/TS3003d.partial/hyp.json (+ .rttm, .stm)
+      886.70 real      3519.24 user       129.65 sys
+          2159378432  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1836686  page reclaims
+                5117  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                4353  voluntary context switches
+            15894030  involuntary context switches
+      16002966024862  instructions retired
+       5040123951970  cycles elapsed
+          4043926656  peak memory footprint
+# load average at end: { 5.19 5.43 5.55 }
+# exit 0

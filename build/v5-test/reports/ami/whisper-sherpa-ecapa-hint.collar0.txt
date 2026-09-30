@@ -1,0 +1,19 @@
+EN2002a [whisper-sherpa-ecapa]  cpWER 0.4475  tcpWER 0.4589  DER 0.5176  JER 0.5304
+EN2002b [whisper-sherpa-ecapa]  cpWER 0.5063  tcpWER 0.5384  DER 0.5544  JER 0.5945
+EN2002c [whisper-sherpa-ecapa]  cpWER 0.3720  tcpWER 0.3788  DER 0.4353  JER 0.4361
+EN2002d [whisper-sherpa-ecapa]  cpWER 0.5243  tcpWER 0.5395  DER 0.5697  JER 0.6385
+ES2004a [whisper-sherpa-ecapa]  cpWER 0.4323  tcpWER 0.4410  DER 0.4592  JER 0.5699
+ES2004b [whisper-sherpa-ecapa]  cpWER 0.7070  tcpWER 0.7210  DER 0.4864  JER 0.5222
+ES2004c [whisper-sherpa-ecapa]  cpWER 0.6230  tcpWER 0.6362  DER 0.4293  JER 0.5172
+ES2004d [whisper-sherpa-ecapa]  cpWER 0.4350  tcpWER 0.4526  DER 0.4007  JER 0.5172
+IS1009a [whisper-sherpa-ecapa]  cpWER 0.3860  tcpWER 0.4108  DER 0.3742  JER 0.5643
+IS1009b [whisper-sherpa-ecapa]  cpWER 0.6416  tcpWER 0.6561  DER 0.4492  JER 0.5166
+IS1009c [whisper-sherpa-ecapa]  cpWER 0.2584  tcpWER 0.2637  DER 0.2050  JER 0.1987
+IS1009d [whisper-sherpa-ecapa]  cpWER 0.3740  tcpWER 0.3948  DER 0.3893  JER 0.5413
+TS3003a [whisper-sherpa-ecapa]  cpWER 0.5568  tcpWER 0.5912  DER 0.5632  JER 0.7528
+TS3003b [whisper-sherpa-ecapa]  cpWER 0.4515  tcpWER 0.4687  DER 0.3632  JER 0.4782
+TS3003c [whisper-sherpa-ecapa]  cpWER 0.5017  tcpWER 0.5241  DER 0.3910  JER 0.5010
+TS3003d [whisper-sherpa-ecapa]  cpWER 0.4964  tcpWER 0.5150  DER 0.4702  JER 0.5962
+macro  n=16  cpWER 0.4821  tcpWER 0.4994  DER 0.4411  JER 0.5297
+micro  n=16  cpWER 0.4888  tcpWER 0.5048  DER 0.4477  JER 0.5312
+# exit 0

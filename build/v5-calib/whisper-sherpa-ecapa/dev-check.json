@@ -1,0 +1,184 @@
+{
+  "schema": "plaud-harness/sherpa-ecapa-dev-check/1",
+  "split": "AMI dev (18 meetings), no speaker-count hint",
+  "systems": {
+    "sherpa-count+ecapa": {
+      "der": {
+        "der.der": 0.4313656117199769,
+        "jer.jer": 0.5166824475926499,
+        "der.confusion_rate": 0.19590382300764694,
+        "der.miss_rate": 0.18481700430936188,
+        "speaker_count.error": -0.4444444444444444,
+        "speaker_count.abs_error": 0.7777777777777778
+      },
+      "reference_words_cpwer": {
+        "floor": {
+          "macro_cpwer": 0.6144555484542236,
+          "micro_cpwer": 0.5728048588931358
+        },
+        "latest_start": {
+          "macro_cpwer": 0.6144611282826624,
+          "micro_cpwer": 0.5728362741504791
+        },
+        "first_seen": {
+          "macro_cpwer": 0.6145637509243161,
+          "micro_cpwer": 0.5729619351798524
+        },
+        "previous_word": {
+          "macro_cpwer": 0.614454977679268,
+          "micro_cpwer": 0.5728048588931358
+        }
+      }
+    },
+    "ecapa-alone-0.55": {
+      "der": {
+        "der.der": 0.5294790779249784,
+        "jer.jer": 0.6554322022902227,
+        "der.confusion_rate": 0.29535221946774787,
+        "der.miss_rate": 0.18285828248288577,
+        "speaker_count.error": -1.4444444444444444,
+        "speaker_count.abs_error": 2.111111111111111
+      },
+      "reference_words_cpwer": {
+        "floor": {
+          "macro_cpwer": 0.8827912107789221,
+          "micro_cpwer": 0.9508037070003665
+        },
+        "latest_start": {
+          "macro_cpwer": 0.8828945499563453,
+          "micro_cpwer": 0.9508979527723964
+        },
+        "first_seen": {
+          "macro_cpwer": 0.8829056201347965,
+          "micro_cpwer": 0.9508979527723964
+        },
+        "previous_word": {
+          "macro_cpwer": 0.8828178369737727,
+          "micro_cpwer": 0.9508246505052621
+        }
+      }
+    },
+    "sherpa-alone-1.15": {
+      "der": {
+        "der.der": 0.5431204379244643,
+        "jer.jer": 0.7078342626354931,
+        "der.confusion_rate": 0.45204118771092827,
+        "der.miss_rate": 0.04836575444493358,
+        "speaker_count.error": -0.4444444444444444,
+        "speaker_count.abs_error": 0.7777777777777778
+      },
+      "reference_words_cpwer": {
+        "floor": {
+          "macro_cpwer": 1.007515051341953,
+          "micro_cpwer": 1.0170584847374209
+        },
+        "latest_start": {
+          "macro_cpwer": 0.9344202163088343,
+          "micro_cpwer": 0.9376616576784125
+        },
+        "first_seen": {
+          "macro_cpwer": 1.0145473831899088,
+          "micro_cpwer": 1.0276140112047751
+        },
+        "previous_word": {
+          "macro_cpwer": 1.0061884909328045,
+          "micro_cpwer": 1.0160950835122258
+        }
+      }
+    }
+  },
+  "counts": {
+    "ES2011a": {
+      "sherpa_count": 2,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 2
+    },
+    "ES2011b": {
+      "sherpa_count": 2,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 2
+    },
+    "ES2011c": {
+      "sherpa_count": 2,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 2
+    },
+    "ES2011d": {
+      "sherpa_count": 2,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 2
+    },
+    "IB4001": {
+      "sherpa_count": 2,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 2
+    },
+    "IB4002": {
+      "sherpa_count": 4,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 4
+    },
+    "IB4003": {
+      "sherpa_count": 4,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 4
+    },
+    "IB4004": {
+      "sherpa_count": 5,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 5
+    },
+    "IB4010": {
+      "sherpa_count": 5,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 5
+    },
+    "IB4011": {
+      "sherpa_count": 4,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 4
+    },
+    "IS1008a": {
+      "sherpa_count": 3,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 3
+    },
+    "IS1008b": {
+      "sherpa_count": 4,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 4
+    },
+    "IS1008c": {
+      "sherpa_count": 4,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 4
+    },
+    "IS1008d": {
+      "sherpa_count": 4,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 4
+    },
+    "TS3004a": {
+      "sherpa_count": 4,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 4
+    },
+    "TS3004b": {
+      "sherpa_count": 4,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 4
+    },
+    "TS3004c": {
+      "sherpa_count": 4,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 4
+    },
+    "TS3004d": {
+      "sherpa_count": 5,
+      "reference_speakers": 4,
+      "hypothesis_speakers": 5
+    }
+  },
+  "tie_break": "floor",
+  "tie_break_rule": "lowest macro cpWER of the reference-word proxy at 4 decimals; ties: the default (floor)"
+}

@@ -1,0 +1,21 @@
+/Users/mivi/Desktop/plaud-harness/.venv-pyannote/lib/python3.11/site-packages/pyannote/audio/models/blocks/pooling.py:103: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/native/ReduceOps.cpp:1913.)
+  std = sequences.std(dim=-1, correction=1)
+pyannote-audio: 252 segments, 4 speakers, 792.85s -> /private/tmp/claude-502/-Users-mivi-Desktop-plaud-harness/d6d49373-6f77-4f77-b814-2e74aefe7ea2/scratchpad/pyannote/cpu/IS1009a/hyp.json (+ .rttm, .stm)
+      800.47 real      2435.28 user       296.53 sys
+          3056893952  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+            19309042  page reclaims
+                9558  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  18  messages sent
+                  42  messages received
+                   0  signals received
+               14693  voluntary context switches
+            37301044  involuntary context switches
+      14240234715991  instructions retired
+       5672050582013  cycles elapsed
+          4577144000  peak memory footprint

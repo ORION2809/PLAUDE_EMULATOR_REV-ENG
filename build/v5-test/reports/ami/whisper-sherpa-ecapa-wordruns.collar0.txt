@@ -1,0 +1,19 @@
+EN2002a [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.6036  JER 0.6720
+EN2002b [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.5757  JER 0.6523
+EN2002c [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.4579  JER 0.4530
+EN2002d [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.5697  JER 0.6385
+ES2004a [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.5502  JER 0.7251
+ES2004b [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.4864  JER 0.5222
+ES2004c [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.4293  JER 0.5172
+ES2004d [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.4007  JER 0.5172
+IS1009a [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.3742  JER 0.5643
+IS1009b [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.4492  JER 0.5166
+IS1009c [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.3316  JER 0.4523
+IS1009d [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.3893  JER 0.5413
+TS3003a [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.4247  JER 0.7386
+TS3003b [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.3632  JER 0.4782
+TS3003c [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.3910  JER 0.5010
+TS3003d [whisper-sherpa-ecapa:word-runs-without-text]  cpWER 1.0000  tcpWER 1.0000  DER 0.4702  JER 0.5962
+macro  n=16  cpWER 1.0000  tcpWER 1.0000  DER 0.4542  JER 0.5679
+micro  n=16  cpWER 1.0000  tcpWER 1.0000  DER 0.4632  JER 0.5697
+# exit 0

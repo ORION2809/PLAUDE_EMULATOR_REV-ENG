@@ -1,0 +1,25 @@
+# 2026-09-29T14:12:07Z ami pyannote-audio IS1009d pipeline=pyannote-audio hint=0 n_active=4 params=--param device=mps
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/IS1009d/mix.wav
+# load average at start: { 1.17 1.86 1.96 }
+# swap at start: total = 8192.00M  used = 6926.50M  free = 1265.50M  (encrypted)
+pyannote-audio: 587 segments, 4 speakers, 475.10s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/pyannote-audio/IS1009d.partial/hyp.json (+ .rttm, .stm)
+      482.54 real        45.89 user        24.91 sys
+           936476672  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             2508271  page reclaims
+               19497  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  31  messages sent
+                  31  messages received
+                   0  signals received
+                8618  voluntary context switches
+              230472  involuntary context switches
+        289230913931  instructions retired
+        116519765946  cycles elapsed
+          5016065408  peak memory footprint
+# load average at end: { 1.21 1.47 1.73 }
+# exit 0

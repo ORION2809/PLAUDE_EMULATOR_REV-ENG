@@ -1,0 +1,25 @@
+# 2026-09-29T11:57:17Z ami whisper-pyannote ES2004c pipeline=faster-whisper+pyannote hint=0 n_active=4 params=--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/ES2004c/mix.wav
+# load average at start: { 2.49 2.49 3.04 }
+# swap at start: total = 8192.00M  used = 6570.19M  free = 1621.81M  (encrypted)
+faster-whisper+pyannote: 693 segments, 5 speakers, 366.15s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/whisper-pyannote/ES2004c.partial/hyp.json (+ .rttm, .stm)
+      374.67 real        46.72 user        37.09 sys
+          1395212288  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             3108665  page reclaims
+               22332  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  18  messages sent
+                  41  messages received
+                   0  signals received
+               20628  voluntary context switches
+              340437  involuntary context switches
+        360996688678  instructions retired
+        176983841761  cycles elapsed
+          5427927936  peak memory footprint
+# load average at end: { 1.45 1.91 2.57 }
+# exit 0

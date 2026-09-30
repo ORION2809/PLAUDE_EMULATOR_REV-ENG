@@ -1,0 +1,25 @@
+# 2026-09-29T07:45:52Z ami whisper-sherpa-ecapa ES2004b pipeline=whisper-sherpa-ecapa hint=0 n_active=4 params=
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/ES2004b/mix.wav
+# load average at start: { 5.70 5.39 5.37 }
+# swap at start: total = 6144.00M  used = 4896.69M  free = 1247.31M  (encrypted)
+whisper-sherpa-ecapa: 760 segments, 4 speakers, 732.32s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/whisper-sherpa-ecapa/ES2004b.partial/hyp.json (+ .rttm, .stm)
+      735.27 real      2972.86 user       121.37 sys
+          2598518784  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             3447916  page reclaims
+                  65  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                2475  voluntary context switches
+            20867757  involuntary context switches
+      18519248085906  instructions retired
+       6149853577970  cycles elapsed
+          3939068480  peak memory footprint
+# load average at end: { 5.43 5.39 5.25 }
+# exit 0

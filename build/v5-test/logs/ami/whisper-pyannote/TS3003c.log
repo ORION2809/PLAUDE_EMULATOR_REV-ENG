@@ -1,0 +1,25 @@
+# 2026-09-29T12:39:44Z ami whisper-pyannote TS3003c pipeline=faster-whisper+pyannote hint=0 n_active=4 params=--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache
+# audio /Users/mivi/Desktop/plaud-harness/data/corpora/ami/test/TS3003c/mix.wav
+# load average at start: { 1.70 3.16 3.35 }
+# swap at start: total = 7168.00M  used = 6076.88M  free = 1091.12M  (encrypted)
+faster-whisper+pyannote: 385 segments, 4 speakers, 469.77s -> /Users/mivi/Desktop/plaud-harness/build/v5-test/hyp/ami/whisper-pyannote/TS3003c.partial/hyp.json (+ .rttm, .stm)
+      478.85 real        59.10 user        31.14 sys
+          1698643968  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             2412516  page reclaims
+               20209  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  31  messages sent
+                  31  messages received
+                   0  signals received
+               10625  voluntary context switches
+              241508  involuntary context switches
+        387379842747  instructions retired
+        153317097637  cycles elapsed
+          5022293120  peak memory footprint
+# load average at end: { 1.34 1.71 2.49 }
+# exit 0

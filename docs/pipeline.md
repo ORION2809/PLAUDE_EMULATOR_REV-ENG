@@ -101,10 +101,11 @@ mix.wav) the decoded length equals `duration_s` exactly.
 | `whisper-sherpa` | **real system**: faster-whisper small.en (int8) + sherpa-onnx diarization (pyannote segmentation-3.0 + 3D-Speaker CAM++), words to max-overlap speaker (§11) | **yes**, after `python -m pipeline fetch-models` | full, per-word timings |
 | `sherpa-onnx-diarization` | the same sherpa-onnx diarizer alone (§11) | **yes**, after `fetch-models` | diarization only |
 | `faster-whisper` | adapter: faster-whisper ASR + `energy-vad-cluster` diarization (the model-free diarizer is tuned on synthetic voices; use `whisper-sherpa` for speech) | yes when faster-whisper is installed | full |
-| `faster-whisper+pyannote` | adapter: faster-whisper ASR + pyannote.audio diarization | **no** | full |
-| `pyannote-audio` | adapter: pyannote.audio diarization only | **no** | diarization only |
+| `faster-whisper+pyannote` | adapter: faster-whisper ASR + pyannote.audio diarization (§11.11) | not in `.venv`; **yes** in `.venv-pyannote`, with a Hugging Face token for the gated model | full |
+| `pyannote-audio` | adapter: pyannote.audio diarization only (§11.11) | not in `.venv`; **yes** in `.venv-pyannote`, with a Hugging Face token | diarization only |
 | `whisperx` | adapter: whisperx ASR + alignment + diarization | **no** | full |
 | `embedding-cluster` | adapter: pretrained speaker embeddings (SpeechBrain ECAPA, ungated) + this package's VAD, cells and clustering (§11.9) | not in `.venv`; **yes** in a separate environment with torch and SpeechBrain | diarization only |
+| `whisper-sherpa-ecapa` | **real system**: `whisper-sherpa`'s transcript + `embedding-cluster`'s ECAPA turns cut into the number of speakers sherpa-onnx finds at `cluster_threshold` 1.15 (§11.10) | not in `.venv`; **yes** in an environment with faster-whisper, sherpa-onnx, torch and SpeechBrain | full, per-word timings |
 
 The two oracles have `is_system_under_test = False`; `python -m pipeline run`
 prints `[HARNESS SELF-TEST, not a system under test]` and `batch.json` records
@@ -486,17 +487,14 @@ every hypothesis parses with `meeteval.io.STM/RTTM` and
   set on 25 Sep ([`docs/v5-results.md`](v5-results.md)).
 * **`whisper-sherpa` limitations** are listed in §11.7 (a default cluster threshold
   that over-counts speakers unaided, word-run RTTM, timing under load).
-* **Three adapters have never run against a model.** The faster-whisper adapter has
-  (§11), and so has `embedding-cluster` since 28 Sep (§11.9). `pyannote-audio`,
-  `faster-whisper+pyannote` and `whisperx` (pyannote's models are gated) are written
-  against each package's documented public API, cited from the READMEs
-  as remembered offline (they could not be fetched here). Their own logic is tested
-  against stand-in modules shaped after that API (tests/test_pipeline_adapters.py):
-  pyannote.audio 3.x and 4.x outputs, the `token=`/`use_auth_token=` spellings,
-  `vad_filter` forwarding, whisperx's unaligned words. Whether
-  the real libraries match the stand-ins, and the 4.x default model name, are
-  unverified until a stage installs them; pin the tested versions then
-  (requirements/pipeline.txt lists the targeted API ranges).
+* **One adapter has never run against a model: `whisperx`.** The faster-whisper
+  adapter has (§11), `embedding-cluster` since 28 Sep (§11.9), and `pyannote-audio`
+  and `faster-whisper+pyannote` since 29 Sep, with pyannote.audio 4.0.7 and the 4.x
+  default model `pyannote/speaker-diarization-community-1` (§11.11). `whisperx` is
+  written against its documented public API, cited from the README as remembered
+  offline. Its logic is tested against stand-in modules (tests/test_pipeline_adapters.py):
+  unaligned words and the `token=`/`use_auth_token=` spellings. The pyannote 3.x
+  code paths are likewise tested only against stand-ins.
 * **`energy-vad-cluster` is tuned on synthetic voices.** Its f0 feature is tuned for
   them (§2.1). It has since been scored on AMI speech: macro DER 0.5871 on the 16 test
   meetings without a hint ([`docs/v5-test-split.md`](v5-test-split.md)). Remaining weaknesses measured on generator audio:
@@ -530,8 +528,8 @@ every hypothesis parses with `meeteval.io.STM/RTTM` and
 
 `tests/test_pipeline_oracle.py` (31), `test_pipeline_energy_vad.py` (64),
 `test_pipeline_audio.py` (20), `test_pipeline_contract.py` (55),
-`test_pipeline_cli.py` (25), `test_pipeline_adapters.py` (16) — 211 tests (collected
-2026-09-29) — plus `test_pipeline_models.py` (38; §11.6). The timings in this section
+`test_pipeline_cli.py` (25), `test_pipeline_adapters.py` (20) — 215 tests (collected
+2026-09-30) — plus `test_pipeline_models.py` (40; §11.6). The timings in this section
 are from 2026-09-25. Highlights: oracle == ground
 truth; seeded perturbation counts; DER/cpWER move as claimed including the
 permutation-invariance trap; VAD edges within one frame, hangover on the end only,
@@ -566,7 +564,7 @@ scratch export of HEAD `70249ba` with the new tests).
 | PIPE-02 | low-spread VAD rules (dense / split / flat) and the Otsu margin (`energy_vad.energy_vad`) | `test_one_long_voice_is_one_speaker` → no speech at all; `test_back_to_back_voices_with_no_silence_are_speech_not_silence`, `test_low_snr_file_splits_noise_from_speech`, `test_generator_noisy_preset_speech_is_not_missed` (mix.wav miss 0.70 before) |
 | PIPE-03 | PTS-gap zero-fill / refusal, decode errors wrapped, container and meeting.json duration checks, `audio_check` (`base.py`) | `test_mid_file_corruption_is_zero_filled_so_later_audio_keeps_its_time` → decoded 9.000 s; `test_truncated_ogg_is_refused_by_a_pipeline_that_knows_the_duration` → no error; `test_decode_time_errors_become_audio_format_errors` |
 | PIPE-04 | `meeting_id` pattern, meeting.json audio paths contained, batch duplicate-id and out-of-tree refusal (`meeting.py`, `cli.py`) | `test_batch_refuses_a_meeting_id_that_escapes_out`, `test_batch_reports_a_duplicate_meeting_id_instead_of_overwriting` (before: "2 ok, 0 failed"), `test_batch_refuses_meeting_json_audio_paths_outside_the_meeting_dir`, `test_meeting_id_must_be_one_safe_path_component`, `test_resolve_audio_keeps_meeting_json_paths_inside_the_meeting_dir` |
-| PIPE-05 | pyannote output normalised for 3.x and 4.x, `token=` first, version-aware default model, whisperx `token=` fallback, `vad_filter` forwarded, `embedding-cluster` added (`adapters.py`) | `test_pyannote_4x_output_object_is_read_not_crashed_on` → `AttributeError: 'DiarizeOutput' object has no attribute 'itertracks'`; `test_whisperx_diarization_pipeline_token_rename_is_guarded` → `TypeError`; `test_faster_whisper_pyannote_forwards_vad_filter_and_uses_the_exclusive_timeline`. PLAUSIBLE: verified against stand-ins only, except faster-whisper, which was re-checked against the installed 1.2.1 and run on AMI speech on 2026-09-25 (§11.3), and `embedding-cluster`, run against SpeechBrain ECAPA on 2026-09-28/29 (§11.9) |
+| PIPE-05 | pyannote output normalised for 3.x and 4.x, `token=` first, version-aware default model, whisperx `token=` fallback, `vad_filter` forwarded, `embedding-cluster` added (`adapters.py`) | `test_pyannote_4x_output_object_is_read_not_crashed_on` → `AttributeError: 'DiarizeOutput' object has no attribute 'itertracks'`; `test_whisperx_diarization_pipeline_token_rename_is_guarded` → `TypeError`; `test_faster_whisper_pyannote_forwards_vad_filter_and_uses_the_exclusive_timeline`. PLAUSIBLE: verified against stand-ins only, except faster-whisper, which was re-checked against the installed 1.2.1 and run on AMI speech on 2026-09-25 (§11.3), `embedding-cluster`, run against SpeechBrain ECAPA on 2026-09-28/29 (§11.9), and the pyannote 4.x paths, run against pyannote.audio 4.0.7 on 2026-09-29 (§11.11) |
 | PIPE-06 | `meeting_from_stm` never builds an empty meeting; `--meeting-id` renames a single-meeting STM | `test_import_stm_meeting_id_renames_a_single_meeting_stm` → 0 segments; `test_meeting_from_stm_never_builds_an_empty_meeting` |
 | PIPE-07 | whisperx unaligned words kept with interpolated times (`adapters.repair_word_times`) | `test_whisperx_keeps_words_it_could_not_align` → "we shipped units" |
 | PIPE-08 | STM `<label>` field parsed out; NIST pseudo-speakers dropped (`formats.py`, `meeting.py`) | `test_import_stm_drops_the_nist_label_field` → speakers `['alice', 'inter_segment_gap']`; `test_parse_stm_separates_the_nist_label_field` |
@@ -1105,3 +1103,116 @@ SpeechBrain loaded.
   turns: 0.5192). Calibration and test results are from 29 Sep. Without it, 0.4967 at 0.55: one speaker on 8 of 16 meetings, 4–5
   on 5. The hinted result suggests that the speaker-count estimate, not the
   embeddings, is what limits it ([`docs/v5-test-split.md`](v5-test-split.md) §7).
+
+### 11.10 `whisper-sherpa-ecapa`: sherpa's speaker count, ECAPA's turns (2026-09-29)
+
+**Why.** On AMI the two diarizers fail in opposite ways. sherpa-onnx at the
+dev-calibrated `cluster_threshold` 1.15 gets the speaker count right on 10 of 16
+test meetings but confuses speakers for 0.42 of the reference time.
+`embedding-cluster`'s ECAPA clustering confuses speakers for 0.11 when told the
+count, but its own count collapses to one speaker on half the meetings
+([`docs/v5-test-split.md`](v5-test-split.md) §5, §7). `whisper-sherpa-ecapa`
+takes the count from sherpa-onnx and the turns from the ECAPA clustering
+(`SherpaCountedEmbeddingDiarizer`, `pipeline/whisper_sherpa.py`), and assigns
+`whisper-sherpa`'s words to those turns. With a `num_speakers` hint, sherpa-onnx
+is not run.
+
+**Chosen on the dev split.** The idea came from test results (§11.9), so it was
+first checked on the 18 dev meetings without a hint
+(`scripts/check-sherpa-ecapa-dev.py`, `build/v5-calib/whisper-sherpa-ecapa/`):
+
+| turns | macro DER | confusion | reference-word cpWER |
+|---|---:|---:|---:|
+| sherpa count + ECAPA turns | 0.4314 | 0.1959 | 0.6145 |
+| ECAPA alone (0.55) | 0.5295 | 0.2954 | 0.8828 |
+| sherpa alone (1.15, `latest_start`) | 0.5431 | 0.4520 | 0.9344 |
+
+The reference-word cpWER is the tie-break stage's proxy (§11.8): the dev
+reference words attributed to each system's turns, so ASR errors do not enter.
+The ECAPA turns do not overlap, so the tie-break hardly matters: `floor` and
+`latest_start` give the same 0.6145, and the default `floor` is kept. The
+system's defaults are `cluster_threshold` 1.15 and `floor`; nothing was chosen
+on test.
+
+**Test split (real runs, `scripts/run-v5.sh`, `build/v5-test/`).** All 16
+meetings, macro, evals defaults:
+
+| system | DER | confusion | JER | cpWER | tcpWER | WER | speaker-count error |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `whisper-sherpa-ecapa`, no hint | 0.4104 | 0.1071 | 0.5391 | 0.5132 | 0.5297 | 0.3221 | −0.31 |
+| `whisper-sherpa-ecapa`, hint | 0.3965 | 0.0925 | 0.4968 | 0.4821 | 0.4994 | 0.3221 | 0.00 |
+| `whisper-sherpa`, calibrated, no hint (§11.8) | 0.6472 | 0.3421 | 0.7508 | 0.8428 | 0.9628 | 0.3221 | −0.31 |
+
+The words are the same as `whisper-sherpa`'s; only their speakers change, and
+cpWER is lower on all 16 meetings. The ECAPA turns alone score DER 0.3896.
+`ami-headset` (DER ≤ 0.20, cpWER ≤ 0.30) still fails. The regression gate
+`ami-test-whisper-sherpa-ecapa` records this run.
+
+**Real runs equal the replay.** The dev check and a first test measurement
+replayed cached ECAPA embeddings. All 32 real runs (16 meetings, with and
+without the hint) produced segments identical to the replay. The no-hint runs
+decoded their speech afresh (`run-v5.sh` passed the ASR cache only to
+`whisper-sherpa` until then) and still gave the cached transcripts word for
+word: ASR is repeatable on all 16 test meetings. Their RTF was 0.26–0.38 on the
+8 GB M1, most of it the ASR (46–62 % of each run) and about a third sherpa's
+counting pass (28–44 %). The 16 hinted runs were repeated on 30 Sep, from the
+cached transcript, so that they record `num_speakers_hint` and `hint_honoured`
+(added after the first runs); the repeat was identical and ran at RTF 0.023–0.035.
+
+**Where it runs.** It needs faster-whisper, sherpa-onnx, torch and SpeechBrain
+in one environment (`.venv-pyannote`, git-ignored; `requirements/pyannote.txt`, which pins the
+versions it ran with). Its hypotheses have the `whisper-sherpa` layout, so
+`scripts/run-v5.sh` scores it like `whisper-sherpa`, derived views included.
+
+### 11.11 pyannote.audio against its real model (2026-09-29)
+
+**Access.** pyannote's pipelines are gated on Hugging Face. They ran with the
+owner's token, read from `$HF_TOKEN` and never written to the repository.
+`pyannote.audio` 4.0.7 in `.venv-pyannote` (`requirements/pyannote.txt`) loads
+`pyannote/speaker-diarization-community-1` (CC BY 4.0; revision `3533c8cf`,
+32.8 MB). The adapters record that revision and the sha256 of every file of the
+cached snapshot (`hf_snapshot_provenance`).
+
+**Telemetry off.** pyannote.audio 4 sends usage traces to `otel.pyannote.ai` unless
+`PYANNOTE_METRICS_ENABLED` is false when it is first imported. The adapters set it
+when `pipeline.adapters` is imported, before the registry's availability checks
+import pyannote. pyannote.audio writes its own default ("true") into the variable on
+import and reads it on every call, so the adapters set it false again unless the user set
+it before pyannote.audio was imported
+(`test_importing_the_pipeline_package_turns_pyannote_telemetry_off_first`). Every
+run here had it false.
+
+**GPU.** On one 14-minute AMI meeting (IS1009a), pyannote took 792.85 s on the CPU
+(RTF 0.95) and 168.93 s on the M1 GPU through MPS (RTF 0.20), with identical turns (252
+of 252; `build/v5-test/pyannote-device-check/`: both logs and hypotheses).
+`faster-whisper+pyannote` therefore takes `diarization_device=mps` for pyannote
+while its transcriber stays on the CPU (CTranslate2 has no MPS backend).
+`pyannote-audio` takes `device=mps`.
+
+**Test split** (all 16 AMI test meetings, no hint, macro, evals defaults;
+`build/v5-test/reports/ami/whisper-pyannote.json`, `pyannote-audio.json`):
+
+| system | DER | confusion | miss | JER | cpWER | tcpWER | WER | speaker-count error |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `pyannote-audio` (overlap-aware output, no ASR) | 0.1295 | 0.0295 | 0.0755 | 0.1773 | n/a | n/a | n/a | +0.25 |
+| `faster-whisper+pyannote` (words on the exclusive turns) | 0.3140 | 0.0121 | 0.2610 | 0.3358 | 0.3477 | 0.3562 | 0.3221 | +0.25 |
+| `whisper-sherpa-ecapa` (§11.10) | 0.4104 | 0.1071 | 0.2624 | 0.5391 | 0.5132 | 0.5297 | 0.3221 | −0.31 |
+
+* **pyannote's own turns meet the DER half of the V5 target** (≤ 0.20). With the
+  words attached, the word runs miss speech (0.26), as for every word-level system
+  here, and DER rises to 0.3140. Its speaker confusion is 0.012.
+* **cpWER is 0.3477**, just above the transcript's WER (0.3221), and at or under
+  0.30 on 5 of 16 meetings. The remaining error is the transcript. Suite
+  `ami-headset` still fails for `faster-whisper+pyannote`.
+* **The harness agrees with pyannote's published number.** Its model card reports
+  17.0 % DER for community-1 on AMI (IHM, "no forgiveness collar, nor skipping
+  overlapping speech"). Here, at collar 0 with overlap scored, the pooled DER over
+  the 16 test meetings is 17.07 % (macro 16.93 %).
+* **Training data.** The community-1 card reports AMI benchmarks but does not list its
+  training data. Its segmentation model is pyannote segmentation-3.0, also the
+  segmentation model in `whisper-sherpa` (the card cites Plaquet & Bredin 2023 for it),
+  which was trained on data that includes AMI, per its model card. Whether the AMI test
+  meetings were held out cannot be checked here, so these numbers may be optimistic for
+  unseen rooms and speakers.
+* **Speed.** The GPU diarization ran at RTF 0.18–0.26 for `pyannote-audio`; with the
+  cached transcript, `faster-whisper+pyannote` ran at RTF 0.13–0.19.

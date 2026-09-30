@@ -1,0 +1,19 @@
+EN2002a [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3155  JER 0.3498
+EN2002b [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3125  JER 0.3542
+EN2002c [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.2735  JER 0.2856
+EN2002d [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.3392  JER 0.3718
+ES2004a [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.2247  JER 0.2581
+ES2004b [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.1582  JER 0.1663
+ES2004c [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.1639  JER 0.1748
+ES2004d [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.2374  JER 0.2836
+IS1009a [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.2270  JER 0.3654
+IS1009b [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.1711  JER 0.1776
+IS1009c [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.1134  JER 0.1274
+IS1009d [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.1916  JER 0.2754
+TS3003a [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.1780  JER 0.4057
+TS3003b [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.1309  JER 0.1427
+TS3003c [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.1470  JER 0.1453
+TS3003d [faster-whisper+pyannote:diarization-turns]  cpWER 1.0000  tcpWER 1.0000  DER 0.2414  JER 0.2843
+macro  n=16  cpWER 1.0000  tcpWER 1.0000  DER 0.2141  JER 0.2605
+micro  n=16  cpWER 1.0000  tcpWER 1.0000  DER 0.2228  JER 0.2601
+# exit 0

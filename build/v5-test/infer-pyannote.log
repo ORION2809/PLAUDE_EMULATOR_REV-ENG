@@ -1,0 +1,39 @@
+[run-v5] output root: build/v5-test
+[run-v5] ami / whisper-pyannote / EN2002a (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / EN2002b (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / EN2002c (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / EN2002d (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / ES2004a (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / ES2004b (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / ES2004c (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / ES2004d (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / IS1009a (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / IS1009b (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / IS1009c (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / IS1009d (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / TS3003a (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / TS3003b (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / TS3003c (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / whisper-pyannote / TS3003d (--param language=en --param cpu_threads=4 --param diarization_device=mps --param asr_cache=/Users/mivi/Desktop/plaud-harness/build/v5-test/asr-cache)
+[run-v5] ami / pyannote-audio / EN2002a (--param device=mps)
+[run-v5] ami / pyannote-audio / EN2002b (--param device=mps)
+[run-v5] ami / pyannote-audio / EN2002c (--param device=mps)
+[run-v5] ami / pyannote-audio / EN2002d (--param device=mps)
+[run-v5] ami / pyannote-audio / ES2004a (--param device=mps)
+[run-v5] ami / pyannote-audio / ES2004b (--param device=mps)
+[run-v5] ami / pyannote-audio / ES2004c (--param device=mps)
+[run-v5] ami / pyannote-audio / ES2004d (--param device=mps)
+[run-v5] ami / pyannote-audio / IS1009a (--param device=mps)
+[run-v5] ami / pyannote-audio / IS1009b (--param device=mps)
+[run-v5] ami / pyannote-audio / IS1009c (--param device=mps)
+[run-v5] ami / pyannote-audio / IS1009d (--param device=mps)
+[run-v5] ami / pyannote-audio / TS3003a (--param device=mps)
+[run-v5] ami / pyannote-audio / TS3003b (--param device=mps)
+[run-v5] ami / pyannote-audio / TS3003c (--param device=mps)
+[run-v5] ami / pyannote-audio / TS3003d (--param device=mps)
+[run-v5] hypotheses: build/v5-test/hyp/<dataset>/<system>/<meeting_id>/hyp.json
+[run-v5] logs:       build/v5-test/logs/<dataset>/<system>/<meeting_id>.log
+[run-v5] reports:    build/v5-test/reports/<dataset>/<system>[.collar0|.norm|.lifted*].{json,md,txt}
+[run-v5] gates:      build/v5-test/gates/<suite>.<dataset>.{json,txt}
+[run-v5] summary:    build/v5-test/summary.{md,json}
+exit=0
