@@ -26,6 +26,30 @@ func target(_ s: String) -> ComputeTarget {
 }
 
 var args = Array(CommandLine.arguments.dropFirst())
+
+// mivi-speech reassign <in.json> <out.json>: re-apply the word-to-speaker rule to a saved
+// result's words and turns (no models), so the Swift rule can be checked against Python.
+if args.first == "reassign", args.count == 3 {
+    do {
+        var doc = try JSONSerialization.jsonObject(with: Data(contentsOf: URL(fileURLWithPath: args[1]))) as! [String: Any]
+        let words = (doc["words"] as! [[String: Any]]).map {
+            Word(w: $0["w"] as! String, start: ($0["start"] as! NSNumber).doubleValue, end: ($0["end"] as! NSNumber).doubleValue)
+        }
+        let turns = (doc["turns"] as! [[String: Any]]).map {
+            Turn(start: ($0["start"] as! NSNumber).doubleValue, end: ($0["end"] as! NSNumber).doubleValue,
+                 speaker: ($0["speaker"] as! NSNumber).intValue)
+        }
+        doc["words"] = SpeakerAssignment.assign(words, turns: turns).map {
+            ["w": $0.w, "start": $0.start, "end": $0.end, "speaker": $0.speaker] as [String: Any]
+        }
+        try JSONSerialization.data(withJSONObject: doc, options: [.sortedKeys]).write(to: URL(fileURLWithPath: args[2]))
+        exit(0)
+    } catch {
+        FileHandle.standardError.write(Data("mivi-speech reassign: \(error)\n".utf8))
+        exit(1)
+    }
+}
+
 guard args.first == "transcribe", args.count >= 2 else { usage() }
 let input = URL(fileURLWithPath: args[1])
 args.removeFirst(2)

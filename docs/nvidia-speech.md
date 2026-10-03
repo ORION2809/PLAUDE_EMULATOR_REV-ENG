@@ -1,21 +1,24 @@
 # NVIDIA Nemotron vs the current speech stack: findings
 
-**Interim, as of 30 September 2026.** Branch `research/nvidia-nemotron`. The runs
-are still in progress (section 9). Numbers marked *partial* will change.
+**Interim, as of 3 October 2026.** Branch `research/nvidia-nemotron`. The runs
+are still in progress (section 9). Numbers marked *partial* will change. A Mac restart on
+30 September–3 October stopped the running jobs; everything below comes from runs that
+finished.
 
 ## 1. Summary
 
-**Accuracy: NVIDIA is ahead so far, on AMI.** On the 6 of 16 AMI test meetings
-finished so far:
+**Accuracy: NVIDIA is ahead on AMI, under the V5 target.** On 15 of the 16 AMI test
+meetings (all but TS3003d):
 
-| System | Macro cpWER |
-|---|---|
-| Nemotron 3.5 ASR + Nemotron 3 Diarization, NVIDIA runtime defaults | **0.353** |
-| Current best: faster-whisper `small.en` + pyannote community-1 | 0.397 |
+| System | Macro cpWER | Macro WER |
+|---|---|---|
+| Nemotron 3.5 ASR + Nemotron 3 Diarization, NVIDIA runtime defaults | **0.296** | **0.285** |
+| Current best: faster-whisper `small.en` + pyannote community-1 | 0.348 | 0.323 |
 
-Nemotron wins on all six meetings. AMI favours NVIDIA, because its diarizer trained on
-AMI train and dev (section 3). The held-out NOTSOFAR runs will decide whether the lead
-holds.
+Nemotron wins on all 15 meetings, and its cpWER is under the harness's V5 target of 0.30.
+AMI favours NVIDIA, because its diarizer trained on AMI train and dev (section 3). Only
+one held-out NOTSOFAR meeting has an NVIDIA result so far (section 5.2), so whether the
+lead holds on unseen meetings is still open.
 
 **Speed: too slow on a budget Android phone at NVIDIA's defaults.** Measured on a Mivi One
 (Snapdragon 4 Gen 2, CPU) with a 60 s clip:
@@ -113,29 +116,37 @@ cannot serve as held-out data for it.
 
 ## 4. Accuracy so far
 
-**Speaker-attributed transcripts.** *Partial:* EN2002a–d and ES2004a–b, harness protocol,
-no speaker count given.
+**Speaker-attributed transcripts.** *Partial:* 15 of 16 meetings (TS3003d missing),
+harness protocol, no speaker count given (`build/nvidia/partial-scores/`).
 
-| System | Macro cpWER | Macro WER | cpWER per meeting |
+| System | Macro cpWER | Macro WER |
+|---|---|---|
+| `nemotron` | **0.296** | **0.285** |
+| `faster-whisper+pyannote` | 0.348 | 0.323 |
+| `whisper-sherpa-ecapa` | 0.514 | 0.323 |
+| `whisper-sherpa` (calibrated) | 0.845 | 0.323 |
+
+cpWER per meeting, EN2002a–d, ES2004a–d, IS1009a–d, TS3003a–c:
+
+| System | cpWER per meeting |
+|---|---|
+| `nemotron` | 0.430 · 0.409 · 0.360 · 0.422 · 0.267 · 0.232 · 0.233 · 0.311 · 0.359 · 0.254 · 0.223 · 0.256 · 0.242 · 0.211 · 0.237 |
+| `faster-whisper+pyannote` | 0.464 · 0.481 · 0.399 · 0.465 · 0.296 · 0.277 · 0.293 · 0.377 · 0.372 · 0.314 · 0.257 · 0.304 · 0.282 · 0.317 · 0.316 |
+
+**Diarizers on their own turns.** Same 15 meetings, harness protocol.
+
+| Diarizer | DER | Missed speech | Speaker confusion |
 |---|---|---|---|
-| `nemotron` | **0.353** | **0.349** | 0.430 · 0.409 · 0.360 · 0.422 · 0.267 · 0.232 |
-| `faster-whisper+pyannote` | 0.397 | 0.374 | 0.464 · 0.481 · 0.399 · 0.465 · 0.296 · 0.277 |
-| `whisper-sherpa-ecapa` | 0.576 | 0.374 | 0.635 · 0.547 · 0.416 · 0.524 · 0.624 · 0.707 |
-| `whisper-sherpa` (calibrated) | 0.874 | 0.374 | 0.926 · 0.877 · 0.938 · 0.880 · 0.892 · 0.733 |
-
-**Diarizers on their own turns.** Same 6 meetings, harness protocol.
-
-| Diarizer | DER | Missed speech | False alarm | Speaker confusion |
-|---|---|---|---|---|
-| pyannote community-1 (overlap-aware) | **0.156** | 0.101 | 0.019 | 0.036 |
-| Nemotron 3 Diarization (runtime defaults) | 0.186 | 0.155 | 0.024 | **0.007** |
-| pyannote community-1 (exclusive turns) | 0.231 | 0.201 | 0.010 | 0.020 |
+| pyannote community-1 (overlap-aware) | **0.127** | 0.074 | 0.029 |
+| Nemotron 3 Diarization (runtime defaults) | 0.157 | 0.121 | **0.010** |
 
 - Nemotron's lead in cpWER has two sources:
-  - Better words: WER 0.349 against 0.374.
-  - Almost no speaker confusion. Its cpWER is only 0.005 above its WER, against 0.023 for
+  - Better words: WER 0.285 against 0.323.
+  - Almost no speaker confusion. Its cpWER is 0.011 above its WER, against 0.025 for
     Whisper + pyannote.
-- pyannote misses less speech, so its overall DER is lower.
+- pyannote misses less speech, so its turns score a lower DER.
+- The DER of Nemotron's *word runs* (0.466) is not comparable: its words are timed on
+  80 ms tokens, so the runs leave gaps that count as missed speech.
 - **Scoring protocol changes DER a lot.** Under NVIDIA's protocol, pyannote's DER over
   all 16 meetings is 34.7% (false alarm 24.9%). Under the harness protocol it is 13%.
   The forced-alignment references are cut tightly around words, and Nemotron was trained
@@ -187,9 +198,9 @@ with a 30 s cooldown between runs
 | Nemotron-EN ASR, 1.12 s context | **0.46** | 1 169 MB | 1.65 | **4 597 MB** |
 | Nemotron 3.5 ASR, defaults | 0.83 | 1 164 MB | 5.68 | **5 178 MB** |
 | Nemotron 3.5 ASR + speaker tags | 3.16 | 1 429 MB | 7.93 | 4 836 MB |
-| Nemotron 3 Diarization | 2.34 | 280 MB | pending | |
-| whisper.cpp `small.en` | 0.71 | 794 MB | pending | |
-| sherpa-onnx diarization | 0.34 | 297 MB | pending | |
+| Nemotron 3 Diarization | 2.34 | 280 MB | 2.29 | 251 MB |
+| whisper.cpp `small.en` | 0.71 | 794 MB | not run | |
+| sherpa-onnx diarization | 0.34 | 297 MB | not run | |
 
 - **Recordings under about 6.6 minutes blow up memory.** Below that length, NeMo-Speech.cpp
   recognises the whole file in one full-attention pass. Memory then grows with the square
@@ -197,6 +208,11 @@ with a 30 s cooldown between runs
   - Longer audio goes through the streaming runner, which holds memory at about 1.2 GB.
   - **So an app must always feed audio through the streaming API** (`nemo_speech_asr`
     streams, 1.12 s context), never the one-shot `recognize_f32` call used here.
+  - The speechbench NVIDIA engine now has that path (`stream=1`, and a live-session API
+    for the app). On the Mac (Metal) it was checked against the one-shot call on the same
+    6-minute NOTSOFAR meeting with Nemotron-EN at 1.12 s: WER 0.526 against 0.530, RTF
+    0.088 against 0.173, and 91% of the word sequence identical (`build/nvidia/stream-test/`).
+    Its memory on the phone is still to be measured.
 - **On long audio, NVIDIA's ASR beats whisper.cpp on this phone:** RTF 0.46 against 0.71.
   Nemotron's diarizer is the bottleneck: RTF 2.34, against 0.34 for sherpa-onnx.
 
@@ -227,6 +243,29 @@ inputs. The encoder ran in both AI Hub's default BURST mode and BALANCED mode.
   Gen 4 reference device.
 - **Accuracy on the NPU is not measured yet.** The NPU graphs are a different quantization
   from the CPU model (16-bit activations, calibrated on 3 clips).
+
+### 5.2 Accuracy of what the phone produced
+
+The phone's own outputs on the two whole meetings, scored with the harness
+([`research/nvidia/device_to_hyp.py`](../research/nvidia/device_to_hyp.py); results in
+`build/nvidia/device/MVNOE-Q5009EVT6804294/`):
+
+| On the phone | AMI IS1009a: cpWER | WER | NOTSOFAR MTG_32045 (far-field): cpWER | WER |
+|---|---|---|---|---|
+| Nemotron-EN 1.12 s + Nemotron 3 Diarization (harness rule) | **0.331** | **0.244** | 0.540 | 0.525 |
+| Nemotron 3.5 + Nemotron 3 Diarization (harness rule) | 0.351 | 0.287 | **0.537** | **0.509** |
+| Nemotron 3.5 with NVIDIA's own word speaker tags | 0.340 | 0.287 | 0.541 | 0.509 |
+| whisper.cpp `small.en` + sherpa-onnx (current stack on device) | 0.663 | 0.320 | not run | |
+
+On the Mac, the same IS1009a meeting scores 0.372 for `faster-whisper+pyannote` (the
+current best, which cannot run on a phone) and 0.359 for NVIDIA's defaults.
+
+- **On the phone, NVIDIA's stack halves the current on-device stack's cpWER** on AMI:
+  0.33 against 0.66. Most of the gap is speaker attribution: the WERs are 0.24 and 0.32.
+- **Far-field audio is much harder.** MTG_32045 is one table-device recording of 5
+  speakers. Every system's WER exceeds 0.50, and the calibrated `whisper-sherpa` on the
+  Mac scores cpWER 1.10 on it.
+- One meeting each; the full NOTSOFAR set (49 meetings) runs on the Mac.
 
 ## 6. Size and licences
 
@@ -339,7 +378,22 @@ targets iOS 17.
 - **The iPhone keeps the same trade-off:** third parties report a similar load wall of
   about 130 s on iOS. The M1's Neural Engine is the A14's (11 TOPS); on speed the M1 sits
   between the A16 and the A18 for Whisper workloads.
-- **Accuracy on AMI and NOTSOFAR is running** (`research/nvidia/apple/run_eval.sh`).
+- **First meeting scored** (AMI EN2002a, 35.7 min; the rest was stopped by the restart):
+
+  | System, same meeting | cpWER | WER |
+  |---|---|---|
+  | Apple engine (Nemotron-EN 1.12 s + Nemotron 3 Diarization `fast128`, Core ML) | **0.363** | **0.365** |
+  | NVIDIA runtime defaults on the Mac (`nemotron`) | 0.430 | 0.419 |
+  | `faster-whisper+pyannote` | 0.464 | 0.438 |
+
+  - Speed on that meeting: RTF 0.147 (ASR 0.132, diarization 0.016), footprint 71 MB.
+    Loading took 581 s (98 s ASR, 482 s diarizer: the Core ML compile of the diarizer was
+    not cached for this run).
+  - **The Swift and Python word-to-speaker rules disagreed on 6 of 5,513 words.** All six
+    were ties where two speakers' turns start in the same 10 ms frame. Python orders those
+    by turn end; the Swift port picked from an unordered dictionary. Fixed on 3 October
+    (`Transcript.swift`); a `mivi-speech reassign` re-run of the saved result now agrees
+    on every word, and the score above uses it.
 
 ## 9. Still running, and next
 

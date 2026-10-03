@@ -46,18 +46,19 @@ public enum SpeakerAssignment {
         let sorted = turns.sorted { ($0.start, $0.end) < ($1.start, $1.end) }
         return words.map { word in
             var overlap: [Int: Double] = [:]
-            var firstStart: [Int: Double] = [:]
             for t in sorted {
                 let o = min(word.end, t.end) - max(word.start, t.start)
-                if o > 0 {
-                    overlap[t.speaker, default: 0] += o
-                    if firstStart[t.speaker] == nil { firstStart[t.speaker] = t.start }
-                }
+                if o > 0 { overlap[t.speaker, default: 0] += o }
             }
             var out = word
             if let best = overlap.values.max() {
-                let tied = overlap.filter { $0.value >= best - 1e-9 }.map(\.key)
-                out.speaker = tied.min { firstStart[$0]! < firstStart[$1]! }!
+                // Walk the turns in (start, end) order and take the first overlapping one whose
+                // speaker is tied, exactly as SpeakerIndex does: two turns that start in the same
+                // frame are then ordered by end, never by dictionary order.
+                let tied = Set(overlap.filter { $0.value >= best - 1e-9 }.map(\.key))
+                out.speaker = sorted.first { t in
+                    tied.contains(t.speaker) && min(word.end, t.end) - max(word.start, t.start) > 0
+                }!.speaker
             } else {
                 out.speaker = sorted.min { gap(word, $0) < gap(word, $1) }!.speaker
             }
